@@ -170,8 +170,6 @@ class CFG(ast.NodeVisitor):
     def visit_While(self, node): 
         test = self.visit(node.test)
         body_stmts = self.stmt_star_handler(node.body)
-        if node.orelse:
-            orelse = self.visit(node.orelse)
 
         body_first = body_stmts[0]
         test.outgoing.append(body_first)
@@ -179,7 +177,22 @@ class CFG(ast.NodeVisitor):
         body_last = body_stmts[-1]
         body_last.outgoing.append(test)
 
-        return test
+        # last_nodes is used for making connections to the next node in the parent node
+        # this is handled in stmt_star_handler
+        last_nodes = list() 
+        last_nodes.append(body_last)
+        last_nodes.append(test)
+        
+        if node.orelse:
+            orelse_stmts = self.stmt_star_handler(node.orelse)
+            orelse_last = orelse_stmts[-1]
+            orelse_first = orelse_stmts[0]
+
+            test.outgoing.append(orelse_first)
+            last_nodes.append(orelse_last)
+
+
+        return (test,last_nodes)
         
 
     def visit_Compare(self, node):
