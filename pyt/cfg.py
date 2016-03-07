@@ -1,8 +1,8 @@
 import ast
 import inspect
 
-from label_visitor import LabelVisitor
-from vars_visitor import VarsVisitor
+from pyt.label_visitor import LabelVisitor
+from pyt.vars_visitor import VarsVisitor
 
 
 def generate_ast(path):
