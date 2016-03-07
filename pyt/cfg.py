@@ -15,7 +15,7 @@ def generate_ast(path):
 def print_CFG(CFG):
     print(inspect.stack()[1][3])
     for x, n in enumerate(CFG):
-        print('Node: ' + str(x) + ' ' + str(n))
+        print('Node: ' + str(x) + ' ' + str(CFG[n]))
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -55,7 +55,7 @@ class Node(object):
     
 
 class CFG(ast.NodeVisitor):
-    nodes = list()
+    nodes = dict()
 
     def create(self, ast):
         '''
@@ -146,7 +146,7 @@ class CFG(ast.NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        self.nodes.append(n)
+        self.nodes[n.label] = n
         
         return n
 
@@ -159,7 +159,7 @@ class CFG(ast.NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        self.nodes.append(n)
+        self.nodes[n.label] = n
 
         return n
 
@@ -189,7 +189,7 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
 
         n = Node(label.result, variables = vars.result)
-        self.nodes.append(n)
+        self.nodes[n.label] = n
 
         return n
 
@@ -205,6 +205,6 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
         
         n = Node(label.result, variables = vars.result)
-        self.nodes.append(n)
+        self.nodes[n.label] = n
                 
         return n
