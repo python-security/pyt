@@ -113,6 +113,20 @@ class Listener(NodeVisitor):
         
         return n
 
+    def visit_AugAssign(self, node):
+
+        label = LabelVisitor()
+        label.visit(node)
+
+        vars = VarsVisitor()
+        vars.visit(node)
+
+        n = Node(label.result,variables=vars.result)
+        CFG.append(n)
+        
+        print_CFG(CFG)
+        
+        return n
 
     def visit_While(self, node): 
         test = self.visit(node.test)
