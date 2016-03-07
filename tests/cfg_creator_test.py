@@ -15,7 +15,18 @@ class CFG_if_test(CFGTestCase):
 
     def setUp(self):
         self.cfg = CFG()
-        obj = parse('if x > 0:\n\tx += 1\n\tx+=2\nelif x==0:\n\tx+=3\nelse:\n\tx+=4\nx+=5')
+        obj = parse(
+'''
+if x > 0:
+    x += 1
+    x += 2
+elif x == 0:
+    x += 3
+else:
+    x += 4
+x += 5
+'''
+)
         self.cfg.create(obj)
         self.nodes = self.cfg.nodes
 
@@ -41,5 +52,4 @@ class CFG_if_test(CFGTestCase):
         self.assertInOutgoing(body_1, test)
         self.assertInOutgoing(next_stmt, body_1)
         self.assertInOutgoing(next_stmt, eliftest)
-        
         
