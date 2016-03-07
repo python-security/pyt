@@ -53,3 +53,42 @@ x += 5
         self.assertInOutgoing(next_stmt, body_1)
         self.assertInOutgoing(next_stmt, eliftest)
         
+
+
+class CFG_while_test(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+while x > 0:
+    x += 1
+    x += 2
+else:
+    x += 3
+    x += 4
+x += 5
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg.nodes
+
+    def test_if_first_if(self):
+        test = self.nodes['x > 0']
+        body_1 = self.nodes['x += 1']
+        body_2 = self.nodes['x += 2']
+        else_body_1 = self.nodes['x += 3']
+        else_body_2 = self.nodes['x += 4']
+        next_stmt = self.nodes['x += 5']
+        
+        self.assertInOutgoing(body_1, test)
+        self.assertInOutgoing(else_body_1, test)
+        self.assertInOutgoing(next_stmt, test)
+        
+        self.assertInOutgoing(body_2, body_1)
+        self.assertInOutgoing(test, body_2)
+        self.assertInOutgoing(next_stmt, body_2)
+
+        self.assertInOutgoing(else_body_2, else_body_1)
+        self.assertInOutgoing(next_stmt, else_body_2)
+        
