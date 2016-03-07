@@ -78,12 +78,16 @@ class CFG(ast.NodeVisitor):
         orelse_test = None
         
         if isinstance(orelse_node[0], ast.If):
-            body_last = self.stmt_star_handler(orelse_node[0].body)[-1] 
+            body_stmts = self.stmt_star_handler(orelse_node[0].body)
+            body_first = body_stmts[0]
+            body_last = body_stmts[-1]
             ref_to_parent_next_node.append(body_last)
 
             inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
             orelse_test =  self.visit(orelse_node[0].test)
             orelse_test.outgoing.append(inner_test)
+            orelse_test.outgoing.append(body_first)
+            
             ref_to_parent_next_node.append(orelse_test)
         else:
             stmts = self.stmt_star_handler(orelse_node)
