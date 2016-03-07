@@ -92,6 +92,9 @@ class Listener(NodeVisitor):
         return orelse_test # return for previous elif to refer to
     
     def stmt_star_handler(self, stmts):
+        '''handling of stmt* 
+
+        links all statements together in a list of statements, accounting for statements with multiple last nodes'''
         cfg_statements = list()
         
         for stmt in stmts:
@@ -100,9 +103,6 @@ class Listener(NodeVisitor):
 
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
             if isinstance(n,tuple): # case for if
-                print('her')
-                for x in n[1]:
-                    print(x)
                 for last in n[1]:# list of last nodes in ifs and elifs
                     last.outgoing.append(next_node)
             elif isinstance(next_node,tuple): # case for if
