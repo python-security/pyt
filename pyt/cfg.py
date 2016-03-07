@@ -1,14 +1,21 @@
-from ast import parse
-from ast import NodeVisitor
 import ast
+import inspect
+
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
-from pprint import pprint
-from inspect import stack
 
-file_name = 'example.py'
-obj = parse(open(file_name).read())
 
+def generate_ast(path):
+    '''Generates an Abstract Syntax Tree using the ast module.'''
+    
+    with open(path, 'r') as f:
+        return ast.parse(f.read())
+
+
+def print_CFG(CFG):
+    print(inspect.stack()[1][3])
+    for x, n in enumerate(CFG):
+        print('Node: ' + str(x) + ' ' + str(n))
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -45,23 +52,20 @@ class Node(object):
     
         variables = ' '.join(('variables: ', ' '.join(self.variables)))
         return ' '.join((label, outgoing, ingoing, variables))
-
-
-def print_CFG(CFG):
-    print(stack()[1][3])
-    for x, n in enumerate(CFG):
-        print('Node: ' + str(x) + ' ' + str(n))
-
     
-CFG = list()
 
-class Listener(NodeVisitor):
-    visit_all = False
+class CFG(ast.NodeVisitor):
+    nodes = list()
 
-    if visit_all:
-        def visit(self,node):
-            print(node.__class__.__name__)
-            self.generic_visit(node)
+    def create(self, ast):
+        '''
+        Creates a Control Flow Graph.
+
+        ast is an Abstract Syntax Tree generated with the ast module.
+        '''
+        
+        self.visit(ast)
+    
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
         ''' Handler for orelse nodes in If nodes. 
@@ -73,8 +77,8 @@ class Listener(NodeVisitor):
         
         orelse_test = None
         
-        if isinstance(orelse_node[0], ast.If): # 
-            body_last = self.stmt_star_handler(orelse_node[0].body)[-1] # 
+        if isinstance(orelse_node[0], ast.If):
+            body_last = self.stmt_star_handler(orelse_node[0].body)[-1] 
             ref_to_parent_next_node.append(body_last)
 
             inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
@@ -115,8 +119,6 @@ class Listener(NodeVisitor):
     def visit_Module(self, node):        
         self.stmt_star_handler(node.body)
 
-        print_CFG(CFG)
-
         
     def visit_If(self, node):
         test = self.visit(node.test)
@@ -144,9 +146,7 @@ class Listener(NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        CFG.append(n)
-        
-        print_CFG(CFG)
+        self.nodes.append(n)
         
         return n
 
@@ -159,10 +159,8 @@ class Listener(NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        CFG.append(n)
-        
-        print_CFG(CFG)
-        
+        self.nodes.append(n)
+
         return n
 
     def visit_While(self, node): 
@@ -176,8 +174,6 @@ class Listener(NodeVisitor):
         
         body_last = body_stmts[-1]
         body_last.outgoing.append(test)
-            
-        print_CFG(CFG)
 
         return test
         
@@ -193,9 +189,7 @@ class Listener(NodeVisitor):
         label.visit(node)
 
         n = Node(label.result, variables = vars.result)
-        CFG.append(n)
-
-        print_CFG(CFG)
+        self.nodes.append(n)
 
         return n
 
@@ -211,11 +205,6 @@ class Listener(NodeVisitor):
         label.visit(node)
         
         n = Node(label.result, variables = vars.result)
-        CFG.append(n)
-
-        print_CFG(CFG)
+        self.nodes.append(n)
                 
         return n
-
-
-Listener().visit(obj)
