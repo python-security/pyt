@@ -64,12 +64,20 @@ class Listener(NodeVisitor):
             self.generic_visit(node)
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
-        orelse_test = Node('this node should never exist in a CFG')
+        ''' Handler for orelse nodes in If nodes. 
         
-        if isinstance(orelse_node[0], ast.If):
-            body_last = self.stmt_star_handler(orelse_node[0].body)[-1]
+        orelse_node is a orelse node from the If.
+        This is either a list with one if, or a stmt*
+        
+        ref_to__parent_next_node is a list of nodes that need a reference to the next statement in the syntax tree'''
+        
+        orelse_test = None
+        
+        if isinstance(orelse_node[0], ast.If): # 
+            body_last = self.stmt_star_handler(orelse_node[0].body)[-1] # 
             ref_to_parent_next_node.append(body_last)
-            inner_test =self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
+
+            inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
             orelse_test =  self.visit(orelse_node[0].test)
             orelse_test.outgoing.append(inner_test)
             ref_to_parent_next_node.append(orelse_test)
