@@ -1,6 +1,10 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
 import unittest
-from label_visitor import LabelVisitor
 from ast import parse
+
+from pyt.label_visitor import LabelVisitor
 
 class LabelVisitorTestCase(unittest.TestCase):
     '''Baseclass for LabelVisitor tests'''
