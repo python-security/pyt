@@ -128,12 +128,8 @@ class Listener(NodeVisitor):
         last_nodes = list()
         last_nodes.append(body_last)
         if node.orelse:
-            #orelse_stmts = self.stmt_star_handler(node.orelse)
-            orelsetest = self.orelse_handler(node.orelse, last_nodes)
-            for n in last_nodes:
-                print(n)
-            test.outgoing.append(orelsetest)
-            #body_last = orelse_stmts[-1]
+            orelse_test = self.orelse_handler(node.orelse, last_nodes)
+            test.outgoing.append(orelse_test)
             
         test.outgoing.append(body_first)
 
