@@ -1,5 +1,6 @@
 from ast import parse
 from ast import NodeVisitor
+import ast
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
 from pprint import pprint
@@ -62,6 +63,26 @@ class Listener(NodeVisitor):
             print(node.__class__.__name__)
             self.generic_visit(node)
 
+    def orelse_handler(self, orelse_node, ref_to_parent_next_node):
+        orelse_test = Node('this node should never exist in a CFG')
+        
+        if isinstance(orelse_node[0], ast.If):
+            body_last = self.stmt_star_handler(orelse_node[0].body)[-1]
+            ref_to_parent_next_node.append(body_last)
+            inner_test =self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
+            orelse_test =  self.visit(orelse_node[0].test)
+            orelse_test.outgoing.append(inner_test)
+            ref_to_parent_next_node.append(orelse_test)
+        else:
+            stmts = self.stmt_star_handler(orelse_node)
+            first_stmt = stmts[0]
+            last_stmt = stmts[-1]
+            orelse_test = first_stmt
+            ref_to_parent_next_node.append(last_stmt)
+            
+
+        return orelse_test # return for previous elif to refer to
+    
     def stmt_star_handler(self, stmts):
         cfg_statements = list()
         
@@ -70,10 +91,13 @@ class Listener(NodeVisitor):
             cfg_statements.append(n)
 
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
-            if isinstance(n,tuple):
-                n[0].outgoing.append(next_node)
-                n[1].outgoing.append(next_node)
-            elif isinstance(next_node,tuple):
+            if isinstance(n,tuple): # case for if
+                print('her')
+                for x in n[1]:
+                    print(x)
+                for last in n[1]:# list of last nodes in ifs and elifs
+                    last.outgoing.append(next_node)
+            elif isinstance(next_node,tuple): # case for if
                 n.outgoing.append(next_node[0])
             else:
                 n.outgoing.append(next_node)
@@ -85,18 +109,27 @@ class Listener(NodeVisitor):
 
         print_CFG(CFG)
 
+        
     def visit_If(self, node):
         test = self.visit(node.test)
         body_stmts = self.stmt_star_handler(node.body)
-        if node.orelse:
-            orelse = self.visit(node.orelse)
-
+        
         body_first = body_stmts[0]
         body_last = body_stmts[-1]
+        
+        last_nodes = list()
+        last_nodes.append(body_last)
+        if node.orelse:
+            #orelse_stmts = self.stmt_star_handler(node.orelse)
+            orelsetest = self.orelse_handler(node.orelse, last_nodes)
+            for n in last_nodes:
+                print(n)
+            test.outgoing.append(orelsetest)
+            #body_last = orelse_stmts[-1]
             
         test.outgoing.append(body_first)
 
-        return (test,body_last)
+        return (test, last_nodes)
             
     def visit_Assign(self, node):
 
