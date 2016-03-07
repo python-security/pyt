@@ -7,6 +7,12 @@ class LabelVisitor(NodeVisitor):
         self.result = ' '.join((self.result,'='))
         self.visit(node.value)
 
+    def visit_AugAssign(self, node):
+        self.visit(node.target)
+        self.visit(node.op)
+        self.result = self.result + '='
+        self.visit(node.value)
+
     def visit_Compare(self,node):
         self.visit(node.left)
         for op,com in zip(node.ops,node.comparators):

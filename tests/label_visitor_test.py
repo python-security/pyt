@@ -21,6 +21,10 @@ class LabelVisitorTest(LabelVisitorTestCase):
         label = self.perform_labeling_on_expression('a = 1')
         self.assertEqual(label.result,'a = 1')
 
+    def test_augassign(self):
+        label = self.perform_labeling_on_expression('a +=2')
+        self.assertEqual(label.result,'a += 2')
+
     def test_compare(self):
         label = self.perform_labeling_on_expression('a > b')
         self.assertEqual(label.result,'a > b')
