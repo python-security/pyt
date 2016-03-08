@@ -22,7 +22,7 @@ class CFGTestCase(unittest.TestCase):
         This method assumes that no nodes in the code have the same label'''
         return {x.label: x for x in list}
 
-class CFG_if_test(CFGTestCase):
+class CFGIfTest(CFGTestCase):
 
     def setUp(self):
         self.cfg = CFG()
@@ -70,7 +70,7 @@ x += 5
         self.assertInOutgoing(next_stmt, eliftest)
 
 
-class CFG_while_test(CFGTestCase):
+class CFGWhileTest(CFGTestCase):
 
     def setUp(self):
         self.cfg = CFG()
