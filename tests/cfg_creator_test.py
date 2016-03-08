@@ -88,7 +88,7 @@ x += 5
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-    def test_if_first_if(self):
+    def test_while(self):
         test = self.nodes['x > 0']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
