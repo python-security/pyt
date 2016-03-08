@@ -20,7 +20,7 @@ def print_CFG(CFG):
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
-    def __init__(self, label, *, ingoing=None, outgoing=None, variables=None):
+    def __init__(self, label, ast_type, *, ingoing=None, outgoing=None, variables=None):
         if ingoing is None:
             self.ingoing = list()
         else:
@@ -37,9 +37,11 @@ class Node(object):
             self.variables = variables
             
         self.label = label
+        self.ast_type = ast_type
 
     def __str__(self):        
-        label = ' '.join(('Label: ',self.label))
+        label = ' '.join(('Label: ', self.label))
+        ast_type = ' '.join(('Type: ', self.ast_type))
         outgoing = ''
         ingoing = ''
         if self.outgoing is not None:
@@ -52,7 +54,7 @@ class Node(object):
             ingoing = ' '.join(('ingoing: ', '[]'))
     
         variables = ' '.join(('variables: ', ' '.join(self.variables)))
-        return ' '.join((label, outgoing, ingoing, variables))
+        return ' '.join((label, ast_type, outgoing, ingoing, variables))
     
 
 class CFG(ast.NodeVisitor):
@@ -150,7 +152,7 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        n = Node(label.result, variables = variables_visitor.result)
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
         
         return n
@@ -163,7 +165,7 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        n = Node(label.result, variables = variables_visitor.result)
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -207,7 +209,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        n = Node(label.result, variables = variables_visitor.result)
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -223,7 +225,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
         
-        n = Node(label.result, variables = variables_visitor.result)
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
                 
         return n
