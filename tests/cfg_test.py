@@ -23,6 +23,61 @@ class CFGTestCase(unittest.TestCase):
         This method assumes that no nodes in the code have the same label'''
         return {x.label: x for x in list}
 
+
+    
+class CFGForTest(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+for x in range(3):
+    print(x)
+    y += 1
+else:
+    print('Final: %s' % x)
+    print(y)
+x = 3
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+
+    def test_for(self):
+        for_node = self.nodes['for x in range(3)']
+        body_1 = self.nodes['print(x)']
+        body_2 = self.nodes['y += 1']
+        else_body_1 = self.nodes["print('Final: %s' % x)"]
+        else_body_2 = self.nodes['print(y)']
+        next_node = self.nodes['x = 3']
+
+        self.assertInOutgoing(next, else_body_2)
+        self.assertInOutgoing(else_body_2, else_body_1)
+        self.assertInOutgoing(else_body_1, for_node)
+        self.assertInOutgoing(else_body_1, body_2)
+        self.assertInOutgoing(body_2, body_1)
+        self.assertInOutgoing(body_1, for_node)
+        self.assertInOutgoing(for_node, body_2)
+
+            
+class CFGIfTest(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+for x in range(3):
+    print(x)
+else:
+    print('Final: %s' % x)
+x = 3
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+    
 class CFGIfTest(CFGTestCase):
 
     def setUp(self):
@@ -41,7 +96,7 @@ x += 5
 )
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
+    
     def test_if_first_if(self):
         test = self.nodes['x > 0']
         eliftest = self.nodes['x == 0']
