@@ -11,12 +11,12 @@ class CFGTestCase(unittest.TestCase):
     def assertInOutgoing(self, a, b):
         '''Assert that a is in b.outgoing'''
         self.assertIn(a,b.outgoing,
-                      '%s was NOT found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
+                      '\n%s was NOT found in the outgoing list of %s containing: ' % (a.label, b.label) + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
         
     def assertNotInOutgoing(self, a, b):
         '''Assert that a is in b.outgoing'''
         self.assertNotIn(a,b.outgoing,
-                         '%s was mistakenly found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
+                         '\n%s was mistakenly found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
         
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
