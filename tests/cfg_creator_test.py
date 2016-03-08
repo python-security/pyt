@@ -91,7 +91,6 @@ x += 5
         
         self.assertInOutgoing(body_1, test)
         self.assertInOutgoing(else_body_1, test)
-        self.assertInOutgoing(next_stmt, test)
         
         self.assertInOutgoing(body_2, body_1)
         self.assertInOutgoing(test, body_2)
@@ -99,4 +98,5 @@ x += 5
 
         self.assertInOutgoing(else_body_2, else_body_1)
         self.assertInOutgoing(next_stmt, else_body_2)
-        
+
+        self.assertNotInOutgoing(next_stmt, test)

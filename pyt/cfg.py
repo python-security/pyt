@@ -182,7 +182,6 @@ class CFG(ast.NodeVisitor):
         # this is handled in stmt_star_handler
         last_nodes = list() 
         last_nodes.append(body_last)
-        last_nodes.append(test)
         
         if node.orelse:
             orelse_stmts = self.stmt_star_handler(node.orelse)
