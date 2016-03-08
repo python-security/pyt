@@ -7,8 +7,8 @@ from ast import parse
 from pyt.vars_visitor import VarsVisitor
 
 
-class LabelVisitorTestCase(unittest.TestCase):
-    '''Baseclass for LabelVisitor tests'''
+class VarsVisitorTestCase(unittest.TestCase):
+    '''Baseclass for VarsVisitor tests'''
 
     def perform_vars_on_expression(self, expr):
         obj = parse(expr)
@@ -17,7 +17,7 @@ class LabelVisitorTestCase(unittest.TestCase):
 
         return vars
 
-class LabelVisitorTest(LabelVisitorTestCase):
+class VarsVisitorTest(VarsVisitorTestCase):
     def test_assign_var_and_num(self):
         vars = self.perform_vars_on_expression('a = 1')
         self.assertEqual(vars.result,['a'])
