@@ -4,7 +4,7 @@ import unittest
 from ast import parse
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, print_CFG
+from cfg import CFG, print_CFG, generate_ast
 
 
 class CFGTestCase(unittest.TestCase):
@@ -109,3 +109,20 @@ x += 5
         self.assertNotInOutgoing(next_stmt, body_1)
         self.assertNotInOutgoing(next_stmt, else_body_1)
 
+        
+class CFGStartExitNodeTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple.py')
+        self.cfg.create(tree)
+
+    def test_start(self):
+        start_node = self.cfg.nodes[0]
+        node = self.cfg.nodes[1]
+        exit_node = self.cfg.nodes[-1]
+
+        self.assertInOutgoing(node, start_node)
+        self.assertInOutgoing(exit_node, node)
+
+        self.assertEqual(start_node.ast_type, 'START')
+        self.assertEqual(exit_node.ast_type, 'EXIT')

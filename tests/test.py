@@ -4,7 +4,7 @@ from unittest import makeSuite
 
 from label_visitor_test import LabelVisitorTest
 from vars_visitor_test import VarsVisitorTest
-from cfg_test import CFGIfTest, CFGWhileTest
+from cfg_test import CFGIfTest, CFGWhileTest, CFGStartExitNodeTest
 
 
 test_suite = TestSuite()
@@ -14,7 +14,8 @@ tests = [
     LabelVisitorTest,
     VarsVisitorTest,
     CFGIfTest,
-    CFGWhileTest
+    CFGWhileTest,
+    CFGStartExitNodeTest
 ]
 
 for test in tests:
