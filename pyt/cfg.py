@@ -1,5 +1,4 @@
 import ast
-import inspect
 import collections
 
 from label_visitor import LabelVisitor
@@ -56,7 +55,6 @@ class Node(object):
 class CFG(ast.NodeVisitor):
     def print(self):
         '''Prints a CFG created by using the CFG class.'''
-        print(inspect.stack()[1][3])
         for x, n in enumerate(self.nodes):
             print('Node: ' + str(x) + ' ' + str(n))
 
