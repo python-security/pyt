@@ -134,7 +134,7 @@ class LabelVisitor(NodeVisitor):
         self.result += node.id
 
     def visit_Str(self,node):
-        self.result += node.s
+        self.result += "'" + node.s + "'"
 
 
     def __init__(self):
