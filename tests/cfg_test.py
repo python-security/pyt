@@ -24,6 +24,32 @@ class CFGTestCase(unittest.TestCase):
         return {x.label: x for x in list}
 
 
+
+class CFGGeneralTest(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+for x in range(3):
+    print(x)
+    y += 1
+else:
+    print('Final: %s' % x)
+    print(y)
+x = 3
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+    def test_print_cfg(self):
+        self.cfg.print()
+
+    def test_no_tuples(self):
+        for node in self.cfg.nodes:
+            for edge in zip(node.outgoing,node.ingoing):
+                self.assertIsInstance(edge, Node)
     
 class CFGForTest(CFGTestCase):
 

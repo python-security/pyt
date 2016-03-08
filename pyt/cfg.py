@@ -115,6 +115,11 @@ class CFG(ast.NodeVisitor):
 
         return orelse_test # return for previous elif to refer to
     
+    def flatten_cfg_statements(self, cfg_statements):
+        '''For use in stmt_star_handler. Flattens the cfg_statements list by eliminating tuples
+        The list now only contain the entry element of each statement'''
+        return [x[0] if isinstance(x, tuple) else x for x in cfg_statements]
+
     def stmt_star_handler(self, stmts):
         '''handling of stmt* 
 
@@ -133,9 +138,10 @@ class CFG(ast.NodeVisitor):
                 n.outgoing.append(next_node[0])
             else:
                 n.outgoing.append(next_node)
-
+                
+        cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
-            
+    
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
 
