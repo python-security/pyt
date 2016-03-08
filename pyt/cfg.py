@@ -1,5 +1,6 @@
 import ast
 import inspect
+import collections
 
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
@@ -17,7 +18,8 @@ def print_CFG(CFG):
     for x, n in enumerate(CFG.nodes):
         print('Node: ' + str(x) + ' ' + str(n))
 
-
+NodeInfo = collections.namedtuple('NodeInfo', 'label variables')
+        
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
     def __init__(self, label, ast_type, *, ingoing=None, outgoing=None, variables=None):
@@ -242,3 +244,12 @@ class CFG(ast.NodeVisitor):
         self.nodes.append(n)
                 
         return n
+
+    def visit_Name(self, node):
+        vars = VarsVisitor()
+        vars.visit(node)
+
+        label = LabelVisitor()
+        label.visit(node)
+
+        return NodeInfo(label.result, vars.result)
