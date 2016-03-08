@@ -11,6 +11,10 @@ class CFGTestCase(unittest.TestCase):
         '''Assert that a is in b.outgoing'''
         self.assertIn(a,b.outgoing)
 
+    def assertNotInOutgoing(self, a, b):
+        '''Assert that a is in b.outgoing'''
+        self.assertNotIn(a,b.outgoing)
+        
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
         This method assumes that no nodes in the code have the same label'''
