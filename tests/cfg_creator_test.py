@@ -100,3 +100,6 @@ x += 5
         self.assertInOutgoing(next_stmt, else_body_2)
 
         self.assertNotInOutgoing(next_stmt, test)
+        self.assertNotInOutgoing(next_stmt, body_1)
+        self.assertNotInOutgoing(next_stmt, else_body_1)
+
