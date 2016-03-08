@@ -4,7 +4,7 @@ import unittest
 from ast import parse
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, print_CFG, generate_ast
+from cfg import CFG, generate_ast
 
 
 class CFGTestCase(unittest.TestCase):
