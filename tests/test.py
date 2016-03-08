@@ -4,7 +4,7 @@ from unittest import makeSuite
 
 from label_visitor_test import LabelVisitorTest
 from vars_visitor_test import VarsVisitorTest
-from cfg_creator_test import CFGIfTest, CFGWhileTest
+from cfg_test import CFGIfTest, CFGWhileTest
 
 
 test_suite = TestSuite()
