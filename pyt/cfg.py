@@ -11,11 +11,12 @@ def generate_ast(path):
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
-
 def print_CFG(CFG):
+    '''Prints a CFG created by using the CFG class.'''
     print(inspect.stack()[1][3])
     for x, n in enumerate(CFG):
         print('Node: ' + str(x) + ' ' + str(CFG[n]))
+
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
