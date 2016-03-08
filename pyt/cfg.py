@@ -215,8 +215,8 @@ class CFG(ast.NodeVisitor):
     def visit_For(self, node):
         target = self.visit(node.target)
         iter = self.visit(node.iter)
-        print(iter)
-        for_node = Node("for " + target.label + " in " + iter.label)
+
+        for_node = Node("for " + target.label + " in " + iter.label, node.__class__.__name__)
         self.nodes.append(for_node)
         
         body_stmts = self.stmt_star_handler(node.body)
