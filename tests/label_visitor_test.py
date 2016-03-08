@@ -38,6 +38,11 @@ class LabelVisitorTest(LabelVisitorTestCase):
         label = self.perform_labeling_on_expression('a / b')
         self.assertEqual(label.result,'a / b')
 
+    def test_call_no_arg(self):
+        label = self.perform_labeling_on_expression('range()')
+        self.assertEqual(label.result,'range()')
+
+        
     def test_call_single_arg(self):
         label = self.perform_labeling_on_expression('range(5)')
         self.assertEqual(label.result,'range(5)')

@@ -42,11 +42,13 @@ class LabelVisitor(NodeVisitor):
     def visit_Call(self, node):
         self.visit(node.func)
         self.result += '('
-        for arg in range(len(node.args)-1):
-            self.visit(node.args[arg])
-            self.result += ', '
+
+        if node.args:
+            for arg in range(len(node.args)-1):
+                self.visit(node.args[arg])
+                self.result += ', '
             
-        self.visit(node.args[-1])
+            self.visit(node.args[-1])
             
         #keyword handling
 
