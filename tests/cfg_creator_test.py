@@ -9,17 +9,19 @@ from pyt.cfg import CFG, print_CFG
 class CFGTestCase(unittest.TestCase):
     def assertInOutgoing(self, a, b):
         '''Assert that a is in b.outgoing'''
-        self.assertIn(a,b.outgoing)
-
+        self.assertIn(a,b.outgoing,
+                      '%s was NOT found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
+        
     def assertNotInOutgoing(self, a, b):
         '''Assert that a is in b.outgoing'''
-        self.assertNotIn(a,b.outgoing)
+        self.assertNotIn(a,b.outgoing,
+                         '%s was mistakenly found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
         
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
         This method assumes that no nodes in the code have the same label'''
         return {x.label: x for x in list}
-        
+
 class CFG_if_test(CFGTestCase):
 
     def setUp(self):
@@ -45,11 +47,16 @@ x += 5
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
+
+        self.assertInOutgoing(test, test)
         
         self.assertInOutgoing(eliftest, test)
         self.assertInOutgoing(body_1, test)
         self.assertInOutgoing(body_2, body_1)
         self.assertInOutgoing(next_stmt, body_2)
+
+        self.assertNotInOutgoing(eliftest, body_2)
+        self.assertNotInOutgoing(eliftest, body_1)
         
     def test_if_elif(self):
         test = self.nodes['x == 0']
