@@ -10,6 +10,11 @@ class CFGTestCase(unittest.TestCase):
     def assertInOutgoing(self, a, b):
         '''Assert that a is in b.outgoing'''
         self.assertIn(a,b.outgoing)
+
+    def cfg_list_to_dict(self, list):
+        '''This method converts the CFG list to a dict, making it easier to find nodes to test.
+        This method assumes that no nodes in the code have the same label'''
+        return {x.label: x for x in list}
         
 class CFG_if_test(CFGTestCase):
 
@@ -28,7 +33,7 @@ x += 5
 '''
 )
         self.cfg.create(obj)
-        self.nodes = self.cfg.nodes
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
     def test_if_first_if(self):
         test = self.nodes['x > 0']
@@ -52,7 +57,6 @@ x += 5
         self.assertInOutgoing(body_1, test)
         self.assertInOutgoing(next_stmt, body_1)
         self.assertInOutgoing(next_stmt, eliftest)
-        
 
 
 class CFG_while_test(CFGTestCase):
@@ -71,7 +75,7 @@ x += 5
 '''
 )
         self.cfg.create(obj)
-        self.nodes = self.cfg.nodes
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
     def test_if_first_if(self):
         test = self.nodes['x > 0']
