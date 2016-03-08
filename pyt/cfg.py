@@ -211,7 +211,39 @@ class CFG(ast.NodeVisitor):
 
 
         return (test,last_nodes)
+
+    def visit_For(self, node):
+        target = self.visit(node.target)
+        iter = self.visit(node.iter)
+        print(iter)
+        for_node = Node("for " + target.label + " in " + iter.label)
+        self.nodes.append(for_node)
         
+        body_stmts = self.stmt_star_handler(node.body)
+
+        body_first = body_stmts[0]
+        for_node.outgoing.append(body_first)
+        
+        body_last = body_stmts[-1]
+        body_last.outgoing.append(for_node)
+
+        # last_nodes is used for making connections to the next node in the parent node
+        # this is handled in stmt_star_handler
+        last_nodes = list() 
+        last_nodes.append(body_last)
+        
+        if node.orelse:
+            orelse_stmts = self.stmt_star_handler(node.orelse)
+            orelse_last = orelse_stmts[-1]
+            orelse_first = orelse_stmts[0]
+
+            for_node.outgoing.append(orelse_first)
+            body_last.outgoing.append(orelse_first)
+            last_nodes.append(orelse_last)
+
+
+        return (for_node,last_nodes)
+
 
     def visit_Compare(self, node):
         
