@@ -15,7 +15,7 @@ def print_CFG(CFG):
     '''Prints a CFG created by using the CFG class.'''
     print(inspect.stack()[1][3])
     for x, n in enumerate(CFG):
-        print('Node: ' + str(x) + ' ' + str(CFG[n]))
+        print('Node: ' + str(x) + ' ' + str(n))
 
 
 class Node(object):
@@ -56,7 +56,7 @@ class Node(object):
     
 
 class CFG(ast.NodeVisitor):
-    nodes = dict()
+    nodes = list()
 
     def create(self, ast):
         '''
@@ -151,7 +151,7 @@ class CFG(ast.NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        self.nodes[n.label] = n
+        self.nodes.append(n)
         
         return n
 
@@ -164,7 +164,7 @@ class CFG(ast.NodeVisitor):
         vars.visit(node)
 
         n = Node(label.result,variables=vars.result)
-        self.nodes[n.label] = n
+        self.nodes.append(n)
 
         return n
 
@@ -207,7 +207,7 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
 
         n = Node(label.result, variables = vars.result)
-        self.nodes[n.label] = n
+        self.nodes.append(n)
 
         return n
 
@@ -223,6 +223,6 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
         
         n = Node(label.result, variables = vars.result)
-        self.nodes[n.label] = n
+        self.nodes.append(n)
                 
         return n
