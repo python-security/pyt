@@ -48,8 +48,6 @@ x += 5
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
 
-        self.assertInOutgoing(test, test)
-        
         self.assertInOutgoing(eliftest, test)
         self.assertInOutgoing(body_1, test)
         self.assertInOutgoing(body_2, body_1)
