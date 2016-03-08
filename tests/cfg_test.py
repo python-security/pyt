@@ -59,24 +59,6 @@ x = 3
         self.assertInOutgoing(body_2, body_1)
         self.assertInOutgoing(body_1, for_node)
         self.assertInOutgoing(for_node, body_2)
-
-            
-class CFGIfTest(CFGTestCase):
-
-    def setUp(self):
-        self.cfg = CFG()
-        obj = parse(
-'''
-for x in range(3):
-    print(x)
-else:
-    print('Final: %s' % x)
-x = 3
-'''
-)
-        self.cfg.create(obj)
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
     
 class CFGIfTest(CFGTestCase):
 
