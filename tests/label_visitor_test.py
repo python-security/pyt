@@ -26,10 +26,22 @@ class LabelVisitorTest(LabelVisitorTestCase):
         label = self.perform_labeling_on_expression('a +=2')
         self.assertEqual(label.result,'a += 2')
 
-    def test_compare(self):
+    def test_compare_simple(self):
         label = self.perform_labeling_on_expression('a > b')
         self.assertEqual(label.result,'a > b')
 
+    def test_compare_multi(self):
+        label = self.perform_labeling_on_expression('a > b > c')
+        self.assertEqual(label.result,'a > b > c')
+        
     def test_binop(self):
         label = self.perform_labeling_on_expression('a / b')
         self.assertEqual(label.result,'a / b')
+
+    def test_call_single_arg(self):
+        label = self.perform_labeling_on_expression('range(5)')
+        self.assertEqual(label.result,'range(5)')
+
+    def test_call_multi_arg(self):
+        label = self.perform_labeling_on_expression('range(1,5)')
+        self.assertEqual(label.result,'range(1, 5)')
