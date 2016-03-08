@@ -15,7 +15,7 @@ tests = [
     VarsVisitorTest,
     CFGIfTest,
     CFGWhileTest,
-    CFGStartExitNodeTest
+    CFGStartExitNodeTest,
     CFGForTest
 ]
 
