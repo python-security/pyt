@@ -206,6 +206,7 @@ class CFG(ast.NodeVisitor):
             orelse_first = orelse_stmts[0]
 
             test.outgoing.append(orelse_first)
+            body_last.outgoing.append(orelse_first)
             last_nodes.append(orelse_last)
 
 
