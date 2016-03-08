@@ -147,10 +147,10 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        vars = VarsVisitor()
-        vars.visit(node)
+        variables_visitor = VarsVisitor()
+        variables_visitor.visit(node)
 
-        n = Node(label.result,variables=vars.result)
+        n = Node(label.result, variables = variables_visitor.result)
         self.nodes.append(n)
         
         return n
@@ -160,10 +160,10 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        vars = VarsVisitor()
-        vars.visit(node)
+        variables_visitor = VarsVisitor()
+        variables_visitor.visit(node)
 
-        n = Node(label.result,variables=vars.result)
+        n = Node(label.result, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -197,15 +197,17 @@ class CFG(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         
-        vars = VarsVisitor()
+        variables_visitor = VarsVisitor()
+        
         for i in node.comparators:
-            vars.visit(i)
-        vars.visit(node.left)
+            variables_visitor.visit(i)
+            
+        variables_visitor.visit(node.left)
 
         label = LabelVisitor()
         label.visit(node)
 
-        n = Node(label.result, variables = vars.result)
+        n = Node(label.result, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -215,13 +217,13 @@ class CFG(ast.NodeVisitor):
     
     def visit_Call(self, node):
 
-        vars = VarsVisitor()
-        vars.visit(node)
+        variables_visitor = VarsVisitor()
+        variables_visitor.visit(node)
 
         label = LabelVisitor()
         label.visit(node)
         
-        n = Node(label.result, variables = vars.result)
+        n = Node(label.result, variables = variables_visitor.result)
         self.nodes.append(n)
                 
         return n
