@@ -52,7 +52,7 @@ x = 3
         else_body_2 = self.nodes['print(y)']
         next_node = self.nodes['x = 3']
 
-        self.assertInOutgoing(next, else_body_2)
+        self.assertInOutgoing(next_node, else_body_2)
         self.assertInOutgoing(else_body_2, else_body_1)
         self.assertInOutgoing(else_body_1, for_node)
         self.assertInOutgoing(else_body_1, body_2)
@@ -138,10 +138,12 @@ x += 5
         self.assertInOutgoing(body_2, body_1)
         self.assertInOutgoing(test, body_2)
         self.assertInOutgoing(next_stmt, body_2)
+        self.assertInOutgoing(else_body_1, body_2)
 
         self.assertInOutgoing(else_body_2, else_body_1)
         self.assertInOutgoing(next_stmt, else_body_2)
 
+        #NOT IN
         self.assertNotInOutgoing(next_stmt, test)
         self.assertNotInOutgoing(next_stmt, body_1)
         self.assertNotInOutgoing(next_stmt, else_body_1)
