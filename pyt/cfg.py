@@ -66,9 +66,20 @@ class CFG(ast.NodeVisitor):
 
         ast is an Abstract Syntax Tree generated with the ast module.
         '''
+
+        start_node = Node('Start node', 'START')
+        self.nodes.append(start_node)
         
-        self.visit(ast)
-    
+        module_statements = self.visit(ast)
+
+        first_node = module_statements[0]
+        start_node.outgoing.append(first_node)
+
+        exit_node = Node('Exit node', 'EXIT')
+        self.nodes.append(exit_node)
+        
+        last_node = module_statements[-1]
+        last_node.outgoing.append(exit_node)
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
         ''' Handler for orelse nodes in If nodes. 
@@ -123,8 +134,8 @@ class CFG(ast.NodeVisitor):
 
         return cfg_statements
             
-    def visit_Module(self, node):        
-        self.stmt_star_handler(node.body)
+    def visit_Module(self, node):
+        return self.stmt_star_handler(node.body)
 
         
     def visit_If(self, node):
