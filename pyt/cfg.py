@@ -58,8 +58,10 @@ class Node(object):
     
 
 class CFG(ast.NodeVisitor):
-    nodes = list()
 
+    def __init__(self):
+        self.nodes = list()
+        
     def create(self, ast):
         '''
         Creates a Control Flow Graph.
