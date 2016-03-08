@@ -1,10 +1,11 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
 import unittest
 from ast import parse
 
-from pyt.cfg import CFG, print_CFG
+sys.path.insert(0, os.path.abspath('../pyt'))
+from cfg import CFG, print_CFG
+
 
 class CFGTestCase(unittest.TestCase):
     def assertInOutgoing(self, a, b):

@@ -1,10 +1,10 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
 import unittest
 from ast import parse
 
-from pyt.vars_visitor import VarsVisitor
+sys.path.insert(0, os.path.abspath('../pyt'))
+from vars_visitor import VarsVisitor
 
 
 class VarsVisitorTestCase(unittest.TestCase):
