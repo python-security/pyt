@@ -240,6 +240,8 @@ class CFG(ast.NodeVisitor):
             test.connect(orelse_first)
             body_last.connect(orelse_first)
             last_nodes.append(orelse_last)
+        else:
+            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
 
         return ControlFlowNode(test, last_nodes)
     

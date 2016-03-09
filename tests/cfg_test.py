@@ -68,7 +68,7 @@ x = 3
     
 class CFGForTest(CFGTestCase):
 
-    def setUp(self):
+    def test_for_complete(self):
         self.cfg = CFG()
         obj = parse(
 '''
@@ -84,8 +84,6 @@ x = 3
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-
-    def test_for(self):
         for_node = self.nodes['for x in range(3)']
         body_1 = self.nodes['print(x)']
         body_2 = self.nodes['y += 1']
@@ -100,7 +98,31 @@ x = 3
         self.assertConnected(body_1, body_2)
         self.assertConnected(for_node, body_1)
         self.assertConnected(body_2, for_node)
-    
+
+    def test_for_no_orelse(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+for x in range(3):
+    print(x)
+    y += 1
+x = 3
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        for_node = self.nodes['for x in range(3)']
+        body_1 = self.nodes['print(x)']
+        body_2 = self.nodes['y += 1']
+        next_node = self.nodes['x = 3']
+
+        self.assertInOutgoing(body_2, body_1)
+        self.assertInOutgoing(body_1, for_node)
+        self.assertInOutgoing(next_node, for_node)
+        self.assertInOutgoing(for_node, body_2)
+        self.assertInOutgoing(next_node, body_2)
+
 class CFGIfTest(CFGTestCase):
 
     def setUp(self):
@@ -149,7 +171,7 @@ x += 5
 
 class CFGWhileTest(CFGTestCase):
 
-    def setUp(self):
+    def test_while_complete(self):
         self.cfg = CFG()
         obj = parse(
 '''
@@ -165,7 +187,6 @@ x += 5
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-    def test_while(self):
         test = self.nodes['x > 0']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
@@ -188,6 +209,37 @@ x += 5
         self.assertNotConnected(test, next_stmt)
         self.assertNotConnected(body_1, next_stmt)
         self.assertNotConnected(else_body_1, next_stmt)
+
+    def test_while_no_orelse(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+while x > 0:
+    x += 1
+    x += 2
+x += 5
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        test = self.nodes['x > 0']
+        body_1 = self.nodes['x += 1']
+        body_2 = self.nodes['x += 2']
+        next_stmt = self.nodes['x += 5']
+        
+        self.assertInOutgoing(body_1, test)
+        self.assertInOutgoing(next_stmt, test)
+        
+        self.assertInOutgoing(body_2, body_1)
+        self.assertInOutgoing(test, body_2)
+        self.assertInOutgoing(next_stmt, body_2)
+
+        #NOT IN
+        self.assertNotInOutgoing(next_stmt, body_1)
+        self.assertNotInOutgoing(test, body_1)
+        self.assertNotInOutgoing(body_2, test)
+        self.assertNotInOutgoing(body_1, body_2)
 
         
 class CFGStartExitNodeTest(CFGTestCase):
