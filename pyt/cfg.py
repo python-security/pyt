@@ -41,7 +41,10 @@ class Node(object):
         successor.ingoing.append(self)
         
 
-    def __str__(self):        
+    def __str__(self):
+        return ' '.join(('Label: ', self.label))
+        
+    def __repr__(self):        
         label = ' '.join(('Label: ', self.label))
         ast_type = ' '.join(('Type: ', self.ast_type))
         outgoing = ''
@@ -60,14 +63,15 @@ class Node(object):
     
 
 class CFG(ast.NodeVisitor):
-    def print(self):
-        '''Prints a CFG created by using the CFG class.'''
-        for x, n in enumerate(self.nodes):
-            print('Node: ' + str(x) + ' ' + str(n))
-
     
     def __init__(self):
         self.nodes = list()
+
+    def print(self):
+        '''Prints a CFG created by using the CFG class.'''
+        for x, n in enumerate(self.nodes):
+            print('Node: ' + str(x) + ' ' + repr(n))
+
         
     def create(self, ast):
         '''
