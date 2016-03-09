@@ -8,16 +8,28 @@ from cfg import CFG, generate_ast, Node
 
 
 class CFGTestCase(unittest.TestCase):
-    def assertInOutgoing(self, a, b):
-        '''Assert that a is in b.outgoing'''
-        self.assertIn(a,b.outgoing,
-                      '\n%s was NOT found in the outgoing list of %s containing: ' % (a.label, b.label) + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
+    def assertConnected(self, node, successor):
+        '''Asserts that a node is connected to its successor.
+        This means that node has successor in its outgoing and
+        successor has node in its ingoing.'''
+
+        self.assertIn(successor, node.outgoing,
+                       '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
         
-    def assertNotInOutgoing(self, a, b):
-        '''Assert that a is in b.outgoing'''
-        self.assertNotIn(a,b.outgoing,
-                         '\n%s was mistakenly found in the outgoing list containing: ' % a.label + '[' + ', '.join([x.label for x in b.outgoing]) + ']')
+        self.assertIn(node, successor.ingoing,
+                       '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
+
+    def assertNotConnected(self, node, successor):
+        '''Asserts that a node is not connected to its successor.
+        This means that node does not the successor in its outgoing and
+        successor does not have the node in its ingoing.'''
+
+        self.assertNotIn(successor, node.outgoing,
+                       '\n%s was mistakenly found in the outgoing list containing: ' % successor.label + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
         
+        self.assertNotIn(node, successor.ingoing,
+                       '\n%s was mistakenly found in the ingoing list containing: ' % node.label + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
+
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
         This method assumes that no nodes in the code have the same label'''
@@ -78,13 +90,13 @@ x = 3
         else_body_2 = self.nodes['print(y)']
         next_node = self.nodes['x = 3']
 
-        self.assertInOutgoing(next_node, else_body_2)
-        self.assertInOutgoing(else_body_2, else_body_1)
-        self.assertInOutgoing(else_body_1, for_node)
-        self.assertInOutgoing(else_body_1, body_2)
-        self.assertInOutgoing(body_2, body_1)
-        self.assertInOutgoing(body_1, for_node)
-        self.assertInOutgoing(for_node, body_2)
+        self.assertConnected(else_body_2, next_node)
+        self.assertConnected(else_body_1, else_body_2)
+        self.assertConnected(for_node, else_body_1)
+        self.assertConnected(body_2, else_body_1)
+        self.assertConnected(body_1, body_2)
+        self.assertConnected(for_node, body_1)
+        self.assertConnected(body_2, for_node)
     
 class CFGIfTest(CFGTestCase):
 
@@ -112,13 +124,13 @@ x += 5
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
 
-        self.assertInOutgoing(eliftest, test)
-        self.assertInOutgoing(body_1, test)
-        self.assertInOutgoing(body_2, body_1)
-        self.assertInOutgoing(next_stmt, body_2)
+        self.assertConnected(test, eliftest)
+        self.assertConnected(test, body_1)
+        self.assertConnected(body_1, body_2)
+        self.assertConnected(body_2, next_stmt)
 
-        self.assertNotInOutgoing(eliftest, body_2)
-        self.assertNotInOutgoing(eliftest, body_1)
+        self.assertNotConnected(body_2, eliftest)
+        self.assertNotConnected(body_1, eliftest)
         
     def test_if_elif(self):
         test = self.nodes['x == 0']
@@ -126,10 +138,10 @@ x += 5
         body_1 = self.nodes['x += 3']
         next_stmt = self.nodes['x += 5']
 
-        self.assertInOutgoing(eliftest,test)
-        self.assertInOutgoing(body_1, test)
-        self.assertInOutgoing(next_stmt, body_1)
-        self.assertInOutgoing(next_stmt, eliftest)
+        self.assertConnected(test, eliftest)
+        self.assertConnected(test, body_1)
+        self.assertConnected(body_1, next_stmt)
+        self.assertConnected(eliftest, next_stmt)
 
 
 class CFGWhileTest(CFGTestCase):
@@ -158,21 +170,21 @@ x += 5
         else_body_2 = self.nodes['x += 4']
         next_stmt = self.nodes['x += 5']
         
-        self.assertInOutgoing(body_1, test)
-        self.assertInOutgoing(else_body_1, test)
+        self.assertConnected(test, body_1)
+        self.assertConnected(test, else_body_1)
         
-        self.assertInOutgoing(body_2, body_1)
-        self.assertInOutgoing(test, body_2)
-        self.assertInOutgoing(next_stmt, body_2)
-        self.assertInOutgoing(else_body_1, body_2)
+        self.assertConnected(body_1, body_2)
+        self.assertConnected(body_2, test)
+        self.assertConnected(body_2, next_stmt)
+        self.assertConnected(body_2, else_body_1)
 
-        self.assertInOutgoing(else_body_2, else_body_1)
-        self.assertInOutgoing(next_stmt, else_body_2)
+        self.assertConnected(else_body_1, else_body_2)
+        self.assertConnected(else_body_2, next_stmt)
 
         #NOT IN
-        self.assertNotInOutgoing(next_stmt, test)
-        self.assertNotInOutgoing(next_stmt, body_1)
-        self.assertNotInOutgoing(next_stmt, else_body_1)
+        self.assertNotConnected(test, next_stmt)
+        self.assertNotConnected(body_1, next_stmt)
+        self.assertNotConnected(else_body_1, next_stmt)
 
         
 class CFGStartExitNodeTest(CFGTestCase):
@@ -186,8 +198,8 @@ class CFGStartExitNodeTest(CFGTestCase):
         node = self.cfg.nodes[1]
         exit_node = self.cfg.nodes[-1]
 
-        self.assertInOutgoing(node, start_node)
-        self.assertInOutgoing(exit_node, node)
+        self.assertConnected(start_node, node)
+        self.assertConnected(node, exit_node)
 
         self.assertEqual(start_node.ast_type, 'START')
         self.assertEqual(exit_node.ast_type, 'EXIT')
