@@ -34,6 +34,13 @@ class Node(object):
         self.label = label
         self.ast_type = ast_type
 
+    def connect(self, successor):
+        '''Connects this node to its successor node by setting its outgoing and the successors ingoing.'''
+        
+        self.outgoing.append(successor)
+        successor.ingoing.append(self)
+        
+
     def __str__(self):        
         label = ' '.join(('Label: ', self.label))
         ast_type = ' '.join(('Type: ', self.ast_type))
@@ -75,13 +82,14 @@ class CFG(ast.NodeVisitor):
         module_statements = self.visit(ast)
 
         first_node = module_statements[0]
-        start_node.outgoing.append(first_node)
+        start_node.connect(first_node)
 
         exit_node = Node('Exit node', 'EXIT')
         self.nodes.append(exit_node)
         
         last_node = module_statements[-1]
-        last_node.outgoing.append(exit_node)
+        last_node.connect(exit_node)
+        
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
         ''' Handler for orelse nodes in If nodes. 
@@ -101,8 +109,8 @@ class CFG(ast.NodeVisitor):
 
             inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
             orelse_test =  self.visit(orelse_node[0].test)
-            orelse_test.outgoing.append(inner_test)
-            orelse_test.outgoing.append(body_first)
+            orelse_test.connect(inner_test)
+            orelse_test.connect(body_first)
             
             ref_to_parent_next_node.append(orelse_test)
         else:
@@ -133,11 +141,11 @@ class CFG(ast.NodeVisitor):
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
             if isinstance(n,tuple): # case for if
                 for last in n[1]:# list of last nodes in ifs and elifs
-                    last.outgoing.append(next_node)
+                    last.connect(next_node)
             elif isinstance(next_node,tuple): # case for if
-                n.outgoing.append(next_node[0])
+                n.connect(next_node[0])
             else:
-                n.outgoing.append(next_node)
+                n.connect(next_node)
                 
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
@@ -157,9 +165,9 @@ class CFG(ast.NodeVisitor):
         last_nodes.append(body_last)
         if node.orelse:
             orelse_test = self.orelse_handler(node.orelse, last_nodes)
-            test.outgoing.append(orelse_test)
+            test.connect(orelse_test)
             
-        test.outgoing.append(body_first)
+        test.connect(body_first)
 
         return (test, last_nodes)
             
@@ -193,10 +201,10 @@ class CFG(ast.NodeVisitor):
         body_stmts = self.stmt_star_handler(node.body)
 
         body_first = body_stmts[0]
-        test.outgoing.append(body_first)
+        test.connect(body_first)
         
         body_last = body_stmts[-1]
-        body_last.outgoing.append(test)
+        body_last.connect(test)
 
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
@@ -208,8 +216,8 @@ class CFG(ast.NodeVisitor):
             orelse_last = orelse_stmts[-1]
             orelse_first = orelse_stmts[0]
 
-            test.outgoing.append(orelse_first)
-            body_last.outgoing.append(orelse_first)
+            test.connect(orelse_first)
+            body_last.connect(orelse_first)
             last_nodes.append(orelse_last)
 
         return (test,last_nodes)
