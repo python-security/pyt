@@ -4,7 +4,7 @@ import unittest
 from ast import parse
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast
+from cfg import CFG, generate_ast, Node
 
 
 class CFGTestCase(unittest.TestCase):
@@ -48,7 +48,7 @@ x = 3
 
     def test_no_tuples(self):
         for node in self.cfg.nodes:
-            for edge in zip(node.outgoing,node.ingoing):
+            for edge in node.outgoing + node.ingoing:
                 self.assertIsInstance(edge, Node)
     
 class CFGForTest(CFGTestCase):
