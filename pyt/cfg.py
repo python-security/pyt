@@ -16,17 +16,10 @@ ControlFlowNode = collections.namedtuple('ControlFlowNode', 'test last_nodes')
         
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
-    def __init__(self, label, ast_type, *, ingoing=None, outgoing=None, variables=None):
-        if ingoing is None:
-            self.ingoing = list()
-        else:
-            self.ingoing = ingoing
-        
-        if outgoing is None:
-            self.outgoing = list()
-        else:
-            self.outgoing = outgoing
-            
+    def __init__(self, label, ast_type, *, variables=None):
+        self.ingoing = list()
+        self.outgoing = list()
+                    
         if variables is None:
             self.variables = list()
         else:
