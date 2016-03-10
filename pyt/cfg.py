@@ -12,6 +12,7 @@ def generate_ast(path):
         return ast.parse(f.read())
 
 NodeInfo = collections.namedtuple('NodeInfo', 'label variables')
+ControlFlowNode = collections.namedtuple('ControlFlowNode', 'test last_nodes')
         
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -173,7 +174,7 @@ class CFG(ast.NodeVisitor):
             
         test.connect(body_first)
 
-        return (test, last_nodes)
+        return ControlFlowNode(test, last_nodes)
             
     def visit_Assign(self, node):
 
@@ -224,14 +225,11 @@ class CFG(ast.NodeVisitor):
             body_last.connect(orelse_first)
             last_nodes.append(orelse_last)
 
-        return (test,last_nodes)
+        return ControlFlowNode(test, last_nodes)
     
     def visit_While(self, node):
         test = self.visit(node.test)
         return self.loop_node_skeleton(test, node)
-
-
-
 
     def visit_For(self, node):
         target = self.visit(node.target)
