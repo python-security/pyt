@@ -40,32 +40,49 @@ class Node(object):
         
     def __repr__(self):        
         label = ' '.join(('Label: ', self.label))
-        ast_type = ' '.join(('Type: ', self.ast_type))
+        ast_type = ' '.join(('Type:\t\t', self.ast_type))
         outgoing = ''
         ingoing = ''
         if self.outgoing is not None:
-            outgoing = ' '.join((' \toutgoing: ', str([x.label for x in self.outgoing])))
+            outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
         else:
-            outgoing = ' '.join((' \toutgoing: ', '[]'))
+            outgoing = ' '.join(('outgoing:\t', '[]'))
         if self.ingoing is not  None:
-            ingoing = ' '.join(('ingoing: ', str([x.label for x in self.ingoing])))
+            ingoing = ' '.join(('ingoing:\t', str([x.label for x in self.ingoing])))
         else:
-            ingoing = ' '.join(('ingoing: ', '[]'))
+            ingoing = ' '.join(('ingoing:\t', '[]'))
     
-        variables = ' '.join(('variables: ', ' '.join(self.variables)))
-        return ' '.join((label, ast_type, outgoing, ingoing, variables))
+        variables = ' '.join(('variables:\t', ' '.join(self.variables)))
+        return '\n'.join((label, ast_type, outgoing, ingoing, variables))
     
+class AssignmentNode(Node):
+    ''''''
+    def __init__(self, label, ast_type, left_hand_side, *, variables = None):
+        super(AssignmentNode, self).__init__(label, ast_type, variables = variables)
+        self.left_hand_side = left_hand_side
 
+    def __repr__(self):
+        output_string = super(AssignmentNode, self).__repr__()
+        output_string += '\n'
+        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
+    
 class CFG(ast.NodeVisitor):
     
     def __init__(self):
         self.nodes = list()
+        self.assignments = list()
 
-    def print(self):
-        '''Prints a CFG created by using the CFG class.'''
+    def __repr__(self):
+        output = ''
         for x, n in enumerate(self.nodes):
-            print('Node: ' + str(x) + ' ' + repr(n))
+            output = ''.join((output, 'Node: ' + str(x) + ' ' + repr(n), '\n\n'))
+        return output
 
+    def __str__(self):
+        output = ''
+        for x, n in enumerate(self.nodes):
+            output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
+        return output
         
     def create(self, ast):
         '''

@@ -55,8 +55,11 @@ x = 3
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-    def test_print_cfg(self):
-        self.cfg.print()
+    def test_repr_cfg(self):
+        print(repr(self.cfg))
+
+    def test_str_cfg(self):
+        print(self.cfg)
 
     def test_no_tuples(self):
         for node in self.cfg.nodes:
