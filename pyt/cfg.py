@@ -3,7 +3,7 @@ import collections
 
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
-
+from left_hand_side_vars_visitor import LHSVarsVisitor
 
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
@@ -177,7 +177,11 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        lhs_vars_visitor = LHSVarsVisitor()
+        for expr in node.targets:
+            lhs_vars_visitor.visit(expr)
+
+        n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
         
         return n
@@ -190,7 +194,10 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        lhs_vars_visitor = LHSVarsVisitor()
+        lhs_vars_visitor.visit(node.target)
+
+        n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
