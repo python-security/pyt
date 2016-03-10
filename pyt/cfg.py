@@ -195,8 +195,7 @@ class CFG(ast.NodeVisitor):
         variables_visitor.visit(node)
 
         lhs_vars_visitor = LHSVarsVisitor()
-        for expr in node.targets:
-            lhs_vars_visitor.visit(expr)
+        lhs_vars_visitor.visit(node)
 
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
@@ -212,7 +211,7 @@ class CFG(ast.NodeVisitor):
         variables_visitor.visit(node)
 
         lhs_vars_visitor = LHSVarsVisitor()
-        lhs_vars_visitor.visit(node.target)
+        lhs_vars_visitor.visit(node)
 
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
