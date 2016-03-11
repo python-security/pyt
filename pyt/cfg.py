@@ -70,7 +70,7 @@ class AssignmentNode(Node):
     def __repr__(self):
         output_string = super(AssignmentNode, self).__repr__()
         output_string += '\n'
-        return ''.join((output_string, 'left_hand_side:\t ', str(self.left_hand_side)))
+        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
     
 class CFG(ast.NodeVisitor):
     
