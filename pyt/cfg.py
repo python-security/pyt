@@ -28,6 +28,10 @@ class Node(object):
         self.label = label
         self.ast_type = ast_type
 
+        # Used by the Fixedpoint algorithm
+        self.old_constraint = set()
+        self.new_constraint = set()
+        
     def connect(self, successor):
         '''Connects this node to its successor node by setting its outgoing and the successors ingoing.'''
         
@@ -53,7 +57,9 @@ class Node(object):
             ingoing = ' '.join(('ingoing:\t', '[]'))
     
         variables = ' '.join(('variables:\t', ' '.join(self.variables)))
-        return '\n'.join((label, ast_type, outgoing, ingoing, variables))
+        old_constraint = 'Old constraint:\t ' + str(self.old_constraint)
+        new_constraint = 'New constraint:\t ' +  str(self.new_constraint)
+        return '\n'.join((label, ast_type, outgoing, ingoing, variables, old_constraint, new_constraint))
     
 class AssignmentNode(Node):
     ''''''
@@ -64,7 +70,7 @@ class AssignmentNode(Node):
     def __repr__(self):
         output_string = super(AssignmentNode, self).__repr__()
         output_string += '\n'
-        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
+        return ''.join((output_string, 'left_hand_side:\t ', str(self.left_hand_side)))
     
 class CFG(ast.NodeVisitor):
     
