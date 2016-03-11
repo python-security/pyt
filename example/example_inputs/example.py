@@ -8,5 +8,5 @@ while x > 1:
     if z > 0:
         x = x / 2
     z = z - 1
-
 print(x)
+# exit
