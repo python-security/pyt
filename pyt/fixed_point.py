@@ -19,7 +19,8 @@ def fixpointmethod(cfg_node):
     if isinstance(cfg_node, AssignmentNode):
         JOIN = join(cfg_node)
         arrow_result = arrow(JOIN, cfg_node.left_hand_side)
-        cfg_node.new_constraint = arrow_result.add(cfg_node)
+        arrow_result.add(cfg_node)
+        cfg_node.new_constraint = arrow_result
            
     elif cfg_node.ast_type == "START":
         cfg_node.new_constraint = set()
