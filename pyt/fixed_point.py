@@ -55,12 +55,12 @@ def fixpoint_iteration(cfg):
         fixpointmethod(node)
 
     
-
-tree = generate_ast('../example/example_inputs/example.py')
-cfg = CFG()
-cfg.create(tree)
-#print(repr(cfg))
-
-fixpoint_runner(cfg)
-#fixpoint_runner(cfg)
-#fixpoint_runner(cfg)
+if __name__ == '__main__':
+    tree = generate_ast('../example/example_inputs/example.py')
+    cfg = CFG()
+    cfg.create(tree)
+    
+    fixpoint_runner(cfg)
+    print(repr(cfg))
+    #fixpoint_runner(cfg)
+    #fixpoint_runner(cfg)
