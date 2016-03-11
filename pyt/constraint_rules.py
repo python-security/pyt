@@ -1,59 +1,65 @@
 import ast
-from cfg import Node, AssignmentNode
+from cfg import Node, AssignmentNode, CFG, generate_ast
 
-def join(fixpoint_constraint, cfg_node):
-    s = set()
-    for ingoing in cfg_node.ingoing(node):
-        cfg_node.old_constraint.join(ingoing.constraint)
-    return s
+def join(cfg_node):
+    JOIN = set()
+    for ingoing in cfg_node.ingoing:
+        JOIN |= ingoing.old_constraint
+    return JOIN
 
-
-def arrow(constraint_set, var):
-    for node in constraint_set:
-        if isinstance(node, AssignmentNode):
-            if var in node.left_hand_side:
-                constraint_set.remove(left_hand_side)
+def arrow(JOIN, _id):
+    result = set()
+    for cfg_node in JOIN:
+        if _id not in cfg_node.left_hand_side:
+            result.add(cfg_node)
+    return result
         
-def fixpointmethod(old_fixpoint_constraint, node):
-    if isinstance(node.ast_type, AssignmentNode):
-        j = join(node)
-        arrow(j, node.left_hand_side)
-        return j.join(node)
+def fixpointmethod(cfg_node):
+    # Assignment: JOIN(v) arrow(id) join(v)
+    if isinstance(cfg_node, AssignmentNode):
+        JOIN = join(cfg_node)
+        arrow_result = arrow(JOIN, cfg_node.left_hand_side)
+        cfg_node.new_constraint = arrow_result.add(cfg_node)
            
-    elif node.ast_type == "START":
-        return set()
+    elif cfg_node.ast_type == "START":
+        cfg_node.new_constraint = set()
 
-    elif node.ast_type == "EXIT":
-        return set()
+    elif cfg_node.ast_type == "EXIT":
+        cfg_node.new_constraint = set()
 
     else:
-        return FixpointConstraint(old_fixpoint_constraint.old_fixpoint,
-                                  join(fixpoint_constraint, node),
-                                  node)
+        # Default case join(v)
+        cfg_node.new_constraint = join(cfg_node)
 
+def constraints_changed(cfg):
+    for node in cfg.nodes:
+        if node.old_constraint is node.new_constraint:
+            return False
+    return True
 
-
-
-fixpoint = list()
+def swap_constraints(cfg):
+    for node in cfg.nodes:
+        node.old_constraint = node.new_constraint
+        node.new_constraint = None
 
 def fixpoint_runner(cfg):
-    fixpoint = list()
-    for x in range(len(cfg.nodes)):
-        fixpoint.append(None)
-
-    temp_fixpoint = fixpoint
-    fixpoint = fixpoint_iteration(cfg)
-    
-    while temp_fixpoint is not fixpoint:
-        temp_fixpoint = fixpoint
-        fixpoint = fixpoint_iteration(cfg)
+    fixpoint_iteration(cfg)
+    print(repr(cfg))
+    if constraints_changed(cfg):
+        swap_constraints(cfg)
+    print(repr(cfg))
         
 def fixpoint_iteration(cfg):
-    fixpoint = list()
-    for x in range(len(cfg.nodes)):
-        fixpoint.append(None)
-    
-    for i, cfg_node in enumerate(cfg.nodes):
-        fixpoint[i] = fixpointmethod(node)
-    return fixpoint
+    for node in cfg.nodes:
+        fixpointmethod(node)
 
+    
+
+tree = generate_ast('../example/example_inputs/example.py')
+cfg = CFG()
+cfg.create(tree)
+#print(repr(cfg))
+
+fixpoint_runner(cfg)
+#fixpoint_runner(cfg)
+#fixpoint_runner(cfg)
