@@ -5,6 +5,7 @@ def join(cfg_node):
     JOIN = set()
     for ingoing in cfg_node.ingoing:
         JOIN |= ingoing.old_constraint
+        print('inde i join ',JOIN)
     return JOIN
 
 def arrow(JOIN, _id):
@@ -45,10 +46,9 @@ def swap_constraints(cfg):
 
 def fixpoint_runner(cfg):
     fixpoint_iteration(cfg)
-    print(repr(cfg))
-    if constraints_changed(cfg):
+    while constraints_changed(cfg):
         swap_constraints(cfg)
-    print(repr(cfg))
+        fixpoint_iteration(cfg)
         
 def fixpoint_iteration(cfg):
     for node in cfg.nodes:
