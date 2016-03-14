@@ -10,7 +10,7 @@ def join(cfg_node):
 def arrow(JOIN, _id):
     result = set()
     for cfg_node in JOIN:
-        if _id not in cfg_node.left_hand_side:
+        if len(_id.intersection(cfg_node.left_hand_side)) > 0:
             result.add(cfg_node)
     return result
         
