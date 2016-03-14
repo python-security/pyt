@@ -34,9 +34,9 @@ def fixpointmethod(cfg_node):
 
 def constraints_changed(cfg):
     for node in cfg.nodes:
-        if node.old_constraint is node.new_constraint:
-            return False
-    return True
+        if node.old_constraint != node.new_constraint:
+            return True
+    return False
 
 def swap_constraints(cfg):
     for node in cfg.nodes:
