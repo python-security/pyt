@@ -48,6 +48,9 @@ class FixedPointTestCase(unittest.TestCase):
         self.assertIn(self.cfg.nodes[9], self.cfg.nodes[9].new_constraint)
         self.assertIn(self.cfg.nodes[9], self.cfg.nodes[10].new_constraint)
         self.assertIn(self.cfg.nodes[10], self.cfg.nodes[10].new_constraint)
+        self.assertIn(self.cfg.nodes[10], self.cfg.nodes[11].new_constraint)
 
-        for empty in [0, 11, 12]:
+        for empty in [0, 12]:
+            for x in self.cfg.nodes[empty].new_constraint:
+                print(x)
             self.assertEqual(self.cfg.nodes[empty].new_constraint, set())
