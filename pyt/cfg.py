@@ -194,6 +194,9 @@ class CFG(ast.NodeVisitor):
         if node.orelse:
             orelse_test = self.orelse_handler(node.orelse, last_nodes)
             test.connect(orelse_test)
+        else:
+            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
+
             
         test.connect(body_first)
 
