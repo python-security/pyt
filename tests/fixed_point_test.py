@@ -41,6 +41,7 @@ class FixedPointTestCase(unittest.TestCase):
         swap_constraints(self.cfg)
         fixpoint_iteration(self.cfg)
 
+
         self.assertInCfg([(1,1),
                           (2,2),
                           (2,3),(10,3),
@@ -52,4 +53,25 @@ class FixedPointTestCase(unittest.TestCase):
                           (9,9),
                           (9,10),(10,10),
                           (10,11)])
+        
+
+    def test_fixpoint_algorithm_third_iteration(self):
+        fixpoint_iteration(self.cfg)
+        swap_constraints(self.cfg)
+        fixpoint_iteration(self.cfg)
+        swap_constraints(self.cfg)
+        fixpoint_iteration(self.cfg)
+
+        
+        self.assertInCfg([(1,1),
+                          (2,2),
+                          (2,3),(9,3),(10,3),
+                          (2,4),(4,4),(10,4),
+                          (4,5),
+                          (4,6),(6,6),
+                          (4,7),(6,7),(7,7),
+                          (6,8),(7,8),
+                          (7,9),(9,9),
+                          (9,10),(10,10),
+                          (2,11),(9,11),(10,11)])
         
