@@ -5,7 +5,6 @@ def join(cfg_node):
     JOIN = set()
     for ingoing in cfg_node.ingoing:
         JOIN |= ingoing.old_constraint
-        print('inde i join ',JOIN)
     return JOIN
 
 def arrow(JOIN, _id):
@@ -61,6 +60,3 @@ if __name__ == '__main__':
     cfg.create(tree)
     
     fixpoint_runner(cfg)
-    print(repr(cfg))
-    #fixpoint_runner(cfg)
-    #fixpoint_runner(cfg)
