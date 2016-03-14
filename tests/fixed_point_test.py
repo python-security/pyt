@@ -21,14 +21,14 @@ class FixedPointTestCase(unittest.TestCase):
 
         connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
         for connection in connections:
-            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].new_constraint)
+            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].new_constraint, str(connection))
 
         nodes = len(self.cfg.nodes)
         
         for element in range(nodes):
             for sets in range(nodes):
                 if (element, sets) not in connections:
-                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].new_constraint)
+                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].new_constraint, str(connection))
         
     def test_fixpoint_algorithm_first_iteration(self):
         fixpoint_iteration(self.cfg)
