@@ -10,7 +10,7 @@ def join(cfg_node):
 def arrow(JOIN, _id):
     result = set()
     for cfg_node in JOIN:
-        if len(_id.intersection(cfg_node.left_hand_side)) > 0:
+        if len(_id.intersection(cfg_node.left_hand_side)) == 0: # if there is no intersection _id is not found in the LHS of cfg_node, the node will therefore not be deleted
             result.add(cfg_node)
     return result
         
