@@ -25,10 +25,10 @@ class CFGTestCase(unittest.TestCase):
         successor does not have the node in its ingoing.'''
 
         self.assertNotIn(successor, node.outgoing,
-                       '\n%s was mistakenly found in the outgoing list containing: ' % successor.label + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
+                       '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
         
         self.assertNotIn(node, successor.ingoing,
-                       '\n%s was mistakenly found in the ingoing list containing: ' % node.label + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
+                         '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
 
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
