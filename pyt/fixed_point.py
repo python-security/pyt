@@ -22,12 +22,6 @@ def fixpointmethod(cfg_node):
         arrow_result.add(cfg_node)
         cfg_node.new_constraint = arrow_result
            
-    elif cfg_node.ast_type == "START":
-        cfg_node.new_constraint = set()
-
-    elif cfg_node.ast_type == "EXIT":
-        cfg_node.new_constraint = set()
-
     else:
         # Default case join(v)
         cfg_node.new_constraint = join(cfg_node)
