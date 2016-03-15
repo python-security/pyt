@@ -94,10 +94,13 @@ x = 3
         self.assertConnected(else_body_2, next_node)
         self.assertConnected(else_body_1, else_body_2)
         self.assertConnected(for_node, else_body_1)
-        self.assertConnected(body_2, else_body_1)
         self.assertConnected(body_1, body_2)
         self.assertConnected(for_node, body_1)
         self.assertConnected(body_2, for_node)
+
+        #NOT IN
+        self.assertNotConnected(body_2, else_body_1)
+        self.assertNotConnected(body_2, next_node)
 
     def test_for_no_orelse(self):
         self.cfg = CFG()
@@ -121,7 +124,9 @@ x = 3
         self.assertConnected(for_node, body_1)
         self.assertConnected(for_node, next_node)
         self.assertConnected(body_2, for_node)
-        self.assertConnected(body_2, next_node)
+
+        # NOT IN
+        self.assertNotConnected(body_2, next_node)
 
 class CFGIfTest(CFGTestCase):
 
@@ -199,16 +204,16 @@ x += 5
         
         self.assertConnected(body_1, body_2)
         self.assertConnected(body_2, test)
-        self.assertConnected(body_2, next_stmt)
-        self.assertConnected(body_2, else_body_1)
 
         self.assertConnected(else_body_1, else_body_2)
         self.assertConnected(else_body_2, next_stmt)
 
         #NOT IN
+        self.assertNotConnected(body_2, else_body_1)
         self.assertNotConnected(test, next_stmt)
         self.assertNotConnected(body_1, next_stmt)
         self.assertNotConnected(else_body_1, next_stmt)
+        self.assertNotConnected(body_2, next_stmt)
 
     def test_while_no_orelse(self):
         self.cfg = CFG()
@@ -233,13 +238,13 @@ x += 5
         
         self.assertConnected(body_1, body_2)
         self.assertConnected(body_2, test)
-        self.assertConnected(body_2, next_stmt)
 
         #NOT IN
         self.assertNotConnected(body_1, next_stmt)
         self.assertNotConnected(body_1, test)
         self.assertNotConnected(test, body_2)
         self.assertNotConnected(body_2, body_1)
+        self.assertNotConnected(body_2, next_stmt)
 
         
         

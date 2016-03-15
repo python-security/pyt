@@ -246,7 +246,6 @@ class CFG(ast.NodeVisitor):
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
         last_nodes = list() 
-        last_nodes.append(body_last)
         
         if node.orelse:
             orelse_stmts = self.stmt_star_handler(node.orelse)
@@ -254,7 +253,6 @@ class CFG(ast.NodeVisitor):
             orelse_first = orelse_stmts[0]
 
             test.connect(orelse_first)
-            body_last.connect(orelse_first)
             last_nodes.append(orelse_last)
         else:
             last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
