@@ -6,7 +6,8 @@ from collections import namedtuple
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
-from fixed_point import fixpoint_iteration, swap_constraints
+from reaching_definitions import analyze_file
+from fixed_point import swap_constraints, fixpoint_iteration
 
 class FixedPointTest(unittest.TestCase):
     connection = namedtuple('connection', 'constraintset element')
