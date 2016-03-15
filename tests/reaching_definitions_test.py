@@ -6,8 +6,8 @@ from collections import namedtuple
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
-from reaching_definitions import analyze_file
-from fixed_point import swap_constraints, fixpoint_iteration
+from reaching_definitions import reaching_definitions_analysis
+from fixed_point import fixed_point_analysis
 
 class FixedPointTest(unittest.TestCase):
     connection = namedtuple('connection', 'constraintset element')
@@ -15,6 +15,7 @@ class FixedPointTest(unittest.TestCase):
         tree = generate_ast('../example/example_inputs/example.py')
         self.cfg = CFG()
         self.cfg.create(tree)
+        self.analysis = fixed_point_analysis(reaching_definitions_analysis)
 
     def assertInCfg(self, connections):
         ''' Assert that all connections in the connections list exists in the cfg,
@@ -34,8 +35,8 @@ class FixedPointTest(unittest.TestCase):
             
     def produce_iteration(self, iterationnumber):
         for x in range(iterationnumber):
-            swap_constraints(self.cfg)
-            fixpoint_iteration(self.cfg)
+            self.analysis.swap_constraints(self.cfg)
+            self.analysis.fixpoint_iteration(self.cfg)
                     
     def test_fixpoint_algorithm_first_iteration(self):
         self.produce_iteration(1)
