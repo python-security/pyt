@@ -121,13 +121,6 @@ class CFG(ast.NodeVisitor):
         
         last_node = module_statements[-1]
         last_node.connect(exit_node)
-
-    def open_scope(self):
-        self.scopes.append(set())
-
-    def close_scope(self):
-        print(self.scopes[-1])
-        self.scopes.pop()
         
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
@@ -191,19 +184,11 @@ class CFG(ast.NodeVisitor):
         return cfg_statements
     
     def visit_Module(self, node):
-        self.open_scope()
-        
-        last_node = self.stmt_star_handler(node.body)
-
-        self.close_scope()
-        
-        return last_node
-
+        return self.stmt_star_handler(node.body)
 
     def visit_FunctionDef(self, node):
         function_CFG = CFG()
-        function_CFG.open_scope()
-        
+
         entry_node = Node('Entry node', ENTRY)
         function_CFG.nodes.append(entry_node)
         
@@ -217,15 +202,12 @@ class CFG(ast.NodeVisitor):
         
         last_node = function_body_statements[-1]
         last_node.connect(exit_node)
-        
-        function_CFG.close_scope()
+
         self.functions[node.name] = function_CFG.nodes
 
         return Node("Function", node.__class__.__name__)
         
     def visit_If(self, node):
-        self.open_scope()
-        
         test = self.visit(node.test)
         body_stmts = self.stmt_star_handler(node.body)
         
@@ -243,8 +225,6 @@ class CFG(ast.NodeVisitor):
             
         test.connect(body_first)
 
-        self.close_scope()
-        
         return ControlFlowNode(test, last_nodes)
 
     def visit_Return(self, node):
@@ -269,8 +249,6 @@ class CFG(ast.NodeVisitor):
         lhs_vars_visitor = LHSVarsVisitor()
         lhs_vars_visitor.visit(node)
 
-        self.scopes[-1].update(lhs_vars_visitor.result)
-
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
         
@@ -286,8 +264,6 @@ class CFG(ast.NodeVisitor):
 
         lhs_vars_visitor = LHSVarsVisitor()
         lhs_vars_visitor.visit(node)
-
-        self.scopes[-1].update(lhs_vars_visitor.result)
 
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
@@ -316,29 +292,20 @@ class CFG(ast.NodeVisitor):
             last_nodes.append(orelse_last)
         else:
             last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
-        
+
         return ControlFlowNode(test, last_nodes)
     
     def visit_While(self, node):
-        self.open_scope()
-        
         test = self.visit(node.test)
-        last_node = self.loop_node_skeleton(test, node)
-        
-        self.close_scope()
-        return last_node
+        return self.loop_node_skeleton(test, node)
 
     def visit_For(self, node):
-        self.open_scope()
-        
         target = self.visit(node.target)
         iterator = self.visit(node.iter)
         for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__)
         self.nodes.append(for_node)
-
-        last_node = self.loop_node_skeleton(for_node, node)
-        self.close_scope()
-        return last_node
+        
+        return self.loop_node_skeleton(for_node, node)
 
     def visit_Compare(self, node):
         
