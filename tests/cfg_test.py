@@ -263,5 +263,5 @@ class CFGStartExitNodeTest(CFGTestCase):
         self.assertConnected(start_node, node)
         self.assertConnected(node, exit_node)
 
-        self.assertEqual(start_node.ast_type, 'START')
+        self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')

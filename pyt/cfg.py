@@ -5,6 +5,9 @@ from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
 from left_hand_side_vars_visitor import LHSVarsVisitor
 
+ENTRY = 'ENTRY'
+EXIT = 'EXIT'
+
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
     
@@ -103,15 +106,15 @@ class CFG(ast.NodeVisitor):
         ast is an Abstract Syntax Tree generated with the ast module.
         '''
 
-        start_node = Node('Start node', 'START')
-        self.nodes.append(start_node)
+        entry_node = Node('Entry node', ENTRY)
+        self.nodes.append(entry_node)
         
         module_statements = self.visit(ast)
 
         first_node = module_statements[0]
-        start_node.connect(first_node)
+        entry_node.connect(first_node)
 
-        exit_node = Node('Exit node', 'EXIT')
+        exit_node = Node('Exit node', EXIT)
         self.nodes.append(exit_node)
         
         last_node = module_statements[-1]
