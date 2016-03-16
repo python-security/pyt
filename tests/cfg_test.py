@@ -265,3 +265,17 @@ class CFGStartExitNodeTest(CFGTestCase):
 
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
+
+
+        
+class CFGFunctionNodeTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/function.py')
+        self.cfg.create(tree)
+
+    def test_function(self):
+        self.assertEqual( len(self.cfg.functions), 3)
+
+        print(self.cfg.functions['baz'][2])
+        

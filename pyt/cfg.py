@@ -86,6 +86,8 @@ class CFG(ast.NodeVisitor):
     
     def __init__(self):
         self.nodes = list()
+        self.functions = dict()
+        self.scopes = list()
 
     def __repr__(self):
         output = ''
@@ -166,7 +168,8 @@ class CFG(ast.NodeVisitor):
         
         for stmt in stmts:
             n = self.visit(stmt)
-            cfg_statements.append(n)
+            if not isinstance(n, ast.FunctionDef):
+                cfg_statements.append(n)
 
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
             if isinstance(n,tuple): # case for if
@@ -183,6 +186,26 @@ class CFG(ast.NodeVisitor):
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
 
+    def visit_FunctionDef(self, node):
+        function_CFG = CFG()
+
+        entry_node = Node('Entry node', ENTRY)
+        function_CFG.nodes.append(entry_node)
+        
+        function_body_statements = function_CFG.stmt_star_handler(node.body)
+
+        first_node = function_body_statements[0]
+        entry_node.connect(first_node)
+
+        exit_node = Node('Exit node', EXIT)
+        function_CFG.nodes.append(exit_node)
+        
+        last_node = function_body_statements[-1]
+        last_node.connect(exit_node)
+
+        self.functions[node.name] = function_CFG.nodes
+
+        return Node("Function", node.__class__.__name__)
         
     def visit_If(self, node):
         test = self.visit(node.test)
@@ -203,9 +226,20 @@ class CFG(ast.NodeVisitor):
         test.connect(body_first)
 
         return ControlFlowNode(test, last_nodes)
-            
-    def visit_Assign(self, node):
 
+    def visit_Return(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        variables_visitor = VarsVisitor()
+        variables_visitor.visit(node)
+
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        self.nodes.append(n)
+
+        return n
+    
+    def visit_Assign(self, node):
         label = LabelVisitor()
         label.visit(node)
 
