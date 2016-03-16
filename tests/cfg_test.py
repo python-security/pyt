@@ -267,6 +267,27 @@ class CFGStartExitNodeTest(CFGTestCase):
         self.assertEqual(exit_node.ast_type, 'EXIT')
 
 
+class CFGScopeTest(unittest.TestCase):
+    def save_and_close_scope(self):
+        self.allscopes.append(self.cfg.scopes[-1])
+        print(len(self.allscopes))
+        self.cfg.scopes.pop()
+        
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/multiscope.py')
+        self.allscopes = list()
+        self.cfg.close_scope = self.save_and_close_scope
+        self.cfg.create(tree)
+
+        
+        
+    def test_scope(self):
+        self.assertEqual(self.allscopes[0],{'x'})
+        self.assertEqual(self.allscopes[1],{'h'})
+        self.assertEqual(self.allscopes[2],{'g'})
+        self.assertEqual(self.allscopes[3],{'y'})
+
         
 class CFGFunctionNodeTest(CFGTestCase):
     def setUp(self):
