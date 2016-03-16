@@ -83,7 +83,6 @@ class CFG(ast.NodeVisitor):
     
     def __init__(self):
         self.nodes = list()
-        self.assignments = list()
 
     def __repr__(self):
         output = ''
