@@ -390,25 +390,32 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        if node.func in self.functions:
-            function = self.functions[node.func]
+        print(node.func.id)
+        print(self.functions)
+
+        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        
+        if node.func.id in self.functions:
+            function = self.functions[node.func.id]
 
             saved_variables = list()
-            SavedVariable = collections.namedtuple('SavedVariable', 'LHS RHS')
+            SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
             self.function_index += 1
 
             # gem lokalt scope
-            for assignment in [node for node in self.nodes if isinstance(node, Assignment)]: # can be optimized with the assignments dict
-                save_name = 'save_' + self.function_index + '_' + assignment.LHS
-                n = AssignmentNode(save_name + ' = ' + assignment.LHS, assignment.ast_type, save_name, variables = assignment.variables)
-                saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.LHS))
-                self.nodes[-1].connect(n)
-                self.nodes.append(n)
+            for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
+            # above can be optimized with the assignments dict
+                for lhs in assignment.left_hand_side:
+                    save_name = 'save_' + str(self.function_index) + '_' + lhs
+                    n = AssignmentNode(save_name + ' = ' + lhs, assignment.ast_type, save_name, variables = assignment.variables)
+                    saved_variables.append(SavedVariable(LHS = save_name, RHS = lhs))
+                    self.nodes[-1].connect(n)
+                    self.nodes.append(n)
 
             # gem aktuelle parametre i temp
             for i, parameter in enumerate(node.args):
                 temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
-                n = AssignmentNode(temp_name + ' = ' + parameter, ast.assignment, temp_name)
+                n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign, temp_name)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
 
@@ -416,29 +423,32 @@ class CFG(ast.NodeVisitor):
             for i, parameter in enumerate(node.args):
                 temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
                 local_name = function.arguments[i]
-                n = AssignmentNode(local_name + ' = ' + temp_name, ast.assignment, local_name)
+                n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign, local_name)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
 
 
             # indsaet funktionskrop
-            function_nodes = deepcopy(self.function[node.func].nodes)
+            function_nodes = deepcopy(self.functions[node.func.id].nodes)
             self.nodes[-1].connect(function_nodes[0])
             self.nodes.extend(function_nodes)
 
             #restore gemte variable
             restore_nodes = list()
             for var in saved_variables:
-                restore_nodes.append(AssignmentNode(var.RHS + ' = ' + var.LHS, ast.assignmnet, var.RHS))
+                restore_nodes.append(AssignmentNode(var.RHS + ' = ' + var.LHS, ast.Assign, var.RHS))
 
             for n, successor in zip(restore_nodes, restore_nodes[1:]):
                 n.connect(successor)
+
+            self.nodes[-1].connect(restore_nodes[0])
+            self.nodes.extend(restore_nodes)
 
             # tildel returvaerdi til assignment
             for n in function_nodes:
                 if n.ast_type == ast.Return:
                     LHS = 'call_' + self.function_index
-                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assignment, LHS)
+                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign, LHS)
                     self.nodes[-1].connect(call_node)
                     return_node.connect(restore_nodes[0])                    
                     self.nodes.append(call_node)
@@ -449,9 +459,8 @@ class CFG(ast.NodeVisitor):
                     # lave rigtig kobling
 
                     
-        
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
-        self.nodes.append(n)
+        else:
+            self.nodes.append(n)
                 
         return n
 
