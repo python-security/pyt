@@ -2,7 +2,6 @@ from ast import NodeVisitor
 
 class LabelVisitor(NodeVisitor):
     def visit_Return(self, node):
-        self.result += "return "
         if node.value:
             self.visit(node.value)
         

@@ -276,6 +276,4 @@ class CFGFunctionNodeTest(CFGTestCase):
 
     def test_function(self):
         self.assertEqual( len(self.cfg.functions), 3)
-
-        print(self.cfg.functions['baz'][2])
         

@@ -1,5 +1,6 @@
 import ast
-import collections
+from collections import namedtuple, OrderedDict
+from copy import deepcopy
 
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
@@ -14,8 +15,8 @@ def generate_ast(path):
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
-NodeInfo = collections.namedtuple('NodeInfo', 'label variables')
-ControlFlowNode = collections.namedtuple('ControlFlowNode', 'test last_nodes')
+NodeInfo = namedtuple('NodeInfo', 'label variables')
+ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
         
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -81,13 +82,54 @@ class AssignmentNode(Node):
         output_string = super(AssignmentNode, self).__repr__()
         output_string += '\n'
         return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
+
+class CallReturnNode(Node):
+    def __init__(self, label, ast_type, restore_nodes, *, variables = None):
+        super(AssignmentNode, self).__init__(label, ast_type, variables = variables)
+        self.restore_nodes = restore_nodes
+
+    def __repr__(self):
+        output_string = super(AssignmentNode, self).__repr__()
+        output_string += '\n'
+        return ''.join((output_string, 'restore_nodes:\t', str(self.restore_nodes)))
+    
+
+class Arguments(object):
+    def __init__(self, args):
+        self.args = args.args
+        self.varargs = args.vararg
+        self.kwarg = args.kwarg
+        self.kwonlyargs = args.kwonlyargs
+        self.defaults = args.defaults
+        self.kw_defaults = args.kw_defaults
+
+        self.arguments = list()
+        if self.args:
+            self.arguments.extend(self.args)
+        if self.varargs:
+            self.arguments.extend(self.varargs)
+        if self.kwarg:
+            self.arguments.extend(self.kwarg)
+        if self.kwonlyargs:
+            self.arguments.extend(self.kwonlyargs)
+            
+
+    def __getitem__(self, key):
+        return self.arguments.__getitem__(key)
+        
+    
+class Function(object):
+    def __init__(self, nodes, args):
+        self.nodes = nodes
+        self.args = Arguments(args)
     
 class CFG(ast.NodeVisitor):
     
     def __init__(self):
         self.nodes = list()
-        self.functions = dict()
-        self.scopes = list()
+        self.assignments = dict()
+        self.functions = OrderedDict()
+        self.function_index = 0
 
     def __repr__(self):
         output = ''
@@ -188,6 +230,8 @@ class CFG(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         function_CFG = CFG()
+        function_CFG.functions = self.functions
+        self.functions[node.name] = Function(function_CFG.nodes, node.args)
 
         entry_node = Node('Entry node', ENTRY)
         function_CFG.nodes.append(entry_node)
@@ -202,8 +246,6 @@ class CFG(ast.NodeVisitor):
         
         last_node = function_body_statements[-1]
         last_node.connect(exit_node)
-
-        self.functions[node.name] = function_CFG.nodes
 
         return Node("Function", node.__class__.__name__)
         
@@ -234,23 +276,35 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        print(self.functions)
+        this_function = list(self.functions.keys())[-1]
+        n = Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
     
     def visit_Assign(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
         lhs_vars_visitor = LHSVarsVisitor()
-        lhs_vars_visitor.visit(node)
+        lhs_vars_visitor.visit(node)            
 
+        label = LabelVisitor()
+        
+        if isinstance(node, ast.Call):
+            for target in node.targets:
+                label.visit(target)
+            call = self.visit(node.value)
+            call_assignment = AssignmentNode(label.result + ' = ' + call.label, ast.assignment, label.result)
+            self.nodes.append(call_assignment)
+        else:            
+            label.visit(node)
+
+        
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
+        #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
         
         return n
 
@@ -264,10 +318,11 @@ class CFG(ast.NodeVisitor):
 
         lhs_vars_visitor = LHSVarsVisitor()
         lhs_vars_visitor.visit(node)
-
+        
         n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
-
+        #self.assignments[n.left_hand_side] = n
+        
         return n
 
     def loop_node_skeleton(self, test, node):
@@ -334,6 +389,66 @@ class CFG(ast.NodeVisitor):
 
         label = LabelVisitor()
         label.visit(node)
+
+        if node.func in self.functions:
+            function = self.functions[node.func]
+
+            saved_variables = list()
+            SavedVariable = collections.namedtuple('SavedVariable', 'LHS RHS')
+            self.function_index += 1
+
+            # gem lokalt scope
+            for assignment in [node for node in self.nodes if isinstance(node, Assignment)]: # can be optimized with the assignments dict
+                save_name = 'save_' + self.function_index + '_' + assignment.LHS
+                n = AssignmentNode(save_name + ' = ' + assignment.LHS, assignment.ast_type, save_name, variables = assignment.variables)
+                saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.LHS))
+                self.nodes[-1].connect(n)
+                self.nodes.append(n)
+
+            # gem aktuelle parametre i temp
+            for i, parameter in enumerate(node.args):
+                temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
+                n = AssignmentNode(temp_name + ' = ' + parameter, ast.assignment, temp_name)
+                self.nodes[-1].connect(n)
+                self.nodes.append(n)
+
+            # lave nyt funktionslokat scope
+            for i, parameter in enumerate(node.args):
+                temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
+                local_name = function.arguments[i]
+                n = AssignmentNode(local_name + ' = ' + temp_name, ast.assignment, local_name)
+                self.nodes[-1].connect(n)
+                self.nodes.append(n)
+
+
+            # indsaet funktionskrop
+            function_nodes = deepcopy(self.function[node.func].nodes)
+            self.nodes[-1].connect(function_nodes[0])
+            self.nodes.extend(function_nodes)
+
+            #restore gemte variable
+            restore_nodes = list()
+            for var in saved_variables:
+                restore_nodes.append(AssignmentNode(var.RHS + ' = ' + var.LHS, ast.assignmnet, var.RHS))
+
+            for n, successor in zip(restore_nodes, restore_nodes[1:]):
+                n.connect(successor)
+
+            # tildel returvaerdi til assignment
+            for n in function_nodes:
+                if n.ast_type == ast.Return:
+                    LHS = 'call_' + self.function_index
+                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assignment, LHS)
+                    self.nodes[-1].connect(call_node)
+                    return_node.connect(restore_nodes[0])                    
+                    self.nodes.append(call_node)
+                    
+                    return CallReturnNode(LHS, ast.Call, restore_nodes)
+                else:
+                    pass
+                    # lave rigtig kobling
+
+                    
         
         n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
