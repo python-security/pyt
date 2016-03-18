@@ -437,6 +437,22 @@ class CFG(ast.NodeVisitor):
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
             return restore_nodes
+
+    def return_handler(self, node, function_nodes, restore_nodes):
+        # tildel returvaerdi til assignment
+        for n in function_nodes:
+            if n.ast_type == ast.Return().__class__.__name__:
+                LHS = 'call_' + self.function_index
+                call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign().__class__.__name__, LHS)
+                self.nodes[-1].connect(call_node)
+                return_node.connect(restore_nodes[0])                    
+                self.nodes.append(call_node)
+                    
+                return CallReturnNode(LHS, ast.Call().__class__.__name__, restore_nodes)
+            else:
+                # lave rigtig kobling
+                pass
+
             
     def visit_Call(self, node):
         variables_visitor = VarsVisitor()
@@ -461,26 +477,12 @@ class CFG(ast.NodeVisitor):
 
             restore_nodes = self.restore_saved_local_scope(saved_variables)
 
-            # tildel returvaerdi til assignment
-            for n in function_nodes:
-                if n.ast_type == ast.Return().__class__.__name__:
-                    LHS = 'call_' + self.function_index
-                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign().__class__.__name__, LHS)
-                    self.nodes[-1].connect(call_node)
-                    return_node.connect(restore_nodes[0])                    
-                    self.nodes.append(call_node)
-                    
-                    return CallReturnNode(LHS, ast.Call().__class__.__name__, restore_nodes)
-                else:
-                    pass
-                    # lave rigtig kobling
+            self.return_handler(node, function_nodes, restore_nodes)
+            
             return self.nodes[-1]
-                    
         else:
-
             self.nodes.append(builtin_call)
             return builtin_call
-
 
     def visit_Name(self, node):
         vars = VarsVisitor()
