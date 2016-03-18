@@ -404,6 +404,13 @@ class CFG(ast.NodeVisitor):
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
         return saved_variables
+
+    def save_actual_parameters_in_temp(self, args, function):
+        for i, parameter in enumerate(args):
+            temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
+            n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign().__class__.__name__, temp_name)
+            self.nodes[-1].connect(n)
+            self.nodes.append(n)
     
     def visit_Call(self, node):
 
@@ -421,12 +428,7 @@ class CFG(ast.NodeVisitor):
             
             saved_variables = self.save_local_scope()
 
-            # gem aktuelle parametre i temp
-            for i, parameter in enumerate(node.args):
-                temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
-                n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign().__class__.__name__, temp_name)
-                self.nodes[-1].connect(n)
-                self.nodes.append(n)
+            self.save_actual_parameters_in_temp(node.args, function)
 
             # lave nyt funktionslokat scope
             for i, parameter in enumerate(node.args):
