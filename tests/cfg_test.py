@@ -8,6 +8,21 @@ from cfg import CFG, generate_ast, Node
 
 
 class CFGTestCase(unittest.TestCase):
+    def assertInCfg(self, connections):
+        ''' Assert that all connections in the connections list exists in the cfg,
+        as well as all connections not in the list do not exist
+
+        connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
+        for connection in connections:
+            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].new_constraint, str(connection) + " expected to be connected")
+
+        nodes = len(self.cfg.nodes)
+        
+        for element in range(nodes):
+            for sets in range(nodes):
+                if (element, sets) not in connections:
+                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].new_constraint, "(%s,%s)" % (element, sets)  +  " expected to be disconnected")
+
     def assertConnected(self, node, successor):
         '''Asserts that a node is connected to its successor.
         This means that node has successor in its outgoing and
@@ -271,10 +286,27 @@ class CFGStartExitNodeTest(CFGTestCase):
 class CFGFunctionNodeTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/function.py')
+        tree = generate_ast('../example/example_inputs/simple_function.py')
         self.cfg.create(tree)
 
+    def connected(self, node, successor):
+        return (successor, node)
+
     def test_function(self):
-        self.assertEqual( len(self.cfg.functions), 3)
-        print(self.cfg)
+        print(repr(self.cfg))
+        entry = 0
+        y_assignment = 1
+        save_y = 2
+        entry_foo = 3
+        body_foo = 4
+        exit_foo = 5
+        y_load = 6
+        exit_ = 7
+        
+        self.assertInCfg([self.connected(entry, y_assignment), self.connected(y_assignment, save_y),
+                          self.connected(save_y, entry_foo), self.connected(entry_foo, body_foo),
+                          self.connected(body_foo, exit_foo), self.connected(exit_foo, y_load),
+                          self.connected(y_load, exit_)])
+
+
         

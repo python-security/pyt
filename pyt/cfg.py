@@ -38,7 +38,6 @@ class Node(object):
         
     def connect(self, successor):
         '''Connects this node to its successor node by setting its outgoing and the successors ingoing.'''
-        
         self.outgoing.append(successor)
         successor.ingoing.append(self)
         
@@ -82,6 +81,13 @@ class AssignmentNode(Node):
         output_string = super(AssignmentNode, self).__repr__()
         output_string += '\n'
         return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
+
+class RestoreNode(AssignmentNode):
+    '''Node used for handling restore nodes returning from function calls'''
+
+    def __init__(self,label, left_hand_side, *, variables = None):
+        super(RestoreNode, self).__init__(label, ast.Assign.__class__.__name__, left_hand_side, variables = variables)
+        
 
 class CallReturnNode(Node):
     def __init__(self, label, ast_type, restore_nodes, *, variables = None):
@@ -207,21 +213,25 @@ class CFG(ast.NodeVisitor):
 
         links all statements together in a list of statements, accounting for statements with multiple last nodes'''
         cfg_statements = list()
-        
+
         for stmt in stmts:
             n = self.visit(stmt)
-            if not isinstance(n, ast.FunctionDef):
+            if n.ast_type is not ast.FunctionDef().__class__.__name__:
                 cfg_statements.append(n)
 
+       
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
             if isinstance(n,tuple): # case for if
                 for last in n[1]:# list of last nodes in ifs and elifs
                     last.connect(next_node)
-            elif isinstance(next_node,tuple): # case for if
+            elif isinstance(next_node, tuple): # case for if
                 n.connect(next_node[0])
+            elif isinstance(next_node, RestoreNode):
+                break
             else:
                 n.connect(next_node)
-                
+
+
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
     
@@ -233,7 +243,7 @@ class CFG(ast.NodeVisitor):
         function_CFG.functions = self.functions
         self.functions[node.name] = Function(function_CFG.nodes, node.args)
 
-        entry_node = Node('Entry node', ENTRY)
+        entry_node = Node('Entry node: ' + node.name, ENTRY)
         function_CFG.nodes.append(entry_node)
         
         function_body_statements = function_CFG.stmt_star_handler(node.body)
@@ -241,7 +251,7 @@ class CFG(ast.NodeVisitor):
         first_node = function_body_statements[0]
         entry_node.connect(first_node)
 
-        exit_node = Node('Exit node', EXIT)
+        exit_node = Node('Exit node: ' + node.name, EXIT)
         function_CFG.nodes.append(exit_node)
         
         last_node = function_body_statements[-1]
@@ -276,7 +286,6 @@ class CFG(ast.NodeVisitor):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
-        print(self.functions)
         this_function = list(self.functions.keys())[-1]
         n = Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, variables = variables_visitor.result)
         self.nodes.append(n)
@@ -296,7 +305,7 @@ class CFG(ast.NodeVisitor):
             for target in node.targets:
                 label.visit(target)
             call = self.visit(node.value)
-            call_assignment = AssignmentNode(label.result + ' = ' + call.label, ast.assignment, label.result)
+            call_assignment = AssignmentNode(label.result + ' = ' + call.label, ast.Assign().__class__.__name__, label.result)
             self.nodes.append(call_assignment)
         else:            
             label.visit(node)
@@ -390,10 +399,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        print(node.func.id)
-        print(self.functions)
-
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        builtin_call = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         
         if node.func.id in self.functions:
             function = self.functions[node.func.id]
@@ -415,7 +421,7 @@ class CFG(ast.NodeVisitor):
             # gem aktuelle parametre i temp
             for i, parameter in enumerate(node.args):
                 temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
-                n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign, temp_name)
+                n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign().__class__.__name__, temp_name)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
 
@@ -423,7 +429,7 @@ class CFG(ast.NodeVisitor):
             for i, parameter in enumerate(node.args):
                 temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
                 local_name = function.arguments[i]
-                n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign, local_name)
+                n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign().__class__.__name__, local_name)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
 
@@ -436,7 +442,7 @@ class CFG(ast.NodeVisitor):
             #restore gemte variable
             restore_nodes = list()
             for var in saved_variables:
-                restore_nodes.append(AssignmentNode(var.RHS + ' = ' + var.LHS, ast.Assign, var.RHS))
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
 
             for n, successor in zip(restore_nodes, restore_nodes[1:]):
                 n.connect(successor)
@@ -446,23 +452,24 @@ class CFG(ast.NodeVisitor):
 
             # tildel returvaerdi til assignment
             for n in function_nodes:
-                if n.ast_type == ast.Return:
+                if n.ast_type == ast.Return().__class__.__name__:
                     LHS = 'call_' + self.function_index
-                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign, LHS)
+                    call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign().__class__.__name__, LHS)
                     self.nodes[-1].connect(call_node)
                     return_node.connect(restore_nodes[0])                    
                     self.nodes.append(call_node)
                     
-                    return CallReturnNode(LHS, ast.Call, restore_nodes)
+                    return CallReturnNode(LHS, ast.Call().__class__.__name__, restore_nodes)
                 else:
                     pass
                     # lave rigtig kobling
-
+            return self.nodes[-1]
                     
         else:
-            self.nodes.append(n)
-                
-        return n
+
+            self.nodes.append(builtin_call)
+            return builtin_call
+
 
     def visit_Name(self, node):
         vars = VarsVisitor()
