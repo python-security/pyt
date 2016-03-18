@@ -112,13 +112,13 @@ class Arguments(object):
 
         self.arguments = list()
         if self.args:
-            self.arguments.extend(self.args)
+            self.arguments.extend([x.arg for x in self.args])
         if self.varargs:
-            self.arguments.extend(self.varargs)
+            self.arguments.extend(self.varargs.arg)
         if self.kwarg:
-            self.arguments.extend(self.kwarg)
+            self.arguments.extend(self.kwarg.arg)
         if self.kwonlyargs:
-            self.arguments.extend(self.kwonlyargs)
+            self.arguments.extend([x.arg for x in self.kwonlyargs])
             
 
     def __getitem__(self, key):
@@ -128,7 +128,7 @@ class Arguments(object):
 class Function(object):
     def __init__(self, nodes, args):
         self.nodes = nodes
-        self.args = Arguments(args)
+        self.arguments = Arguments(args)
     
 class CFG(ast.NodeVisitor):
     
@@ -407,14 +407,14 @@ class CFG(ast.NodeVisitor):
 
     def save_actual_parameters_in_temp(self, args, function):
         for i, parameter in enumerate(args):
-            temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]
-            n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign().__class__.__name__, temp_name)
+            temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
+            n = AssignmentNode(temp_name + ' = ' + parameter.id, ast.Assign().__class__.__name__, temp_name)
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
     def create_local_scope_from_actual_parameters(self, args, function):
         for i, parameter in enumerate(args):
-            temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
+            temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
             local_name = function.arguments[i]
             n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign().__class__.__name__, local_name)
             self.nodes[-1].connect(n)

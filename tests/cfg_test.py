@@ -19,7 +19,6 @@ class CFGTestCase(unittest.TestCase):
 
         nodes = len(self.cfg.nodes)
 
-        print(connections)
         for element in range(nodes):
             for sets in range(nodes):
                 if not (element, sets) in connections or (sets, element) in connections:
@@ -311,5 +310,34 @@ class CFGFunctionNodeTest(CFGTestCase):
                           self.connected(body_foo, exit_foo), self.connected(exit_foo, y_load),
                           self.connected(y_load, exit_)])
 
+class CFGFunctionParameterNodeTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/parameters_function.py')
+        self.cfg.create(tree)
 
+    def connected(self, node, successor):
+        return (successor, node)
+
+    def test_function(self):
+        print(repr(self.cfg))
+        entry = 0
+        y_assignment = 1
+        save_y = 2
+        save_actual_y = 3
+        bar_local_y = 4
+        entry_bar = 5
+        bar_y_assignment = 6
+        bar_print_y = 7
+        bar_print_x = 8
+        exit_bar = 9
+        restore_actual_y = 10
+        exit_ = 11
+
+        self.assertInCfg([self.connected(entry, y_assignment), self.connected(y_assignment, save_y),
+                          self.connected(save_y, save_actual_y), self.connected(save_actual_y, bar_local_y),
+                          self.connected(bar_local_y, entry_bar), self.connected(entry_bar, bar_y_assignment),
+                          self.connected(bar_y_assignment, bar_print_y), self.connected(bar_print_y, bar_print_x),
+                          self.connected(bar_print_x, exit_bar), self.connected(exit_bar, restore_actual_y),
+                          self.connected(restore_actual_y, exit_)])
         
