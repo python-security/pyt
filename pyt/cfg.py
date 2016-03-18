@@ -412,7 +412,7 @@ class CFG(ast.NodeVisitor):
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
-    def create_local_scope(self, args, function):
+    def create_local_scope_from_actual_parameters(self, args, function):
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
             local_name = function.arguments[i]
