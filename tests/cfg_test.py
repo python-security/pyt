@@ -14,14 +14,17 @@ class CFGTestCase(unittest.TestCase):
 
         connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
         for connection in connections:
-            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].new_constraint, str(connection) + " expected to be connected")
+            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].outgoing, str(connection) + " expected to be connected")
+            self.assertIn(self.cfg.nodes[connection[1]], self.cfg.nodes[connection[0]].ingoing, str(connection) + " expected to be connected")
 
         nodes = len(self.cfg.nodes)
-        
+
+        print(connections)
         for element in range(nodes):
             for sets in range(nodes):
-                if (element, sets) not in connections:
-                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].new_constraint, "(%s,%s)" % (element, sets)  +  " expected to be disconnected")
+                if not (element, sets) in connections or (sets, element) in connections:
+                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s,%s)" % (element, sets)  +  " expected to be disconnected")
+                    self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s,%s)" % (sets, element)  +  " expected to be disconnected")
 
     def assertConnected(self, node, successor):
         '''Asserts that a node is connected to its successor.
@@ -302,7 +305,7 @@ class CFGFunctionNodeTest(CFGTestCase):
         exit_foo = 5
         y_load = 6
         exit_ = 7
-        
+
         self.assertInCfg([self.connected(entry, y_assignment), self.connected(y_assignment, save_y),
                           self.connected(save_y, entry_foo), self.connected(entry_foo, body_foo),
                           self.connected(body_foo, exit_foo), self.connected(exit_foo, y_load),
