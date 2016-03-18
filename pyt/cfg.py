@@ -17,6 +17,7 @@ def generate_ast(path):
 
 NodeInfo = namedtuple('NodeInfo', 'label variables')
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
+SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
         
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -390,6 +391,19 @@ class CFG(ast.NodeVisitor):
 
     def visit_Expr(self, node):
         return self.visit(node.value)
+
+    
+    def save_local_scope(self):
+        saved_variables = list()
+        for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
+        # above can be optimized with the assignments dict
+            for lhs in assignment.left_hand_side:
+                save_name = 'save_' + str(self.function_index) + '_' + lhs
+                n = AssignmentNode(save_name + ' = ' + lhs, assignment.ast_type, save_name, variables = assignment.variables)
+                saved_variables.append(SavedVariable(LHS = save_name, RHS = lhs))
+                self.nodes[-1].connect(n)
+                self.nodes.append(n)
+        return saved_variables
     
     def visit_Call(self, node):
 
@@ -403,20 +417,9 @@ class CFG(ast.NodeVisitor):
         
         if node.func.id in self.functions:
             function = self.functions[node.func.id]
-
-            saved_variables = list()
-            SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
             self.function_index += 1
-
-            # gem lokalt scope
-            for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
-            # above can be optimized with the assignments dict
-                for lhs in assignment.left_hand_side:
-                    save_name = 'save_' + str(self.function_index) + '_' + lhs
-                    n = AssignmentNode(save_name + ' = ' + lhs, assignment.ast_type, save_name, variables = assignment.variables)
-                    saved_variables.append(SavedVariable(LHS = save_name, RHS = lhs))
-                    self.nodes[-1].connect(n)
-                    self.nodes.append(n)
+            
+            saved_variables = self.save_local_scope()
 
             # gem aktuelle parametre i temp
             for i, parameter in enumerate(node.args):
