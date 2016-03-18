@@ -426,7 +426,18 @@ class CFG(ast.NodeVisitor):
         self.nodes.extend(function_nodes)
         return function_nodes
 
-    
+    def restore_saved_local_scope(self, saved_variables):
+            restore_nodes = list()
+            for var in saved_variables:
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
+
+            for n, successor in zip(restore_nodes, restore_nodes[1:]):
+                n.connect(successor)
+
+            self.nodes[-1].connect(restore_nodes[0])
+            self.nodes.extend(restore_nodes)
+            return restore_nodes
+            
     def visit_Call(self, node):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
@@ -444,18 +455,11 @@ class CFG(ast.NodeVisitor):
 
             self.save_actual_parameters_in_temp(node.args, function)
 
-            self.create_local_scope(node.args, function)
+            self.create_local_scope_from_actual_parameters(node.args, function)
 
-            #restore gemte variable
-            restore_nodes = list()
-            for var in saved_variables:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
+            function_nodes = self.insert_function_body(node)
 
-            for n, successor in zip(restore_nodes, restore_nodes[1:]):
-                n.connect(successor)
-
-            self.nodes[-1].connect(restore_nodes[0])
-            self.nodes.extend(restore_nodes)
+            restore_nodes = self.restore_saved_local_scope(saved_variables)
 
             # tildel returvaerdi til assignment
             for n in function_nodes:
