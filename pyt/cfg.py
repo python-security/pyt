@@ -411,9 +411,17 @@ class CFG(ast.NodeVisitor):
             n = AssignmentNode(temp_name + ' = ' + parameter, ast.Assign().__class__.__name__, temp_name)
             self.nodes[-1].connect(n)
             self.nodes.append(n)
+
+    def create_local_scope(self, args, function):
+        for i, parameter in enumerate(args):
+            temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
+            local_name = function.arguments[i]
+            n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign().__class__.__name__, local_name)
+            self.nodes[-1].connect(n)
+            self.nodes.append(n)
+
     
     def visit_Call(self, node):
-
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
 
@@ -430,13 +438,7 @@ class CFG(ast.NodeVisitor):
 
             self.save_actual_parameters_in_temp(node.args, function)
 
-            # lave nyt funktionslokat scope
-            for i, parameter in enumerate(node.args):
-                temp_name = 'temp_' + self.function_index + '_' + function.arguments[i]                
-                local_name = function.arguments[i]
-                n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign().__class__.__name__, local_name)
-                self.nodes[-1].connect(n)
-                self.nodes.append(n)
+            self.create_local_scope(node.args, function)
 
 
             # indsaet funktionskrop
