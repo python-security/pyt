@@ -420,6 +420,12 @@ class CFG(ast.NodeVisitor):
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
+    def insert_function_body(self, node):
+        function_nodes = deepcopy(self.functions[node.func.id].nodes)
+        self.nodes[-1].connect(function_nodes[0])
+        self.nodes.extend(function_nodes)
+        return function_nodes
+
     
     def visit_Call(self, node):
         variables_visitor = VarsVisitor()
@@ -439,12 +445,6 @@ class CFG(ast.NodeVisitor):
             self.save_actual_parameters_in_temp(node.args, function)
 
             self.create_local_scope(node.args, function)
-
-
-            # indsaet funktionskrop
-            function_nodes = deepcopy(self.functions[node.func.id].nodes)
-            self.nodes[-1].connect(function_nodes[0])
-            self.nodes.extend(function_nodes)
 
             #restore gemte variable
             restore_nodes = list()
