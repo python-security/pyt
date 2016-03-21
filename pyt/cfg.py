@@ -309,32 +309,44 @@ class CFG(ast.NodeVisitor):
         self.nodes.append(n)
 
         return n
-    
+        
     def visit_Assign(self, node):
-        variables_visitor = VarsVisitor()
-        variables_visitor.visit(node)
+        if isinstance(node.targets[0], ast.Tuple):
+            for i, target in enumerate(node.targets[0].elts):
+                value = node.value.elts[i]
+                visitors = self.run_visitors(variables_visitor_visit_node = value, lhs_vars_visitor_visit_node = target, label_visitor_visit_node = target)
+                if isinstance(value, ast.Call):
+                    return self.assignment_call_node(visitors.label_visitor.result, value)
+                else:
+                    visitors.label_visitor.result += ' = '
+                    visitors.label_visitor.visit(value)
+                
+                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
+                self.nodes[-1].connect(n)
+                self.nodes.append(n)
+            return self.nodes[-1] # return the last added node
 
-        lhs_vars_visitor = LHSVarsVisitor()
-        lhs_vars_visitor.visit(node)            
+        else:
+            if isinstance(node.value, ast.Call):
+                label = LabelVisitor()
+                label.visit(node.targets[0])
+                return self.assignment_call_node(label.result, node.value)
+            else:
+                visitors = self.run_visitors(variables_visitor_visit_node = node.value, lhs_vars_visitor_visit_node = node.target, label_visitor_visit_node = node)
 
-        label = LabelVisitor()
-        
-        if isinstance(node, ast.Call):
-            for target in node.targets:
-                label.visit(target)
-            call = self.visit(node.value)
-            call_assignment = AssignmentNode(label.result + ' = ' + call.label, ast.Assign().__class__.__name__, label.result)
-            self.nodes.append(call_assignment)
-        else:            
-            label.visit(node)
-
-        
-        n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
-        self.nodes.append(n)
+                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, visitors.lhs_vars_visitor.result, variables_visitor = visitors.variables_visitor.result)
+                self.nodes.append(n)
+                return n
         #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
         
-        return n
+        
 
+    def assignment_call_node(self, left_hand_label, value):
+        call = self.visit(value)
+        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, ast.Assign().__class__.__name__, label.result)
+        self.nodes.append(call_assignment)
+        return call_assignment
+    
     def visit_AugAssign(self, node):
 
         label = LabelVisitor()
