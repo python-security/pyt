@@ -4,7 +4,6 @@ from copy import deepcopy
 
 from label_visitor import LabelVisitor
 from vars_visitor import VarsVisitor
-from left_hand_side_vars_visitor import LHSVarsVisitor
 
 ENTRY = 'ENTRY'
 EXIT = 'EXIT'
@@ -18,7 +17,7 @@ def generate_ast(path):
 NodeInfo = namedtuple('NodeInfo', 'label variables')
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-Visitors = namedtuple('Visitors', 'variables_visitor lhs_vars_visitor label_visitor')
+Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
@@ -239,17 +238,15 @@ class CFG(ast.NodeVisitor):
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
 
-    def run_visitors(self, *, variables_visitor_visit_node, lhs_vars_visitor_visit_node, label_visitor_visit_node):
-        '''Creates and runs the VarsVisitor, LHSVarsVisitor and LabelVisitor.
+    def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
+        '''Creates and runs the VarsVisitor and LabelVisitor.
 
         Returns visitors in a tuple.'''
         variables_visitor = VarsVisitor()
         variables_visitor.visit(variables_visitor_visit_node)
-        lhs_vars_visitor = LHSVarsVisitor()
-        lhs_vars_visitor.visit(lhs_vars_visitor_visit_node)
         label_visitor = LabelVisitor()
         label_visitor.visit(label_visitor_visit_node)
-        visitors = Visitors(variables_visitor, lhs_vars_visitor, label_visitor)
+        visitors = Visitors(variables_visitor, label_visitor)
         return visitors
 
     
@@ -309,6 +306,17 @@ class CFG(ast.NodeVisitor):
         self.nodes.append(n)
 
         return n
+
+    def extract_left_hand_side(self, target):
+        left_hand_side = target.id
+
+        left_hand_side.replace('*', '')
+        if '[' in left_hand_side:
+            index = left_hand_side.index('[')
+            left_hand_side = target[0:index]
+
+        return left_hand_side
+        
         
     def visit_Assign(self, node):
         if isinstance(node.targets[0], ast.Tuple):
@@ -321,7 +329,7 @@ class CFG(ast.NodeVisitor):
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
                 
-                n = AssignmentNode(visitors.label_visitor.result, visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, self.extract_left_hand_side(target), variables = visitors.variables_visitor.result)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
             return self.nodes[-1] # return the last added node
@@ -332,9 +340,9 @@ class CFG(ast.NodeVisitor):
                 label.visit(node.targets[0])
                 return self.assignment_call_node(label.result, node.value)
             else:
-                visitors = self.run_visitors(variables_visitor_visit_node = node.value, lhs_vars_visitor_visit_node = node.target, label_visitor_visit_node = node)
+                visitors = self.run_visitors(variables_visitor_visit_node = node.value, label_visitor_visit_node = node)
 
-                n = AssignmentNode(visitors.label_visitor.result, visitors.lhs_vars_visitor.result, variables_visitor = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__,self.extract_left_hand_side(node.targets[0]), variables = visitors.variables_visitor.result)
                 self.nodes.append(n)
                 return n
         #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
@@ -350,11 +358,10 @@ class CFG(ast.NodeVisitor):
     def visit_AugAssign(self, node):
 
         visitors = self.run_visitors(variables_visitor_visit_node = node,
-                                     lhs_vars_visitor_visit_node = node,
                                      label_visitor_visit_node = node)
         
 
-        n = AssignmentNode(visitors.label_visitor.result,visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
+        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), variables = visitors.variables_visitor.result)
         self.nodes.append(n)
         #self.assignments[n.left_hand_side] = n
         

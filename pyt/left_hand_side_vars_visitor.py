@@ -2,7 +2,7 @@ from ast import NodeVisitor
 
 class LHSVarsVisitor(NodeVisitor):
     def __init__(self):
-        self.result = set()
+        self.result = None
 
     def visit_Call(self, node):
         pass
@@ -15,7 +15,7 @@ class LHSVarsVisitor(NodeVisitor):
         self.visit(node.target)
         
     def visit_Name(self,node):
-        self.result.add(node.id)
+        self.result = node.id
     
     def visit_Subscript(self, node):
         self.visit(node.value)

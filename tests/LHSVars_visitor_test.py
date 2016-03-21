@@ -20,27 +20,27 @@ class VarsVisitorTestCase(unittest.TestCase):
 class LHSVarsVisitorTest(VarsVisitorTestCase):
     def test_assign_var_and_num(self):
         vars = self.perform_vars_on_expression('a = 1')
-        self.assertEqual(vars.result, {'a'})
+        self.assertEqual(vars.result, 'a')
 
     def test_assign_var_and_var(self):
         vars = self.perform_vars_on_expression('a = x')
-        self.assertEqual(vars.result, {'a'})
+        self.assertEqual(vars.result, 'a')
 
     def test_aug_assign(self):
         vars = self.perform_vars_on_expression('a += x')
-        self.assertEqual(vars.result, {'a'})
+        self.assertEqual(vars.result, 'a')
 
     def test_call(self):
         vars = self.perform_vars_on_expression('print(x)')
-        self.assertEqual(vars.result, set())
+        self.assertEqual(vars.result, None)
 
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print("test")')
-        self.assertEqual(vars.result, set())
+        self.assertEqual(vars.result, None)
 
     def test_keyword_numarg(self):
         vars = self.perform_vars_on_expression('print("test2")')
-        self.assertEqual(vars.result, set())
+        self.assertEqual(vars.result, None)
 
     def test_starred(self):
         vars = self.perform_vars_on_expression('x, *y = 1, 2, 3')
@@ -48,4 +48,4 @@ class LHSVarsVisitorTest(VarsVisitorTestCase):
         
     def test_subscript(self):
         vars = self.perform_vars_on_expression('x[1] = 4')
-        self.assertEqual(vars.result, {'x'})
+        self.assertEqual(vars.result, 'x')

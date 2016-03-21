@@ -1,4 +1,5 @@
 from cfg import AssignmentNode
+from copy import deepcopy
 
 class reaching_definitions_analysis(object):
     def join(self, cfg_node):
@@ -9,9 +10,9 @@ class reaching_definitions_analysis(object):
 
     def arrow(self, JOIN, _id):
         result = set()
-        for cfg_node in JOIN:
-            # if there is no intersection _id is not found in the LHS of cfg_node, the node will therefore not be deleted
-            if len(_id.intersection(cfg_node.left_hand_side)) == 0: 
+        for cfg_node in result:
+            # if _id is not found in the LHS of cfg_node, the node will not be deleted
+            if _id is not cfg_node.left_hand_side: 
                 result.add(cfg_node)
         return result
         
