@@ -399,9 +399,16 @@ class CFG(ast.NodeVisitor):
 
     def visit_For(self, node):
         target = self.visit(node.target)
-        iterator = self.visit(node.iter)
-        for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__)
+        for_node = Node(UNDECIDED, node.__class__.__name__)
         self.nodes.append(for_node)
+
+        iterator_label = LabelVisitor()
+        iterator_label.visit(node.iter)
+
+
+        for_node.label = "for " + target.label + " in " + iterator_label.result
+
+
         
         return self.loop_node_skeleton(for_node, node)
 
@@ -514,8 +521,10 @@ class CFG(ast.NodeVisitor):
             
             return self.nodes[-1]
         else:
-            self.nodes.append(builtin_call)
+            if not self.nodes[-1].label is UNDECIDED:
+                self.nodes.append(builtin_call)
             return builtin_call
+            
 
     def visit_Name(self, node):
         vars = VarsVisitor()
