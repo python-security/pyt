@@ -91,7 +91,7 @@ class RestoreNode(AssignmentNode):
         super(RestoreNode, self).__init__(label, ast.Assign.__class__.__name__, left_hand_side, variables = variables)
         
 
-class CallReturnNode(Node):
+class CallReturnNode(AssignmentNode):
     def __init__(self, label, ast_type, restore_nodes, *, variables = None):
         super(AssignmentNode, self).__init__(label, ast_type, variables = variables)
         self.restore_nodes = restore_nodes
