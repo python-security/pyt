@@ -7,6 +7,7 @@ from vars_visitor import VarsVisitor
 
 ENTRY = 'ENTRY'
 EXIT = 'EXIT'
+UNDECIDED = 'UNDECIDED'
 
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
