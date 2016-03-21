@@ -390,3 +390,20 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
                           self.connected(body_foo, exit_foo),
                           self.connected(exit_foo, y_load),
                           self.connected(y_load, exit_)])
+
+
+class CFGAssignemntAndBuiltinTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
+        self.cfg.create(tree)
+
+    def test_start(self):
+        start_node = self.cfg.nodes[0]
+        assign = self.cfg.nodes[1]
+        builtin = self.cfg.nodes[2]
+        exit_node = self.cfg.nodes[-1]
+
+        self.assertConnected(start_node, assign)
+        self.assertConnected(assign, builtin)
+        self.assertConnected(builtin, exit_node)
