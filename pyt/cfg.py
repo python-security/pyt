@@ -330,7 +330,7 @@ class CFG(ast.NodeVisitor):
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
                 
-                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, self.extract_left_hand_side(target), variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), variables = visitors.variables_visitor.result)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
             return self.nodes[-1] # return the last added node
@@ -343,7 +343,7 @@ class CFG(ast.NodeVisitor):
             else:
                 visitors = self.run_visitors(variables_visitor_visit_node = node.value, label_visitor_visit_node = node)
 
-                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__,self.extract_left_hand_side(node.targets[0]), variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), variables = visitors.variables_visitor.result)
                 self.nodes.append(n)
                 return n
         #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
