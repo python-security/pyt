@@ -217,7 +217,9 @@ class CFG(ast.NodeVisitor):
 
         for stmt in stmts:
             n = self.visit(stmt)
-            if n.ast_type is not ast.FunctionDef().__class__.__name__:
+            if isinstance(n, ControlFlowNode):
+                cfg_statements.append(n)
+            elif n.ast_type is not ast.FunctionDef().__class__.__name__:
                 cfg_statements.append(n)
 
        
