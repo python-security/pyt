@@ -321,7 +321,7 @@ class CFG(ast.NodeVisitor):
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
                 
-                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
             return self.nodes[-1] # return the last added node
@@ -334,7 +334,7 @@ class CFG(ast.NodeVisitor):
             else:
                 visitors = self.run_visitors(variables_visitor_visit_node = node.value, lhs_vars_visitor_visit_node = node.target, label_visitor_visit_node = node)
 
-                n = AssignmentNode(visitors.label_visitor.result, node.__class__.__name__, visitors.lhs_vars_visitor.result, variables_visitor = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, visitors.lhs_vars_visitor.result, variables_visitor = visitors.variables_visitor.result)
                 self.nodes.append(n)
                 return n
         #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
@@ -343,7 +343,7 @@ class CFG(ast.NodeVisitor):
 
     def assignment_call_node(self, left_hand_label, value):
         call = self.visit(value)
-        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, ast.Assign().__class__.__name__, left_hand_label)
+        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, label.result)
         self.nodes.append(call_assignment)
         return call_assignment
     
@@ -428,7 +428,7 @@ class CFG(ast.NodeVisitor):
         # above can be optimized with the assignments dict
             for lhs in assignment.left_hand_side:
                 save_name = 'save_' + str(self.function_index) + '_' + lhs
-                n = AssignmentNode(save_name + ' = ' + lhs, assignment.ast_type, save_name, variables = assignment.variables)
+                n = AssignmentNode(save_name + ' = ' + lhs, save_name, variables = assignment.variables)
                 saved_variables.append(SavedVariable(LHS = save_name, RHS = lhs))
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
@@ -437,7 +437,7 @@ class CFG(ast.NodeVisitor):
     def save_actual_parameters_in_temp(self, args, function):
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
-            n = AssignmentNode(temp_name + ' = ' + parameter.id, ast.Assign().__class__.__name__, temp_name)
+            n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name)
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
@@ -445,7 +445,7 @@ class CFG(ast.NodeVisitor):
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
             local_name = function.arguments[i]
-            n = AssignmentNode(local_name + ' = ' + temp_name, ast.Assign().__class__.__name__, local_name)
+            n = AssignmentNode(local_name + ' = ' + temp_name, local_name)
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
@@ -472,7 +472,7 @@ class CFG(ast.NodeVisitor):
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
                 LHS = 'call_' + str(self.function_index)
-                call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func.id, ast.Assign().__class__.__name__, LHS)
+                call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func.id, LHS)
                 self.nodes[-1].connect(call_node)
                 call_node.connect(restore_nodes[0])                    
                 self.nodes.append(call_node)
