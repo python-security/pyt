@@ -283,7 +283,27 @@ class CFGStartExitNodeTest(CFGTestCase):
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
 
+class CFGAssignmentMultiTargetTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignment_two_targets.py')
+        self.cfg.create(tree)
 
+    def test_start(self):
+        start_node = self.cfg.nodes[0]
+        node = self.cfg.nodes[1]
+        node_2 = self.cfg.nodes[2]
+        exit_node = self.cfg.nodes[-1]
+
+        print(self.cfg)
+
+        self.assertConnected(start_node, node)
+        self.assertConnected(node_2, exit_node)
+        self.assertConnected(node, node_2)
+
+        self.assertEqual(start_node.ast_type, 'ENTRY')
+        self.assertEqual(exit_node.ast_type, 'EXIT')
+        
         
 class CFGFunctionNodeTest(CFGTestCase):
     def setUp(self):
@@ -341,3 +361,32 @@ class CFGFunctionParameterNodeTest(CFGTestCase):
                           self.connected(bar_print_x, exit_bar), self.connected(exit_bar, restore_actual_y),
                           self.connected(restore_actual_y, exit_)])
         
+class CFGFunctionNodeWithReturnTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple_function_with_return.py')
+        self.cfg.create(tree)
+
+    def connected(self, node, successor):
+        return (successor, node)
+
+    def test_function(self):
+        print(repr(self.cfg))
+        entry = 0
+        y_assignment = 1
+        save_y = 2
+        entry_foo = 3
+        body_foo = 4
+        exit_foo = 5
+        y_load = 6
+        exit_ = 7
+
+        print(self.cfg)
+        
+        self.assertInCfg([self.connected(entry, y_assignment),
+                          self.connected(y_assignment, save_y),
+                          self.connected(save_y, entry_foo),
+                          self.connected(entry_foo, body_foo),
+                          self.connected(body_foo, exit_foo),
+                          self.connected(exit_foo, y_load),
+                          self.connected(y_load, exit_)])
