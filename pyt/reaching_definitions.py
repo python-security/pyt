@@ -10,7 +10,7 @@ class reaching_definitions_analysis(object):
 
     def arrow(self, JOIN, _id):
         result = set()
-        for cfg_node in result:
+        for cfg_node in JOIN:
             # if _id is not found in the LHS of cfg_node, the node will not be deleted
             if _id is not cfg_node.left_hand_side: 
                 result.add(cfg_node)
