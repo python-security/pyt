@@ -471,10 +471,10 @@ class CFG(ast.NodeVisitor):
         # tildel returvaerdi til assignment
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
-                LHS = 'call_' + self.function_index
-                call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func, ast.Assign().__class__.__name__, LHS)
+                LHS = 'call_' + str(self.function_index)
+                call_node = AssignmentNode(LHS + ' = ' + 'ret_' + node.func.id, ast.Assign().__class__.__name__, LHS)
                 self.nodes[-1].connect(call_node)
-                return_node.connect(restore_nodes[0])                    
+                call_node.connect(restore_nodes[0])                    
                 self.nodes.append(call_node)
                     
                 return CallReturnNode(LHS, ast.Call().__class__.__name__, restore_nodes)
