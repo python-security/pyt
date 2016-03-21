@@ -343,7 +343,7 @@ class CFG(ast.NodeVisitor):
 
     def assignment_call_node(self, left_hand_label, value):
         call = self.visit(value)
-        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, ast.Assign().__class__.__name__, label.result)
+        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, ast.Assign().__class__.__name__, left_hand_label)
         self.nodes.append(call_assignment)
         return call_assignment
     
