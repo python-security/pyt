@@ -88,7 +88,7 @@ class RestoreNode(AssignmentNode):
     '''Node used for handling restore nodes returning from function calls'''
 
     def __init__(self,label, left_hand_side, *, variables = None):
-        super(RestoreNode, self).__init__(label, ast.Assign.__class__.__name__, left_hand_side, variables = variables)
+        super(RestoreNode, self).__init__(label, left_hand_side, variables = variables)
         
 
 class CallReturnNode(AssignmentNode):
@@ -354,7 +354,7 @@ class CFG(ast.NodeVisitor):
         call_assignment = AssignmentNode(UNDECIDED, left_hand_label)
         self.nodes.append(call_assignment)
         call = self.visit(value)
-
+        
         call_assignment.label = left_hand_label + ' = ' + call.label
         return call_assignment
     
@@ -437,14 +437,13 @@ class CFG(ast.NodeVisitor):
     
     def save_local_scope(self):
         saved_variables = list()
-        for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
+        for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode) and not isinstance(node, RestoreNode)]:
         # above can be optimized with the assignments dict
-            for lhs in assignment.left_hand_side:
-                save_name = 'save_' + str(self.function_index) + '_' + lhs
-                n = AssignmentNode(save_name + ' = ' + lhs, save_name, variables = assignment.variables)
-                saved_variables.append(SavedVariable(LHS = save_name, RHS = lhs))
-                self.nodes[-1].connect(n)
-                self.nodes.append(n)
+            save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
+            n = AssignmentNode(save_name + ' = ' + assignment.left_hand_side, save_name, variables = assignment.variables)
+            saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.left_hand_side))
+            self.nodes[-1].connect(n)
+            self.nodes.append(n)
         return saved_variables
 
     def save_actual_parameters_in_temp(self, args, function):
@@ -481,7 +480,6 @@ class CFG(ast.NodeVisitor):
             return restore_nodes
 
     def return_handler(self, node, function_nodes, restore_nodes):
-        # tildel returvaerdi til assignment
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
                 LHS = 'call_' + str(self.function_index)
