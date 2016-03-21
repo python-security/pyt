@@ -349,16 +349,12 @@ class CFG(ast.NodeVisitor):
     
     def visit_AugAssign(self, node):
 
-        label = LabelVisitor()
-        label.visit(node)
-
-        variables_visitor = VarsVisitor()
-        variables_visitor.visit(node)
-
-        lhs_vars_visitor = LHSVarsVisitor()
-        lhs_vars_visitor.visit(node)
+        visitors = self.run_visitors(variables_visitor_visit_node = node,
+                                     lhs_vars_visitor_visit_node = node,
+                                     label_visitor_visit_node = node)
         
-        n = AssignmentNode(label.result, lhs_vars_visitor.result, variables = variables_visitor.result)
+
+        n = AssignmentNode(visitors.label_visitor.result,visitors.lhs_vars_visitor.result, variables = visitors.variables_visitor.result)
         self.nodes.append(n)
         #self.assignments[n.left_hand_side] = n
         
