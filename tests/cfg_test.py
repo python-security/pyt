@@ -100,7 +100,6 @@ x = 3
 )
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
         for_node = self.nodes['for x in range(3)']
         body_1 = self.nodes['print(x)']
         body_2 = self.nodes['y += 1']
@@ -295,8 +294,6 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
         node_2 = self.cfg.nodes[2]
         exit_node = self.cfg.nodes[-1]
 
-        print(self.cfg)
-
         self.assertConnected(start_node, node)
         self.assertConnected(node_2, exit_node)
         self.assertConnected(node, node_2)
@@ -315,7 +312,6 @@ class CFGFunctionNodeTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
-        print(repr(self.cfg))
         entry = 0
         y_assignment = 1
         save_y = 2
@@ -340,7 +336,6 @@ class CFGFunctionParameterNodeTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
-        print(repr(self.cfg))
         entry = 0
         y_assignment = 1
         save_y = 2
@@ -371,7 +366,6 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
-        print(repr(self.cfg))
         entry = 0
         y_assignment = 1
         save_y = 2
@@ -380,8 +374,6 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
         exit_foo = 5
         y_load = 6
         exit_ = 7
-
-        print(self.cfg)
         
         self.assertInCfg([self.connected(entry, y_assignment),
                           self.connected(y_assignment, save_y),
