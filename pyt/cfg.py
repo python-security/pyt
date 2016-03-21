@@ -75,8 +75,8 @@ class Node(object):
     
 class AssignmentNode(Node):
     ''''''
-    def __init__(self, label, ast_type, left_hand_side, *, variables = None):
-        super(AssignmentNode, self).__init__(label, ast_type, variables = variables)
+    def __init__(self, label, left_hand_side, *, variables = None):
+        super(AssignmentNode, self).__init__(label, ast.Assign.__class__.__name__, variables = variables)
         self.left_hand_side = left_hand_side
 
     def __repr__(self):
@@ -358,7 +358,7 @@ class CFG(ast.NodeVisitor):
         lhs_vars_visitor = LHSVarsVisitor()
         lhs_vars_visitor.visit(node)
         
-        n = AssignmentNode(label.result, node.__class__.__name__, lhs_vars_visitor.result, variables = variables_visitor.result)
+        n = AssignmentNode(label.result, lhs_vars_visitor.result, variables = variables_visitor.result)
         self.nodes.append(n)
         #self.assignments[n.left_hand_side] = n
         
