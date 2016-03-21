@@ -18,7 +18,8 @@ def generate_ast(path):
 NodeInfo = namedtuple('NodeInfo', 'label variables')
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-        
+Visitors = namedtuple('Visitors', 'variables_visitor lhs_vars_visitor label_visitor')
+
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
     def __init__(self, label, ast_type, *, variables=None):
@@ -237,6 +238,20 @@ class CFG(ast.NodeVisitor):
 
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
+
+    def run_visitors(self, *, variables_visitor_visit_node, lhs_vars_visitor_visit_node, label_visitor_visit_node):
+        '''Creates and runs the VarsVisitor, LHSVarsVisitor and LabelVisitor.
+
+        Returns visitors in a tuple.'''
+        variables_visitor = VarsVisitor()
+        variables_visitor.visit(variables_visitor_visit_node)
+        lhs_vars_visitor = LHSVarsVisitor()
+        lhs_vars_visitor.visit(lhs_vars_visitor_visit_node)
+        label_visitor = LabelVisitor()
+        label_visitor.visit(label_visitor_visit_node)
+        visitors = Visitors(variables_visitor, lhs_vars_visitor, label_visitor)
+        return visitors
+
     
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
