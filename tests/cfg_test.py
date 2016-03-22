@@ -403,11 +403,8 @@ Node: 17 Label:  Exit node
 '''
         print(repr(self.cfg))
 
-        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
-        for x,y in l:
-            print(x,y)
-                       
-        self.assertInCfg(l)
+        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))        
+        self.assertInCfg(list(l))
 
 
 class CFGAssignmentAndBuiltinTest(CFGTestCase):
