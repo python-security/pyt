@@ -463,7 +463,14 @@ class CFG(ast.NodeVisitor):
     def save_actual_parameters_in_temp(self, args, function):
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
-            n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name)
+            
+            if isinstance(parameter, ast.Num):
+                n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name)
+            elif isinstance(parameter, ast.Name):
+                n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name)
+            else:
+                raise TypeError('Unhandled type: ' + str(type(parameter)))
+            
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
