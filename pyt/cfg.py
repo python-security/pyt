@@ -7,7 +7,6 @@ from vars_visitor import VarsVisitor
 
 ENTRY = 'ENTRY'
 EXIT = 'EXIT'
-UNDECIDED = 'UNDECIDED'
 
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
@@ -138,6 +137,7 @@ class CFG(ast.NodeVisitor):
         self.assignments = dict()
         self.functions = OrderedDict()
         self.function_index = 0
+        self.undecided = False
 
     def __repr__(self):
         output = ''
@@ -351,11 +351,13 @@ class CFG(ast.NodeVisitor):
         
 
     def assignment_call_node(self, left_hand_label, value):
-        call_assignment = AssignmentNode(UNDECIDED, left_hand_label)
-        self.nodes.append(call_assignment)
-        call = self.visit(value)
+        self.undecided = True # Used for logic - not part of CFG
         
-        call_assignment.label = left_hand_label + ' = ' + call.label
+        call = self.visit(value)
+        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, left_hand_label)
+        call.connect(call_assignment)
+        self.nodes.append(call_assignment)
+        
         return call_assignment
     
     def visit_AugAssign(self, node):
@@ -401,16 +403,58 @@ class CFG(ast.NodeVisitor):
 
     def visit_For(self, node):
         target = self.visit(node.target)
-        for_node = Node(UNDECIDED, node.__class__.__name__)
+                
+        return call_assignment
+    
+    def visit_AugAssign(self, node):
+
+        visitors = self.run_visitors(variables_visitor_visit_node = node,
+                                     label_visitor_visit_node = node)
+        
+
+        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), variables = visitors.variables_visitor.result)
+        self.nodes.append(n)
+        #self.assignments[n.left_hand_side] = n
+        
+        return n
+
+    def loop_node_skeleton(self, test, node):
+        body_stmts = self.stmt_star_handler(node.body)
+
+        body_first = body_stmts[0]
+        test.connect(body_first)
+        
+        body_last = body_stmts[-1]
+        body_last.connect(test)
+
+        # last_nodes is used for making connections to the next node in the parent node
+        # this is handled in stmt_star_handler
+        last_nodes = list() 
+        
+        if node.orelse:
+            orelse_stmts = self.stmt_star_handler(node.orelse)
+            orelse_last = orelse_stmts[-1]
+            orelse_first = orelse_stmts[0]
+
+            test.connect(orelse_first)
+            last_nodes.append(orelse_last)
+        else:
+            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
+
+        return ControlFlowNode(test, last_nodes)
+    
+    def visit_While(self, node):
+        test = self.visit(node.test)
+        return self.loop_node_skeleton(test, node)
+
+    def visit_For(self, node):
+        
+        iterator = self.visit(node.iter)
+        target = self.visit(node.target)
+
+        for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__)
+        
         self.nodes.append(for_node)
-
-        iterator_label = LabelVisitor()
-        iterator_label.visit(node.iter)
-
-
-        for_node.label = "for " + target.label + " in " + iterator_label.result
-
-
         
         return self.loop_node_skeleton(for_node, node)
 
@@ -521,8 +565,9 @@ class CFG(ast.NodeVisitor):
             
             return self.nodes[-1]
         else:
-            if not self.nodes[-1].label is UNDECIDED:
+            if not self.undecided:
                 self.nodes.append(builtin_call)
+            undecided = False
             return builtin_call
             
 
