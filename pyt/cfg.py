@@ -437,9 +437,12 @@ class CFG(ast.NodeVisitor):
     def save_local_scope(self):
         saved_variables = list()
         for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
+            if isinstance(assignment, RestoreNode):
+                break
+           
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
-            n = AssignmentNode(save_name + ' = ' + assignment.left_hand_side, save_name, variables = assignment.variables)
+            n = RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, variables = assignment.variables)
             saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.left_hand_side))
             self.nodes[-1].connect(n)
             self.nodes.append(n)
