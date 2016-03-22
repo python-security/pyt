@@ -402,6 +402,7 @@ class CFG(ast.NodeVisitor):
         return self.loop_node_skeleton(test, node)
 
     def visit_For(self, node):
+        self.undecided = True # Used for handling functions in for loops
         
         iterator = self.visit(node.iter)
         target = self.visit(node.target)
