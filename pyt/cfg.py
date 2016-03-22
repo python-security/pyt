@@ -522,7 +522,7 @@ class CFG(ast.NodeVisitor):
         else:
             if not self.undecided:
                 self.nodes.append(builtin_call)
-            undecided = False
+            self.undecided = False
             return builtin_call
             
 
