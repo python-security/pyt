@@ -4,7 +4,7 @@ from unittest import makeSuite
 
 from label_visitor_test import LabelVisitorTest
 from vars_visitor_test import VarsVisitorTest
-from cfg_test import CFGIfTest, CFGWhileTest, CFGStartExitNodeTest, CFGForTest, CFGGeneralTest, CFGFunctionNodeTest, CFGFunctionParameterNodeTest, CFGAssignemntAndBuiltinTest, CFGFunctionNodeWithReturnTest
+from cfg_test import CFGIfTest, CFGWhileTest, CFGStartExitNodeTest, CFGForTest, CFGGeneralTest, CFGFunctionNodeTest, CFGFunctionParameterNodeTest, CFGAssignmentAndBuiltinTest, CFGFunctionNodeWithReturnTest
 from reaching_definitions_test import FixedPointTest
 
 test_suite = TestSuite()
@@ -19,7 +19,7 @@ tests = [
     CFGForTest,
     CFGGeneralTest,
     FixedPointTest,
-    CFGAssignemntAndBuiltinTest,
+    CFGAssignmentAndBuiltinTest,
     CFGFunctionNodeWithReturnTest
 ]
 

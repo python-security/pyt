@@ -384,7 +384,7 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
                           self.connected(y_load, exit_)])
 
 
-class CFGAssignemntAndBuiltinTest(CFGTestCase):
+class CFGAssignmentAndBuiltinTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
