@@ -357,12 +357,14 @@ class CFG(ast.NodeVisitor):
         call = self.visit(value)
         
         call_label = ''
+        call_assignment = None
         if isinstance(call, AssignmentNode):
             call_label = call.left_hand_side
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
+            call.connect(call_assignment)
         else:
             call_label = call.label
-        
-        call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
 
         self.nodes.append(call_assignment)
         
