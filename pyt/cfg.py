@@ -7,6 +7,7 @@ from vars_visitor import VarsVisitor
 
 ENTRY = 'ENTRY'
 EXIT = 'EXIT'
+CALL_IDENTIFIER = '¤'
 
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
@@ -232,10 +233,11 @@ class CFG(ast.NodeVisitor):
             elif isinstance(next_node, tuple): # case for if
                 n.connect(next_node[0])
             elif type(next_node) is RestoreNode:
-                break
+                continue
+            elif CALL_IDENTIFIER in next_node.label:
+                continue
             else:
                 n.connect(next_node)
-
 
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
         return cfg_statements
@@ -448,7 +450,7 @@ class CFG(ast.NodeVisitor):
         saved_variables = list()
         for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
             if isinstance(assignment, RestoreNode):
-                break
+                continue
            
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
@@ -494,7 +496,7 @@ class CFG(ast.NodeVisitor):
     def return_handler(self, node, function_nodes, restore_nodes):
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
-                LHS = 'call_' + str(self.function_index)
+                LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 call_node = RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS)
                 self.nodes[-1].connect(call_node)
                 self.nodes.append(call_node)
