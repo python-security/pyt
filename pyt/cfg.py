@@ -51,14 +51,15 @@ class Node(object):
         ast_type = ' '.join(('Type:\t\t', self.ast_type))
         outgoing = ''
         ingoing = ''
-        if self.outgoing is not None:
-            outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
-        else:
-            outgoing = ' '.join(('outgoing:\t', '[]'))
         if self.ingoing is not  None:
             ingoing = ' '.join(('ingoing:\t', str([x.label for x in self.ingoing])))
         else:
             ingoing = ' '.join(('ingoing:\t', '[]'))
+
+        if self.outgoing is not None:
+            outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
+        else:
+            outgoing = ' '.join(('outgoing:\t', '[]'))
     
         variables = ' '.join(('variables:\t', ' '.join(self.variables)))
         if self.old_constraint is not None:
@@ -70,7 +71,7 @@ class Node(object):
             new_constraint = 'New constraint: ' +  ', '.join([x.label for x in self.new_constraint])
         else:
             new_constraint = 'New constraint:' 
-        return '\n' + '\n'.join((label, ast_type, outgoing, ingoing, variables, old_constraint, new_constraint))
+        return '\n' + '\n'.join((label, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
     
 class AssignmentNode(Node):
     ''''''
