@@ -323,7 +323,7 @@ class CFG(ast.NodeVisitor):
         if isinstance(node.targets[0], ast.Tuple):
             for i, target in enumerate(node.targets[0].elts):
                 value = node.value.elts[i]
-                visitors = self.run_visitors(variables_visitor_visit_node = value, lhs_vars_visitor_visit_node = target, label_visitor_visit_node = target)
+                visitors = self.run_visitors(variables_visitor_visit_node = value, label_visitor_visit_node = target)
                 if isinstance(value, ast.Call):
                     return self.assignment_call_node(visitors.label_visitor.result, value)
                 else:
