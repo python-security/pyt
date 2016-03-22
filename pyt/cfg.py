@@ -354,7 +354,14 @@ class CFG(ast.NodeVisitor):
         self.undecided = True # Used for handling functions in assignments
         
         call = self.visit(value)
-        call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, left_hand_label)
+        
+        call_label = ''
+        if isinstance(call, AssignmentNode):
+            call_label = call.left_hand_side
+        else:
+            call_label = call.label
+        
+        call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
         call.connect(call_assignment)
         self.nodes.append(call_assignment)
         
