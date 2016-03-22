@@ -366,22 +366,48 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
-        entry = 0
-        y_assignment = 1
-        save_y = 2
-        entry_foo = 3
-        body_foo = 4
-        exit_foo = 5
-        y_load = 6
-        exit_ = 7
-        
-        self.assertInCfg([self.connected(entry, y_assignment),
-                          self.connected(y_assignment, save_y),
-                          self.connected(save_y, entry_foo),
-                          self.connected(entry_foo, body_foo),
-                          self.connected(body_foo, exit_foo),
-                          self.connected(exit_foo, y_load),
-                          self.connected(y_load, exit_)])
+        '''
+Node: 1 Label:  y = input()
+
+Node: 2 Label:  save_1_y = y
+
+Node: 3 Label:  Entry node: foo
+
+Node: 4 Label:  print('h')
+
+Node: 5 Label:  ret_foo = 1
+
+Node: 6 Label:  Exit node: foo
+
+Node: 7 Label:  y = save_1_y
+
+Node: 8 Label:  call_1 = ret_foo
+
+Node: 9 Label:  save_2_y = y
+
+Node: 10 Label:  Entry node: bar
+
+Node: 11 Label:  x = 2
+
+Node: 12 Label:  ret_bar = x
+
+Node: 13 Label:  Exit node: bar
+
+Node: 14 Label:  y = save_2_y
+
+Node: 15 Label:  call_2 = ret_bar
+
+Node: 16 Label:  x = call_2
+
+Node: 17 Label:  Exit node
+'''
+        print(repr(self.cfg))
+
+        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
+        for x,y in l:
+            print(x,y)
+                       
+        self.assertInCfg(l)
 
 
 class CFGAssignmentAndBuiltinTest(CFGTestCase):
