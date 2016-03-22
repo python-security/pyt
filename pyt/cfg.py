@@ -351,59 +351,13 @@ class CFG(ast.NodeVisitor):
         
 
     def assignment_call_node(self, left_hand_label, value):
-        self.undecided = True # Used for logic - not part of CFG
+        self.undecided = True # Used for handling functions in assignments
         
         call = self.visit(value)
         call_assignment = AssignmentNode(left_hand_label + ' = ' + call.label, left_hand_label)
         call.connect(call_assignment)
         self.nodes.append(call_assignment)
         
-        return call_assignment
-    
-    def visit_AugAssign(self, node):
-
-        visitors = self.run_visitors(variables_visitor_visit_node = node,
-                                     label_visitor_visit_node = node)
-        
-
-        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), variables = visitors.variables_visitor.result)
-        self.nodes.append(n)
-        #self.assignments[n.left_hand_side] = n
-        
-        return n
-
-    def loop_node_skeleton(self, test, node):
-        body_stmts = self.stmt_star_handler(node.body)
-
-        body_first = body_stmts[0]
-        test.connect(body_first)
-        
-        body_last = body_stmts[-1]
-        body_last.connect(test)
-
-        # last_nodes is used for making connections to the next node in the parent node
-        # this is handled in stmt_star_handler
-        last_nodes = list() 
-        
-        if node.orelse:
-            orelse_stmts = self.stmt_star_handler(node.orelse)
-            orelse_last = orelse_stmts[-1]
-            orelse_first = orelse_stmts[0]
-
-            test.connect(orelse_first)
-            last_nodes.append(orelse_last)
-        else:
-            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
-
-        return ControlFlowNode(test, last_nodes)
-    
-    def visit_While(self, node):
-        test = self.visit(node.test)
-        return self.loop_node_skeleton(test, node)
-
-    def visit_For(self, node):
-        target = self.visit(node.target)
-                
         return call_assignment
     
     def visit_AugAssign(self, node):
