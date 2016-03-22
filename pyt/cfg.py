@@ -230,7 +230,7 @@ class CFG(ast.NodeVisitor):
                     last.connect(next_node)
             elif isinstance(next_node, tuple): # case for if
                 n.connect(next_node[0])
-            elif isinstance(next_node, RestoreNode):
+            elif type(next_node) is RestoreNode:
                 break
             else:
                 n.connect(next_node)
