@@ -401,9 +401,9 @@ Node: 16 Label:  x = call_2
 
 Node: 17 Label:  Exit node
 '''
-        print(repr(self.cfg))
 
-        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))        
+        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
+        self.assertEqual(len(self.cfg.nodes), 18)
         self.assertInCfg(list(l))
 
 
@@ -422,3 +422,57 @@ class CFGAssignmentAndBuiltinTest(CFGTestCase):
         self.assertConnected(start_node, assign)
         self.assertConnected(assign, builtin)
         self.assertConnected(builtin, exit_node)
+
+class CFGMultipleParametersTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/multiple_parameters_function.py')
+        self.cfg.create(tree)
+
+    def test_start(self):
+        '''
+Node: 1 Label:  y = 0
+
+Node: 2 Label:  save_1_y = y
+
+Node: 3 Label:  temp_1_a = 1
+
+Node: 4 Label:  temp_1_b = 0
+
+Node: 5 Label:  temp_1_c = 2
+
+Node: 6 Label:  temp_1_x = 3
+
+Node: 7 Label:  a = temp_1_a
+
+Node: 8 Label:  b = temp_1_b
+
+Node: 9 Label:  c = temp_1_c
+
+Node: 10 Label:  x = temp_1_x
+
+Node: 11 Label:  Entry node: foo
+
+Node: 12 Label:  print(a)
+
+Node: 13 Label:  print(b)
+
+Node: 14 Label:  ret_foo = c
+
+Node: 15 Label:  Exit node: foo
+
+Node: 16 Label:  y = save_1_y
+
+Node: 17 Label:  call_1 = ret_foo
+
+Node: 18 Label:  x = call_1
+
+Node: 19 Label:  z = 0
+
+Node: 20 Label:  Exit node'''
+
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 21)
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
