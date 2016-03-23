@@ -522,7 +522,7 @@ class CFG(ast.NodeVisitor):
 
         builtin_call = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
         
-        if node.func.id in self.functions:
+        if not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
             function = self.functions[node.func.id]
             self.function_index += 1
             

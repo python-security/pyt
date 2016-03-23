@@ -476,3 +476,21 @@ Node: 20 Label:  Exit node'''
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))
+
+
+class CFGCallWithAttributeTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/call_with_attribute.py')
+        self.cfg.create(tree)
+
+    def test_call_with_attribute(self):
+        call = self.cfg.nodes[2]
+
+        self.assertEqual(call.label, "request.args.get('param', 'not set')")
+
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 14)
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
