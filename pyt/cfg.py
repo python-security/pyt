@@ -73,7 +73,10 @@ class Node(object):
         else:
             new_constraint = 'New constraint:' 
         return '\n' + '\n'.join((label, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
-    
+
+class IgnoredNode(object):
+    '''Ignored Node sent from a ast node that is not yet implemented'''
+
 class AssignmentNode(Node):
     ''''''
     def __init__(self, label, left_hand_side, *, variables = None):
@@ -220,7 +223,10 @@ class CFG(ast.NodeVisitor):
 
         for stmt in stmts:
             n = self.visit(stmt)
-            if isinstance(n, ControlFlowNode):
+
+            if isinstance(n, IgnoredNode):
+                continue
+            elif isinstance(n, ControlFlowNode):
                 cfg_statements.append(n)
             elif n.ast_type is not ast.FunctionDef().__class__.__name__:
                 cfg_statements.append(n)
@@ -512,6 +518,7 @@ class CFG(ast.NodeVisitor):
                 # lave rigtig kobling
                 pass
 
+
             
     def visit_Call(self, node):
         variables_visitor = VarsVisitor()
@@ -554,3 +561,12 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
 
         return NodeInfo(label.result, vars.result)
+
+    
+    # Visitors that are just ignoring statements
+
+    def visit_Import(self, node):
+        return IgnoredNode()
+
+    def visit_ImportFrom(self, node):
+        return IgnoredNode()
