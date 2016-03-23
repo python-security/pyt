@@ -22,7 +22,7 @@ Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
 
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
-    def __init__(self, label, ast_type, *, variables=None):
+    def __init__(self, label, ast_type, *, line_number = None, variables=None):
         self.ingoing = list()
         self.outgoing = list()
                     
@@ -33,6 +33,7 @@ class Node(object):
             
         self.label = label
         self.ast_type = ast_type
+        self.line_number = line_number
 
         # Used by the Fixedpoint algorithm
         self.old_constraint = set()
@@ -49,6 +50,7 @@ class Node(object):
         
     def __repr__(self):        
         label = ' '.join(('Label: ', self.label))
+        line_number = 'Line number: ' + str(self.line_number)
         ast_type = ' '.join(('Type:\t\t', self.ast_type))
         outgoing = ''
         ingoing = ''
@@ -71,16 +73,16 @@ class Node(object):
         if self.new_constraint is not None:
             new_constraint = 'New constraint: ' +  ', '.join([x.label for x in self.new_constraint])
         else:
-            new_constraint = 'New constraint:' 
-        return '\n' + '\n'.join((label, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
+            new_constraint = 'New constraint:'
+        return '\n' + '\n'.join((label, line_number, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
 
 class IgnoredNode(object):
     '''Ignored Node sent from a ast node that is not yet implemented'''
 
 class AssignmentNode(Node):
     ''''''
-    def __init__(self, label, left_hand_side, *, variables = None):
-        super(AssignmentNode, self).__init__(label, ast.Assign.__class__.__name__, variables = variables)
+    def __init__(self, label, left_hand_side, *, line_number = None, variables = None):
+        super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, line_number = line_number, variables = variables)
         self.left_hand_side = left_hand_side
 
     def __repr__(self):
@@ -91,13 +93,13 @@ class AssignmentNode(Node):
 class RestoreNode(AssignmentNode):
     '''Node used for handling restore nodes returning from function calls'''
 
-    def __init__(self,label, left_hand_side, *, variables = None):
-        super(RestoreNode, self).__init__(label, left_hand_side, variables = variables)
+    def __init__(self,label, left_hand_side, *, line_number = None, variables = None):
+        super(RestoreNode, self).__init__(label, left_hand_side, line_number = line_number, variables = variables)
         
 
 class CallReturnNode(AssignmentNode):
-    def __init__(self, label, ast_type, restore_nodes, *, variables = None):
-        super(AssignmentNode, self).__init__(label, ast_type, variables = variables)
+    def __init__(self, label, ast_type, restore_nodes, *, line_number = None, variables = None):
+        super(AssignmentNode, self).__init__(label, ast_type, line_number = line_number, variables = variables)
         self.restore_nodes = restore_nodes
 
     def __repr__(self):
@@ -312,7 +314,7 @@ class CFG(ast.NodeVisitor):
         variables_visitor.visit(node)
 
         this_function = list(self.functions.keys())[-1]
-        n = Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, variables = variables_visitor.result)
+        n = Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -339,7 +341,7 @@ class CFG(ast.NodeVisitor):
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
                 
-                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), line_number = node.lineno, variables = visitors.variables_visitor.result)
                 self.nodes[-1].connect(n)
                 self.nodes.append(n)
             return self.nodes[-1] # return the last added node
@@ -352,7 +354,8 @@ class CFG(ast.NodeVisitor):
             else:
                 visitors = self.run_visitors(variables_visitor_visit_node = node.value, label_visitor_visit_node = node)
 
-                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), variables = visitors.variables_visitor.result)
+                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), line_number = node.lineno, variables = visitors.variables_visitor.result)
+            
                 self.nodes.append(n)
                 return n
         #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
@@ -384,7 +387,7 @@ class CFG(ast.NodeVisitor):
                                      label_visitor_visit_node = node)
         
 
-        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), variables = visitors.variables_visitor.result)
+        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), line_number = node.lineno, variables = visitors.variables_visitor.result)
         self.nodes.append(n)
         #self.assignments[n.left_hand_side] = n
         
@@ -425,7 +428,7 @@ class CFG(ast.NodeVisitor):
         iterator = self.visit(node.iter)
         target = self.visit(node.target)
 
-        for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__)
+        for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__, line_number = node.lineno)
         
         self.nodes.append(for_node)
         
@@ -443,7 +446,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        n = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        n = Node(label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result)
         self.nodes.append(n)
 
         return n
@@ -527,7 +530,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        builtin_call = Node(label.result, node.__class__.__name__, variables = variables_visitor.result)
+        builtin_call = Node(label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result)
         
         if not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
             function = self.functions[node.func.id]

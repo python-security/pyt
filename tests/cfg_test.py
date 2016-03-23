@@ -59,7 +59,7 @@ class CFGGeneralTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
         obj = parse(
-'''
+'''\
 for x in range(3):
     print(x)
     y += 1
