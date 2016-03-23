@@ -284,7 +284,7 @@ class CFG(ast.NodeVisitor):
         last_node = function_body_statements[-1]
         last_node.connect(exit_node)
 
-        return Node("Function", node.__class__.__name__)
+        return Node('Function', node.__class__.__name__)
         
     def visit_If(self, node):
         test = self.visit(node.test)
