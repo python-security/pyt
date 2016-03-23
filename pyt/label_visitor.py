@@ -44,6 +44,17 @@ class LabelVisitor(NodeVisitor):
         
         self.visit(node.right)
 
+    def visit_GeneratorExp(self, node):
+        self.visit(node.elt)
+
+        self.result += ' for '
+
+        self.visit(node.generators[0].target)
+
+        self.result += ' in '
+        
+        self.visit(node.generators[0].iter)
+        
     def visit_Attribute(self, node):
         self.visit(node.value)
         self.result += '.'

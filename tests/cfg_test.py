@@ -494,3 +494,22 @@ class CFGCallWithAttributeTest(CFGTestCase):
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))
+
+class CFGAssignListComprehension(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/list_comprehension.py')
+        self.cfg.create(tree)
+
+    def test_call_with_attribute(self):
+        print(self.cfg)
+        
+        call = self.cfg.nodes[1]
+        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
+        
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 3)
+
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
