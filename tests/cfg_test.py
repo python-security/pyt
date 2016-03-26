@@ -59,7 +59,7 @@ class CFGGeneralTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
         obj = parse(
-'''
+'''\
 for x in range(3):
     print(x)
     y += 1
@@ -473,6 +473,43 @@ Node: 20 Label:  Exit node'''
 
         length = len(self.cfg.nodes)
         self.assertEqual(length, 21)
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
+
+
+class CFGCallWithAttributeTest(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/call_with_attribute.py')
+        self.cfg.create(tree)
+
+    def test_call_with_attribute(self):
+        call = self.cfg.nodes[2]
+
+        self.assertEqual(call.label, "request.args.get('param', 'not set')")
+
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 14)
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
+
+class CFGAssignListComprehension(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/list_comprehension.py')
+        self.cfg.create(tree)
+
+    def test_call_with_attribute(self):
+        print(self.cfg)
+        
+        call = self.cfg.nodes[1]
+        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
+        
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 3)
+
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))

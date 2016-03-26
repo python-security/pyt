@@ -1,4 +1,5 @@
 from ast import NodeVisitor
+import ast
 
 class LabelVisitor(NodeVisitor):
     def visit_Return(self, node):
@@ -43,6 +44,22 @@ class LabelVisitor(NodeVisitor):
         
         self.visit(node.right)
 
+    def visit_GeneratorExp(self, node):
+        self.visit(node.elt)
+
+        self.result += ' for '
+
+        self.visit(node.generators[0].target)
+
+        self.result += ' in '
+        
+        self.visit(node.generators[0].iter)
+        
+    def visit_Attribute(self, node):
+        self.visit(node.value)
+        self.result += '.'
+        self.result += node.attr
+        
     def visit_Call(self, node):
         self.visit(node.func)
         self.result += '('
