@@ -9,9 +9,9 @@ ENTRY = 'ENTRY'
 EXIT = 'EXIT'
 CALL_IDENTIFIER = '¤'
 
+
 def generate_ast(path):
     '''Generates an Abstract Syntax Tree using the ast module.'''
-    
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
@@ -20,20 +20,22 @@ ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
 
+
 class IgnoredNode(object):
     '''Ignored Node sent from a ast node that is not yet implemented'''
 
+
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
-    def __init__(self, label, ast_type, *, line_number = None, variables=None):
+    def __init__(self, label, ast_type, *, line_number=None, variables=None):
         self.ingoing = list()
         self.outgoing = list()
-                    
+
         if variables is None:
             self.variables = list()
         else:
             self.variables = variables
-            
+
         self.label = label
         self.ast_type = ast_type
         self.line_number = line_number
@@ -41,16 +43,15 @@ class Node(object):
         # Used by the Fixedpoint algorithm
         self.old_constraint = set()
         self.new_constraint = set()
-        
+
     def connect(self, successor):
         '''Connects this node to its successor node by setting its outgoing and the successors ingoing.'''
         self.outgoing.append(successor)
         successor.ingoing.append(self)
-        
 
     def __str__(self):
         return ' '.join(('Label: ', self.label))
-        
+
     def __repr__(self):        
         label = ' '.join(('Label: ', self.label))
         line_number = 'Line number: ' + str(self.line_number)
@@ -79,15 +80,17 @@ class Node(object):
             new_constraint = 'New constraint:'
         return '\n' + '\n'.join((label, line_number, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
 
+
 class FunctionNode(Node):
     ''''''
     def __init__(self):
         super(FunctionNode, self).__init__(self.__class__.__name__, ast.FunctionDef().__class__.__name__)
 
+
 class AssignmentNode(Node):
     ''''''
-    def __init__(self, label, left_hand_side, *, line_number = None, variables = None):
-        super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, line_number = line_number, variables = variables)
+    def __init__(self, label, left_hand_side, *, line_number=None, variables=None):
+        super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, line_number=line_number, variables=variables)
         self.left_hand_side = left_hand_side
 
     def __repr__(self):
@@ -95,16 +98,17 @@ class AssignmentNode(Node):
         output_string += '\n'
         return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
 
+
 class RestoreNode(AssignmentNode):
     '''Node used for handling restore nodes returning from function calls'''
 
-    def __init__(self,label, left_hand_side, *, line_number = None, variables = None):
-        super(RestoreNode, self).__init__(label, left_hand_side, line_number = line_number, variables = variables)
+    def __init__(self, label, left_hand_side, *, line_number=None, variables=None):
+        super(RestoreNode, self).__init__(label, left_hand_side, line_number=line_number, variables=variables)
         
 
 class CallReturnNode(AssignmentNode):
-    def __init__(self, label, ast_type, restore_nodes, *, line_number = None, variables = None):
-        super(AssignmentNode, self).__init__(label, ast_type, line_number = line_number, variables = variables)
+    def __init__(self, label, ast_type, restore_nodes, *, line_number=None, variables=None):
+        super(AssignmentNode, self).__init__(label, ast_type, line_number=line_number, variables=variables)
         self.restore_nodes = restore_nodes
 
     def __repr__(self):
@@ -131,7 +135,6 @@ class Arguments(object):
             self.arguments.extend(self.kwarg.arg)
         if self.kwonlyargs:
             self.arguments.extend([x.arg for x in self.kwonlyargs])
-            
 
     def __getitem__(self, key):
         return self.arguments.__getitem__(key)
@@ -142,11 +145,11 @@ class Function(object):
         self.nodes = nodes
         self.arguments = Arguments(args)
     
+
 class CFG(ast.NodeVisitor):
-    
+    '''A Control Flow Graph containing a list of nodes.'''
     def __init__(self):
         self.nodes = list()
-        self.assignments = dict()
         self.functions = OrderedDict()
         self.function_index = 0
         self.undecided = False
@@ -306,7 +309,6 @@ class CFG(ast.NodeVisitor):
         else:
             last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
 
-            
         test.connect(body_first)
 
         return ControlFlowNode(test, last_nodes)
@@ -325,6 +327,7 @@ class CFG(ast.NodeVisitor):
         return n
 
     def extract_left_hand_side(self, target):
+        ''''''
         left_hand_side = target.id
 
         left_hand_side.replace('*', '')
@@ -333,8 +336,7 @@ class CFG(ast.NodeVisitor):
             left_hand_side = target[0:index]
 
         return left_hand_side
-        
-        
+
     def visit_Assign(self, node):
         if isinstance(node.targets[0], ast.Tuple):
             for i, target in enumerate(node.targets[0].elts):
@@ -363,9 +365,7 @@ class CFG(ast.NodeVisitor):
             
                 self.nodes.append(n)
                 return n
-        #self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
-        
-        
+        # self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
 
     def assignment_call_node(self, left_hand_label, value):
         self.undecided = True # Used for handling functions in assignments
@@ -394,7 +394,7 @@ class CFG(ast.NodeVisitor):
 
         n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), line_number = node.lineno, variables = visitors.variables_visitor.result)
         self.nodes.append(n)
-        #self.assignments[n.left_hand_side] = n
+        # self.assignments[n.left_hand_side] = n
         
         return n
 
@@ -419,7 +419,7 @@ class CFG(ast.NodeVisitor):
             test.connect(orelse_first)
             last_nodes.append(orelse_last)
         else:
-            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
+            last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
         return ControlFlowNode(test, last_nodes)
     
@@ -428,7 +428,7 @@ class CFG(ast.NodeVisitor):
         return self.loop_node_skeleton(test, node)
 
     def visit_For(self, node):
-        self.undecided = True # Used for handling functions in for loops
+        self.undecided = True  # Used for handling functions in for loops
         
         iterator = self.visit(node.iter)
         target = self.visit(node.target)
@@ -459,7 +459,6 @@ class CFG(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    
     def save_local_scope(self):
         saved_variables = list()
         for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
@@ -526,8 +525,6 @@ class CFG(ast.NodeVisitor):
                 # lave rigtig kobling
                 pass
 
-
-            
     def visit_Call(self, node):
         variables_visitor = VarsVisitor()
         variables_visitor.visit(node)
@@ -559,7 +556,6 @@ class CFG(ast.NodeVisitor):
                 self.nodes.append(builtin_call)
             self.undecided = False
             return builtin_call
-            
 
     def visit_Name(self, node):
         vars = VarsVisitor()
@@ -570,9 +566,7 @@ class CFG(ast.NodeVisitor):
 
         return NodeInfo(label.result, vars.result)
 
-    
     # Visitors that are just ignoring statements
-
     def visit_Import(self, node):
         return IgnoredNode()
 
