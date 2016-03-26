@@ -9,7 +9,7 @@ parser.add_argument('-d', '--draw-cfg', help = 'Draw CFG and output as .svg file
 parser.add_argument('-o', '--output-filename', help = 'Output filename.', type = str)
 parser.add_argument('-t', '--title', help = 'The title on the rendered CFG output.', type = str)
 parser.add_argument('-p', '--print', help = 'Prints the nodes of the CFG.', action='store_true')
-parser.add_argument('-vp', '--verbose-print', help = 'Prints the nodes of the CFG verbosely.', action='store_true')
+parser.add_argument('-vp', '--verbose-print', help = 'Verbose printing of -p.', action='store_true')
 
 args = parser.parse_args()
 
