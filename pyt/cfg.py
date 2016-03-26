@@ -20,6 +20,9 @@ ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
 
+class IgnoredNode(object):
+    '''Ignored Node sent from a ast node that is not yet implemented'''
+
 class Node(object):
     '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
     def __init__(self, label, ast_type, *, line_number = None, variables=None):
@@ -76,8 +79,10 @@ class Node(object):
             new_constraint = 'New constraint:'
         return '\n' + '\n'.join((label, line_number, ast_type, ingoing, outgoing, variables, old_constraint, new_constraint))
 
-class IgnoredNode(object):
-    '''Ignored Node sent from a ast node that is not yet implemented'''
+class FunctionNode(Node):
+    ''''''
+    def __init__(self):
+        super(FunctionNode, self).__init__(self.__class__.__name__, ast.FunctionDef().__class__.__name__)
 
 class AssignmentNode(Node):
     ''''''
@@ -284,7 +289,7 @@ class CFG(ast.NodeVisitor):
         last_node = function_body_statements[-1]
         last_node.connect(exit_node)
 
-        return Node('Function', node.__class__.__name__)
+        return FunctionNode()
         
     def visit_If(self, node):
         test = self.visit(node.test)
