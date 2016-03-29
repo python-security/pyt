@@ -527,3 +527,20 @@ class CFGStr(CFGTestCase):
         expected_label = 'x = 0'
         actual_label = self.cfg.nodes[1].label
         self.assertEqual(expected_label, actual_label)
+
+class CFGNameConstant(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/name_constant.py')
+        self.cfg.create(tree)
+
+    def test_name_constant_in_assign(self):
+        expected_label = 'x = True'
+        actual_label = self.cfg.nodes[1].label
+        self.assertEqual(expected_label, actual_label)
+
+    def test_name_constant_if(self):
+        expected_label = 'True'
+        actual_label = self.cfg.nodes[2].label
+        self.assertEqual(expected_label, actual_label)
+        

@@ -77,6 +77,9 @@ class LabelVisitor(NodeVisitor):
 
     def insert_space(self):
         self.result += ' '
+
+    def visit_NameConstant(self, node):
+        self.result += str(node.value)
         
     #  operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift | RShift | BitOr | BitXor | BitAnd | FloorDiv
     def visit_Add(self, node):

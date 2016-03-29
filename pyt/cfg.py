@@ -315,6 +315,14 @@ class CFG(ast.NodeVisitor):
 
         return ControlFlowNode(test, last_nodes)
 
+    def visit_NameConstant(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node)
+
+        n = Node(label_visitor.result, node.__class__.__name__, line_number=node.lineno)
+        self.nodes.append(n)
+        return n
+
     def visit_Return(self, node):
         label = LabelVisitor()
         label.visit(node)
