@@ -185,8 +185,7 @@ class CFG(ast.NodeVisitor):
         self.nodes.append(exit_node)
         
         last_node = module_statements[-1]
-        last_node.connect(exit_node)
-        
+        last_node.connect(exit_node)        
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
         ''' Handler for orelse nodes in If nodes. 
