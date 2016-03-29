@@ -502,8 +502,6 @@ class CFGAssignListComprehension(CFGTestCase):
         self.cfg.create(tree)
 
     def test_call_with_attribute(self):
-        print(self.cfg)
-        
         call = self.cfg.nodes[1]
         self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
         
