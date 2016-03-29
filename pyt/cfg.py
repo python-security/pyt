@@ -574,3 +574,6 @@ class CFG(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node):
         return IgnoredNode()
+
+    def visit_Str(self, node):
+        return IgnoredNode()

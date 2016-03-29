@@ -513,3 +513,19 @@ class CFGAssignListComprehension(CFGTestCase):
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))
+
+
+class CFGStr(CFGTestCase):
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/str_ignored.py')
+        self.cfg.create(tree)
+
+    def test_str_ignored(self):
+        expected_length = 3
+        actual_length = len(self.cfg.nodes)
+        self.assertEqual(expected_length, actual_length)
+
+        expected_label = 'x = 0'
+        actual_label = self.cfg.nodes[1].label
+        self.assertEqual(expected_label, actual_label)
