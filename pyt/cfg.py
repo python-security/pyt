@@ -178,12 +178,15 @@ class CFG(ast.NodeVisitor):
         
         module_statements = self.visit(ast)
 
+        if not module_statements:
+            raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
+        
         first_node = module_statements[0]
         entry_node.connect(first_node)
 
         exit_node = Node('Exit node', EXIT)
         self.nodes.append(exit_node)
-        
+            
         last_node = module_statements[-1]
         last_node.connect(exit_node)        
 
