@@ -2,7 +2,6 @@ from graphviz import Digraph
 
 styles = {
     'graph': {
-        'label': 'A Fancy Graph',
         'fontsize': '16',
         'fontcolor': 'black',
         'bgcolor': 'transparent',
@@ -40,14 +39,13 @@ def apply_styles(graph, styles):
     return graph
 
 
-def draw_cfg(cfg, title = 'Default Title', output_filename = 'output'):
+def draw_cfg(cfg, output_filename = 'output'):
     graph = Digraph(format='svg')
     
-    for x, node in enumerate(cfg.nodes):
+    for node in cfg.nodes:
         graph.node(node.label)
         for ingoing_node in node.ingoing:
             graph.edge(ingoing_node.label, node.label)
 
-    styles['graph']['label'] = title
     graph = apply_styles(graph, styles)
     graph.render(filename = output_filename)
