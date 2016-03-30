@@ -146,23 +146,38 @@ x = 3
 
 class CFGSingleIfTest(CFGTestCase):
 
-    def setUp(self):
+    def test_single_if(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/if.py')
         self.cfg.create(tree)
-
-    def test_single_if(self):
+        
         expected_length = 4
         actual_length = len(self.cfg.nodes)
         self.assertEqual(expected_length, actual_length)
         
-        start_node = self.cfg.nodes[0]
-        test_node = self.cfg.nodes[1]
-        body_node = self.cfg.nodes[2]
-        exit_node = self.cfg.nodes[3]
-        self.assertConnected(start_node, test_node)
+        start_node = 0
+        test_node = 1
+        body_node = 2
+        exit_node = 3
+        self.assertInCfg([(test_node,start_node), (body_node,test_node), (exit_node,test_node), (exit_node,body_node)])
 
-        self.assertInCfg([(1,0), (2,1), (3,1), (3,2)])
+    def test_single_if_else(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_else.py')
+        self.cfg.create(tree)
+
+        expected_length = 5
+        actual_length = len(self.cfg.nodes)
+        self.assertEqual(expected_length, actual_length)
+
+        start_node = 0
+        test_node = 1
+        body_node = 2
+        else_body = 3
+        exit_node = 4
+        self.assertInCfg([(test_node,start_node), (body_node,test_node), (else_body,test_node), (exit_node,else_body), (exit_node,body_node)])
+        print(repr(self.cfg))
+
         
 class CFGIfTest(CFGTestCase):
 
