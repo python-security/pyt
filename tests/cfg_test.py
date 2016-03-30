@@ -52,6 +52,9 @@ class CFGTestCase(unittest.TestCase):
         This method assumes that no nodes in the code have the same label'''
         return {x.label: x for x in list}
 
+    def assert_length(self, _list, *, expected_length):
+        actual_length = len(_list)
+        self.assertEqual(expected_length, actual_length)
 
 
 class CFGGeneralTest(CFGTestCase):
@@ -150,10 +153,8 @@ class CFGSingleIfTest(CFGTestCase):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/if.py')
         self.cfg.create(tree)
-        
-        expected_length = 4
-        actual_length = len(self.cfg.nodes)
-        self.assertEqual(expected_length, actual_length)
+    
+        self.assert_length(self.cfg.nodes, expected_length=4)
         
         start_node = 0
         test_node = 1
@@ -166,9 +167,7 @@ class CFGSingleIfTest(CFGTestCase):
         tree = generate_ast('../example/example_inputs/if_else.py')
         self.cfg.create(tree)
 
-        expected_length = 5
-        actual_length = len(self.cfg.nodes)
-        self.assertEqual(expected_length, actual_length)
+        self.assert_length(self.cfg.nodes, expected_length=5)
 
         start_node = 0
         test_node = 1
@@ -437,8 +436,9 @@ Node: 16 Label:  x = call_2
 Node: 17 Label:  Exit node
 '''
 
+        self.assert_length(self.cfg.nodes, expected_length=18)
+
         l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
-        self.assertEqual(len(self.cfg.nodes), 18)
         self.assertInCfg(list(l))
 
 
@@ -524,10 +524,9 @@ class CFGCallWithAttributeTest(CFGTestCase):
 
         self.assertEqual(call.label, "request.args.get('param', 'not set')")
 
-        length = len(self.cfg.nodes)
-        self.assertEqual(length, 14)
-        l = zip(range(1, length), range(length))
+        self.assert_length(self.cfg.nodes, expected_length=14)
 
+        l = zip(range(1, length), range(length))
         self.assertInCfg(list(l))
 
 class CFGAssignListComprehension(CFGTestCase):
@@ -539,9 +538,8 @@ class CFGAssignListComprehension(CFGTestCase):
     def test_call_with_attribute(self):
         call = self.cfg.nodes[1]
         self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
-        
-        length = len(self.cfg.nodes)
-        self.assertEqual(length, 3)
+
+        self.assert_length(self.cfg.nodes, expected_length=3)
 
         l = zip(range(1, length), range(length))
 
@@ -555,9 +553,7 @@ class CFGStr(CFGTestCase):
         self.cfg.create(tree)
 
     def test_str_ignored(self):
-        expected_length = 3
-        actual_length = len(self.cfg.nodes)
-        self.assertEqual(expected_length, actual_length)
+        self.assert_length(self.cfg.nodes, expected_length=3)
 
         expected_label = 'x = 0'
         actual_label = self.cfg.nodes[1].label
