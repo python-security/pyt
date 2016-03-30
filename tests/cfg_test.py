@@ -289,8 +289,8 @@ x += 5
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
     
     def test_if_first_if(self):
-        test = self.nodes['x > 0']
-        eliftest = self.nodes['x == 0']
+        test = self.nodes['if x > 0:']
+        eliftest = self.nodes['elif x == 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
@@ -304,7 +304,7 @@ x += 5
         self.assertNotConnected(body_1, eliftest)
         
     def test_if_elif(self):
-        test = self.nodes['x == 0']
+        test = self.nodes['elif x == 0:']
         eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
         body_1 = self.nodes['x += 3']
         next_stmt = self.nodes['x += 5']
@@ -662,7 +662,7 @@ class CFGNameConstant(CFGTestCase):
         self.assertEqual(expected_label, actual_label)
 
     def test_name_constant_if(self):
-        expected_label = 'True'
+        expected_label = 'if True:'
         actual_label = self.cfg.nodes[2].label
         self.assertEqual(expected_label, actual_label)
         

@@ -276,14 +276,22 @@ class CFG(ast.NodeVisitor):
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         return FunctionNode()
-        
+
+    def add_if_label(self, CFG_node):
+        CFG_node.label = 'if ' + CFG_node.label + ':'
+
+    def add_elif_label(self, CFG_node):
+        CFG_node.label = 'el' + CFG_node.label
+
     def visit_If(self, node):
         test = self.visit(node.test)
+        self.add_if_label(test)
         body_connect_stmts = self.stmt_star_handler(node.body)
 
         if node.orelse:
             if isinstance(node.orelse[0], ast.If):
                 control_flow_node  = self.visit(node.orelse[0])
+                self.add_elif_label(control_flow_node.test)
                 test.connect(control_flow_node.test)
                 body_connect_stmts.last_statements.extend(control_flow_node.last_nodes)
             else:
