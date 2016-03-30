@@ -49,6 +49,11 @@ class Node(object):
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
+    def connect_predecessors(self, predecessors):
+        for n in predecessors:
+            self.ingoing.append(n)
+            n.outgoing.append(self)
+
     def __str__(self):
         return ' '.join(('Label: ', self.label))
 
