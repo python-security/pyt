@@ -38,12 +38,16 @@ def apply_styles(graph, styles):
     )
     return graph
 
-
 def draw_cfg(cfg, output_filename = 'output'):
     graph = Digraph(format='svg')
     
     for node in cfg.nodes:
-        graph.node(node.label)
+        if node.label == 'Exit node':
+            graph.node(node.label, 'Exit', shape='none')
+        elif node.label == 'Entry node':
+            graph.node(node.label, 'Entry', shape='none')
+        else:
+            graph.node(node.label.strip(IGNORED_LABEL_NAME_CHARACHTERS), node.label)
         for ingoing_node in node.ingoing:
             graph.edge(ingoing_node.label, node.label)
 
