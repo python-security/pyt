@@ -144,6 +144,26 @@ x = 3
         # NOT IN
         self.assertNotConnected(body_2, next_node)
 
+class CFGSingleIfTest(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if.py')
+        self.cfg.create(tree)
+
+    def test_single_if(self):
+        expected_length = 4
+        actual_length = len(self.cfg.nodes)
+        self.assertEqual(expected_length, actual_length)
+        
+        start_node = self.cfg.nodes[0]
+        test_node = self.cfg.nodes[1]
+        body_node = self.cfg.nodes[2]
+        exit_node = self.cfg.nodes[3]
+        self.assertConnected(start_node, test_node)
+
+        self.assertInCfg([(1,0), (2,1), (3,1), (3,2)])
+        
 class CFGIfTest(CFGTestCase):
 
     def setUp(self):

@@ -192,8 +192,8 @@ class CFG(ast.NodeVisitor):
         exit_node = Node('Exit node', EXIT)
         self.nodes.append(exit_node)
             
-        last_node = module_statements[-1]
-        last_node.connect(exit_node)        
+        last_nodes = module_statements[1]
+        exit_node.connect_predecessors(last_nodes)
 
     def orelse_handler(self, orelse_node, ref_to_parent_next_node):
         ''' Handler for orelse nodes in If nodes. 
@@ -208,8 +208,8 @@ class CFG(ast.NodeVisitor):
         if isinstance(orelse_node[0], ast.If):
             body_stmts = self.stmt_star_handler(orelse_node[0].body)
             body_first = body_stmts[0]
-            body_last = body_stmts[-1]
-            ref_to_parent_next_node.append(body_last)
+            last_nodes = body_stmts[1]
+            ref_to_parent_next_node.extend(last_nodes)
 
             inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
             orelse_test =  self.visit(orelse_node[0].test)
@@ -220,9 +220,9 @@ class CFG(ast.NodeVisitor):
         else:
             stmts = self.stmt_star_handler(orelse_node)
             first_stmt = stmts[0]
-            last_stmt = stmts[-1]
+            last_stmts = stmts[1]
             orelse_test = first_stmt
-            ref_to_parent_next_node.append(last_stmt)
+            ref_to_parent_next_node.extend(last_stmts)
             
 
         return orelse_test # return for previous elif to refer to
@@ -237,6 +237,7 @@ class CFG(ast.NodeVisitor):
 
         links all statements together in a list of statements, accounting for statements with multiple last nodes'''
         cfg_statements = list()
+        connect_to_next_node = list()
 
         for stmt in stmts:
             n = self.visit(stmt)
@@ -262,8 +263,14 @@ class CFG(ast.NodeVisitor):
             else:
                 n.connect(next_node)
 
+
+        if isinstance(cfg_statements[-1], ControlFlowNode):
+            connect_to_next_node.extend(cfg_statements[-1].last_nodes)
+        else:
+            connect_to_next_node.append(cfg_statements[-1])
+
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
-        return cfg_statements
+        return (cfg_statements[0], connect_to_next_node)
 
     def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
         '''Creates and runs the VarsVisitor and LabelVisitor.
@@ -296,20 +303,18 @@ class CFG(ast.NodeVisitor):
         exit_node = Node('Exit node: ' + node.name, EXIT)
         function_CFG.nodes.append(exit_node)
         
-        last_node = function_body_statements[-1]
-        last_node.connect(exit_node)
+        last_nodes = function_body_statements[1]
+        exit_node.connect_predecessors(last_nodes)
 
         return FunctionNode()
         
     def visit_If(self, node):
         test = self.visit(node.test)
         body_stmts = self.stmt_star_handler(node.body)
-        
+
         body_first = body_stmts[0]
-        body_last = body_stmts[-1]
+        last_nodes = body_stmts[1]
         
-        last_nodes = list()
-        last_nodes.append(body_last)
         if node.orelse:
             orelse_test = self.orelse_handler(node.orelse, last_nodes)
             test.connect(orelse_test)
@@ -419,8 +424,8 @@ class CFG(ast.NodeVisitor):
         body_first = body_stmts[0]
         test.connect(body_first)
         
-        body_last = body_stmts[-1]
-        body_last.connect(test)
+        last_stmts = body_stmts[1]
+        test.connect_predecessors(last_stmts)
 
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
@@ -428,11 +433,11 @@ class CFG(ast.NodeVisitor):
         
         if node.orelse:
             orelse_stmts = self.stmt_star_handler(node.orelse)
-            orelse_last = orelse_stmts[-1]
+            orelse_last_nodes = orelse_stmts[1]
             orelse_first = orelse_stmts[0]
 
             test.connect(orelse_first)
-            last_nodes.append(orelse_last)
+            last_nodes.extend(orelse_last_nodes)
         else:
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
