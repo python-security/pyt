@@ -19,6 +19,7 @@ NodeInfo = namedtuple('NodeInfo', 'label variables')
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
+ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements')
 
 
 class IgnoredNode(object):
@@ -206,24 +207,19 @@ class CFG(ast.NodeVisitor):
         orelse_test = None
         
         if isinstance(orelse_node[0], ast.If):
-            body_stmts = self.stmt_star_handler(orelse_node[0].body)
-            body_first = body_stmts[0]
-            last_nodes = body_stmts[1]
-            ref_to_parent_next_node.extend(last_nodes)
+            body_connect_stmts = self.stmt_star_handler(orelse_node[0].body)
 
+            ref_to_parent_next_node.extend(body_connect_stmts.last_statements)
             inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
             orelse_test =  self.visit(orelse_node[0].test)
             orelse_test.connect(inner_test)
-            orelse_test.connect(body_first)
-            
+            orelse_test.connect(body_connect_stmts.first_statement)
+
             ref_to_parent_next_node.append(orelse_test)
         else:
-            stmts = self.stmt_star_handler(orelse_node)
-            first_stmt = stmts[0]
-            last_stmts = stmts[1]
-            orelse_test = first_stmt
-            ref_to_parent_next_node.extend(last_stmts)
-            
+            connect_stmts = self.stmt_star_handler(orelse_node)
+            orelse_test = connect_stmts.first_statement
+            ref_to_parent_next_node.extend(connect_stmts.last_statements)
 
         return orelse_test # return for previous elif to refer to
     
@@ -237,7 +233,6 @@ class CFG(ast.NodeVisitor):
 
         links all statements together in a list of statements, accounting for statements with multiple last nodes'''
         cfg_statements = list()
-        connect_to_next_node = list()
 
         for stmt in stmts:
             n = self.visit(stmt)
@@ -263,14 +258,14 @@ class CFG(ast.NodeVisitor):
             else:
                 n.connect(next_node)
 
-
+        last_statements = list()
         if isinstance(cfg_statements[-1], ControlFlowNode):
-            connect_to_next_node.extend(cfg_statements[-1].last_nodes)
+            last_statements.extend(cfg_statements[-1].last_nodes)
         else:
-            connect_to_next_node.append(cfg_statements[-1])
+            last_statements.append(cfg_statements[-1])
 
         cfg_statements = self.flatten_cfg_statements(cfg_statements)
-        return (cfg_statements[0], connect_to_next_node)
+        return ConnectStatements(first_statement=cfg_statements[0], last_statements=last_statements)
 
     def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
         '''Creates and runs the VarsVisitor and LabelVisitor.
@@ -295,35 +290,30 @@ class CFG(ast.NodeVisitor):
         entry_node = Node('Entry node: ' + node.name, ENTRY)
         function_CFG.nodes.append(entry_node)
         
-        function_body_statements = function_CFG.stmt_star_handler(node.body)
+        function_body_connect_statements = function_CFG.stmt_star_handler(node.body)
 
-        first_node = function_body_statements[0]
-        entry_node.connect(first_node)
+        entry_node.connect(function_body_connect_statements.first_statement)
 
         exit_node = Node('Exit node: ' + node.name, EXIT)
         function_CFG.nodes.append(exit_node)
-        
-        last_nodes = function_body_statements[1]
-        exit_node.connect_predecessors(last_nodes)
+
+        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         return FunctionNode()
         
     def visit_If(self, node):
         test = self.visit(node.test)
-        body_stmts = self.stmt_star_handler(node.body)
+        body_connect_stmts = self.stmt_star_handler(node.body)
 
-        body_first = body_stmts[0]
-        last_nodes = body_stmts[1]
-        
         if node.orelse:
-            orelse_test = self.orelse_handler(node.orelse, last_nodes)
+            orelse_test = self.orelse_handler(node.orelse, body_connect_stmts.last_statements)
             test.connect(orelse_test)
         else:
-            last_nodes.append(test) # if there is no orelse, test needs an edge to the next_node
+            body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
 
-        test.connect(body_first)
+        test.connect(body_connect_stmts.first_statement)
 
-        return ControlFlowNode(test, last_nodes)
+        return ControlFlowNode(test, body_connect_stmts.last_statements)
 
     def visit_NameConstant(self, node):
         label_visitor = LabelVisitor()
@@ -419,25 +409,20 @@ class CFG(ast.NodeVisitor):
         return n
 
     def loop_node_skeleton(self, test, node):
-        body_stmts = self.stmt_star_handler(node.body)
+        body_connect_stmts = self.stmt_star_handler(node.body)
 
-        body_first = body_stmts[0]
-        test.connect(body_first)
-        
-        last_stmts = body_stmts[1]
-        test.connect_predecessors(last_stmts)
+        test.connect(body_connect_stmts.first_statement)        
+        test.connect_predecessors(body_connect_stmts.last_statements)
 
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
         last_nodes = list() 
         
         if node.orelse:
-            orelse_stmts = self.stmt_star_handler(node.orelse)
-            orelse_last_nodes = orelse_stmts[1]
-            orelse_first = orelse_stmts[0]
+            orelse_connect_stmts = self.stmt_star_handler(node.orelse)
 
-            test.connect(orelse_first)
-            last_nodes.extend(orelse_last_nodes)
+            test.connect(orelse_connect_stmts.first_statement)
+            last_nodes.extend(orelse_connect_stmts.last_statements)
         else:
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
