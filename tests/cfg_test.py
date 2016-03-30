@@ -206,6 +206,36 @@ class CFGSingleIfTest(CFGTestCase):
             (exit_node, third_if)
         ])
 
+    def test_if_else_elif(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_else_elif.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=7)
+
+        start_node = 0
+        _if = 1
+        _if_body = 2
+        _elif = 3
+        _elif_body = 4
+        _else_body = 5
+        exit_node = 6
+        self.assertInCfg([
+            (_if, start_node),
+            (_if_body, _if),
+            (_elif, _if),
+            (_elif_body, _elif),
+            (_else_body, _elif),
+            (exit_node, _if_body),
+            (exit_node, _elif_body),
+            (exit_node, _else_body)
+        ])
+
+    def test_nested_if_else_elif(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/multiple_if_else.py')
+        self.cfg.create(tree)
+
         
 class CFGIfTest(CFGTestCase):
 

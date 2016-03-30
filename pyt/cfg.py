@@ -195,33 +195,6 @@ class CFG(ast.NodeVisitor):
             
         last_nodes = module_statements[1]
         exit_node.connect_predecessors(last_nodes)
-
-    def orelse_handler(self, orelse_node, ref_to_parent_next_node):
-        ''' Handler for orelse nodes in If nodes. 
-        
-        orelse_node is a orelse node from the If.
-        This is either a list with one if, or a stmt*
-        
-        ref_to__parent_next_node is a list of nodes that need a reference to the next statement in the syntax tree'''
-        
-        orelse_test = None
-        
-        if isinstance(orelse_node[0], ast.If):
-            body_connect_stmts = self.stmt_star_handler(orelse_node[0].body)
-
-            ref_to_parent_next_node.extend(body_connect_stmts.last_statements)
-            inner_test = self.orelse_handler(orelse_node[0].orelse, ref_to_parent_next_node)
-            orelse_test =  self.visit(orelse_node[0].test)
-            orelse_test.connect(inner_test)
-            orelse_test.connect(body_connect_stmts.first_statement)
-
-            ref_to_parent_next_node.append(orelse_test)
-        else:
-            connect_stmts = self.stmt_star_handler(orelse_node)
-            orelse_test = connect_stmts.first_statement
-            ref_to_parent_next_node.extend(connect_stmts.last_statements)
-
-        return orelse_test # return for previous elif to refer to
     
     def flatten_cfg_statements(self, cfg_statements):
         '''For use in stmt_star_handler. Flattens the cfg_statements list by eliminating tuples
@@ -309,8 +282,14 @@ class CFG(ast.NodeVisitor):
         body_connect_stmts = self.stmt_star_handler(node.body)
 
         if node.orelse:
-            orelse_test = self.orelse_handler(node.orelse, body_connect_stmts.last_statements)
-            test.connect(orelse_test)
+            if isinstance(node.orelse[0], ast.If):
+                control_flow_node  = self.visit(node.orelse[0])
+                test.connect(control_flow_node.test)
+                body_connect_stmts.last_statements.extend(control_flow_node.last_nodes)
+            else:
+                else_connect_statements = self.stmt_star_handler(node.orelse)
+                test.connect(else_connect_statements.first_statement)
+                body_connect_stmts.last_statements.extend(else_connect_statements.last_statements)
         else:
             body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
 
