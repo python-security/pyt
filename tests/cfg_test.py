@@ -147,8 +147,55 @@ x = 3
         # NOT IN
         self.assertNotConnected(body_2, next_node)
 
-class CFGSingleIfTest(CFGTestCase):
 
+
+        
+class CFGIfTest(CFGTestCase):
+
+    def setUp(self):
+        self.cfg = CFG()
+        obj = parse(
+'''
+if x > 0:
+    x += 1
+    x += 2
+elif x == 0:
+    x += 3
+else:
+    x += 4
+x += 5
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+    
+    def test_if_first_if(self):
+        test = self.nodes['if x > 0:']
+        eliftest = self.nodes['elif x == 0:']
+        body_1 = self.nodes['x += 1']
+        body_2 = self.nodes['x += 2']
+        next_stmt = self.nodes['x += 5']
+
+        self.assertConnected(test, eliftest)
+        self.assertConnected(test, body_1)
+        self.assertConnected(body_1, body_2)
+        self.assertConnected(body_2, next_stmt)
+
+        self.assertNotConnected(body_2, eliftest)
+        self.assertNotConnected(body_1, eliftest)
+        
+    def test_if_elif(self):
+        test = self.nodes['elif x == 0:']
+        eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
+        body_1 = self.nodes['x += 3']
+        next_stmt = self.nodes['x += 5']
+
+        self.assertConnected(test, eliftest)
+        self.assertConnected(test, body_1)
+        self.assertConnected(body_1, next_stmt)
+        self.assertConnected(eliftest, next_stmt)
+
+        
     def test_single_if(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/if.py')
@@ -267,52 +314,6 @@ class CFGSingleIfTest(CFGTestCase):
             (_exit, else_body),
             (_exit, elif_body)
         ])
-
-        
-class CFGIfTest(CFGTestCase):
-
-    def setUp(self):
-        self.cfg = CFG()
-        obj = parse(
-'''
-if x > 0:
-    x += 1
-    x += 2
-elif x == 0:
-    x += 3
-else:
-    x += 4
-x += 5
-'''
-)
-        self.cfg.create(obj)
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-    
-    def test_if_first_if(self):
-        test = self.nodes['if x > 0:']
-        eliftest = self.nodes['elif x == 0:']
-        body_1 = self.nodes['x += 1']
-        body_2 = self.nodes['x += 2']
-        next_stmt = self.nodes['x += 5']
-
-        self.assertConnected(test, eliftest)
-        self.assertConnected(test, body_1)
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(body_2, next_stmt)
-
-        self.assertNotConnected(body_2, eliftest)
-        self.assertNotConnected(body_1, eliftest)
-        
-    def test_if_elif(self):
-        test = self.nodes['elif x == 0:']
-        eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
-        body_1 = self.nodes['x += 3']
-        next_stmt = self.nodes['x += 5']
-
-        self.assertConnected(test, eliftest)
-        self.assertConnected(test, body_1)
-        self.assertConnected(body_1, next_stmt)
-        self.assertConnected(eliftest, next_stmt)
 
 
 class CFGWhileTest(CFGTestCase):
