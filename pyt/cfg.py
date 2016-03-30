@@ -246,10 +246,13 @@ class CFG(ast.NodeVisitor):
 
        
         for n, next_node in zip(cfg_statements, cfg_statements[1:]):
-            if isinstance(n,tuple): # case for if
-                for last in n[1]:# list of last nodes in ifs and elifs
-                    last.connect(next_node)
-            elif isinstance(next_node, tuple): # case for if
+            if isinstance(n, ControlFlowNode):             # case for if
+                for last in n[1]:                         # list of last nodes in ifs and elifs
+                    if isinstance(next_node, ControlFlowNode):
+                        last.connect(next_node.test)        # connect to next if test case
+                    else:
+                        last.connect(next_node)
+            elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
             elif type(next_node) is RestoreNode:
                 continue
