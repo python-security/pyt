@@ -513,6 +513,9 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
         self.assertConnected(node_2, exit_node)
         self.assertConnected(node, node_2)
 
+        self.assertEqual(node.label, 'x = 1')
+        self.assertEqual(node_2.label, 'y = 2')
+
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
 

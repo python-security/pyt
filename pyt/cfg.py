@@ -369,9 +369,10 @@ class CFG(ast.NodeVisitor):
                 else:
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
-                
-                n = self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), line_number = node.lineno, variables = visitors.variables_visitor.result))
-                self.nodes[-1].connect(n)
+
+                previous_node = self.nodes[-1]
+                assignment_node = self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), line_number = node.lineno, variables = visitors.variables_visitor.result))
+                previous_node.connect(assignment_node)
             return self.nodes[-1] # return the last added node
 
         else:
