@@ -170,3 +170,31 @@ class FixedPointTest(unittest.TestCase):
                           (2,10),(4,10),(6,10),(9,10),(10,10),
                           (2,11),(4,11),(6,11),(9,11),(10,11),
                           (2,12),(4,12),(6,12),(9,12),(10,12)])        
+
+    def test_fixpoint_runner(self):
+        self.analysis.fixpoint_runner(self.cfg)
+
+        self.assertInCfg([(1,1),
+                          (2,2),
+                          (2,3),(4,3),(6,3),(9,3),(10,3),
+                          (2,4),(4,4),(6,4),(9,4),(10,4),
+                          (2,5),(4,5),(6,5),(9,5),(10,5),
+                          (4,6),(6,6),(10,6),
+                          (2,7),(4,7),(6,7),(7,7),(9,7),
+                          (2,8),(4,8),(6,8),(7,8),(9,8),
+                          (4,9),(7,9),(9,9),
+                          (2,10),(4,10),(6,10),(9,10),(10,10),
+                          (2,11),(4,11),(6,11),(9,11),(10,11),
+                          (2,12),(4,12),(6,12),(9,12),(10,12)])
+        
+    def test_constraints_changed_true(self):
+        self.produce_iteration(1)
+        changed = self.analysis.constraints_changed(self.cfg)
+
+        self.assertEqual(changed, True)
+
+    def test_constraints_changed_false(self):
+        self.produce_iteration(9)
+        changed = self.analysis.constraints_changed(self.cfg)
+
+        self.assertEqual(changed, False)

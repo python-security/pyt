@@ -10,22 +10,21 @@ class fixed_point_analysis(object):
         analysis must be a dataflow analysis containing a 'fixpointmethod' method that analyzes one CFG node'''
         self.analysis = analysis()
     
-    def constraints_changed(cfg):
-        for node in cfg.nodes:
-            if node.old_constraint != node.new_constraint:
-                return True
-            return False
-
+    def constraints_changed(self, cfg):
+        return any(node.old_constraint != node.new_constraint for node in cfg.nodes)
+        
     def swap_constraints(self, cfg):
         for node in cfg.nodes:
             node.old_constraint = node.new_constraint
             node.new_constraint = None
             
     def fixpoint_runner(self, cfg):
-        fixpoint_iteration(cfg)
-        while constraints_changed(cfg):
-            swap_constraints(cfg)
-            fixpoint_iteration(cfg)
+        print("entry")
+        self.fixpoint_iteration(cfg)
+        while self.constraints_changed(cfg):
+            print("iter")
+            self.swap_constraints(cfg)
+            self.fixpoint_iteration(cfg)
         
     def fixpoint_iteration(self, cfg):
         for node in cfg.nodes:
