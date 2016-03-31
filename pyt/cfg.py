@@ -15,7 +15,6 @@ def generate_ast(path):
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
-NodeInfo = namedtuple('NodeInfo', 'label variables')
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 Visitors = namedtuple('Visitors', 'variables_visitor label_visitor')
