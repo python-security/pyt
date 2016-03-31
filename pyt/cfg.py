@@ -189,12 +189,12 @@ class CFG(ast.NodeVisitor):
         if not module_statements:
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
         
-        first_node = module_statements[0]
+        first_node = module_statements.first_statement
         entry_node.connect(first_node)
 
         exit_node = self.append_node(Node('Exit node', EXIT))
             
-        last_nodes = module_statements[1]
+        last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
     
     def flatten_cfg_statements(self, cfg_statements):
