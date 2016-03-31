@@ -47,6 +47,9 @@ class CFGTestCase(unittest.TestCase):
         self.assertNotIn(node, successor.ingoing,
                          '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
 
+    def assertLineNumber(self, node, line_number):
+        self.assertEqual(node.line_number, line_number)
+
     def cfg_list_to_dict(self, list):
         '''This method converts the CFG list to a dict, making it easier to find nodes to test.
         This method assumes that no nodes in the code have the same label'''
@@ -91,7 +94,7 @@ class CFGForTest(CFGTestCase):
     def test_for_complete(self):
         self.cfg = CFG()
         obj = parse(
-'''
+'''\
 for x in range(3):
     print(x)
     y += 1
@@ -112,6 +115,8 @@ x = 3
         else_body_2 = self.nodes['print(y)']
         next_node = self.nodes['x = 3']
 
+    
+
         self.assertConnected(else_body_2, next_node)
         self.assertConnected(else_body_1, else_body_2)
         self.assertConnected(for_node, else_body_1)
@@ -126,7 +131,7 @@ x = 3
     def test_for_no_orelse(self):
         self.cfg = CFG()
         obj = parse(
-'''
+'''\
 for x in range(3):
     print(x)
     y += 1
@@ -151,7 +156,36 @@ x = 3
         # NOT IN
         self.assertNotConnected(body_2, next_node)
 
-
+    def test_for_line_numbers(self):
+        self.cfg = CFG()
+        obj = parse(
+'''\
+for x in range(3):
+    print(x)
+    y += 1
+else:
+    print('Final: %s' % x)
+    print(y)
+x = 3
+'''
+)
+        self.cfg.create(obj)
+        self.assert_length(self.cfg.nodes, expected_length=8)
+        
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        for_node = self.nodes['for x in range(3):']
+        body_1 = self.nodes['print(x)']
+        body_2 = self.nodes['y += 1']
+        else_body_1 = self.nodes["print('Final: %s' % x)"]
+        else_body_2 = self.nodes['print(y)']
+        next_node = self.nodes['x = 3']
+        
+        self.assertLineNumber(for_node, 1)
+        self.assertLineNumber(body_1, 2)
+        self.assertLineNumber(body_2, 3)
+        self.assertLineNumber(else_body_1, 5)
+        self.assertLineNumber(else_body_2, 6)
+        self.assertLineNumber(next_node, 7)
 
         
 class CFGIfTest(CFGTestCase):
@@ -159,7 +193,7 @@ class CFGIfTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
         obj = parse(
-'''
+'''\
 if x > 0:
     x += 1
     x += 2
@@ -179,6 +213,7 @@ x += 5
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
+
 
         self.assertConnected(test, eliftest)
         self.assertConnected(test, body_1)
@@ -319,6 +354,24 @@ x += 5
             (_exit, elif_body)
         ])
 
+        
+    def test_if_line_numbers(self):
+        test = self.nodes['if x > 0:']
+        body_1 = self.nodes['x += 1']
+        body_2 = self.nodes['x += 2']
+
+        eliftest = self.nodes['elif x == 0:']
+        elif_body = self.nodes['x += 3']
+        else_body = self.nodes['x += 4']
+        next_stmt = self.nodes['x += 5']
+
+        self.assertLineNumber(test, 1)
+        self.assertLineNumber(body_1, 2)
+        self.assertLineNumber(body_2, 3)
+        self.assertLineNumber(eliftest, 4)
+        self.assertLineNumber(elif_body, 5)
+        self.assertLineNumber(else_body, 7)
+        self.assertLineNumber(next_stmt, 8)
 
 class CFGWhileTest(CFGTestCase):
 
@@ -392,8 +445,35 @@ x += 5
         self.assertNotConnected(body_2, body_1)
         self.assertNotConnected(body_2, next_stmt)
 
-        
-        
+    def test_while_line_numbers(self):
+        self.cfg = CFG()
+        obj = parse(
+'''\
+while x > 0:
+    x += 1
+    x += 2
+else:
+    x += 3
+    x += 4
+x += 5
+'''
+)
+        self.cfg.create(obj)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        test = self.nodes['x > 0']
+        body_1 = self.nodes['x += 1']
+        body_2 = self.nodes['x += 2']
+        else_body_1 = self.nodes['x += 3']
+        else_body_2 = self.nodes['x += 4']
+        next_stmt = self.nodes['x += 5']
+
+        self.assertLineNumber(test, 1)
+        self.assertLineNumber(body_1, 2)
+        self.assertLineNumber(body_2, 3)
+        self.assertLineNumber(else_body_1, 5)
+        self.assertLineNumber(else_body_2, 6)
+        self.assertLineNumber(next_stmt, 7)
         
 class CFGStartExitNodeTest(CFGTestCase):
     def setUp(self):
@@ -412,13 +492,18 @@ class CFGStartExitNodeTest(CFGTestCase):
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
 
+    def test_start_line_numbers(self):
+        self.assertLineNumber(self.cfg.nodes[0], None)
+        self.assertLineNumber(self.cfg.nodes[1], 1)
+        self.assertLineNumber(self.cfg.nodes[2], None)
+
 class CFGAssignmentMultiTargetTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignment_two_targets.py')
         self.cfg.create(tree)
 
-    def test_start(self):
+    def test_assignment_multi_target(self):
         start_node = self.cfg.nodes[0]
         node = self.cfg.nodes[1]
         node_2 = self.cfg.nodes[2]
@@ -430,6 +515,13 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
 
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
+
+    def test_assignment_multi_target_line_numbers(self): 
+        node = self.cfg.nodes[1]
+        node_2 = self.cfg.nodes[2]
+
+        self.assertLineNumber(node, 1)
+        self.assertLineNumber(node_2, 1)
         
         
 class CFGFunctionNodeTest(CFGTestCase):
@@ -455,6 +547,20 @@ class CFGFunctionNodeTest(CFGTestCase):
                           self.connected(save_y, entry_foo), self.connected(entry_foo, body_foo),
                           self.connected(body_foo, exit_foo), self.connected(exit_foo, y_load),
                           self.connected(y_load, exit_)])
+
+    def test_function_line_numbers(self):
+        y_assignment = self.cfg.nodes[1]
+        save_y = self.cfg.nodes[2]
+        entry_foo = self.cfg.nodes[3]
+        body_foo = self.cfg.nodes[4]
+        exit_foo = self.cfg.nodes[5]
+        y_load = self.cfg.nodes[6]
+
+        self.assertLineNumber(y_assignment, 5)
+        self.assertLineNumber(save_y, None)
+        self.assertLineNumber(entry_foo, None)
+        self.assertLineNumber(body_foo, 2)
+
 
 class CFGFunctionParameterNodeTest(CFGTestCase):
     def setUp(self):
@@ -496,42 +602,6 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
-        '''
-Node: 1 Label:  y = input()
-
-Node: 2 Label:  save_1_y = y
-
-Node: 3 Label:  Entry node: foo
-
-Node: 4 Label:  print('h')
-
-Node: 5 Label:  ret_foo = 1
-
-Node: 6 Label:  Exit node: foo
-
-Node: 7 Label:  y = save_1_y
-
-Node: 8 Label:  call_1 = ret_foo
-
-Node: 9 Label:  save_2_y = y
-
-Node: 10 Label:  Entry node: bar
-
-Node: 11 Label:  x = 2
-
-Node: 12 Label:  ret_bar = x
-
-Node: 13 Label:  Exit node: bar
-
-Node: 14 Label:  y = save_2_y
-
-Node: 15 Label:  call_2 = ret_bar
-
-Node: 16 Label:  x = call_2
-
-Node: 17 Label:  Exit node
-'''
-
         self.assert_length(self.cfg.nodes, expected_length=18)
 
         l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
@@ -544,7 +614,7 @@ class CFGAssignmentAndBuiltinTest(CFGTestCase):
         tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
         self.cfg.create(tree)
 
-    def test_start(self):
+    def test_assignment_and_builtin(self):
         start_node = self.cfg.nodes[0]
         assign = self.cfg.nodes[1]
         builtin = self.cfg.nodes[2]
@@ -554,6 +624,13 @@ class CFGAssignmentAndBuiltinTest(CFGTestCase):
         self.assertConnected(assign, builtin)
         self.assertConnected(builtin, exit_node)
 
+    def test_assignment_and_builtin_line_numbers(self):
+        assign = self.cfg.nodes[1]
+        builtin = self.cfg.nodes[2]
+
+        self.assertLineNumber(assign, 1)
+        self.assertLineNumber(builtin, 2)
+        
 class CFGMultipleParametersTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
@@ -561,47 +638,6 @@ class CFGMultipleParametersTest(CFGTestCase):
         self.cfg.create(tree)
 
     def test_start(self):
-        '''
-Node: 1 Label:  y = 0
-
-Node: 2 Label:  save_1_y = y
-
-Node: 3 Label:  temp_1_a = 1
-
-Node: 4 Label:  temp_1_b = 0
-
-Node: 5 Label:  temp_1_c = 2
-
-Node: 6 Label:  temp_1_x = 3
-
-Node: 7 Label:  a = temp_1_a
-
-Node: 8 Label:  b = temp_1_b
-
-Node: 9 Label:  c = temp_1_c
-
-Node: 10 Label:  x = temp_1_x
-
-Node: 11 Label:  Entry node: foo
-
-Node: 12 Label:  print(a)
-
-Node: 13 Label:  print(b)
-
-Node: 14 Label:  ret_foo = c
-
-Node: 15 Label:  Exit node: foo
-
-Node: 16 Label:  y = save_1_y
-
-Node: 17 Label:  call_1 = ret_foo
-
-Node: 18 Label:  x = call_1
-
-Node: 19 Label:  z = 0
-
-Node: 20 Label:  Exit node'''
-
         length = len(self.cfg.nodes)
         self.assertEqual(length, 21)
         l = zip(range(1, length), range(length))
@@ -620,10 +656,16 @@ class CFGCallWithAttributeTest(CFGTestCase):
 
         self.assertEqual(call.label, "request.args.get('param', 'not set')")
 
-        self.assert_length(self.cfg.nodes, expected_length=14)
+        length = 14
+        self.assert_length(self.cfg.nodes, expected_length=length)
 
         l = zip(range(1, length), range(length))
         self.assertInCfg(list(l))
+
+    def test_call_with_attribute_line_numbers(self):
+        call = self.cfg.nodes[2]
+
+        self.assertLineNumber(call, 5)
 
 class CFGAssignListComprehension(CFGTestCase):
     def setUp(self):
@@ -690,5 +732,4 @@ class CFGName(CFGTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')
-        
         
