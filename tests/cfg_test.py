@@ -667,3 +667,24 @@ class CFGNameConstant(CFGTestCase):
         actual_label = self.cfg.nodes[2].label
         self.assertEqual(expected_label, actual_label)
         
+
+class CFGName(CFGTestCase):
+    """Test is Name nodes are properly handled in different contexts"""
+    
+    def test_name_if(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/name_if.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=5)
+        self.assertEqual(self.cfg.nodes[2].label, 'if x:')
+
+    def test_name_for(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/name_for.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=4)
+        self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')
+        
+        

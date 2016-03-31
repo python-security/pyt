@@ -424,11 +424,16 @@ class CFG(ast.NodeVisitor):
 
     def visit_For(self, node):
         self.undecided = True  # Used for handling functions in for loops
-        
-        iterator = self.visit(node.iter)
-        target = self.visit(node.target)
 
-        for_node = Node("for " + target.label + " in " + iterator.label, node.__class__.__name__, line_number = node.lineno)
+        #issue23
+        iterator_label = LabelVisitor()
+        iterator = iterator_label.visit(node.iter)
+        self.undecided = False 
+
+        target_label = LabelVisitor()
+        target = target_label.visit(node.target)
+
+        for_node = Node("for " + target_label.result + " in " + iterator_label.result + ':', node.__class__.__name__, line_number = node.lineno)
         
         self.nodes.append(for_node)
         
@@ -559,7 +564,10 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        return NodeInfo(label.result, vars.result)
+        n = Node(label.result,node.__class__.__name__, line_number = node.lineno, variables = vars.result)
+        self.nodes.append(n)
+        
+        return n
 
     # Visitors that are just ignoring statements
     def visit_Import(self, node):
