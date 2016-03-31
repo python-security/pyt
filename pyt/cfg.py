@@ -266,11 +266,12 @@ class CFG(ast.NodeVisitor):
     def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
         '''Creates and runs the VarsVisitor and LabelVisitor.
 
-        Returns visitors in a tuple.'''
+        Returns visitors in a namedtuple.'''
         variables_visitor = VarsVisitor()
         variables_visitor.visit(variables_visitor_visit_node)
         label_visitor = LabelVisitor()
         label_visitor.visit(label_visitor_visit_node)
+        
         visitors = Visitors(variables_visitor, label_visitor)
         return visitors
 
