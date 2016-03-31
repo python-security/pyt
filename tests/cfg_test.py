@@ -102,8 +102,10 @@ x = 3
 '''
 )
         self.cfg.create(obj)
+        self.assert_length(self.cfg.nodes, expected_length=8)
+        
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-        for_node = self.nodes['for x in range(3)']
+        for_node = self.nodes['for x in range(3):']
         body_1 = self.nodes['print(x)']
         body_2 = self.nodes['y += 1']
         else_body_1 = self.nodes["print('Final: %s' % x)"]
@@ -134,7 +136,9 @@ x = 3
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-        for_node = self.nodes['for x in range(3)']
+        self.assert_length(self.cfg.nodes, expected_length=6)
+
+        for_node = self.nodes['for x in range(3):']
         body_1 = self.nodes['print(x)']
         body_2 = self.nodes['y += 1']
         next_node = self.nodes['x = 3']
