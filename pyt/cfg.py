@@ -197,10 +197,14 @@ class CFG(ast.NodeVisitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
     
-    def flatten_cfg_statements(self, cfg_statements):
-        '''For use in stmt_star_handler. Flattens the cfg_statements list by eliminating tuples
-        The list now only contain the entry element of each statement'''
-        return [x[0] if isinstance(x, tuple) else x for x in cfg_statements]
+    def get_first_statement(self, node_or_tuple):
+        """finds the first statement of the provided object.
+        returns the node if is is a node
+        returns the first element in the tuple if it is a tuple"""
+        if isinstance(node_or_tuple, tuple):
+            return node_or_tuple[0]
+        else:
+            return node_or_tuple
 
     def stmt_star_handler(self, stmts):
         '''handling of stmt* 
@@ -241,8 +245,9 @@ class CFG(ast.NodeVisitor):
         else:
             last_statements.append(cfg_statements[-1])
 
-        cfg_statements = self.flatten_cfg_statements(cfg_statements)
-        return ConnectStatements(first_statement=cfg_statements[0], last_statements=last_statements)
+        first_statement = self.get_first_statement(cfg_statements[0])
+        
+        return ConnectStatements(first_statement=first_statement, last_statements=last_statements)
 
     def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
         '''Creates and runs the VarsVisitor and LabelVisitor.
