@@ -206,30 +206,28 @@ class CFG(ast.NodeVisitor):
         else:
             return node_or_tuple
 
-    def stmt_star_handler(self, stmts):
-        '''handling of stmt* 
+    def node_to_connect(self, node):
+        """Determines if node should be in the final CFG"""
+        if isinstance(node, IgnoredNode):
+            return False
+        elif isinstance(node, ControlFlowNode):
+            return True
+        elif node.ast_type is not ast.FunctionDef().__class__.__name__:
+            return True
 
-        links all statements together in a list of statements, accounting for statements with multiple last nodes'''
-        cfg_statements = list()
-
-        for stmt in stmts:
-            n = self.visit(stmt)
-
-            if isinstance(n, IgnoredNode):
-                continue
-            elif isinstance(n, ControlFlowNode):
-                cfg_statements.append(n)
-            elif n.ast_type is not ast.FunctionDef().__class__.__name__:
-                cfg_statements.append(n)
-
-       
-        for n, next_node in zip(cfg_statements, cfg_statements[1:]):
+    def connect_control_flow_node(self, control_flow_node, next_node):
+        """Connects a ControlFlowNode properly to the next_node"""
+        for last in control_flow_node[1]:                         # list of last nodes in ifs and elifs
+            if isinstance(next_node, ControlFlowNode):
+                last.connect(next_node.test)        # connect to next if test case
+            else:
+                last.connect(next_node)        
+        
+    def connect_nodes(self, nodes):
+        """Connects the nodes in a list linearly"""
+        for n, next_node in zip(nodes, nodes[1:]):
             if isinstance(n, ControlFlowNode):             # case for if
-                for last in n[1]:                         # list of last nodes in ifs and elifs
-                    if isinstance(next_node, ControlFlowNode):
-                        last.connect(next_node.test)        # connect to next if test case
-                    else:
-                        last.connect(next_node)
+                self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
             elif type(next_node) is RestoreNode:
@@ -239,13 +237,29 @@ class CFG(ast.NodeVisitor):
             else:
                 n.connect(next_node)
 
-        last_statements = list()
+    def get_last_statements(self, cfg_statements):
+        """Retrieves the last statements from a cfg_statments list"""
         if isinstance(cfg_statements[-1], ControlFlowNode):
-            last_statements.extend(cfg_statements[-1].last_nodes)
+            return cfg_statements[-1].last_nodes
         else:
-            last_statements.append(cfg_statements[-1])
+            return [cfg_statements[-1]]
+    
+    def stmt_star_handler(self, stmts):
+        '''handling of stmt* 
+
+        links all statements together in a list of statements, accounting for statements with multiple last nodes'''
+        cfg_statements = list()
+
+        for stmt in stmts:
+            node = self.visit(stmt)
+
+            if self.node_to_connect(node):
+                cfg_statements.append(node)
+       
+        self.connect_nodes(cfg_statements)
 
         first_statement = self.get_first_statement(cfg_statements[0])
+        last_statements = self.get_last_statements(cfg_statements)
         
         return ConnectStatements(first_statement=first_statement, last_statements=last_statements)
 
