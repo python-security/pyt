@@ -365,7 +365,7 @@ class CFG(ast.NodeVisitor):
                 value = node.value.elts[i]
                 visitors = self.run_visitors(variables_visitor_visit_node = value, label_visitor_visit_node = target)
                 if isinstance(value, ast.Call):
-                    return self.assignment_call_node(visitors.label_visitor.result, value)
+                    return self.assignment_call_node(visitors.label_visitor.result, value, node.lineno)
                 else:
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
@@ -379,14 +379,14 @@ class CFG(ast.NodeVisitor):
             if isinstance(node.value, ast.Call):
                 label = LabelVisitor()
                 label.visit(node.targets[0])
-                return self.assignment_call_node(label.result, node.value)
+                return self.assignment_call_node(label.result, node.value, node.lineno)
             else:
                 visitors = self.run_visitors(variables_visitor_visit_node = node.value, label_visitor_visit_node = node)
 
                 return self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), line_number = node.lineno, variables = visitors.variables_visitor.result))
         # self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
 
-    def assignment_call_node(self, left_hand_label, value):
+    def assignment_call_node(self, left_hand_label, value, line_number):
         self.undecided = True # Used for handling functions in assignments
         
         call = self.visit(value)
@@ -395,11 +395,11 @@ class CFG(ast.NodeVisitor):
         call_assignment = None
         if isinstance(call, AssignmentNode):
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, line_number=line_number)
             call.connect(call_assignment)
         else:
             call_label = call.label
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, line_number=line_number)
 
         self.nodes.append(call_assignment)
         

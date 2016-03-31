@@ -610,6 +610,10 @@ class CFGFunctionNodeWithReturnTest(CFGTestCase):
         l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
         self.assertInCfg(list(l))
 
+    def test_function_line_numbers(self):
+        assignment_with_function = self.cfg.nodes[1]
+
+        self.assertLineNumber(assignment_with_function, 9)
 
 class CFGAssignmentAndBuiltinTest(CFGTestCase):
     def setUp(self):
