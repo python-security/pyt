@@ -302,25 +302,32 @@ class CFG(ast.NodeVisitor):
     def add_elif_label(self, CFG_node):
         CFG_node.label = 'el' + CFG_node.label
 
+
+    def handle_or_else(self, orelse, test):
+        """handles the orelse part of an if node.
+
+        returns the last nodes of the orelse branch"""
+        if isinstance(orelse[0], ast.If):
+            control_flow_node  = self.visit(orelse[0])
+            self.add_elif_label(control_flow_node.test)
+            test.connect(control_flow_node.test)
+            return control_flow_node.last_nodes
+        else:
+            else_connect_statements = self.stmt_star_handler(orelse)
+            test.connect(else_connect_statements.first_statement)
+            return else_connect_statements.last_statements
+            
     def visit_If(self, node):
         test = self.visit(node.test)
         self.add_if_label(test)
+        
         body_connect_stmts = self.stmt_star_handler(node.body)
-
+        test.connect(body_connect_stmts.first_statement)
+        
         if node.orelse:
-            if isinstance(node.orelse[0], ast.If):
-                control_flow_node  = self.visit(node.orelse[0])
-                self.add_elif_label(control_flow_node.test)
-                test.connect(control_flow_node.test)
-                body_connect_stmts.last_statements.extend(control_flow_node.last_nodes)
-            else:
-                else_connect_statements = self.stmt_star_handler(node.orelse)
-                test.connect(else_connect_statements.first_statement)
-                body_connect_stmts.last_statements.extend(else_connect_statements.last_statements)
+            body_connect_stmts.last_statements.extend(self.handle_or_else(node.orelse, test))
         else:
             body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
-
-        test.connect(body_connect_stmts.first_statement)
 
         return ControlFlowNode(test, body_connect_stmts.last_statements)
 
