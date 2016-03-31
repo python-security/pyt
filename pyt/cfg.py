@@ -170,6 +170,10 @@ class CFG(ast.NodeVisitor):
         for x, n in enumerate(self.nodes):
             output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
         return output
+
+    def append_node(self, Node):
+        self.nodes.append(Node)
+        return Node
         
     def create(self, ast):
         '''
@@ -178,9 +182,8 @@ class CFG(ast.NodeVisitor):
         ast is an Abstract Syntax Tree generated with the ast module.
         '''
 
-        entry_node = Node('Entry node', ENTRY)
-        self.nodes.append(entry_node)
-        
+        entry_node = self.append_node(Node('Entry node', ENTRY))
+                
         module_statements = self.visit(ast)
 
         if not module_statements:
@@ -189,8 +192,7 @@ class CFG(ast.NodeVisitor):
         first_node = module_statements[0]
         entry_node.connect(first_node)
 
-        exit_node = Node('Exit node', EXIT)
-        self.nodes.append(exit_node)
+        exit_node = self.append_node(Node('Exit node', EXIT))
             
         last_nodes = module_statements[1]
         exit_node.connect_predecessors(last_nodes)
@@ -262,15 +264,13 @@ class CFG(ast.NodeVisitor):
         function_CFG.functions = self.functions
         self.functions[node.name] = Function(function_CFG.nodes, node.args)
 
-        entry_node = Node('Entry node: ' + node.name, ENTRY)
-        function_CFG.nodes.append(entry_node)
+        entry_node = function_CFG.append_node(Node('Entry node: ' + node.name, ENTRY))
         
         function_body_connect_statements = function_CFG.stmt_star_handler(node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = Node('Exit node: ' + node.name, EXIT)
-        function_CFG.nodes.append(exit_node)
+        exit_node = function_CFG.append_node(Node('Exit node: ' + node.name, EXIT))
 
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
@@ -308,9 +308,7 @@ class CFG(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        n = Node(label_visitor.result, node.__class__.__name__, line_number=node.lineno)
-        self.nodes.append(n)
-        return n
+        return self.append_node(Node(label_visitor.result, node.__class__.__name__, line_number=node.lineno))
 
     def visit_Return(self, node):
         label = LabelVisitor()
@@ -320,10 +318,8 @@ class CFG(ast.NodeVisitor):
         variables_visitor.visit(node)
 
         this_function = list(self.functions.keys())[-1]
-        n = Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result)
-        self.nodes.append(n)
-
-        return n
+                                
+        return self.append_node(Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result))
 
     def extract_left_hand_side(self, target):
         ''''''
@@ -347,9 +343,8 @@ class CFG(ast.NodeVisitor):
                     visitors.label_visitor.result += ' = '
                     visitors.label_visitor.visit(value)
                 
-                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), line_number = node.lineno, variables = visitors.variables_visitor.result)
+                n = self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(target), line_number = node.lineno, variables = visitors.variables_visitor.result))
                 self.nodes[-1].connect(n)
-                self.nodes.append(n)
             return self.nodes[-1] # return the last added node
 
         else:
@@ -360,10 +355,7 @@ class CFG(ast.NodeVisitor):
             else:
                 visitors = self.run_visitors(variables_visitor_visit_node = node.value, label_visitor_visit_node = node)
 
-                n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), line_number = node.lineno, variables = visitors.variables_visitor.result)
-            
-                self.nodes.append(n)
-                return n
+                return self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.targets[0]), line_number = node.lineno, variables = visitors.variables_visitor.result))
         # self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
 
     def assignment_call_node(self, left_hand_label, value):
@@ -390,12 +382,8 @@ class CFG(ast.NodeVisitor):
         visitors = self.run_visitors(variables_visitor_visit_node = node,
                                      label_visitor_visit_node = node)
         
-
-        n = AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), line_number = node.lineno, variables = visitors.variables_visitor.result)
-        self.nodes.append(n)
-        # self.assignments[n.left_hand_side] = n
-        
-        return n
+    
+        return self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), line_number = node.lineno, variables = visitors.variables_visitor.result))
 
     def loop_node_skeleton(self, test, node):
         body_connect_stmts = self.stmt_star_handler(node.body)
@@ -432,9 +420,7 @@ class CFG(ast.NodeVisitor):
         target_label = LabelVisitor()
         target = target_label.visit(node.target)
 
-        for_node = Node("for " + target_label.result + " in " + iterator_label.result + ':', node.__class__.__name__, line_number = node.lineno)
-        
-        self.nodes.append(for_node)
+        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node.__class__.__name__, line_number = node.lineno))
         
         return self.loop_node_skeleton(for_node, node)
 
@@ -450,10 +436,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        n = Node(label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result)
-        self.nodes.append(n)
-
-        return n
+        return self.append_node(Node(label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result))
 
     def visit_Expr(self, node):
         return self.visit(node.value)
@@ -466,10 +449,11 @@ class CFG(ast.NodeVisitor):
            
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
-            n = RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, variables = assignment.variables)
+            previous_node = self.nodes[-1]
+            saved_scope_node = self.append_node(RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, variables = assignment.variables))
+            
             saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.left_hand_side))
-            self.nodes[-1].connect(n)
-            self.nodes.append(n)
+            previous_node.connect(saved_scope_node)
         return saved_variables
 
     def save_actual_parameters_in_temp(self, args, function):
@@ -490,9 +474,9 @@ class CFG(ast.NodeVisitor):
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
             local_name = function.arguments[i]
-            n = AssignmentNode(local_name + ' = ' + temp_name, local_name)
-            self.nodes[-1].connect(n)
-            self.nodes.append(n)
+            previous_node = self.nodes[-1]
+            local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name))
+            previous_node.connect(local_scope_node)
 
     def insert_function_body(self, node):
         function_nodes = deepcopy(self.functions[node.func.id].nodes)
@@ -516,9 +500,9 @@ class CFG(ast.NodeVisitor):
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
-                call_node = RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS)
-                self.nodes[-1].connect(call_node)
-                self.nodes.append(call_node)
+                previous_node = self.nodes[-1]
+                call_node = self.append_node(RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS))
+                previous_node.connect(call_node)
                     
             else:
                 # lave rigtig kobling
@@ -563,10 +547,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        n = Node(label.result,node.__class__.__name__, line_number = node.lineno, variables = vars.result)
-        self.nodes.append(n)
-        
-        return n
+        return self.append_node(Node(label.result,node.__class__.__name__, line_number = node.lineno, variables = vars.result))
 
     # Visitors that are just ignoring statements
     def visit_Import(self, node):
