@@ -19,10 +19,8 @@ class fixed_point_analysis(object):
             node.new_constraint = None
             
     def fixpoint_runner(self, cfg):
-        print("entry")
         self.fixpoint_iteration(cfg)
         while self.constraints_changed(cfg):
-            print("iter")
             self.swap_constraints(cfg)
             self.fixpoint_iteration(cfg)
         
