@@ -175,16 +175,16 @@ class CFG(ast.NodeVisitor):
         self.nodes.append(Node)
         return Node
         
-    def create(self, ast):
+    def create(self, module_node):
         '''
         Creates a Control Flow Graph.
 
-        ast is an Abstract Syntax Tree generated with the ast module.
+        module_node is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
         '''
 
         entry_node = self.append_node(Node('Entry node', ENTRY))
                 
-        module_statements = self.visit(ast)
+        module_statements = self.visit(module_node)
 
         if not module_statements:
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
