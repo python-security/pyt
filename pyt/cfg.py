@@ -184,7 +184,7 @@ class CFG(ast.NodeVisitor):
 
         entry_node = self.append_node(Node('Entry node', ENTRY))
                 
-        module_statements = self.stmt_star_handler(ast.body)
+        module_statements = self.visit(ast)
 
         if not module_statements:
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
