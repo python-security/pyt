@@ -146,9 +146,10 @@ class Arguments(object):
         
     
 class Function(object):
-    def __init__(self, nodes, args):
+    def __init__(self, nodes, args, decorator_list):
         self.nodes = nodes
         self.arguments = Arguments(args)
+        self.decorator_list = decorator_list
     
 
 class CFG(ast.NodeVisitor):
@@ -282,7 +283,7 @@ class CFG(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         function_CFG = CFG()
         function_CFG.functions = self.functions
-        self.functions[node.name] = Function(function_CFG.nodes, node.args)
+        self.functions[node.name] = Function(function_CFG.nodes, node.args, node.decorator_list)
 
         entry_node = function_CFG.append_node(Node('Entry node: ' + node.name, ENTRY))
         
