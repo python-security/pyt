@@ -6,7 +6,7 @@ from label_visitor_test import LabelVisitorTest
 from vars_visitor_test import VarsVisitorTest
 from cfg_test import CFGIfTest, CFGWhileTest, CFGStartExitNodeTest, CFGForTest, CFGGeneralTest, CFGFunctionNodeTest, CFGFunctionParameterNodeTest, CFGAssignmentAndBuiltinTest, CFGFunctionNodeWithReturnTest, CFGMultipleParametersTest, CFGStr, CFGNameConstant, CFGName, CFGAssignmentMultiTargetTest, CFGCallWithAttributeTest
 from reaching_definitions_test import FixedPointTest
-
+from flask_engine_test import FlaskEngineTest
 test_suite = TestSuite()
 
 # Add TestCase's here
@@ -26,7 +26,8 @@ tests = [
     CFGNameConstant,
     CFGName,
     CFGAssignmentMultiTargetTest,
-    CFGCallWithAttributeTest
+    CFGCallWithAttributeTest,
+    FlaskEngineTest
 ]
 
 for test in tests:

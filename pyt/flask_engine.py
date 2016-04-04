@@ -41,5 +41,10 @@ def find_vulnerabilities(sources_in_file, sinks_in_file, vulnerability_log):
                 
     vulnerability_log.print_report()
 
+def find_flask_route_functions(functions):
+    for func in functions.items():
+        if is_flask_route_function(func[1]):
+            yield func[0]
 
-
+def is_flask_route_function(function):
+    return any(decorator for decorator in function.decorator_list if decorator.func.value.id == 'app' and decorator.func.attr == 'route')
