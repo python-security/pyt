@@ -9,6 +9,13 @@ class LabelVisitor(NodeVisitor):
                 self.result += ', '
             
             self.visit(comma_separated_list[-1])
+    
+    def visit_Tuple(self, node):
+        self.result += '('
+
+        self.handle_comma_separated(node.elts)
+
+        self.result += ')'
     def visit_Return(self, node):
         if node.value:
             self.visit(node.value)
