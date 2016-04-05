@@ -156,6 +156,23 @@ x = 3
         # NOT IN
         self.assertNotConnected(body_2, next_node)
 
+    def test_for_tuple_target(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/for_tuple_target.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length = 4)
+
+        entry_node = 0
+        for_node = 1
+        print_node = 2
+        exit_node = 3
+
+        print(repr(self.cfg))
+        
+        self.assertInCfg([(for_node,entry_node),(print_node,for_node),(for_node,print_node),(exit_node,for_node)])
+        self.assertEqual(self.cfg.nodes[for_node].label, "for (x, y) in [(1, 2), (3, 4)]:")
+
     def test_for_line_numbers(self):
         self.cfg = CFG()
         obj = parse(
