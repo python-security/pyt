@@ -2,6 +2,13 @@ from ast import NodeVisitor
 import ast
 
 class LabelVisitor(NodeVisitor):
+    def handle_comma_separated(self, comma_separated_list):
+        if comma_separated_list:
+            for element in range(len(comma_separated_list)-1):
+                self.visit(comma_separated_list[element])
+                self.result += ', '
+            
+            self.visit(comma_separated_list[-1])
     def visit_Return(self, node):
         if node.value:
             self.visit(node.value)
@@ -64,13 +71,8 @@ class LabelVisitor(NodeVisitor):
         self.visit(node.func)
         self.result += '('
 
-        if node.args:
-            for arg in range(len(node.args)-1):
-                self.visit(node.args[arg])
-                self.result += ', '
-            
-            self.visit(node.args[-1])
-            
+        self.handle_comma_separated(node.args)
+        
         #keyword handling
 
         self.result += ')'
