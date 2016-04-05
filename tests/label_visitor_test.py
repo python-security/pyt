@@ -50,3 +50,31 @@ class LabelVisitorTest(LabelVisitorTestCase):
     def test_call_multi_arg(self):
         label = self.perform_labeling_on_expression('range(1,5)')
         self.assertEqual(label.result,'range(1, 5)')
+
+    def test_tuple_one_element(self):
+        label = self.perform_labeling_on_expression('(1)')
+        self.assertEqual(label.result,'1')
+
+    def test_tuple_two_elements(self):
+        label = self.perform_labeling_on_expression('(1,2)')
+        self.assertEqual(label.result,'(1, 2)')
+
+    def test_empty_tuple(self):
+        label = self.perform_labeling_on_expression('()')
+        self.assertEqual(label.result,'()')
+
+    def test_empty_list(self):
+        label = self.perform_labeling_on_expression('[]')
+        self.assertEqual(label.result,'[]')
+
+    def test_list_one_element(self):
+        label = self.perform_labeling_on_expression('[1]')
+        self.assertEqual(label.result,'[1]')
+
+    def test_list_two_elements(self):
+        label = self.perform_labeling_on_expression('[1,2]')
+        self.assertEqual(label.result,'[1, 2]')
+
+
+
+        
