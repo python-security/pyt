@@ -701,7 +701,8 @@ class CFGAssignListComprehension(CFGTestCase):
         call = self.cfg.nodes[1]
         self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
 
-        self.assert_length(self.cfg.nodes, expected_length=3)
+        length = 3
+        self.assert_length(self.cfg.nodes, expected_length = length)
 
         l = zip(range(1, length), range(length))
 
