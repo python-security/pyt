@@ -21,9 +21,9 @@ class CFGTestCase(unittest.TestCase):
 
         for element in range(nodes):
             for sets in range(nodes):
-                if not (element, sets) in connections or (sets, element) in connections:
-                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s,%s)" % (element, sets)  +  " expected to be disconnected")
-                    self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s,%s)" % (sets, element)  +  " expected to be disconnected")
+                if not (element, sets) in connections:
+                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s <- %s)" % (element, sets)  +  " expected to be disconnected")
+                    self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s <- %s)" % (sets, element)  +  " expected to be disconnected")
 
     def assertConnected(self, node, successor):
         '''Asserts that a node is connected to its successor.
