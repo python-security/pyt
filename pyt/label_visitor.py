@@ -41,7 +41,7 @@ class LabelVisitor(NodeVisitor):
 
         self.insert_space()
         self.visit(node.op)
-        self.result = self.result + '='
+        self.result += '='
         self.insert_space()
         self.visit(node.value)
 
