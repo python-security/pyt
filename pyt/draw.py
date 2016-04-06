@@ -1,5 +1,7 @@
 from graphviz import Digraph
 
+IGNORED_LABEL_NAME_CHARACHTERS = ':'
+
 styles = {
     'graph': {
         'fontsize': '16',
@@ -39,7 +41,7 @@ def apply_styles(graph, styles):
     return graph
 
 def draw_cfg(cfg, output_filename = 'output'):
-    graph = Digraph(format='svg')
+    graph = Digraph(format='pdf')
     
     for node in cfg.nodes:
         if node.label == 'Exit node':
