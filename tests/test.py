@@ -37,6 +37,8 @@ for test in tests:
 runner = TextTestRunner(verbosity=2)
 result = runner.run(test_suite)
 if result.wasSuccessful():
+    print('Success')
     exit(0)
 else:
+    print('Failure')
     exit(1)
