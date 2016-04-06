@@ -433,9 +433,14 @@ class CFG(ast.NodeVisitor):
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
         return ControlFlowNode(test, last_nodes)
+
+    def add_while_label(self, node):
+        node.label = 'while ' + node.label + ':' 
     
     def visit_While(self, node):
         test = self.visit(node.test)
+        self.add_while_label(test)
+        
         return self.loop_node_skeleton(test, node)
 
     def visit_For(self, node):

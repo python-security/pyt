@@ -408,7 +408,7 @@ x += 5
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-        test = self.nodes['x > 0']
+        test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         else_body_1 = self.nodes['x += 3']
@@ -444,7 +444,7 @@ x += 5
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-        test = self.nodes['x > 0']
+        test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         next_stmt = self.nodes['x += 5']
@@ -478,7 +478,7 @@ x += 5
         self.cfg.create(obj)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-        test = self.nodes['x > 0']
+        test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
         else_body_1 = self.nodes['x += 3']
