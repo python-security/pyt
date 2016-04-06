@@ -358,18 +358,9 @@ class CFGWhileTest(CFGTestCase):
 
     def test_while_complete(self):
         self.cfg = CFG()
-        obj = parse(
-'''
-while x > 0:
-    x += 1
-    x += 2
-else:
-    x += 3
-    x += 4
-x += 5
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/while_complete.py')
+        
+        self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         test = self.nodes['while x > 0:']
@@ -397,15 +388,9 @@ x += 5
 
     def test_while_no_orelse(self):
         self.cfg = CFG()
-        obj = parse(
-'''
-while x > 0:
-    x += 1
-    x += 2
-x += 5
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/while_no_orelse.py')
+        self.cfg.create(tree)
+        
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         test = self.nodes['while x > 0:']
@@ -428,18 +413,9 @@ x += 5
 
     def test_while_line_numbers(self):
         self.cfg = CFG()
-        obj = parse(
-'''\
-while x > 0:
-    x += 1
-    x += 2
-else:
-    x += 3
-    x += 4
-x += 5
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/while_complete.py')
+        self.cfg.create(tree)
+
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         test = self.nodes['while x > 0:']
