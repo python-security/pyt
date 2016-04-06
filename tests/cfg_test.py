@@ -488,13 +488,12 @@ class CFGWhileTest(CFGTestCase):
         self.assertLineNumber(next_stmt, 7)
 
 
-class CFGAssignmentMultiTargetTest(CFGTestCase):
-    def setUp(self):
+class CFGAssignmentMultiTest(CFGTestCase):
+    def test_assignment_multi_target(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignment_two_targets.py')
         self.cfg.create(tree)
-
-    def test_assignment_multi_target(self):
+        
         self.assert_length(self.cfg.nodes, expected_length=4)
         start_node = self.cfg.nodes[0]
         node = self.cfg.nodes[1]
@@ -511,13 +510,59 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
 
-    def test_assignment_multi_target_line_numbers(self): 
+    def test_assignment_multi_target_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignment_two_targets.py')
+        self.cfg.create(tree)
+        
         node = self.cfg.nodes[1]
         node_2 = self.cfg.nodes[2]
 
         self.assertLineNumber(node, 1)
         self.assertLineNumber(node_2, 1)
+
+    def test_assignment_and_builtin(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=4)
         
+        start_node = self.cfg.nodes[0]
+        assign = self.cfg.nodes[1]
+        builtin = self.cfg.nodes[2]
+        exit_node = self.cfg.nodes[-1]
+
+        self.assertConnected(start_node, assign)
+        self.assertConnected(assign, builtin)
+        self.assertConnected(builtin, exit_node)
+
+    def test_assignment_and_builtin_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
+        self.cfg.create(tree)
+
+        assign = self.cfg.nodes[1]
+        builtin = self.cfg.nodes[2]
+
+        self.assertLineNumber(assign, 1)
+        self.assertLineNumber(builtin, 2)
+
+    def test_assign_list_comprehension(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/list_comprehension.py')
+        self.cfg.create(tree)
+
+        length = 3
+        self.assert_length(self.cfg.nodes, expected_length = length)
+
+        call = self.cfg.nodes[1]
+        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
+
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
+
         
 class CFGFunctionNodeTest(CFGTestCase):
     def connected(self, node, successor):
@@ -619,32 +664,6 @@ class CFGFunctionNodeTest(CFGTestCase):
         self.assertInCfg(list(l))
 
 
-class CFGAssignmentAndBuiltinTest(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
-        self.cfg.create(tree)
-
-    def test_assignment_and_builtin(self):
-        self.assert_length(self.cfg.nodes, expected_length=4)
-        
-        start_node = self.cfg.nodes[0]
-        assign = self.cfg.nodes[1]
-        builtin = self.cfg.nodes[2]
-        exit_node = self.cfg.nodes[-1]
-
-        self.assertConnected(start_node, assign)
-        self.assertConnected(assign, builtin)
-        self.assertConnected(builtin, exit_node)
-
-    def test_assignment_and_builtin_line_numbers(self):
-        assign = self.cfg.nodes[1]
-        builtin = self.cfg.nodes[2]
-
-        self.assertLineNumber(assign, 1)
-        self.assertLineNumber(builtin, 2)
-
-
 class CFGCallWithAttributeTest(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
@@ -665,24 +684,7 @@ class CFGCallWithAttributeTest(CFGTestCase):
         call = self.cfg.nodes[2]
 
         self.assertLineNumber(call, 5)
-
-class CFGAssignListComprehension(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/list_comprehension.py')
-        self.cfg.create(tree)
-
-    def test_call_with_attribute(self):
-        length = 3
-        self.assert_length(self.cfg.nodes, expected_length = length)
-
-        call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
-
-        l = zip(range(1, length), range(length))
-
-        self.assertInCfg(list(l))
-
+        
              
 class CFGNameConstant(CFGTestCase):
     def setUp(self):
