@@ -169,26 +169,15 @@ class CFGForTest(CFGTestCase):
         self.assertLineNumber(next_node, 7)
 
         
-class CFGIfTest(CFGTestCase):
-
-    def setUp(self):
-        self.cfg = CFG()
-        obj = parse(
-'''\
-if x > 0:
-    x += 1
-    x += 2
-elif x == 0:
-    x += 3
-else:
-    x += 4
-x += 5
-'''
-)
-        self.cfg.create(obj)
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-    
+class CFGIfTest(CFGTestCase):    
     def test_if_first_if(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_complete.py')
+        
+        self.cfg.create(tree)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+
         test = self.nodes['if x > 0:']
         eliftest = self.nodes['elif x == 0:']
         body_1 = self.nodes['x += 1']
@@ -205,6 +194,12 @@ x += 5
         self.assertNotConnected(body_1, eliftest)
         
     def test_if_elif(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_complete.py')
+        
+        self.cfg.create(tree)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
         test = self.nodes['elif x == 0:']
         eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
         body_1 = self.nodes['x += 3']
@@ -337,6 +332,12 @@ x += 5
 
         
     def test_if_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_complete.py')
+        
+        self.cfg.create(tree)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
         test = self.nodes['if x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
