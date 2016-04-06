@@ -142,8 +142,6 @@ class CFGForTest(CFGTestCase):
         for_node = 1
         print_node = 2
         exit_node = 3
-
-        print(repr(self.cfg))
         
         self.assertInCfg([(for_node,entry_node),(print_node,for_node),(for_node,print_node),(exit_node,for_node)])
         self.assertEqual(self.cfg.nodes[for_node].label, "for (x, y) in [(1, 2), (3, 4)]:")
