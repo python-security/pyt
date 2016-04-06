@@ -61,24 +61,60 @@ class CFGTestCase(unittest.TestCase):
 
 
 class CFGGeneralTest(CFGTestCase):
-
-    def setUp(self):
+    def test_repr_cfg(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/for_complete.py')
         
         self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
-    def test_repr_cfg(self):
+        
         print(repr(self.cfg))
 
     def test_str_cfg(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/for_complete.py')
+        
+        self.cfg.create(tree)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        
         print(self.cfg)
 
     def test_no_tuples(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/for_complete.py')
+        
+        self.cfg.create(tree)
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        
         for node in self.cfg.nodes:
             for edge in node.outgoing + node.ingoing:
                 self.assertIsInstance(edge, Node)
+
+    def test_start_and_exit_nodes(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=3)
+        
+        start_node = self.cfg.nodes[0]
+        node = self.cfg.nodes[1]
+        exit_node = self.cfg.nodes[-1]
+
+        self.assertConnected(start_node, node)
+        self.assertConnected(node, exit_node)
+
+        self.assertEqual(start_node.ast_type, 'ENTRY')
+        self.assertEqual(exit_node.ast_type, 'EXIT')
+
+    def test_start_and_exit_nodes_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple.py')
+        self.cfg.create(tree)
+
+        self.assertLineNumber(self.cfg.nodes[0], None)
+        self.assertLineNumber(self.cfg.nodes[1], 1)
+        self.assertLineNumber(self.cfg.nodes[2], None)
     
 class CFGForTest(CFGTestCase):
     def test_for_complete(self):
@@ -438,30 +474,7 @@ class CFGWhileTest(CFGTestCase):
         self.assertLineNumber(else_body_1, 5)
         self.assertLineNumber(else_body_2, 6)
         self.assertLineNumber(next_stmt, 7)
-        
-class CFGStartExitNodeTest(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple.py')
-        self.cfg.create(tree)
 
-    def test_start(self):
-        self.assert_length(self.cfg.nodes, expected_length=3)
-        
-        start_node = self.cfg.nodes[0]
-        node = self.cfg.nodes[1]
-        exit_node = self.cfg.nodes[-1]
-
-        self.assertConnected(start_node, node)
-        self.assertConnected(node, exit_node)
-
-        self.assertEqual(start_node.ast_type, 'ENTRY')
-        self.assertEqual(exit_node.ast_type, 'EXIT')
-
-    def test_start_line_numbers(self):
-        self.assertLineNumber(self.cfg.nodes[0], None)
-        self.assertLineNumber(self.cfg.nodes[1], 1)
-        self.assertLineNumber(self.cfg.nodes[2], None)
 
 class CFGAssignmentMultiTargetTest(CFGTestCase):
     def setUp(self):

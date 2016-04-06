@@ -4,7 +4,7 @@ from unittest import makeSuite
 
 from label_visitor_test import LabelVisitorTest
 from vars_visitor_test import VarsVisitorTest
-from cfg_test import CFGIfTest, CFGWhileTest, CFGStartExitNodeTest, CFGForTest, CFGGeneralTest, CFGFunctionNodeTest, CFGFunctionParameterNodeTest, CFGAssignmentAndBuiltinTest, CFGFunctionNodeWithReturnTest, CFGMultipleParametersTest, CFGStr, CFGNameConstant, CFGName, CFGAssignmentMultiTargetTest, CFGCallWithAttributeTest, CFGAssignListComprehension
+from cfg_test import CFGIfTest, CFGWhileTest, CFGForTest, CFGGeneralTest, CFGFunctionNodeTest, CFGFunctionParameterNodeTest, CFGAssignmentAndBuiltinTest, CFGFunctionNodeWithReturnTest, CFGMultipleParametersTest, CFGStr, CFGNameConstant, CFGName, CFGAssignmentMultiTargetTest, CFGCallWithAttributeTest, CFGAssignListComprehension
 from reaching_definitions_test import FixedPointTest
 from flask_engine_test import FlaskEngineTest
 test_suite = TestSuite()
@@ -15,7 +15,6 @@ tests = [
     VarsVisitorTest,
     CFGIfTest,
     CFGWhileTest,
-    CFGStartExitNodeTest,
     CFGForTest,
     CFGGeneralTest,
     FixedPointTest,
