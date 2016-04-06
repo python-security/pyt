@@ -115,6 +115,18 @@ class CFGGeneralTest(CFGTestCase):
         self.assertLineNumber(self.cfg.nodes[0], None)
         self.assertLineNumber(self.cfg.nodes[1], 1)
         self.assertLineNumber(self.cfg.nodes[2], None)
+
+    def test_str_ignored(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/str_ignored.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=3)
+
+        expected_label = 'x = 0'
+        actual_label = self.cfg.nodes[1].label
+        self.assertEqual(expected_label, actual_label)
+
     
 class CFGForTest(CFGTestCase):
     def test_for_complete(self):
@@ -508,16 +520,15 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
         
         
 class CFGFunctionNodeTest(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple_function.py')
-        self.cfg.create(tree)
-
     def connected(self, node, successor):
         return (successor, node)
 
-    def test_function(self):
-        self.assert_length(self.cfg.nodes, expected_length=6)
+    def test_simple_function(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple_function.py')
+        self.cfg.create(tree)
+        
+        self.assert_length(self.cfg.nodes, expected_length=8)
         
         entry = 0
         y_assignment = 1
@@ -534,6 +545,10 @@ class CFGFunctionNodeTest(CFGTestCase):
                           self.connected(y_load, exit_)])
 
     def test_function_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple_function.py')
+        self.cfg.create(tree)
+        
         y_assignment = self.cfg.nodes[1]
         save_y = self.cfg.nodes[2]
         entry_foo = self.cfg.nodes[3]
@@ -546,18 +561,12 @@ class CFGFunctionNodeTest(CFGTestCase):
         self.assertLineNumber(entry_foo, None)
         self.assertLineNumber(body_foo, 2)
 
-
-class CFGFunctionParameterNodeTest(CFGTestCase):
-    def setUp(self):
+    def test_function_parameters(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/parameters_function.py')
         self.cfg.create(tree)
-
-    def connected(self, node, successor):
-        return (successor, node)
-
-    def test_function(self):
-        self.assert_length(self.cfg.nodes, expected_length=9)
+        
+        self.assert_length(self.cfg.nodes, expected_length=12)
         
         entry = 0
         y_assignment = 1
@@ -579,25 +588,36 @@ class CFGFunctionParameterNodeTest(CFGTestCase):
                           self.connected(bar_print_x, exit_bar), self.connected(exit_bar, restore_actual_y),
                           self.connected(restore_actual_y, exit_)])
         
-class CFGFunctionNodeWithReturnTest(CFGTestCase):
-    def setUp(self):
+    def test_function_with_return(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/simple_function_with_return.py')
         self.cfg.create(tree)
-
-    def connected(self, node, successor):
-        return (successor, node)
-
-    def test_function(self):
+        
         self.assert_length(self.cfg.nodes, expected_length=18)
 
         l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
         self.assertInCfg(list(l))
 
     def test_function_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/simple_function_with_return.py')
+        self.cfg.create(tree)
+        
         assignment_with_function = self.cfg.nodes[1]
 
         self.assertLineNumber(assignment_with_function, 9)
+
+    def test_multiple_parameters(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/multiple_parameters_function.py')
+        self.cfg.create(tree)
+        
+        length = len(self.cfg.nodes)
+        self.assertEqual(length, 21)
+        l = zip(range(1, length), range(length))
+
+        self.assertInCfg(list(l))
+
 
 class CFGAssignmentAndBuiltinTest(CFGTestCase):
     def setUp(self):
@@ -623,19 +643,6 @@ class CFGAssignmentAndBuiltinTest(CFGTestCase):
 
         self.assertLineNumber(assign, 1)
         self.assertLineNumber(builtin, 2)
-        
-class CFGMultipleParametersTest(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/multiple_parameters_function.py')
-        self.cfg.create(tree)
-
-    def test_start(self):
-        length = len(self.cfg.nodes)
-        self.assertEqual(length, 21)
-        l = zip(range(1, length), range(length))
-
-        self.assertInCfg(list(l))
 
 
 class CFGCallWithAttributeTest(CFGTestCase):
@@ -676,21 +683,7 @@ class CFGAssignListComprehension(CFGTestCase):
 
         self.assertInCfg(list(l))
 
-        
-class CFGStr(CFGTestCase):
-    def setUp(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/str_ignored.py')
-        self.cfg.create(tree)
-
-    def test_str_ignored(self):
-        self.assert_length(self.cfg.nodes, expected_length=3)
-
-        expected_label = 'x = 0'
-        actual_label = self.cfg.nodes[1].label
-        self.assertEqual(expected_label, actual_label)
-
-        
+             
 class CFGNameConstant(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
