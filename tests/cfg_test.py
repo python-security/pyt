@@ -64,18 +64,9 @@ class CFGGeneralTest(CFGTestCase):
 
     def setUp(self):
         self.cfg = CFG()
-        obj = parse(
-'''\
-for x in range(3):
-    print(x)
-    y += 1
-else:
-    print('Final: %s' % x)
-    print(y)
-x = 3
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/for_complete.py')
+        
+        self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
     def test_repr_cfg(self):
@@ -90,21 +81,11 @@ x = 3
                 self.assertIsInstance(edge, Node)
     
 class CFGForTest(CFGTestCase):
-
     def test_for_complete(self):
         self.cfg = CFG()
-        obj = parse(
-'''\
-for x in range(3):
-    print(x)
-    y += 1
-else:
-    print('Final: %s' % x)
-    print(y)
-x = 3
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/for_complete.py')
+        
+        self.cfg.create(tree)
         self.assert_length(self.cfg.nodes, expected_length=8)
         
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
@@ -130,15 +111,9 @@ x = 3
 
     def test_for_no_orelse(self):
         self.cfg = CFG()
-        obj = parse(
-'''\
-for x in range(3):
-    print(x)
-    y += 1
-x = 3
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/for_no_orelse.py')
+        
+        self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         self.assert_length(self.cfg.nodes, expected_length=6)
@@ -175,18 +150,9 @@ x = 3
 
     def test_for_line_numbers(self):
         self.cfg = CFG()
-        obj = parse(
-'''\
-for x in range(3):
-    print(x)
-    y += 1
-else:
-    print('Final: %s' % x)
-    print(y)
-x = 3
-'''
-)
-        self.cfg.create(obj)
+        tree = generate_ast('../example/example_inputs/for_complete.py')
+
+        self.cfg.create(tree)
         self.assert_length(self.cfg.nodes, expected_length=8)
         
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
