@@ -35,4 +35,5 @@ for test in tests:
     test_suite.addTest(makeSuite(test))
 
 runner = TextTestRunner(verbosity=2)
-runner.run(test_suite)
+result = runner.run(test_suite)
+exit(result.wasSuccessful())
