@@ -177,7 +177,7 @@ class CFGIfTest(CFGTestCase):
         self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-
+        self.assert_length(self.cfg.nodes, expected_length=9)
         test = self.nodes['if x > 0:']
         eliftest = self.nodes['elif x == 0:']
         body_1 = self.nodes['x += 1']
@@ -199,6 +199,8 @@ class CFGIfTest(CFGTestCase):
         
         self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
 
         test = self.nodes['elif x == 0:']
         eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
@@ -337,7 +339,8 @@ class CFGIfTest(CFGTestCase):
         
         self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
+        self.assert_length(self.cfg.nodes, expected_length=9)
+        
         test = self.nodes['if x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
@@ -363,7 +366,8 @@ class CFGWhileTest(CFGTestCase):
         
         self.cfg.create(tree)
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
+        self.assert_length(self.cfg.nodes, expected_length=8)
+        
         test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
         body_2 = self.nodes['x += 2']
@@ -393,6 +397,7 @@ class CFGWhileTest(CFGTestCase):
         self.cfg.create(tree)
         
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        self.assert_length(self.cfg.nodes, expected_length=6)
 
         test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
@@ -418,6 +423,7 @@ class CFGWhileTest(CFGTestCase):
         self.cfg.create(tree)
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        self.assert_length(self.cfg.nodes, expected_length=8)
 
         test = self.nodes['while x > 0:']
         body_1 = self.nodes['x += 1']
@@ -440,6 +446,8 @@ class CFGStartExitNodeTest(CFGTestCase):
         self.cfg.create(tree)
 
     def test_start(self):
+        self.assert_length(self.cfg.nodes, expected_length=3)
+        
         start_node = self.cfg.nodes[0]
         node = self.cfg.nodes[1]
         exit_node = self.cfg.nodes[-1]
@@ -462,6 +470,7 @@ class CFGAssignmentMultiTargetTest(CFGTestCase):
         self.cfg.create(tree)
 
     def test_assignment_multi_target(self):
+        self.assert_length(self.cfg.nodes, expected_length=4)
         start_node = self.cfg.nodes[0]
         node = self.cfg.nodes[1]
         node_2 = self.cfg.nodes[2]
@@ -495,6 +504,8 @@ class CFGFunctionNodeTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
+        self.assert_length(self.cfg.nodes, expected_length=6)
+        
         entry = 0
         y_assignment = 1
         save_y = 2
@@ -533,6 +544,8 @@ class CFGFunctionParameterNodeTest(CFGTestCase):
         return (successor, node)
 
     def test_function(self):
+        self.assert_length(self.cfg.nodes, expected_length=9)
+        
         entry = 0
         y_assignment = 1
         save_y = 2
@@ -580,6 +593,8 @@ class CFGAssignmentAndBuiltinTest(CFGTestCase):
         self.cfg.create(tree)
 
     def test_assignment_and_builtin(self):
+        self.assert_length(self.cfg.nodes, expected_length=4)
+        
         start_node = self.cfg.nodes[0]
         assign = self.cfg.nodes[1]
         builtin = self.cfg.nodes[2]
@@ -617,12 +632,11 @@ class CFGCallWithAttributeTest(CFGTestCase):
         self.cfg.create(tree)
 
     def test_call_with_attribute(self):
-        call = self.cfg.nodes[2]
-
-        self.assertEqual(call.label, "request.args.get('param', 'not set')")
-
         length = 14
         self.assert_length(self.cfg.nodes, expected_length=length)
+
+        call = self.cfg.nodes[2]
+        self.assertEqual(call.label, "request.args.get('param', 'not set')")
 
         l = zip(range(1, length), range(length))
         self.assertInCfg(list(l))
@@ -639,17 +653,17 @@ class CFGAssignListComprehension(CFGTestCase):
         self.cfg.create(tree)
 
     def test_call_with_attribute(self):
-        call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
-
         length = 3
         self.assert_length(self.cfg.nodes, expected_length = length)
+
+        call = self.cfg.nodes[1]
+        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
 
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))
 
-
+        
 class CFGStr(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
@@ -663,6 +677,7 @@ class CFGStr(CFGTestCase):
         actual_label = self.cfg.nodes[1].label
         self.assertEqual(expected_label, actual_label)
 
+        
 class CFGNameConstant(CFGTestCase):
     def setUp(self):
         self.cfg = CFG()
@@ -670,11 +685,14 @@ class CFGNameConstant(CFGTestCase):
         self.cfg.create(tree)
 
     def test_name_constant_in_assign(self):
+        self.assert_length(self.cfg.nodes, expected_length=6)
+        
         expected_label = 'x = True'
         actual_label = self.cfg.nodes[1].label
         self.assertEqual(expected_label, actual_label)
 
     def test_name_constant_if(self):
+        self.assert_length(self.cfg.nodes, expected_length=6)
         expected_label = 'if True:'
         actual_label = self.cfg.nodes[2].label
         self.assertEqual(expected_label, actual_label)
