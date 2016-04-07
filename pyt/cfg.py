@@ -618,15 +618,15 @@ class CFG(ast.NodeVisitor):
            saved_variables(list[SavedVariable]).
         """
         restore_nodes = list()
-            for var in saved_variables:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
+        for var in saved_variables:
+            restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
 
-            for n, successor in zip(restore_nodes, restore_nodes[1:]):
-                n.connect(successor)
+        for n, successor in zip(restore_nodes, restore_nodes[1:]):
+            n.connect(successor)
 
-            self.nodes[-1].connect(restore_nodes[0])
-            self.nodes.extend(restore_nodes)
-            return restore_nodes
+        self.nodes[-1].connect(restore_nodes[0])
+        self.nodes.extend(restore_nodes)
+        return restore_nodes
 
     def return_handler(self, node, function_nodes, restore_nodes):
         """Handle the return from a function during a function call."""
