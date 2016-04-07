@@ -2,7 +2,7 @@ import subprocess
 import re
 from pprint import pprint
 
-docstyle = subprocess.run(["pydocstyle", "--ignore=D105"], stderr=subprocess.PIPE, universal_newlines=True)
+docstyle = subprocess.run(["pydocstyle", "--ignore=D105,D203,D212,D213"], stderr=subprocess.PIPE, universal_newlines=True)
 
 lines = re.split('\n', docstyle.stderr)
 
