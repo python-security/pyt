@@ -213,7 +213,9 @@ class CFG(ast.NodeVisitor):
             return False
         elif isinstance(node, ControlFlowNode):
             return True
-        elif node.ast_type is not ast.FunctionDef().__class__.__name__:
+        elif node.ast_type is ast.FunctionDef().__class__.__name__:
+            return False
+        else:
             return True
 
     def connect_control_flow_node(self, control_flow_node, next_node):
