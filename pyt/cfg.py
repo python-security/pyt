@@ -1,3 +1,9 @@
+"""This module contains classes for generating a Control Flow Graph of a python program.
+
+The class CFG is the main entry point to this module
+The method generate_ast(path) can the used to generate input for the CFG class' create method
+"""
+
 import ast
 from collections import namedtuple, OrderedDict
 from copy import deepcopy
@@ -11,7 +17,7 @@ CALL_IDENTIFIER = '¤'
 
 
 def generate_ast(path):
-    '''Generates an Abstract Syntax Tree using the ast module.'''
+    """Generate an Abstract Syntax Tree using the ast module."""
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
@@ -22,12 +28,21 @@ ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statem
 
 
 class IgnoredNode(object):
-    '''Ignored Node sent from a ast node that is not yet implemented'''
+    """Ignored Node sent from a ast node that is not yet implemented."""
 
 
 class Node(object):
-    '''A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables.'''
+    """A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables."""
+    
     def __init__(self, label, ast_type, *, line_number=None, variables=None):
+        """Create a Node that can be used in a CFG.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            ast_type (str): The type of the node as represented in the AST.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            variables(list[str]): The variables in the expression. Used for analysis.
+        """
         self.ingoing = list()
         self.outgoing = list()
 
@@ -45,19 +60,22 @@ class Node(object):
         self.new_constraint = set()
 
     def connect(self, successor):
-        '''Connects this node to its successor node by setting its outgoing and the successors ingoing.'''
+        """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
     def connect_predecessors(self, predecessors):
+        """Connect all nodes in predecessors to this node."""
         for n in predecessors:
             self.ingoing.append(n)
             n.outgoing.append(self)
 
     def __str__(self):
+        """Print the label of the node."""
         return ' '.join(('Label: ', self.label))
 
-    def __repr__(self):        
+    def __repr__(self):
+        """Print a representation of the node."""
         label = ' '.join(('Label: ', self.label))
         line_number = 'Line number: ' + str(self.line_number)
         ast_type = ' '.join(('Type:\t\t', self.ast_type))
@@ -87,14 +105,31 @@ class Node(object):
 
 
 class FunctionNode(Node):
-    ''''''
+    """CFG Node that represents a function definition.
+    
+    Used as a dummy for creating a list of function definitions.    
+    """
+    
     def __init__(self):
+        """Create a function node.
+        
+        This node is a dummy node representing a function definition
+        """
         super(FunctionNode, self).__init__(self.__class__.__name__, ast.FunctionDef().__class__.__name__)
 
 
 class AssignmentNode(Node):
-    ''''''
+    """CFG Node that represents an assignment."""
+    
     def __init__(self, label, left_hand_side, *, line_number=None, variables=None):
+        """Create an Assignment node.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            variables(list[str]): The variables in the expression. Used for analysis.
+        """
         super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, line_number=line_number, variables=variables)
         self.left_hand_side = left_hand_side
 
@@ -105,14 +140,33 @@ class AssignmentNode(Node):
 
 
 class RestoreNode(AssignmentNode):
-    '''Node used for handling restore nodes returning from function calls'''
+    """Node used for handling restore nodes returning from function calls."""
 
     def __init__(self, label, left_hand_side, *, line_number=None, variables=None):
+        """Create an Restore node.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            variables(list[str]): The variables in the expression. Used for analysis.
+        """
         super(RestoreNode, self).__init__(label, left_hand_side, line_number=line_number, variables=variables)
         
 
 class CallReturnNode(AssignmentNode):
+    """CFG node that represents a return from a call."""
+    
     def __init__(self, label, ast_type, restore_nodes, *, line_number=None, variables=None):
+        """Create an CallReturn node.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            ast_type (str): The type of the node as represented in the AST.
+            restore_nodes(list[Node]): List of nodes that where restored in the function call.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            variables(list[str]): The variables in the expression. Used for analysis.
+        """
         super(AssignmentNode, self).__init__(label, ast_type, line_number=line_number, variables=variables)
         self.restore_nodes = restore_nodes
 
@@ -123,7 +177,14 @@ class CallReturnNode(AssignmentNode):
     
 
 class Arguments(object):
+    """Represents arguments of a function."""
+    
     def __init__(self, args):
+        """Create an Argument container class.
+
+        Args:
+            args(list(ast.args): The arguments in a function AST node.
+        """
         self.args = args.args
         self.varargs = args.vararg
         self.kwarg = args.kwarg
@@ -146,15 +207,26 @@ class Arguments(object):
         
     
 class Function(object):
+    """Representation of a function definition in the program."""
+    
     def __init__(self, nodes, args, decorator_list):
+        """Create a Function representation.
+
+        Args:
+            nodes(list[Node]): The CFG of the Function.
+            args(ast.args): The arguments from a function AST node.
+            decorator_list(list[ast.decorator]): The list of decorators from a function AST node.
+        """
         self.nodes = nodes
         self.arguments = Arguments(args)
         self.decorator_list = decorator_list
     
 
 class CFG(ast.NodeVisitor):
-    '''A Control Flow Graph containing a list of nodes.'''
+    """A Control Flow Graph containing a list of nodes."""
+    
     def __init__(self):
+        """Create an empty CFG."""
         self.nodes = list()
         self.functions = OrderedDict()
         self.function_index = 0
@@ -173,16 +245,16 @@ class CFG(ast.NodeVisitor):
         return output
 
     def append_node(self, Node):
+        """Append a node to the CFG and return it."""
         self.nodes.append(Node)
         return Node
         
     def create(self, module_node):
-        '''
-        Creates a Control Flow Graph.
+        """Create a Control Flow Graph.
 
-        module_node is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
-        '''
-
+        Args:
+            module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
+        """
         entry_node = self.append_node(Node('Entry node', ENTRY))
                 
         module_statements = self.visit(module_node)
@@ -199,16 +271,19 @@ class CFG(ast.NodeVisitor):
         exit_node.connect_predecessors(last_nodes)
     
     def get_first_statement(self, node_or_tuple):
-        """finds the first statement of the provided object.
-        returns the node if is is a node
-        returns the first element in the tuple if it is a tuple"""
+        """Find the first statement of the provided object.
+
+        Returns:
+            The node if is is a node.
+            The first element in the tuple if it is a tuple.
+        """
         if isinstance(node_or_tuple, tuple):
             return node_or_tuple[0]
         else:
             return node_or_tuple
 
     def node_to_connect(self, node):
-        """Determines if node should be in the final CFG"""
+        """Determine if node should be in the final CFG."""
         if isinstance(node, IgnoredNode):
             return False
         elif isinstance(node, ControlFlowNode):
@@ -219,7 +294,7 @@ class CFG(ast.NodeVisitor):
             return True
 
     def connect_control_flow_node(self, control_flow_node, next_node):
-        """Connects a ControlFlowNode properly to the next_node"""
+        """Connect a ControlFlowNode properly to the next_node."""
         for last in control_flow_node[1]:                         # list of last nodes in ifs and elifs
             if isinstance(next_node, ControlFlowNode):
                 last.connect(next_node.test)        # connect to next if test case
@@ -227,7 +302,7 @@ class CFG(ast.NodeVisitor):
                 last.connect(next_node)        
         
     def connect_nodes(self, nodes):
-        """Connects the nodes in a list linearly"""
+        """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
             if isinstance(n, ControlFlowNode):             # case for if
                 self.connect_control_flow_node(n, next_node)
@@ -241,16 +316,17 @@ class CFG(ast.NodeVisitor):
                 n.connect(next_node)
 
     def get_last_statements(self, cfg_statements):
-        """Retrieves the last statements from a cfg_statments list"""
+        """Retrieve the last statements from a cfg_statments list."""
         if isinstance(cfg_statements[-1], ControlFlowNode):
             return cfg_statements[-1].last_nodes
         else:
             return [cfg_statements[-1]]
     
     def stmt_star_handler(self, stmts):
-        '''handling of stmt* 
+        """Handle stmt* expressions in an AST node.
 
-        links all statements together in a list of statements, accounting for statements with multiple last nodes'''
+        Links all statements together in a list of statements, accounting for statements with multiple last nodes
+        """
         cfg_statements = list()
 
         for stmt in stmts:
@@ -267,9 +343,11 @@ class CFG(ast.NodeVisitor):
         return ConnectStatements(first_statement=first_statement, last_statements=last_statements)
 
     def run_visitors(self, *, variables_visitor_visit_node, label_visitor_visit_node):
-        '''Creates and runs the VarsVisitor and LabelVisitor.
+        """Create and run the VarsVisitor and LabelVisitor.
 
-        Returns visitors in a namedtuple.'''
+        Returns:
+            The resulting visitors in a namedtuple.
+        """
         variables_visitor = VarsVisitor()
         variables_visitor.visit(variables_visitor_visit_node)
         label_visitor = LabelVisitor()
@@ -300,16 +378,19 @@ class CFG(ast.NodeVisitor):
         return FunctionNode()
 
     def add_if_label(self, CFG_node):
+        """Prepend 'if ' and append ':' to the label of a Node."""
         CFG_node.label = 'if ' + CFG_node.label + ':'
 
     def add_elif_label(self, CFG_node):
+        """Add the el to an already add_if_label'ed Node."""
         CFG_node.label = 'el' + CFG_node.label
 
-
     def handle_or_else(self, orelse, test):
-        """handles the orelse part of an if node.
+        """Handle the orelse part of an if node.
 
-        returns the last nodes of the orelse branch"""
+        Returns:
+            The last nodes of the orelse branch
+        """
         if isinstance(orelse[0], ast.If):
             control_flow_node  = self.visit(orelse[0])
             self.add_elif_label(control_flow_node.test)
@@ -352,7 +433,10 @@ class CFG(ast.NodeVisitor):
         return self.append_node(Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, line_number = node.lineno, variables = variables_visitor.result))
 
     def extract_left_hand_side(self, target):
-        ''''''
+        """Extract the left hand side varialbe from a target.
+
+        Removes list indexes, stars and other left hand side elements.
+        """
         left_hand_side = target.id
 
         left_hand_side.replace('*', '')
@@ -390,6 +474,7 @@ class CFG(ast.NodeVisitor):
         # self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
 
     def assignment_call_node(self, left_hand_label, value, line_number):
+        """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
         
         call = self.visit(value)
@@ -417,6 +502,7 @@ class CFG(ast.NodeVisitor):
         return self.append_node(AssignmentNode(visitors.label_visitor.result, self.extract_left_hand_side(node.target), line_number = node.lineno, variables = visitors.variables_visitor.result))
 
     def loop_node_skeleton(self, test, node):
+        """Common handling of looped structures, while and for."""
         body_connect_stmts = self.stmt_star_handler(node.body)
 
         test.connect(body_connect_stmts.first_statement)        
@@ -437,6 +523,7 @@ class CFG(ast.NodeVisitor):
         return ControlFlowNode(test, last_nodes)
 
     def add_while_label(self, node):
+        """Prepend 'while' and append ':' to the label of a node."""
         node.label = 'while ' + node.label + ':' 
     
     def visit_While(self, node):
@@ -478,6 +565,7 @@ class CFG(ast.NodeVisitor):
         return self.visit(node.value)
 
     def save_local_scope(self):
+        """Save the local scope before entering a function call."""
         saved_variables = list()
         for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
             if isinstance(assignment, RestoreNode):
@@ -493,6 +581,7 @@ class CFG(ast.NodeVisitor):
         return saved_variables
 
     def save_actual_parameters_in_temp(self, args, function):
+        """Save the actual parameters of a function call."""
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
             
@@ -507,6 +596,7 @@ class CFG(ast.NodeVisitor):
             self.nodes.append(n)
 
     def create_local_scope_from_actual_parameters(self, args, function):
+        """Create the local scope before entering the body of a function call."""
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
             local_name = function.arguments[i]
@@ -515,13 +605,19 @@ class CFG(ast.NodeVisitor):
             previous_node.connect(local_scope_node)
 
     def insert_function_body(self, node):
+        """Insert the function body into the CFG."""
         function_nodes = deepcopy(self.functions[node.func.id].nodes)
         self.nodes[-1].connect(function_nodes[0])
         self.nodes.extend(function_nodes)
         return function_nodes
 
     def restore_saved_local_scope(self, saved_variables):
-            restore_nodes = list()
+        """Restore the previously saved variables to their original values.
+
+        Args:
+           saved_variables(list[SavedVariable]).
+        """
+        restore_nodes = list()
             for var in saved_variables:
                 restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
 
@@ -533,6 +629,7 @@ class CFG(ast.NodeVisitor):
             return restore_nodes
 
     def return_handler(self, node, function_nodes, restore_nodes):
+        """Handle the return from a function during a function call."""
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
