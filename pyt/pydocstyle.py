@@ -1,8 +1,12 @@
 import subprocess
 import re
-from pprint import pprint
+import sys
 
-docstyle = subprocess.run(["pydocstyle", "--ignore=D105,D203,D212,D213"], stderr=subprocess.PIPE, universal_newlines=True)
+try:
+    docstyle = subprocess.run(["pydocstyle", "--ignore=D105,D203,D212,D213"], stderr=subprocess.PIPE, universal_newlines=True)
+except FileNotFoundError:
+    print('Error: Install pydocstyle with pip for python 3. Something like: "sudo python -m pip install pydocstyle"')
+    sys.exit()
 
 lines = re.split('\n', docstyle.stderr)
 
