@@ -28,7 +28,12 @@ class fixed_point_analysis(object):
         for node in cfg.nodes:
             self.analysis.fixpointmethod(node)
             
-    
+
+def analyse(cfg_list, *, analysis_type):
+    analysis = fixed_point_analysis(reaching_definitions_analysis)
+    for cfg in cfg_list:
+        analysis.fixpoint_runner(cfg)
+
 if __name__ == '__main__':
     analysis = fixed_point_analysis(reaching_definitions_analysis)
     tree = generate_ast('../example/example_inputs/example.py')
