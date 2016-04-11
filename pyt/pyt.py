@@ -2,9 +2,8 @@ import argparse
 from cfg import generate_ast, CFG
 from draw import draw_cfg
 from reaching_definitions import reaching_definitions_analysis
-from fixed_point import fixed_point_analysis
+from fixed_point import analyse
 import flask_engine
-from vulnerability_log import Vulnerability, VulnerabilityLog
 
 parser = argparse.ArgumentParser()
 
@@ -21,14 +20,14 @@ if __name__ == '__main__':
     cfg = CFG()
     cfg.create(tree)
 
-    analysis = fixed_point_analysis(reaching_definitions_analysis)
-    analysis.fixpoint_runner(cfg)
+    cfg_list = list()
+    cfg_list.append(cfg)
+    cfg_list.extend(flask_engine.find_flask_route_functions(cfg.functions))
 
-    sources_and_sinks = flask_engine.identify_sources_and_sinks(cfg)
-    
-    vulnerability_log = VulnerabilityLog()
-    flask_engine.find_vulnerabilities(sources_and_sinks[0], sources_and_sinks[1], vulnerability_log)
-    
+    analyse(cfg_list, analysis_type=reaching_definitions_analysis)
+
+    vulnerability_log = flask_engine.find_vulnerabilities(cfg_list)
+    vulnerability_log.print_report()
 
     if args.draw_cfg:
         if args.output_filename:

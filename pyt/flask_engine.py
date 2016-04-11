@@ -33,14 +33,6 @@ def identify_sources_and_sinks(cfg):
     
     return (sources_in_file, sinks_in_file)
 
-def find_vulnerabilities(sources_in_file, sinks_in_file, vulnerability_log):
-    for sink in sinks_in_file:            
-        for source in sources_in_file:
-            if source in sink.new_constraint:
-                vulnerability_log.append(Vulnerability(source, sink, "crazy"))
-                
-    vulnerability_log.print_report()
-
 def find_flask_route_functions(functions):
     for func in functions.items():
         if is_flask_route_function(func[1]):
@@ -48,3 +40,14 @@ def find_flask_route_functions(functions):
 
 def is_flask_route_function(function):
     return any(decorator for decorator in function.decorator_list if decorator.func.value.id == 'app' and decorator.func.attr == 'route')
+
+def find_vulnerabilities(cfg_list):
+    vulnerability_log = VulnerabilityLog()
+    for cfg in cfg_list:
+        sources_and_sinks = identify_sources_and_sinks(cfg)
+        for sink in sources_and_sinks[1]:
+            for source in sources_and_sinks[0]:
+                if source in sink.new_constraint:
+                    vulnerability_log.append(Vulnerability(source, sink, 'Custom message - what to write here?'))
+    return vulnerability_log
+   
