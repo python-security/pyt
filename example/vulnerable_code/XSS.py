@@ -4,7 +4,7 @@ import string
 app = Flask(__name__)
 
 @app.route('/XSS_param', methods =['GET'])
-def example1():
+def XSS1():
     param = request.args.get('param', 'not set')
 
     html = open('templates/XSS_param.html').read()
