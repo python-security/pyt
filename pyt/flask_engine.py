@@ -56,6 +56,6 @@ def find_vulnerabilities(cfg_list):
         for sink in sources_and_sinks.sinks:
             for source in sources_and_sinks.sources:
                 if source.cfg_node in sink.cfg_node.new_constraint:
-                    vulnerability_log.append(Vulnerability(source.cfg_node, sink.cfg_node, 'Custom message - what to write here?'))
+                    vulnerability_log.append(Vulnerability(source.cfg_node, source.trigger_word, sink.cfg_node, sink.trigger_word))
     return vulnerability_log
    
