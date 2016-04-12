@@ -1,4 +1,6 @@
 import argparse
+import os
+
 from cfg import generate_ast, CFG
 from draw import draw_cfg
 from reaching_definitions import reaching_definitions_analysis
@@ -6,7 +8,7 @@ from fixed_point import analyse
 import flask_engine
 
 
-default_trigger_word_file = '/pyt/trigger_definitions/flask_trigger_words.pyt'
+default_trigger_word_file = os.path.join('pyt', 'trigger_definitions', 'flask_trigger_words.pyt')
 
 parser = argparse.ArgumentParser()
 

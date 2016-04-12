@@ -17,7 +17,8 @@ SinkOrSourceNode = namedtuple('SinkOrSourceNode', 'trigger_word cfg_node')
 
 def parse_sources_and_sinks(trigger_word_file):
     file_data = ''
-    with open(os.path.join(os.getcwd(), trigger_word_file), 'r') as fd:
+    path = os.path.join(s, trigger_word_file)
+    with open(path, 'r') as fd:
         is_source = None
         for line in fd:
             if 'sources:' in line:
