@@ -4,9 +4,10 @@ from collections import namedtuple
 from cfg import CFG, generate_ast, Node
 from vulnerability_log import Vulnerability, VulnerabilityLog
 
-sources = ["input"]
-sanitizers = []
-sinks = ["eval"]
+
+sources = list()
+sanitizers = list()
+sinks = list()
 
 sources_in_file = None
 sinks_in_file = None
@@ -14,8 +15,19 @@ sinks_in_file = None
 SourcesAndSinks = namedtuple('SourcesAndSinks', 'sources sinks')
 SinkOrSourceNode = namedtuple('SinkOrSourceNode', 'trigger_word cfg_node')
 
-def parse_sources_and_sinks(self, definition_file):
-    pass
+def parse_sources_and_sinks(trigger_word_file):
+    file_data = ''
+    with open(os.path.join(os.getcwd(), trigger_word_file), 'r') as fd:
+        is_source = None
+        for line in fd:
+            if 'sources:' in line:
+                is_source = True
+            elif 'sinks:' in line:
+                is_source = False
+            elif is_source:
+                sources.append(line.rstrip())
+            elif not is_source:
+                sinks.append(line.rstrip())
 
 def label_contains(node, trigger_word_list):
     for trigger_word in trigger_word_list:
@@ -49,7 +61,8 @@ def find_flask_route_functions(functions):
 def is_flask_route_function(function):
     return any(decorator for decorator in function.decorator_list if decorator.func.value.id == 'app' and decorator.func.attr == 'route')
 
-def find_vulnerabilities(cfg_list):
+def find_vulnerabilities(cfg_list, trigger_word_file):
+    parse_sources_and_sinks(trigger_word_file)
     vulnerability_log = VulnerabilityLog()
     for cfg in cfg_list:
         sources_and_sinks = identify_sources_and_sinks(cfg)
