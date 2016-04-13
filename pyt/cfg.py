@@ -465,11 +465,11 @@ class CFG(ast.NodeVisitor):
         
         call_label = ''
         call_assignment = None
-        if isinstance(call, AssignmentNode):
+        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
             call_label = call.left_hand_side
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, line_number=line_number)
             call.connect(call_assignment)
-        else:
+        else: #  assignment to builtin
             call_label = call.label
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, line_number=line_number)
 
