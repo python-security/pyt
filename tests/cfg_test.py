@@ -548,6 +548,21 @@ class CFGAssignmentMultiTest(CFGTestCase):
         self.assertLineNumber(assign, 1)
         self.assertLineNumber(builtin, 2)
 
+    def test_multiple_assignment(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignment_multiple_assign.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=4)
+        
+        start_node = self.cfg.nodes[0]
+        assign_y = self.cfg.nodes[1]
+        assign_x = self.cfg.nodes[2]
+        exit_node = self.cfg.nodes[-1]
+
+        self.assertEqual(assign_x.label, 'x = 5')
+        self.assertEqual(assign_y.label, 'y = 5')
+
     def test_assign_list_comprehension(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/list_comprehension.py')
