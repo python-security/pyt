@@ -9,6 +9,7 @@ styles = {
         'bgcolor': 'transparent',
         'rankdir': 'TB',
         'splines': 'ortho',
+        'margin' : '0.01',
     },
     'nodes': {
         'fontname': 'Gotham',
