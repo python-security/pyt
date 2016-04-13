@@ -435,6 +435,16 @@ class CFG(ast.NodeVisitor):
                 previous_node.connect(assignment_node)
             return self.nodes[-1] # return the last added node
 
+        elif len(node.targets) > 1:
+            for target in node.targets:
+                label = LabelVisitor()
+                label.visit(target)
+                label.result += ' = '
+                label.visit(node.value)
+                
+                self.append_node(AssignmentNode(label.result, '',line_number = node.lineno))
+            return self.nodes[-1]
+        
         else:
             if isinstance(node.value, ast.Call):
                 label = LabelVisitor()
