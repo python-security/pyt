@@ -10,7 +10,7 @@ SinkOrSourceNode = namedtuple('SinkOrSourceNode', 'trigger_word cfg_node')
 default_trigger_word_file = os.path.join('pyt', 'trigger_definitions', 'flask_trigger_words.pyt')
 
 class Engine(object):
-    '''An engine that should be used as base class to specify how to find all sources and sinks.'''
+    """An engine that should be used as base class to specify how to find all sources and sinks."""
 
     def __init__(self, cfg_list, trigger_word_file=default_trigger_word_file):
         self.trigger_word_file = trigger_word_file

@@ -8,9 +8,9 @@ from liveness import LivenessAnalysis
 class fixed_point_analysis(object):
 
     def __init__(self, cfg, analysis):
-        '''Fixed point analysis
+        """Fixed point analysis
 
-        analysis must be a dataflow analysis containing a 'fixpointmethod' method that analyzes one CFG node'''
+        analysis must be a dataflow analysis containing a 'fixpointmethod' method that analyzes one CFG node"""
         self.analysis = analysis(cfg)
         self.cfg = cfg
     

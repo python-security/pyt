@@ -1,5 +1,5 @@
 class AnalysisBase(object):
-    '''Base class for fixed point analyses.'''
+    """Base class for fixed point analyses."""
 
     annotated_cfg_nodes = dict()
     

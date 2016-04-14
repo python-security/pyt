@@ -1,7 +1,7 @@
 from engine import Engine
 
 class FlaskEngine(Engine):
-    '''The flask engine class which implements the specifics to find sources, sinks and sanitizers in flask web applications.'''
+    """The flask engine class which implements the specifics to find sources, sinks and sanitizers in flask web applications."""
 
     def is_flask_route_function(self, function):
         return any(decorator for decorator in function.decorator_list if decorator.func.value.id == 'app' and decorator.func.attr == 'route')
