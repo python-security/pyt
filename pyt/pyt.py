@@ -5,10 +5,9 @@ from cfg import generate_ast, CFG
 from draw import draw_cfg
 from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import analyse
-import flask_engine
+from flask_engine import FlaskEngine
+from engine import Engine
 
-
-default_trigger_word_file = os.path.join('pyt', 'trigger_definitions', 'flask_trigger_words.pyt')
 
 parser = argparse.ArgumentParser()
 
@@ -27,15 +26,16 @@ if __name__ == '__main__':
     cfg.create(tree)
 
     cfg_list = [cfg]
-    cfg_list.extend(flask_engine.find_flask_route_functions(cfg.functions))
+
+    engine_type = None
+    if args.trigger_word_file:
+        engine_type = FlaskEngine(cfg_list, args.trigger_word_file)
+    else:
+        engine_type = FlaskEngine(cfg_list) 
 
     analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
-
-    trigger_word_file = default_trigger_word_file
-    if args.trigger_word_file:
-        trigger_word_file = args.trigger_word_file
-
-    vulnerability_log = flask_engine.find_vulnerabilities(cfg_list, trigger_word_file)
+    
+    vulnerability_log = engine_type.find_vulnerabilities()
     vulnerability_log.print_report()
 
     if args.draw_cfg:

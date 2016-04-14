@@ -5,15 +5,16 @@ from ast import parse
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
-import flask_engine
+from flask_engine import FlaskEngine
 
 class FlaskEngineTest(unittest.TestCase):
     def test_find_flask_functions(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/flask_function_and_normal_function.py')
         self.cfg.create(tree)
+        cfg_list = [self.cfg]
 
-        flask_functions = list(flask_engine.find_flask_route_functions(self.cfg.functions))
+        flask = FlaskEngine(cfg_list)
         
         #self.assertEqual(len(flask_functions), 1)
 
