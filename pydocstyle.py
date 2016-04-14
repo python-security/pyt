@@ -1,6 +1,10 @@
 import subprocess
 import re
 import sys
+import os
+
+
+os.chdir(os.path.join('pyt'))
 
 try:
     docstyle = subprocess.run(["pydocstyle", "--ignore=D105,D203,D212,D213"], stderr=subprocess.PIPE, universal_newlines=True)
