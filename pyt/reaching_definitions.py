@@ -1,7 +1,12 @@
 from cfg import AssignmentNode
 from copy import deepcopy
+from analysis_base import AnalysisBase
 
-class reaching_definitions_analysis(object):
+class ReachingDefinitionsAnalysis(AnalysisBase):
+    '''Reaching definitions analysis rules implemented.'''
+    def __init__(self, cfg):
+        super(ReachingDefinitionsAnalysis, self).__init__(cfg, None)
+        
     def join(self, cfg_node):
         JOIN = set()
         for ingoing in cfg_node.ingoing:

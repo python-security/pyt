@@ -2,8 +2,8 @@ import ast
 import argparse
 
 from cfg import Node, AssignmentNode, CFG, generate_ast
-from reaching_definitions import reaching_definitions_analysis
-from liveness import liveness_analysis
+from reaching_definitions import ReachingDefinitionsAnalysis
+from liveness import LivenessAnalysis
 
 class fixed_point_analysis(object):
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
             print(cfg_node.new_constraint)
 
     if args.liveness:
-        run_analysis(cfg, liveness_analysis)
+        run_analysis(cfg, LivenessAnalysis)
     if args.reaching:
-        run_analysis(cfg, reaching_definitions_analysis)
+        run_analysis(cfg, ReachingDefinitionsAnalysis)
 

@@ -3,12 +3,13 @@ from copy import deepcopy
 import ast
 
 from vars_visitor import VarsVisitor
+from analysis_base import AnalysisBase
 
-class liveness_analysis(object):
-    variables = dict()
+class LivenessAnalysis(AnalysisBase):
+    '''Liveness analysis rules implemented.'''
 
     def __init__(self, cfg):
-        self.annotate_cfg(cfg)
+        super(LivenessAnalysis, self).__init__(cfg, VarsVisitor)
     
     def join(self, cfg_node):
         JOIN = set()
@@ -21,7 +22,7 @@ class liveness_analysis(object):
         # if for Condition and call case: Join(v) u vars(E).
         if cfg_node.ast_type == ast.Compare.__name__ or cfg_node.ast_type == ast.Call.__name__:
             JOIN = self.join(cfg_node)            
-            JOIN.update(self.variables[cfg_node])  # set union
+            JOIN.update(self.annotated_cfg_nodes[cfg_node])  # set union
             
             cfg_node.new_constraint = JOIN
 
@@ -30,7 +31,7 @@ class liveness_analysis(object):
             JOIN = self.join(cfg_node)
 
             JOIN.discard(cfg_node.ast_node.targets[0].id)  # set difference
-            JOIN.update(self.variables[cfg_node])  # set union
+            JOIN.update(self.annotated_cfg_nodes[cfg_node])  # set union
  
             cfg_node.new_constraint = JOIN
 
@@ -40,10 +41,3 @@ class liveness_analysis(object):
         # else for other cases.
         else:
             cfg_node.new_constraint = self.join(cfg_node)
-
-    def annotate_cfg(self, cfg):
-        for node in cfg.nodes:
-            if node.ast_node:
-                variables_visitor = VarsVisitor()
-                variables_visitor.visit(node.ast_node)
-                self.variables[node] = variables_visitor.result
