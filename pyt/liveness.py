@@ -1,9 +1,8 @@
 """Module implements liveness analysis."""
 from cfg import AssignmentNode
 from copy import deepcopy
-import ast
+from ast import NodeVisitor
 
-from vars_visitor import VarsVisitor
 from analysis_base import AnalysisBase
 
 class LivenessAnalysis(AnalysisBase):
@@ -45,3 +44,31 @@ class LivenessAnalysis(AnalysisBase):
         # else for other cases.
         else:
             cfg_node.new_constraint = self.join(cfg_node)
+
+
+class VarsVisitor(NodeVisitor):
+    """Class that finds all variables needed for the liveness analysis."""
+
+    def __init__(self):
+        """Initialise list of results."""
+        self.result = list()
+
+    def visit_Name(self, node):
+        self.result.append(node.id)
+
+    #  Condition and call rule
+    def visit_Call(self, node):
+        for arg in node.args:
+            self.visit(arg)
+        for keyword in node.keywords:
+            self.visit(keyword)
+            
+    def visit_keyword(self, node):
+        self.visit(node.value)
+
+    def visit_Compare(self, node):
+        self.generic_visit(node)
+
+    #  Assignment rule                
+    def visit_Assign(self, node): 
+        self.visit(node.value)
