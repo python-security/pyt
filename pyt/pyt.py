@@ -6,7 +6,6 @@ from draw import draw_cfg
 from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import analyse
 from flask_engine import FlaskEngine
-from engine import Engine
 
 
 parser = argparse.ArgumentParser()
