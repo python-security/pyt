@@ -20,11 +20,11 @@ class VarsVisitorTestCase(unittest.TestCase):
 class VarsVisitorTest(VarsVisitorTestCase):
     def test_assign_var_and_num(self):
         vars = self.perform_vars_on_expression('a = 1')
-        self.assertEqual(vars.result,['a'])
+        self.assertEqual(vars.result,[])
 
     def test_assign_var_and_var(self):
         vars = self.perform_vars_on_expression('a = x')
-        self.assertEqual(vars.result,['a','x'])
+        self.assertEqual(vars.result,['x'])
 
     def test_call(self):
         vars = self.perform_vars_on_expression('print(x)')
