@@ -64,7 +64,6 @@ class Engine(object):
     def find_vulnerabilities(self):
         self.parse_sources_and_sinks()
         vulnerability_log = VulnerabilityLog()
-        print(len(self.cfg_list))
         for cfg in self.cfg_list:
             sources_and_sinks = self.identify_sources_and_sinks(cfg)
             for sink in sources_and_sinks.sinks:
