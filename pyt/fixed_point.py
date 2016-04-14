@@ -1,4 +1,6 @@
 import ast
+import argparse
+
 from cfg import Node, AssignmentNode, CFG, generate_ast
 from reaching_definitions import reaching_definitions_analysis
 from liveness import liveness_analysis
@@ -37,13 +39,27 @@ def analyse(cfg_list, *, analysis_type):
         analysis.fixpoint_runner()
 
 if __name__ == '__main__':
-    tree = generate_ast('../example/example_inputs/example.py')
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('filename', help='Filename of the file that should be analysed.', type=str)
+    parser.add_argument('-l', '--liveness', help='Toggle liveness analysis.', action='store_true')
+    parser.add_argument('-r', '--reaching', help='Toggle reaching definitions analysis', action='store_true')
+
+    args = parser.parse_args()
+
+    tree = generate_ast(args.filename)
     cfg = CFG()
     cfg.create(tree)
 
-    analysis = fixed_point_analysis(cfg, liveness_analysis)
-    analysis.fixpoint_runner()
+    def run_analysis(cfg, analysis_type):
+        analysis = fixed_point_analysis(cfg, analysis_type)
+        analysis.fixpoint_runner()
+        for cfg_node in cfg.nodes:
+            print(cfg_node)
+            print(cfg_node.new_constraint)
 
-    for cfg_node in cfg.nodes:
-        print(cfg_node)
-        print(cfg_node.new_constraint)
+    if args.liveness:
+        run_analysis(cfg, liveness_analysis)
+    if args.reaching:
+        run_analysis(cfg, reaching_definitions_analysis)
+
