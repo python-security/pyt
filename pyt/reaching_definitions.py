@@ -4,6 +4,7 @@ from analysis_base import AnalysisBase
 
 class ReachingDefinitionsAnalysis(AnalysisBase):
     '''Reaching definitions analysis rules implemented.'''
+
     def __init__(self, cfg):
         super(ReachingDefinitionsAnalysis, self).__init__(cfg, None)
         
