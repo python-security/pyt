@@ -6,7 +6,7 @@ from collections import namedtuple
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
-from reaching_definitions import reaching_definitions_analysis
+from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import fixed_point_analysis
 
 class FixedPointTest(unittest.TestCase):
@@ -15,7 +15,7 @@ class FixedPointTest(unittest.TestCase):
         tree = generate_ast('../example/example_inputs/example.py')
         self.cfg = CFG()
         self.cfg.create(tree)
-        self.analysis = fixed_point_analysis(reaching_definitions_analysis)
+        self.analysis = fixed_point_analysis(self.cfg, ReachingDefinitionsAnalysis)
 
     def assertInCfg(self, connections):
         ''' Assert that all connections in the connections list exists in the cfg,
@@ -35,8 +35,8 @@ class FixedPointTest(unittest.TestCase):
             
     def produce_iteration(self, iterationnumber):
         for x in range(iterationnumber):
-            self.analysis.swap_constraints(self.cfg)
-            self.analysis.fixpoint_iteration(self.cfg)
+            self.analysis.swap_constraints()
+            self.analysis.fixpoint_iteration()
                     
     def test_fixpoint_algorithm_first_iteration(self):
         self.produce_iteration(1)
@@ -172,7 +172,7 @@ class FixedPointTest(unittest.TestCase):
                           (2,12),(4,12),(6,12),(9,12),(10,12)])        
 
     def test_fixpoint_runner(self):
-        self.analysis.fixpoint_runner(self.cfg)
+        self.analysis.fixpoint_runner()
 
         self.assertInCfg([(1,1),
                           (2,2),
@@ -189,12 +189,12 @@ class FixedPointTest(unittest.TestCase):
         
     def test_constraints_changed_true(self):
         self.produce_iteration(1)
-        changed = self.analysis.constraints_changed(self.cfg)
+        changed = self.analysis.constraints_changed()
 
         self.assertEqual(changed, True)
 
     def test_constraints_changed_false(self):
         self.produce_iteration(9)
-        changed = self.analysis.constraints_changed(self.cfg)
+        changed = self.analysis.constraints_changed()
 
         self.assertEqual(changed, False)
