@@ -1,3 +1,4 @@
+"""Module implements liveness analysis."""
 from cfg import AssignmentNode
 from copy import deepcopy
 import ast
@@ -6,12 +7,14 @@ from vars_visitor import VarsVisitor
 from analysis_base import AnalysisBase
 
 class LivenessAnalysis(AnalysisBase):
-    '''Liveness analysis rules implemented.'''
+    """Implement liveness analysis rules."""
 
     def __init__(self, cfg):
+        """Initialize using parent with the given cfg."""
         super(LivenessAnalysis, self).__init__(cfg, VarsVisitor)
     
     def join(self, cfg_node):
+        """Join outgoing old constraints and return them as a set."""
         JOIN = set()
         for outgoing in cfg_node.outgoing:
             if outgoing.old_constraint:
@@ -19,6 +22,7 @@ class LivenessAnalysis(AnalysisBase):
         return JOIN
     
     def fixpointmethod(self, cfg_node):
+        """Setting the constraints of the given cfg node obeying the liveness analysis rules."""
         # if for Condition and call case: Join(v) u vars(E).
         if cfg_node.ast_type == ast.Compare.__name__ or cfg_node.ast_type == ast.Call.__name__:
             JOIN = self.join(cfg_node)            
