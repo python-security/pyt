@@ -600,8 +600,10 @@ class CFG(ast.NodeVisitor):
         for n, successor in zip(restore_nodes, restore_nodes[1:]):
             n.connect(successor)
 
-        self.nodes[-1].connect(restore_nodes[0])
-        self.nodes.extend(restore_nodes)
+        if restore_nodes:
+            self.nodes[-1].connect(restore_nodes[0])
+            self.nodes.extend(restore_nodes)
+
         return restore_nodes
 
     def return_handler(self, node, function_nodes, restore_nodes):
