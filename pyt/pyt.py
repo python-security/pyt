@@ -26,8 +26,7 @@ if __name__ == '__main__':
     cfg = CFG()
     cfg.create(tree)
 
-    cfg_list = list()
-    cfg_list.append(cfg)
+    cfg_list = list(cfg)
     cfg_list.extend(flask_engine.find_flask_route_functions(cfg.functions))
 
     analyse(cfg_list, analysis_type=reaching_definitions_analysis)
