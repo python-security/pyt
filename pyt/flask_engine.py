@@ -10,4 +10,4 @@ class FlaskEngine(Engine):
                 yield func[1]
 
     def run(self):
-        self.find_flask_route_functions(self.cfg_list[0])
+        self.cfg_list.extend(self.find_flask_route_functions(self.cfg_list[0].functions))
