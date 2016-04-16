@@ -4,12 +4,13 @@ import unittest
 from ast import parse
 from collections import namedtuple
 
+from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
 from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import fixed_point_analysis
 
-class FixedPointTest(unittest.TestCase):
+class FixedPointTest(BaseTestCase):
     connection = namedtuple('connection', 'constraintset element')
     def setUp(self):
         tree = generate_ast('../example/example_inputs/example.py')

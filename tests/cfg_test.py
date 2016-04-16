@@ -1,66 +1,13 @@
 import os
 import sys
-import unittest
 from ast import parse
 
+from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
 
 
-class CFGTestCase(unittest.TestCase):
-    def assertInCfg(self, connections):
-        ''' Assert that all connections in the connections list exists in the cfg,
-        as well as all connections not in the list do not exist
-
-        connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
-        for connection in connections:
-            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].outgoing, str(connection) + " expected to be connected")
-            self.assertIn(self.cfg.nodes[connection[1]], self.cfg.nodes[connection[0]].ingoing, str(connection) + " expected to be connected")
-
-        nodes = len(self.cfg.nodes)
-
-        for element in range(nodes):
-            for sets in range(nodes):
-                if not (element, sets) in connections:
-                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s <- %s)" % (element, sets)  +  " expected to be disconnected")
-                    self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s <- %s)" % (sets, element)  +  " expected to be disconnected")
-
-    def assertConnected(self, node, successor):
-        '''Asserts that a node is connected to its successor.
-        This means that node has successor in its outgoing and
-        successor has node in its ingoing.'''
-
-        self.assertIn(successor, node.outgoing,
-                       '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
-        
-        self.assertIn(node, successor.ingoing,
-                       '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
-
-    def assertNotConnected(self, node, successor):
-        '''Asserts that a node is not connected to its successor.
-        This means that node does not the successor in its outgoing and
-        successor does not have the node in its ingoing.'''
-
-        self.assertNotIn(successor, node.outgoing,
-                       '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
-        
-        self.assertNotIn(node, successor.ingoing,
-                         '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
-
-    def assertLineNumber(self, node, line_number):
-        self.assertEqual(node.line_number, line_number)
-
-    def cfg_list_to_dict(self, list):
-        '''This method converts the CFG list to a dict, making it easier to find nodes to test.
-        This method assumes that no nodes in the code have the same label'''
-        return {x.label: x for x in list}
-
-    def assert_length(self, _list, *, expected_length):
-        actual_length = len(_list)
-        self.assertEqual(expected_length, actual_length)
-
-
-class CFGGeneralTest(CFGTestCase):
+class CFGGeneralTest(BaseTestCase):
     def test_repr_cfg(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/for_complete.py')
@@ -128,7 +75,7 @@ class CFGGeneralTest(CFGTestCase):
         self.assertEqual(expected_label, actual_label)
 
     
-class CFGForTest(CFGTestCase):
+class CFGForTest(BaseTestCase):
     def test_for_complete(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/for_complete.py')
@@ -217,7 +164,7 @@ class CFGForTest(CFGTestCase):
         self.assertLineNumber(next_node, 7)
 
         
-class CFGIfTest(CFGTestCase):    
+class CFGIfTest(BaseTestCase):    
     def test_if_first_if(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/if_complete.py')
@@ -406,7 +353,7 @@ class CFGIfTest(CFGTestCase):
         self.assertLineNumber(else_body, 7)
         self.assertLineNumber(next_stmt, 8)
 
-class CFGWhileTest(CFGTestCase):
+class CFGWhileTest(BaseTestCase):
 
     def test_while_complete(self):
         self.cfg = CFG()
@@ -488,7 +435,7 @@ class CFGWhileTest(CFGTestCase):
         self.assertLineNumber(next_stmt, 7)
 
 
-class CFGAssignmentMultiTest(CFGTestCase):
+class CFGAssignmentMultiTest(BaseTestCase):
     def test_assignment_multi_target(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignment_two_targets.py')
@@ -579,7 +526,7 @@ class CFGAssignmentMultiTest(CFGTestCase):
         self.assertInCfg(list(l))
 
         
-class CFGFunctionNodeTest(CFGTestCase):
+class CFGFunctionNodeTest(BaseTestCase):
     def connected(self, node, successor):
         return (successor, node)
 
@@ -679,7 +626,7 @@ class CFGFunctionNodeTest(CFGTestCase):
         self.assertInCfg(list(l))
 
 
-class CFGCallWithAttributeTest(CFGTestCase):
+class CFGCallWithAttributeTest(BaseTestCase):
     def setUp(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/call_with_attribute.py')
@@ -701,7 +648,7 @@ class CFGCallWithAttributeTest(CFGTestCase):
         self.assertLineNumber(call, 5)
         
              
-class CFGNameConstant(CFGTestCase):
+class CFGNameConstant(BaseTestCase):
     def setUp(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/name_constant.py')
@@ -721,7 +668,7 @@ class CFGNameConstant(CFGTestCase):
         self.assertEqual(expected_label, actual_label)
         
 
-class CFGName(CFGTestCase):
+class CFGName(BaseTestCase):
     """Test is Name nodes are properly handled in different contexts"""
     
     def test_name_if(self):
