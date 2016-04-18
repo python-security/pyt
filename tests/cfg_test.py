@@ -670,6 +670,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assertLineNumber(call, 5)
 
 class CFGBreak(BaseTestCase):
+    """Break in while and for and other places"""
     def test_if_line_numbers(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/while_break.py')
