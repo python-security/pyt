@@ -729,4 +729,12 @@ class CFGName(BaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')
-        
+
+class Recusion(BaseTestCase):
+    """Test resursive functions"""
+    def test_recursion(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/recursive.py')
+        self.cfg.create(tree)
+
+        #self.assert_length(self.cfg.nodes, expected_length=0)
