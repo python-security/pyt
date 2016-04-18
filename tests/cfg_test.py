@@ -163,6 +163,27 @@ class CFGForTest(BaseTestCase):
         self.assertLineNumber(else_body_2, 6)
         self.assertLineNumber(next_node, 7)
 
+    def test_for_func_iterator(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/for_func_iterator.py')
+
+        self.cfg.create(tree)
+        print(repr(self.cfg))
+        
+        self.assert_length(self.cfg.nodes, expected_length=8)
+
+        entry = 0
+        _for = 1
+        entry_foo = 2
+        ret_foo = 3
+        exit_foo = 4
+        call_foo = 5
+        _print = 6
+        _exit = 7
+        
+        self.assertInCfg([(_for, entry), (_for, call_foo), (_for, _print), (entry_foo, _for), (ret_foo, entry_foo), (exit_foo, ret_foo), (call_foo, exit_foo), (_print, _for), (_exit, _for)])
+
+
         
 class CFGIfTest(BaseTestCase):    
     def test_if_first_if(self):

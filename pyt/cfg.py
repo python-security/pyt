@@ -528,6 +528,11 @@ class CFG(ast.NodeVisitor):
         target = target_label.visit(node.target)
 
         for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node.__class__.__name__, node, line_number = node.lineno))
+
+        if isinstance(node.iter, ast.Call) and node.iter.func.id in self.functions:
+            last_node = self.visit(node.iter)
+            last_node.connect(for_node)
+            
         
         return self.loop_node_skeleton(for_node, node)
 
