@@ -20,9 +20,9 @@ def generate_ast(path):
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
-ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes')
+ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statements')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements')
+ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements break_statements')
 
 
 class IgnoredNode(object):
@@ -289,7 +289,7 @@ class CFG(ast.NodeVisitor):
                 last.connect(next_node.test)        # connect to next if test case
             else:
                 last.connect(next_node)        
-        
+
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
@@ -310,16 +310,22 @@ class CFG(ast.NodeVisitor):
             return cfg_statements[-1].last_nodes
         else:
             return [cfg_statements[-1]]
-    
+
     def stmt_star_handler(self, stmts):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes
         """
         cfg_statements = list()
+        break_nodes = list()
 
         for stmt in stmts:
             node = self.visit(stmt)
+
+            if isinstance(node, ControlFlowNode):
+                break_nodes.extend(node.break_statements)
+            elif isinstance(node, Node) and node.ast_type is ast.Break.__name__:
+                break_nodes.append(node)
 
             if self.node_to_connect(node):
                 cfg_statements.append(node)
@@ -329,7 +335,7 @@ class CFG(ast.NodeVisitor):
         first_statement = self.get_first_statement(cfg_statements[0])
         last_statements = self.get_last_statements(cfg_statements)
         
-        return ConnectStatements(first_statement=first_statement, last_statements=last_statements)
+        return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
     
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
@@ -374,7 +380,10 @@ class CFG(ast.NodeVisitor):
             else_connect_statements = self.stmt_star_handler(orelse)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
-            
+
+    def remove_breaks(self, last_statements):
+        return [n for n in last_statements if isinstance(n, Node) and n.ast_type is not ast.Break.__name__]
+
     def visit_If(self, node):
         test = self.visit(node.test)
         self.add_if_label(test)
@@ -383,11 +392,14 @@ class CFG(ast.NodeVisitor):
         test.connect(body_connect_stmts.first_statement)
         
         if node.orelse:
-            body_connect_stmts.last_statements.extend(self.handle_or_else(node.orelse, test))
+            orelse_last_nodes = self.handle_or_else(node.orelse, test)
+            body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
             body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
 
-        return ControlFlowNode(test, body_connect_stmts.last_statements)
+        last_statements = self.remove_breaks(body_connect_stmts.last_statements)
+
+        return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
 
     def visit_NameConstant(self, node):
         label_visitor = LabelVisitor()
@@ -494,7 +506,8 @@ class CFG(ast.NodeVisitor):
 
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
-        last_nodes = list() 
+        last_nodes = list()
+        last_nodes.extend(body_connect_stmts.break_statements)
         
         if node.orelse:
             orelse_connect_stmts = self.stmt_star_handler(node.orelse)
@@ -504,7 +517,7 @@ class CFG(ast.NodeVisitor):
         else:
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
-        return ControlFlowNode(test, last_nodes)
+        return ControlFlowNode(test, last_nodes, list())
 
     def add_while_label(self, node):
         """Prepend 'while' and append ':' to the label of a node."""
@@ -668,3 +681,8 @@ class CFG(ast.NodeVisitor):
 
     def visit_Str(self, node):
         return IgnoredNode()
+
+    def visit_Break(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node)
+        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))

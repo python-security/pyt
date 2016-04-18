@@ -374,6 +374,7 @@ class CFGIfTest(BaseTestCase):
         self.assertLineNumber(else_body, 7)
         self.assertLineNumber(next_stmt, 8)
 
+
 class CFGWhileTest(BaseTestCase):
 
     def test_while_complete(self):
@@ -667,6 +668,26 @@ class CFGCallWithAttributeTest(BaseTestCase):
         call = self.cfg.nodes[2]
 
         self.assertLineNumber(call, 5)
+
+class CFGBreak(BaseTestCase):
+    def test_if_line_numbers(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/while_break.py')
+        
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=8)
+
+        entry = 0
+        _while = 1
+        _if = 2
+        print_x = 3
+        _break = 4
+        print_hest = 5
+        print_next = 6
+        _exit = 7
+
+        self.assertInCfg([(_while, entry), (_while, print_hest), (_if, _while), (print_x, _if), (_break, print_x), (print_hest, _if), (print_next, _while), (print_next, _break), (_exit, print_next)])
         
              
 class CFGNameConstant(BaseTestCase):

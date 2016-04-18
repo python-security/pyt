@@ -27,6 +27,9 @@ class LabelVisitor(NodeVisitor):
     def visit_Return(self, node):
         if node.value:
             self.visit(node.value)
+
+    def visit_Break(self, node):
+        self.result += node.__class__.__name__
         
     def visit_Assign(self, node):
         for target in node.targets:
