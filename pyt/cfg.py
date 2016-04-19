@@ -382,6 +382,7 @@ class CFG(ast.NodeVisitor):
             return else_connect_statements.last_statements
 
     def remove_breaks(self, last_statements):
+        """Remove all break statements in last_statements."""
         return [n for n in last_statements if isinstance(n, Node) and n.ast_type is not ast.Break.__name__]
 
     def visit_If(self, node):
