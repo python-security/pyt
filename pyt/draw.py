@@ -1,3 +1,4 @@
+"""Draws CFG."""
 from graphviz import Digraph
 
 IGNORED_LABEL_NAME_CHARACHTERS = ':'
@@ -30,6 +31,7 @@ styles = {
 }
 
 def apply_styles(graph, styles):
+    """Apply styles to graph."""
     graph.graph_attr.update(
         ('graph' in styles and styles['graph']) or {}
     )
@@ -42,6 +44,7 @@ def apply_styles(graph, styles):
     return graph
 
 def draw_cfg(cfg, output_filename = 'output'):
+    """Draw CFG and output as pdf."""
     graph = Digraph(format='pdf')
     
     for node in cfg.nodes:
