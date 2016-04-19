@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import sessionmaker
 import sys
 
 app = Flask(__name__)
@@ -20,21 +21,22 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username    
     
-@app.route('/')
+@app.route('/raw')
 def index():
     param = request.args.get('param', 'not set')
     result = db.engine.execute(param)
     print(User.query.all(), file=sys.stderr)
-    return 'Look console'
+    return 'Result is displayed in console.'
 
-@app.route('/value_injection')
-def value():
+@app.route('/filter')
+def filter():
     param = request.args.get('param', 'not set')
-    result = db.engine.execute('select * from User where username = "' + param + '";')
-    for row in result:
-        print(row, file=sys.stderr)
-    return 'Look console'
-
+    Session = sessionmaker(bind=db.engine)
+    session = Session()
+    result = session.query(User).filter("username={}".format(param))
+    for value in result:
+        print(value.username, value.email)
+    return 'Result is displayed in console.'
 
 if __name__ == '__main__':
     app.run(debug=True)
