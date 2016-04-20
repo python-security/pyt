@@ -7,16 +7,19 @@ from vulnerability_log import Vulnerability, VulnerabilityLog
 
 SourcesAndSinks = namedtuple('SourcesAndSinks', 'sources sinks')
 SinkOrSourceNode = namedtuple('SinkOrSourceNode', 'trigger_word cfg_node')
-default_trigger_word_file = os.path.join('pyt', 'trigger_definitions', 'flask_trigger_words.pyt')
+default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_definitions', 'flask_trigger_words.pyt')
 
 class Engine(object):
     """An engine that should be used as base class to specify how to find all sources and sinks."""
 
     def __init__(self, cfg_list, trigger_word_file=default_trigger_word_file):
         self.trigger_word_file = trigger_word_file
+        
+        if self.trigger_word_file != default_trigger_word_file:
+            self.trigger_word_file = os.path.join(os.getcwd(), self.trigger_word_file)            
         self.cfg_list = cfg_list
         self.sources = list()
-        self.sanitizers = list()
+        self.sanitisers = list()
         self.sinks = list()
         self.sources_in_file = None
         self.sinks_in_file = None
@@ -25,21 +28,28 @@ class Engine(object):
     def run(self):
         raise NotImplementedError('Should be implemented.')
 
-    def parse_sources_and_sinks(self):
-        file_data = ''
-        path = os.path.join(os.getcwd(), self.trigger_word_file)
-        with open(path, 'r') as fd:
-            is_source = None
-            for line in fd:
-                if 'sources:' in line:
-                    is_source = True
-                elif 'sinks:' in line:
-                    is_source = False
-                elif is_source:
-                    self.sources.append(line.rstrip())
-                elif not is_source:
-                    self.sinks.append(line.rstrip())
 
+    def parse_section(self, iterator):
+        try:
+            line = next(iterator).rstrip()
+            while line:
+                if line.rstrip():
+                    yield line
+                line = next(iterator).rstrip()
+        except StopIteration:
+            return
+    
+    def parse_sources_and_sinks(self):
+        with open(self.trigger_word_file, 'r') as fd:
+            for line in fd:
+                line = line.rstrip()
+                if line == 'sources:':
+                    self.sources = list(self.parse_section(fd))
+                elif line == 'sinks:':
+                    self.sinks = list(self.parse_section(fd))
+                elif line == 'sanitisers:':
+                    self.sanitisers = list(self.parse_section(fd))
+            
     def label_contains(self, node, trigger_word_list):
         for trigger_word in trigger_word_list:
             if trigger_word in node.label:
