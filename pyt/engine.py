@@ -5,8 +5,8 @@ from cfg import CFG, generate_ast, Node
 from vulnerability_log import Vulnerability, VulnerabilityLog
 
 
-SourcesAndSinks = namedtuple('SourcesAndSinks', 'sources sinks')
-SinkOrSourceNode = namedtuple('SinkOrSourceNode', 'trigger_word cfg_node')
+Triggers = namedtuple('Triggers', 'sources sinks sanitisers')
+TriggerNode = namedtuple('TriggerNode', 'trigger_word cfg_node')
 default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_definitions', 'flask_trigger_words.pyt')
 
 class Engine(object):
@@ -23,6 +23,7 @@ class Engine(object):
         self.sinks = list()
         self.sources_in_file = None
         self.sinks_in_file = None
+        self.sanitisers_in_file = None
         self.run()
 
     def run(self):
@@ -53,33 +54,30 @@ class Engine(object):
     def label_contains(self, node, trigger_word_list):
         for trigger_word in trigger_word_list:
             if trigger_word in node.label:
-                yield SinkOrSourceNode(trigger_word, node)
+                yield TriggerNode(trigger_word, node)
             
-    def find_sources(self, cfg):
+    def find_triggers(self, cfg, trigger_word_list):
         l = list()
         for node in cfg.nodes:
-            l.extend(iter(self.label_contains(node, self.sources)))
-        return l
-            
-    def find_sinks(self, cfg):
-        l = list()
-        for node in cfg.nodes:
-            l.extend(iter(self.label_contains(node, self.sinks)))
+            l.extend(iter(self.label_contains(node, trigger_word_list)))
         return l
 
-    def identify_sources_and_sinks(self, cfg):
-        sources_in_file = self.find_sources(cfg)
-        sinks_in_file = self.find_sinks(cfg)
-        return SourcesAndSinks(sources_in_file, sinks_in_file)
+    def identify_triggers(self, cfg):
+        sources_in_file = self.find_triggers(cfg, self.sources)
+        sinks_in_file = self.find_triggers(cfg, self.sinks)
+        sanitisers_in_file = self.find_triggers(cfg, self.sanitisers)
+        
+        return Triggers(sources_in_file, sinks_in_file, sanitisers_in_file)
 
     def find_vulnerabilities(self):
         self.parse_sources_and_sinks()
         vulnerability_log = VulnerabilityLog()
         for cfg in self.cfg_list:
-            sources_and_sinks = self.identify_sources_and_sinks(cfg)
+            sources_and_sinks = self.identify_triggers(cfg)
             for sink in sources_and_sinks.sinks:
                 for source in sources_and_sinks.sources:
                     if source.cfg_node in sink.cfg_node.new_constraint:
-                        vulnerability_log.append(Vulnerability(source.cfg_node, source.trigger_word, sink.cfg_node, sink.trigger_word))
+                        if not any(sanitiser in sink.cfg_node.new_constraint for sanitiser in sources_and_sinks.sanitisers):
+                            vulnerability_log.append(Vulnerability(source.cfg_node, source.trigger_word, sink.cfg_node, sink.trigger_word))
         return vulnerability_log
    
