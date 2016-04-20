@@ -1,1 +1,1 @@
-sinks:inputsanitisers:sanitisejapansources:evalhorsevalmue
+sources:inputsinks:eval -> sanitisehorse -> japan, host, kostvalmue

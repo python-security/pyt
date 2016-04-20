@@ -16,6 +16,9 @@ class EngineTest(BaseTestCase):
         
         test_engine.parse_sources_and_sinks()
 
-        self.assert_length(test_engine.sources, expected_length=3)
-        self.assert_length(test_engine.sinks, expected_length=1)
-        self.assert_length(test_engine.sanitisers, expected_length=2)
+        self.assert_length(test_engine.sources, expected_length=1)
+        self.assert_length(test_engine.sinks, expected_length=3)
+        self.assert_length(test_engine.sinks[0][1], expected_length=1)
+        self.assert_length(test_engine.sinks[1][1], expected_length=3)
+
+

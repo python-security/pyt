@@ -1,10 +1,6 @@
 sources:
-input
 get
 
 sinks:
-eval
-replace
-
-sanitizers:
-escape
+replace -> escape
+send_file -> '..' in
