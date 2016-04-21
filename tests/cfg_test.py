@@ -534,20 +534,75 @@ class CFGAssignmentMultiTest(BaseTestCase):
 
     def test_assign_list_comprehension(self):
         self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/list_comprehension.py')
+        tree = generate_ast('../example/example_inputs/generator_expression_assign.py')
         self.cfg.create(tree)
 
         length = 3
         self.assert_length(self.cfg.nodes, expected_length = length)
 
         call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "x = ''.join(x.n for x in range(16))")
+        self.assertEqual(call.label, "x = ''.join((x.n for x in range(16)))")
 
         l = zip(range(1, length), range(length))
 
         self.assertInCfg(list(l))
 
+
+class CFGComprehensionTest(BaseTestCase):
+    def test_nodes(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        self.assert_length(self.cfg.nodes, expected_length=8)
+
+    def test_list_comprehension(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        listcomp = self.cfg.nodes[1]
+
+        self.assertEqual(listcomp.label, 'l = [x for x in [1, 2, 3]]')
+
+    def test_list_comprehension_multi(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        listcomp = self.cfg.nodes[2]
+
+        self.assertEqual(listcomp.label, 'll = [(x, y) for x in [1, 2, 3] for y in [4, 5, 6]]')
         
+    def test_dict_comprehension(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        dictcomp = self.cfg.nodes[3]
+
+        self.assertEqual(dictcomp.label, 'd = {i : x for (i, x) in enumerate([1, 2, 3])}')
+
+    def test_set_comprehension(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        setcomp = self.cfg.nodes[4]
+
+        self.assertEqual(setcomp.label, 's = {x for x in [1, 2, 3, 2, 2, 1, 2]}')
+
+    def test_generator_expression(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        listcomp = self.cfg.nodes[5]
+
+        self.assertEqual(listcomp.label, 'g = (x for x in [1, 2, 3])')
+
+    def test_dict_comprehension_multi(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/comprehensions.py')
+        self.cfg.create(tree)
+        listcomp = self.cfg.nodes[6]
+
+        self.assertEqual(listcomp.label, 'dd = {x + y : y for x in [1, 2, 3] for y in [4, 5, 6]}')
+    
 class CFGFunctionNodeTest(BaseTestCase):
     def connected(self, node, successor):
         return (successor, node)

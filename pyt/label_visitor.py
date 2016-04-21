@@ -69,17 +69,46 @@ class LabelVisitor(NodeVisitor):
         
         self.visit(node.right)
 
-    def visit_GeneratorExp(self, node):
+    
+    def comprehensions(self, node):
         self.visit(node.elt)
 
-        self.result += ' for '
-
-        self.visit(node.generators[0].target)
-
-        self.result += ' in '
+        for expression in node.generators:
+            self.result += ' for '
+            self.visit(expression.target)
+            self.result += ' in '
+            self.visit(expression.iter)
         
-        self.visit(node.generators[0].iter)
+    def visit_GeneratorExp(self, node):
+        self.result += '('
+        self.comprehensions(node)
+        self.result += ')'
         
+    def visit_ListComp(self, node):
+        self.result += '['
+        self.comprehensions(node)
+        self.result += ']'
+
+    def visit_SetComp(self, node):
+        self.result += '{'
+        self.comprehensions(node)
+        self.result += '}'
+
+
+    def visit_DictComp(self, node):
+        self.result += '{'
+        
+        self.visit(node.key)
+        self.result += ' : '
+        self.visit(node.value)
+        
+        for expression in node.generators:
+            self.result += ' for '
+            self.visit(expression.target)
+            self.result += ' in '
+            self.visit(expression.iter)
+            
+        self.result += '}'
     def visit_Attribute(self, node):
         self.visit(node.value)
         self.result += '.'
