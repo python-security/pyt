@@ -1,7 +1,7 @@
 """Module implements liveness analysis."""
 from cfg import AssignmentNode
 from copy import deepcopy
-from ast import NodeVisitor
+from ast import NodeVisitor, Compare, Call
 
 from analysis_base import AnalysisBase
 
@@ -23,7 +23,7 @@ class LivenessAnalysis(AnalysisBase):
     def fixpointmethod(self, cfg_node):
         """Setting the constraints of the given cfg node obeying the liveness analysis rules."""
         # if for Condition and call case: Join(v) u vars(E).
-        if cfg_node.ast_type == ast.Compare.__name__ or cfg_node.ast_type == ast.Call.__name__:
+        if cfg_node.ast_type == Compare.__name__ or cfg_node.ast_type == Call.__name__:
             JOIN = self.join(cfg_node)            
             JOIN.update(self.annotated_cfg_nodes[cfg_node])  # set union
             
