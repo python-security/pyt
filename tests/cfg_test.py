@@ -464,17 +464,35 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.cfg.create(tree)
         
         self.assert_length(self.cfg.nodes, expected_length=4)
+        start_node = 0
+        node = 1
+        node_2 = 2
+        exit_node =3
+
+        self.assertInCfg([(node, start_node), (node_2, node), (exit_node, node_2)])
+
+        self.assertEqual(self.cfg.nodes[node].label, 'x = 1')
+        self.assertEqual(self.cfg.nodes[node_2].label, 'y = 2')
+
+        self.assertEqual(self.cfg.nodes[start_node].ast_type, 'ENTRY')
+        self.assertEqual(self.cfg.nodes[exit_node].ast_type, 'EXIT')
+
+    def test_assignment_multi_target_call(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/assignment_multiple_assign_call.py')
+        self.cfg.create(tree)
+        
+        self.assert_length(self.cfg.nodes, expected_length=4)
         start_node = self.cfg.nodes[0]
         node = self.cfg.nodes[1]
         node_2 = self.cfg.nodes[2]
         exit_node = self.cfg.nodes[-1]
 
-        self.assertConnected(start_node, node)
-        self.assertConnected(node_2, exit_node)
-        self.assertConnected(node, node_2)
-
-        self.assertEqual(node.label, 'x = 1')
-        self.assertEqual(node_2.label, 'y = 2')
+        print(repr(self.cfg))
+        self.assertInCfg([(1,0),(2,1),(3,2)])
+        
+        self.assertEqual(node.label, 'x = int(5)')
+        self.assertEqual(node_2.label, 'y = int(4)')
 
         self.assertEqual(start_node.ast_type, 'ENTRY')
         self.assertEqual(exit_node.ast_type, 'EXIT')
