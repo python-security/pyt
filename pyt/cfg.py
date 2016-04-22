@@ -430,52 +430,65 @@ class CFG(ast.NodeVisitor):
 
         return left_hand_side
 
-    def visit_Assign(self, node):
-        if isinstance(node.targets[0], ast.Tuple):
-            for i, target in enumerate(node.targets[0].elts):
-                value = node.value.elts[i]
+    def assign_tuple_target(self, node):
+        new_assignment_nodes = list()
+        for i, target in enumerate(node.targets[0].elts):
+            value = node.value.elts[i]
+            
+            label = LabelVisitor()
+            label.visit(target)
+            
+            if isinstance(value, ast.Call):
+                new_ast_node = ast.Assign(target, value)
+                new_ast_node.lineno = node.lineno
+                
+                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
+                
+            else:
+                label.result += ' = '
+                label.visit(value)
+                
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), line_number = node.lineno)))
 
-                label = LabelVisitor()
-                label.visit(target)
 
-                if isinstance(value, ast.Call):
-                    return self.assignment_call_node(label.result, value, node.lineno)
-                else:
-                    label.result += ' = '
-                    label.visit(value)
+        self.connect_nodes(new_assignment_nodes)
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
 
-                previous_node = self.nodes[-1]
-                assignment_node = self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), line_number = node.lineno))
-                previous_node.connect(assignment_node)
-            return self.nodes[-1] # return the last added node
-
-        elif len(node.targets) > 1:
-            for target in node.targets:
+    def assign_multi_target(self, node):
+        new_assignment_nodes = list()
+        
+        for target in node.targets:
                 label = LabelVisitor()
                 label.visit(target)
                 left_hand_side = label.result
                 label.result += ' = '
                 label.visit(node.value)
                 
-                self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), line_number = node.lineno))
-            return self.nodes[-1]
-        
-        else:
-            if isinstance(node.value, ast.Call):
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), line_number = node.lineno)))
+
+        self.connect_nodes(new_assignment_nodes)
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+    
+    def visit_Assign(self, node): 
+        if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
+            return self.assign_tuple_target(node)
+        elif len(node.targets) > 1:                #  x = y = 3
+            return self.assign_multi_target(node)        
+        else:                                      
+            if isinstance(node.value, ast.Call):   #  x = call()
                 label = LabelVisitor()
                 label.visit(node.targets[0])
                 return self.assignment_call_node(label.result, node)
-            else:
+            else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
 
                 return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, line_number = node.lineno))
-        # self.assignments[n.left_hand_side] = n # Use for optimizing saving scope in call
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
-        
+
         call = self.visit(ast_node.value)
         
         call_label = ''
