@@ -44,15 +44,14 @@ class CFGGeneralTest(BaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=3)
         
-        start_node = self.cfg.nodes[0]
-        node = self.cfg.nodes[1]
-        exit_node = self.cfg.nodes[-1]
+        start_node = 0
+        node = 1
+        exit_node = 2
 
-        self.assertConnected(start_node, node)
-        self.assertConnected(node, exit_node)
-
-        self.assertEqual(start_node.ast_type, 'ENTRY')
-        self.assertEqual(exit_node.ast_type, 'EXIT')
+        self.assertInCfg([(1,0),(2,1)])
+        
+        self.assertEqual(self.cfg.nodes[start_node].ast_type, 'ENTRY')
+        self.assertEqual(self.cfg.nodes[exit_node].ast_type, 'EXIT')
 
     def test_start_and_exit_nodes_line_numbers(self):
         self.cfg = CFG()
@@ -82,27 +81,24 @@ class CFGForTest(BaseTestCase):
         
         self.cfg.create(tree)
         self.assert_length(self.cfg.nodes, expected_length=8)
-        
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-        for_node = self.nodes['for x in range(3):']
-        body_1 = self.nodes['print(x)']
-        body_2 = self.nodes['y += 1']
-        else_body_1 = self.nodes["print('Final: %s' % x)"]
-        else_body_2 = self.nodes['print(y)']
-        next_node = self.nodes['x = 3']
 
-    
+        entry = 0
+        for_node = 1
+        body_1 = 2
+        body_2 = 3
+        else_body_1 = 4
+        else_body_2 = 5
+        next_node = 6
+        exit_node = 7
 
-        self.assertConnected(else_body_2, next_node)
-        self.assertConnected(else_body_1, else_body_2)
-        self.assertConnected(for_node, else_body_1)
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(for_node, body_1)
-        self.assertConnected(body_2, for_node)
+        self.assertEqual(self.cfg.nodes[for_node].label,'for x in range(3):')
+        self.assertEqual(self.cfg.nodes[body_1].label, 'print(x)')
+        self.assertEqual(self.cfg.nodes[body_2].label, 'y += 1')
+        self.assertEqual(self.cfg.nodes[else_body_1].label, "print('Final: %s' % x)")
+        self.assertEqual(self.cfg.nodes[else_body_2].label, 'print(y)')
+        self.assertEqual(self.cfg.nodes[next_node].label, 'x = 3')
 
-        #NOT IN
-        self.assertNotConnected(body_2, else_body_1)
-        self.assertNotConnected(body_2, next_node)
+        self.assertInCfg([(for_node, entry), (body_1, for_node), (else_body_1, for_node), (body_2, body_1), (for_node, body_2), (else_body_2, else_body_1), (next_node, else_body_2), (exit_node, next_node)])
 
     def test_for_no_orelse(self):
         self.cfg = CFG()
@@ -113,19 +109,15 @@ class CFGForTest(BaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=6)
 
-        for_node = self.nodes['for x in range(3):']
-        body_1 = self.nodes['print(x)']
-        body_2 = self.nodes['y += 1']
-        next_node = self.nodes['x = 3']
+        entry = 0
+        for_node = 1
+        body_1 = 2
+        body_2 = 3
+        next_node = 4
+        exit_node = 5
 
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(for_node, body_1)
-        self.assertConnected(for_node, next_node)
-        self.assertConnected(body_2, for_node)
-
-        # NOT IN
-        self.assertNotConnected(body_2, next_node)
-
+        self.assertInCfg([(for_node, entry), (body_1, for_node), (body_2, body_1), (for_node, body_2), (next_node, for_node), (exit_node, next_node)])
+        
     def test_for_tuple_target(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/for_tuple_target.py')
@@ -168,7 +160,6 @@ class CFGForTest(BaseTestCase):
         tree = generate_ast('../example/example_inputs/for_func_iterator.py')
 
         self.cfg.create(tree)
-        print(repr(self.cfg))
         
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -183,33 +174,9 @@ class CFGForTest(BaseTestCase):
         
         self.assertInCfg([(_for, entry), (_for, call_foo), (_for, _print), (entry_foo, _for), (ret_foo, entry_foo), (exit_foo, ret_foo), (call_foo, exit_foo), (_print, _for), (_exit, _for)])
 
-
         
 class CFGIfTest(BaseTestCase):    
-    def test_if_first_if(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/if_complete.py')
-        
-        self.cfg.create(tree)
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
-        self.assert_length(self.cfg.nodes, expected_length=9)
-        test = self.nodes['if x > 0:']
-        eliftest = self.nodes['elif x == 0:']
-        body_1 = self.nodes['x += 1']
-        body_2 = self.nodes['x += 2']
-        next_stmt = self.nodes['x += 5']
-
-
-        self.assertConnected(test, eliftest)
-        self.assertConnected(test, body_1)
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(body_2, next_stmt)
-
-        self.assertNotConnected(body_2, eliftest)
-        self.assertNotConnected(body_1, eliftest)
-        
-    def test_if_elif(self):
+    def test_if_complete(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/if_complete.py')
         
@@ -218,16 +185,26 @@ class CFGIfTest(BaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=9)
 
-        test = self.nodes['elif x == 0:']
-        eliftest = self.nodes['x += 4'] # in this cas the elif is just a statement
-        body_1 = self.nodes['x += 3']
-        next_stmt = self.nodes['x += 5']
+        entry = 0
+        test = 1
+        body_1 = 2
+        body_2 = 3
+        eliftest = 4
+        elif_body = 5
+        else_body = 6
+        next_node = 7
+        exit_node = 8
 
-        self.assertConnected(test, eliftest)
-        self.assertConnected(test, body_1)
-        self.assertConnected(body_1, next_stmt)
-        self.assertConnected(eliftest, next_stmt)
+        self.assertEqual(self.cfg.nodes[test].label, 'if x > 0:')
+        self.assertEqual(self.cfg.nodes[eliftest].label, 'elif x == 0:')
+        self.assertEqual(self.cfg.nodes[elif_body].label, 'x += 3')
+        self.assertEqual(self.cfg.nodes[body_1].label, 'x += 1')
+        self.assertEqual(self.cfg.nodes[body_2].label, 'x += 2')
+        self.assertEqual(self.cfg.nodes[else_body].label, 'x += 4')
+        self.assertEqual(self.cfg.nodes[next_node].label, 'x += 5')
 
+
+        self.assertInCfg([(test, entry), (eliftest, test), (body_1, test), (body_2, body_1), (next_node, body_2), (else_body, eliftest), (elif_body, eliftest), (next_node, elif_body), (next_node, else_body), (exit_node, next_node)]) 
         
     def test_single_if(self):
         self.cfg = CFG()
@@ -382,58 +359,37 @@ class CFGWhileTest(BaseTestCase):
         tree = generate_ast('../example/example_inputs/while_complete.py')
         
         self.cfg.create(tree)
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=8)
-        
-        test = self.nodes['while x > 0:']
-        body_1 = self.nodes['x += 1']
-        body_2 = self.nodes['x += 2']
-        else_body_1 = self.nodes['x += 3']
-        else_body_2 = self.nodes['x += 4']
-        next_stmt = self.nodes['x += 5']
-        
-        self.assertConnected(test, body_1)
-        self.assertConnected(test, else_body_1)
-        
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(body_2, test)
 
-        self.assertConnected(else_body_1, else_body_2)
-        self.assertConnected(else_body_2, next_stmt)
+        entry = 0
+        test = 1
+        body_1 = 2
+        body_2 = 3
+        else_body_1 = 4
+        else_body_2 = 5
+        next_node = 6
+        exit_node = 7
 
-        #NOT IN
-        self.assertNotConnected(body_2, else_body_1)
-        self.assertNotConnected(test, next_stmt)
-        self.assertNotConnected(body_1, next_stmt)
-        self.assertNotConnected(else_body_1, next_stmt)
-        self.assertNotConnected(body_2, next_stmt)
+        self.assertEqual(self.cfg.nodes[test].label, 'while x > 0:')
 
+        self.assertInCfg([(test, entry), (body_1, test), (else_body_1, test), ( body_2, body_1), (test, body_2), (else_body_2, else_body_1), (next_node, else_body_2), (exit_node, next_node)])
+        
     def test_while_no_orelse(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/while_no_orelse.py')
         self.cfg.create(tree)
         
-        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=6)
 
-        test = self.nodes['while x > 0:']
-        body_1 = self.nodes['x += 1']
-        body_2 = self.nodes['x += 2']
-        next_stmt = self.nodes['x += 5']
+        entry = 0
+        test = 1
+        body_1 = 2
+        body_2 = 3
+        next_node = 4
+        exit_node = 5
         
-        self.assertConnected(test, body_1)
-        self.assertConnected(test, next_stmt)
+        self.assertInCfg([(test, entry), (body_1, test), ( next_node, test), (body_2, body_1), (test, body_2), (exit_node, next_node)])
         
-        self.assertConnected(body_1, body_2)
-        self.assertConnected(body_2, test)
-
-        #NOT IN
-        self.assertNotConnected(body_1, next_stmt)
-        self.assertNotConnected(body_1, test)
-        self.assertNotConnected(test, body_2)
-        self.assertNotConnected(body_2, body_1)
-        self.assertNotConnected(body_2, next_stmt)
-
     def test_while_line_numbers(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/while_complete.py')
@@ -488,7 +444,6 @@ class CFGAssignmentMultiTest(BaseTestCase):
         node_2 = self.cfg.nodes[2]
         exit_node = self.cfg.nodes[-1]
 
-        print(repr(self.cfg))
         self.assertInCfg([(1,0),(2,1),(3,2)])
         
         self.assertEqual(node.label, 'x = int(5)')
@@ -515,15 +470,13 @@ class CFGAssignmentMultiTest(BaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         
-        start_node = self.cfg.nodes[0]
-        assign = self.cfg.nodes[1]
-        builtin = self.cfg.nodes[2]
-        exit_node = self.cfg.nodes[-1]
+        entry = 0
+        assign = 1
+        builtin = 2
+        exit_node = 3
 
-        self.assertConnected(start_node, assign)
-        self.assertConnected(assign, builtin)
-        self.assertConnected(builtin, exit_node)
-
+        self.assertInCfg([(assign, entry), (builtin, assign), (exit_node, builtin)])
+        
     def test_assignment_and_builtin_line_numbers(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignmentandbuiltin.py')
