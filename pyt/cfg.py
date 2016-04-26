@@ -209,6 +209,18 @@ class Function(object):
         self.nodes = nodes
         self.arguments = Arguments(args)
         self.decorator_list = decorator_list
+
+    def __repr__(self):
+        output = ''
+        for x, n in enumerate(self.nodes):
+            output = ''.join((output, 'Node: ' + str(x) + ' ' + repr(n), '\n\n'))
+        return output
+
+    def __str__(self):
+        output = ''
+        for x, n in enumerate(self.nodes):
+            output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
+        return output
     
 
 class CFG(ast.NodeVisitor):
@@ -386,7 +398,11 @@ class CFG(ast.NodeVisitor):
         return [n for n in last_statements if isinstance(n, Node) and n.ast_type is not ast.Break.__name__]
 
     def visit_If(self, node):
-        test = self.visit(node.test)
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.test)
+
+        test = self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))
+        
         self.add_if_label(test)
         
         body_connect_stmts = self.stmt_star_handler(node.body)
@@ -538,7 +554,11 @@ class CFG(ast.NodeVisitor):
         node.label = 'while ' + node.label + ':' 
     
     def visit_While(self, node):
-        test = self.visit(node.test)
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.test)
+
+        test = self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))
+
         self.add_while_label(test)
         
         return self.loop_node_skeleton(test, node)
@@ -562,12 +582,6 @@ class CFG(ast.NodeVisitor):
             
         
         return self.loop_node_skeleton(for_node, node)
-
-    def visit_Compare(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
-        return self.append_node(Node(label.result, node.__class__.__name__, node, line_number = node.lineno))
 
     def visit_Expr(self, node):
         return self.visit(node.value)
@@ -697,6 +711,8 @@ class CFG(ast.NodeVisitor):
         return IgnoredNode()
 
     def visit_Break(self, node):
-        label_visitor = LabelVisitor()
-        label_visitor.visit(node)
-        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node(node.__class__.__name__, node.__class__.__name__, node, line_number = node.lineno))
+
+    def visit_Pass(self, node):
+        return self.append_node(Node(node.__class__.__name__, node.__class__.__name__, node, line_number = node.lineno))
+
