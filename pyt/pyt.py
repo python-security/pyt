@@ -43,9 +43,13 @@ if __name__ == '__main__':
         else:
             draw_cfg(cfg)
     if args.print:
-        print(cfg)
+        for i, e in enumerate(cfg_list):
+            print('############## CFG number: ', i)
+            print(e)
     if args.verbose_print:
-        print(repr(cfg))
+        for i, e in enumerate(cfg_list):
+            print('############## CFG number: ', i)
+            print(repr(e))
     
 
     
