@@ -69,6 +69,10 @@ class LabelVisitor(NodeVisitor):
         
         self.visit(node.right)
 
+    def visit_UnaryOp(self, node):
+        self.visit(node.op)
+        self.visit(node.operand)
+
     
     def comprehensions(self, node):
         self.visit(node.elt)
@@ -201,6 +205,19 @@ class LabelVisitor(NodeVisitor):
 
     def visit_NotIn(self,node):
         self.result +='not in'
+
+    #unaryop = Invert | Not | UAdd | USub
+    def visit_Invert(self, node):
+        self.result += '~'
+
+    def visit_Not(self, node):
+        self.result += 'not '
+
+    def visit_UAdd(self, node):
+        self.result += '+'
+
+    def visit_USub(self, node):
+        self.result += '-'
 
     def visit_Num(self, node):
         self.result += str(node.n)
