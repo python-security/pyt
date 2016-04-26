@@ -351,6 +351,23 @@ class CFGIfTest(BaseTestCase):
         self.assertLineNumber(else_body, 7)
         self.assertLineNumber(next_stmt, 8)
 
+    def test_if_not(self):
+        self.cfg = CFG()
+        tree = generate_ast('../example/example_inputs/if_not.py')
+        self.cfg.create(tree)
+
+        self.assert_length(self.cfg.nodes, expected_length=4)
+
+        entry = 0
+        _if = 1
+        body = 2
+        _exit = 3
+        
+        self.assertInCfg([(1, 0), (2, 1), (3, 2), (3, 1)])
+
+        print(repr(self.cfg))
+
+
 
 class CFGWhileTest(BaseTestCase):
 
