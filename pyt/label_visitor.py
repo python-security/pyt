@@ -70,6 +70,13 @@ class LabelVisitor(NodeVisitor):
         self.visit(node.op)
         self.visit(node.operand)
 
+    def visit_BoolOp(self, node):
+        for i, value in enumerate(node.values):
+            if i == len(node.values):
+                self.visit(value)
+            else:
+                self.visit(value)
+                self.visit(node.op)
     
     def comprehensions(self, node):
         self.visit(node.elt)
@@ -203,7 +210,7 @@ class LabelVisitor(NodeVisitor):
     def visit_NotIn(self,node):
         self.result +='not in'
 
-    #unaryop = Invert | Not | UAdd | USub
+    # unaryop = Invert | Not | UAdd | USub
     def visit_Invert(self, node):
         self.result += '~'
 
@@ -215,6 +222,12 @@ class LabelVisitor(NodeVisitor):
 
     def visit_USub(self, node):
         self.result += '-'
+
+    # boolop = And | Or
+    def visit_And(self, node):
+        self.result += ' and '
+    def visit_Or(self, node):
+        self.result += ' or '
 
     def visit_Num(self, node):
         self.result += str(node.n)
