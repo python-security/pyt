@@ -5,8 +5,9 @@ from cfg import CFG, generate_ast, Node
 from vulnerability_log import Vulnerability, VulnerabilityLog
 
 
-Triggers = namedtuple('Triggers', 'sources sinks sanitizer_dict')
+Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 TriggerNode = namedtuple('TriggerNode', 'trigger_word_tuple cfg_node')
+TriggerWordTuple = namedtuple('TriggerWordTuple', 'trigger_word sanitisers')
 default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_definitions', 'flask_trigger_words.pyt')
 
 SANITISER_SEPARATOR = '->'
@@ -40,7 +41,7 @@ class Engine(object):
                 if line.rstrip():
                     if SANITISER_SEPARATOR in line:
                         line = line.split(SANITISER_SEPARATOR)
-                        sink = line[0]
+                        sink = line[0].rstrip()
                         sanitisers = list(map(str.strip, line[1].split(',')))
                         yield (sink, sanitisers)
                     else:
@@ -72,33 +73,40 @@ class Engine(object):
             l.extend(iter(self.label_contains(node, trigger_word_list)))
         return l
       
-    def label_contains(self, node, trigger_word_list):
-        for trigger_word_tuple in trigger_word_list:
+    def label_contains(self, node, trigger_words):
+        for trigger_word_tuple in trigger_words:
             if trigger_word_tuple[0] in node.label:
-                yield TriggerNode(trigger_word_tuple, node)
-            
+                trigger_word = trigger_word_tuple[0]
+                sanitisers = trigger_word_tuple[1]
+                yield TriggerNode(TriggerWordTuple(trigger_word, sanitisers), node)
+
     def build_sanitiser_node_dict(self, cfg, sinks_in_file):
+        trigger_words = list()
+        for sink in sinks_in_file:
+            trigger_words.append(sink.trigger_word_tuple)
+
+        self.sanitisers_in_file = self.find_triggers(cfg, trigger_words)
+
         sanitisers = list()
         for sink in sinks_in_file:
-            sanitisers.extend(sink[1])
+            sanitisers.extend(sink.trigger_word_tuple.sanitisers)
 
-        sanitiser_in_file = self.find_triggers(cfg, sanitisers)
-            
         sanitiser_node_dict = dict()
         for sanitiser in sanitisers:
-            sanitiser_node_dict[sanitiser] = self.find_sanitiser_nodes(sanitiser, sanitisers_in_file)
+            sanitiser_node_dict[sanitiser] = self.find_sanitiser_nodes(sanitiser)
 
         return sanitiser_node_dict
 
-    def find_sanitiser_nodes(self, sanitiser, sanitisers_in_file):
-        for node in sanitisers_in_file:
-            if node.trigger_word_tuple[0] == sanitiser:
-                yield node.cfg_node
+    def find_sanitiser_nodes(self, sanitiser):
+        for trigger in self.sanitisers_in_file:
+            print(trigger.trigger_word_tuple)
+            if trigger.trigger_word_tuple.trigger_word == sanitiser:
+                yield trigger.cfg_node
 
     def is_unsanitized(self, source, sink, sanitiser_dict):
-        for sanitiser in sink.trigger_word_tuple[1]:
+        for sanitiser in sink.trigger_word_tuple.sanitisers:
             cfg_node = sanitiser_dict[sanitiser]
-            if not cfg_node in sink.new_constraint:
+            if not cfg_node in sink.cfg_node.new_constraint:
                 return True
         return False
               
@@ -112,7 +120,9 @@ class Engine(object):
                 for source in triggers.sources:
                     if source.cfg_node in sink.cfg_node.new_constraint:
                         if self.is_unsanitized(source, sink, triggers.sanitiser_dict):
-                           vulnerability_log.append(Vulnerability(source.cfg_node, source.trigger_word, sink.cfg_node, sink.trigger_word))
+                            source_trigger_word = source.trigger_word_tuple.trigger_word
+                            sink_trigger_word = sink.trigger_word_tuple.trigger_word
+                            vulnerability_log.append(Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word))
 
         return vulnerability_log
    
