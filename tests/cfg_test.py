@@ -365,9 +365,6 @@ class CFGIfTest(BaseTestCase):
         
         self.assertInCfg([(1, 0), (2, 1), (3, 2), (3, 1)])
 
-        print(repr(self.cfg))
-
-
 
 class CFGWhileTest(BaseTestCase):
 
