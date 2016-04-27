@@ -50,7 +50,7 @@ class Engine(object):
         except StopIteration:
             return
         
-    def parse_sources_and_sinks(self):
+    def parse(self):
         with open(self.trigger_word_file, 'r') as fd:
             for line in fd:
                 line = line.rstrip()
@@ -111,7 +111,7 @@ class Engine(object):
         return False
               
     def find_vulnerabilities(self):
-        self.parse_sources_and_sinks()
+        self.parse()
         vulnerability_log = VulnerabilityLog()
         for cfg in self.cfg_list:
             triggers = self.identify_triggers(cfg)
