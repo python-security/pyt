@@ -1,4 +1,4 @@
-# pyT - Python Taint
+# PyT - Python Taint
 
 Static analysis of Python web applications based on theoretical foundations (Control flow graphs, fixed point, dataflow analysis)
 
