@@ -14,7 +14,7 @@ class EngineTest(BaseTestCase):
         test_engine = Engine([], trigger_word_file=os.path.join(os.getcwd().replace('tests','pyt'), 'trigger_definitions', 'test_triggers.pyt'))
         
         
-        test_engine.parse_sources_and_sinks()
+        test_engine.parse()
 
         self.assert_length(test_engine.sources, expected_length=1)
         self.assert_length(test_engine.sinks, expected_length=3)
