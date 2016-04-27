@@ -54,6 +54,8 @@ class Node(object):
 
     def connect(self, successor):
         """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
+        if self.ast_type == ast.Return().__class__.__name__ and not successor.ast_type == EXIT:
+            return
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -358,16 +360,22 @@ class CFG(ast.NodeVisitor):
         self.functions[node.name] = Function(function_CFG.nodes, node.args, node.decorator_list)
 
         entry_node = function_CFG.append_node(Node('Entry node: ' + node.name, ENTRY, None))
-        
         function_body_connect_statements = function_CFG.stmt_star_handler(node.body)
-
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = function_CFG.append_node(Node('Exit node: ' + node.name, EXIT,None))
-
+        exit_node = function_CFG.append_node(Node('Exit node: ' + node.name, EXIT, None))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
+        self.return_connection_handler(function_CFG, exit_node)
+
         return FunctionNode(node)
+
+    def return_connection_handler(self, function_CFG, exit_node):
+        """Connect all return statements to the Exit node."""
+        for function_body_node in function_CFG.nodes:
+            if function_body_node.ast_type == ast.Return().__class__.__name__:
+                if not exit_node in function_body_node.outgoing:
+                    function_body_node.connect(exit_node)                    
 
     def add_if_label(self, CFG_node):
         """Prepend 'if ' and append ':' to the label of a Node."""
