@@ -2,8 +2,10 @@ import os
 import sys
 
 sys.path.insert(1, os.path.abspath('../pyt'))
-from engine import Engine
+from engine import Engine, TriggerWordTuple, TriggerNode, Sanitiser
 from base_test_case import BaseTestCase
+from cfg import CFG, generate_ast, Node
+
 
 class EngineTest(BaseTestCase):
     def run_empty(self):
@@ -41,7 +43,6 @@ class EngineTest(BaseTestCase):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
-        from cfg import Node
         cfg_node = Node('label', None, None, line_number=None)
         trigger_words = [('get', [])]
         l = list(test_engine.label_contains(cfg_node, trigger_words))
@@ -68,7 +69,6 @@ class EngineTest(BaseTestCase):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
-        from cfg import CFG, generate_ast
         cfg = CFG()
         tree = generate_ast('../example/vulnerable_code/XSS.py')
         cfg.create(tree)
@@ -83,7 +83,6 @@ class EngineTest(BaseTestCase):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
-        from engine import Sanitiser, Node
         cfg_node = Node(None, None, None, line_number=None)
         sanitiser_tuple  = Sanitiser('escape', cfg_node)
         sanitiser = 'escape'
@@ -97,8 +96,6 @@ class EngineTest(BaseTestCase):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
-        from cfg import CFG, generate_ast, Node
-        from engine import TriggerWordTuple, TriggerNode
         cfg = CFG()
         tree = generate_ast('../example/vulnerable_code/XSS_sanitised.py')
         cfg.create(tree)
