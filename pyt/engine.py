@@ -106,17 +106,23 @@ class Engine(object):
                     return True
         return False
 
+    def get_vulnerability(self, source, sink, triggers):
+        if source.cfg_node in sink.cfg_node.new_constraint:
+            if not self.is_sanitized(sink, triggers.sanitiser_dict):
+                source_trigger_word = source.trigger_word_tuple.trigger_word
+                sink_trigger_word = sink.trigger_word_tuple.trigger_word
+                return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word)
+        return None
+
     def find_vulnerabilities(self):
         self.parse()
         vulnerability_log = VulnerabilityLog()
         for cfg in self.cfg_list:
-            triggers = self.identify_triggers(cfg)            
+            triggers = self.identify_triggers(cfg)
             for sink in triggers.sinks:
                 for source in triggers.sources:
-                    if source.cfg_node in sink.cfg_node.new_constraint:
-                        if not self.is_sanitized(sink, triggers.sanitiser_dict):
-                            source_trigger_word = source.trigger_word_tuple.trigger_word
-                            sink_trigger_word = sink.trigger_word_tuple.trigger_word
-                            vulnerability_log.append(Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word))
+                   vulnerability = self.get_vulnerability(source, sink, triggers)
+                   if vulnerability:
+                       vulnerability_log.append(vulnerability)
         return vulnerability_log
    
