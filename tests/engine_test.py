@@ -93,3 +93,21 @@ class EngineTest(BaseTestCase):
         self.assertEqual(result[0], cfg_node)
         
         
+    def test_build_sanitiser_node_dict(self):
+        Engine.run = self.run_empty
+        test_engine = Engine(None)
+
+        from cfg import CFG, generate_ast, Node
+        from engine import TriggerWordTuple, TriggerNode
+        cfg = CFG()
+        tree = generate_ast('../example/vulnerable_code/XSS_sanitised.py')
+        cfg.create(tree)
+        cfg = cfg.functions['XSS1']
+        cfg_node = Node(None, None, None, line_number=None)
+        sinks_in_file = [TriggerNode(TriggerWordTuple('replace', ['escape']), cfg_node)]
+
+        sanitiser_dict = test_engine.build_sanitiser_node_dict(cfg, sinks_in_file)
+        self.assert_length(sanitiser_dict, expected_length=1)
+        self.assertIn('escape', sanitiser_dict.keys())
+        self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
+
