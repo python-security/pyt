@@ -8,6 +8,8 @@ from vulnerability_log import Vulnerability, VulnerabilityLog
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 TriggerNode = namedtuple('TriggerNode', 'trigger_word_tuple cfg_node')
 TriggerWordTuple = namedtuple('TriggerWordTuple', 'trigger_word sanitisers')
+Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
+
 default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_definitions', 'flask_trigger_words.pyt')
 
 SANITISER_SEPARATOR = '->'
@@ -26,9 +28,6 @@ class Engine(object):
         self.sources = list()
         self.sanitisers = list()
         self.sinks = list()
-        self.sources_in_file = None
-        self.sinks_in_file = None
-        self.sanitisers_in_file = None
         self.run()
 
     def run(self):
@@ -81,35 +80,32 @@ class Engine(object):
                 yield TriggerNode(TriggerWordTuple(trigger_word, sanitisers), node)
 
     def build_sanitiser_node_dict(self, cfg, sinks_in_file):
-        trigger_words = list()
         for sink in sinks_in_file:
-            trigger_words.append(sink.trigger_word_tuple)
+            self.sanitisers.extend(sink.trigger_word_tuple.sanitisers)
 
-        self.sanitisers_in_file = self.find_triggers(cfg, trigger_words)
-
-        sanitisers = list()
-        for sink in sinks_in_file:
-            sanitisers.extend(sink.trigger_word_tuple.sanitisers)
+        sanitisers_in_file = list()
+        for sanitiser in self.sanitisers:
+            for cfg_node in cfg.nodes:
+                if sanitiser in cfg_node.label:
+                    sanitisers_in_file.append(Sanitiser(sanitiser, cfg_node))
 
         sanitiser_node_dict = dict()
-        for sanitiser in sanitisers:
-            sanitiser_node_dict[sanitiser] = self.find_sanitiser_nodes(sanitiser)
-
+        for sanitiser in self.sanitisers:
+            sanitiser_node_dict[sanitiser] = list(self.find_sanitiser_nodes(sanitiser, sanitisers_in_file))
         return sanitiser_node_dict
 
-    def find_sanitiser_nodes(self, sanitiser):
-        for trigger in self.sanitisers_in_file:
-            print(trigger.trigger_word_tuple)
-            if trigger.trigger_word_tuple.trigger_word == sanitiser:
-                yield trigger.cfg_node
+    def find_sanitiser_nodes(self, sanitiser, sanitisers_in_file):
+        for sanitiser_tuple  in sanitisers_in_file:
+            if sanitiser == sanitiser_tuple.trigger_word:
+                yield sanitiser_tuple.cfg_node
 
     def is_unsanitized(self, source, sink, sanitiser_dict):
         for sanitiser in sink.trigger_word_tuple.sanitisers:
-            cfg_node = sanitiser_dict[sanitiser]
-            if not cfg_node in sink.cfg_node.new_constraint:
-                return True
+            for cfg_node in sanitiser_dict[sanitiser]:
+                if not cfg_node in sink.cfg_node.new_constraint:
+                    return True
         return False
-              
+
     def find_vulnerabilities(self):
         self.parse()
         vulnerability_log = VulnerabilityLog()
