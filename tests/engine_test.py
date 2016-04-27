@@ -108,7 +108,7 @@ class EngineTest(BaseTestCase):
         self.assertIn('escape', sanitiser_dict.keys())
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
 
-    def test_is_unsanitized_true(self):
+    def test_is_sanitized_false(self):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
@@ -117,10 +117,10 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [TriggerNode(TriggerWordTuple('replace', ['escape']), cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        result = test_engine.is_unsanitized(sinks_in_file[0], sanitiser_dict)
-        self.assertEqual(result, True)
+        result = test_engine.is_sanitized(sinks_in_file[0], sanitiser_dict)
+        self.assertEqual(result, False)
 
-    def test_is_unsanitized_false(self):
+    def test_is_sanitized_true(self):
         Engine.run = self.run_empty
         test_engine = Engine(None)
 
@@ -130,5 +130,5 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [TriggerNode(TriggerWordTuple('replace', ['escape']), cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        result = test_engine.is_unsanitized(sinks_in_file[0], sanitiser_dict)
-        self.assertEqual(result, False)
+        result = test_engine.is_sanitized(sinks_in_file[0], sanitiser_dict)
+        self.assertEqual(result, True)
