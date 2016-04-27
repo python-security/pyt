@@ -108,3 +108,27 @@ class EngineTest(BaseTestCase):
         self.assertIn('escape', sanitiser_dict.keys())
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
 
+    def test_is_unsanitized_true(self):
+        Engine.run = self.run_empty
+        test_engine = Engine(None)
+
+        cfg_node_1 = Node('Not sanitising at all', None, None, line_number=None)
+        cfg_node_2 = Node('something.replace("this", "with this")', None, None, line_number=None)
+        sinks_in_file = [TriggerNode(TriggerWordTuple('replace', ['escape']), cfg_node_2)]
+        sanitiser_dict = {'escape': [cfg_node_1]}
+
+        result = test_engine.is_unsanitized(sinks_in_file[0], sanitiser_dict)
+        self.assertEqual(result, True)
+
+    def test_is_unsanitized_false(self):
+        Engine.run = self.run_empty
+        test_engine = Engine(None)
+
+        cfg_node_1 = Node('Awesome sanitiser', None, None, line_number=None)
+        cfg_node_2 = Node('something.replace("this", "with this")', None, None, line_number=None)
+        cfg_node_2.new_constraint.add(cfg_node_1)
+        sinks_in_file = [TriggerNode(TriggerWordTuple('replace', ['escape']), cfg_node_2)]
+        sanitiser_dict = {'escape': [cfg_node_1]}
+
+        result = test_engine.is_unsanitized(sinks_in_file[0], sanitiser_dict)
+        self.assertEqual(result, False)
