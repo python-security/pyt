@@ -78,3 +78,18 @@ class EngineTest(BaseTestCase):
         l = test_engine.find_triggers(cfg.functions['XSS1'], trigger_words)
         self.assert_length(l, expected_length=1)
         
+
+    def test_find_sanitiser_nodes(self):
+        Engine.run = self.run_empty
+        test_engine = Engine(None)
+
+        from engine import Sanitiser, Node
+        cfg_node = Node(None, None, None, line_number=None)
+        sanitiser_tuple  = Sanitiser('escape', cfg_node)
+        sanitiser = 'escape'
+
+        result = list(test_engine.find_sanitiser_nodes(sanitiser, [sanitiser_tuple]))
+        self.assert_length(result, expected_length=1)
+        self.assertEqual(result[0], cfg_node)
+        
+        
