@@ -99,7 +99,7 @@ class Engine(object):
             if sanitiser == sanitiser_tuple.trigger_word:
                 yield sanitiser_tuple.cfg_node
 
-    def is_unsanitized(self, source, sink, sanitiser_dict):
+    def is_unsanitized(self, sink, sanitiser_dict):
         for sanitiser in sink.trigger_word_tuple.sanitisers:
             for cfg_node in sanitiser_dict[sanitiser]:
                 if not cfg_node in sink.cfg_node.new_constraint:
@@ -115,7 +115,7 @@ class Engine(object):
             for sink in triggers.sinks:
                 for source in triggers.sources:
                     if source.cfg_node in sink.cfg_node.new_constraint:
-                        if self.is_unsanitized(source, sink, triggers.sanitiser_dict):
+                        if self.is_unsanitized(sink, triggers.sanitiser_dict):
                             source_trigger_word = source.trigger_word_tuple.trigger_word
                             sink_trigger_word = sink.trigger_word_tuple.trigger_word
                             vulnerability_log.append(Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word))
