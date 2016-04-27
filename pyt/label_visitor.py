@@ -72,7 +72,7 @@ class LabelVisitor(NodeVisitor):
 
     def visit_BoolOp(self, node):
         for i, value in enumerate(node.values):
-            if i == len(node.values):
+            if i == len(node.values)-1:
                 self.visit(value)
             else:
                 self.visit(value)
