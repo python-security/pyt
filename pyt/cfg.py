@@ -428,9 +428,9 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function = list(self.functions.keys())[-1]
+        this_function_name = list(self.functions.keys())[-1]
                                 
-        return self.append_node(Node('ret_' + this_function + ' = ' + label.result, node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node('ret_' + this_function_name + ' = ' + label.result, node.__class__.__name__, node, line_number = node.lineno))
 
     def extract_left_hand_side(self, target):
         """Extract the left hand side varialbe from a target.
