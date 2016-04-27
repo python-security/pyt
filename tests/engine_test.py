@@ -5,6 +5,8 @@ sys.path.insert(1, os.path.abspath('../pyt'))
 from engine import Engine, TriggerWordTuple, TriggerNode, Sanitiser
 from base_test_case import BaseTestCase
 from cfg import CFG, generate_ast, Node
+from fixed_point import analyse
+from reaching_definitions import ReachingDefinitionsAnalysis
 
 
 class EngineTest(BaseTestCase):
@@ -132,3 +134,31 @@ class EngineTest(BaseTestCase):
 
         result = test_engine.is_sanitized(sinks_in_file[0], sanitiser_dict)
         self.assertEqual(result, True)
+
+    def test_find_vulnerabilities_sanitised(self):
+        Engine.run = self.run_empty
+
+        cfg = CFG()
+        tree = generate_ast('../example/vulnerable_code/XSS_sanitised.py')
+        cfg.create(tree)
+        cfg_list = [cfg, cfg.functions['XSS1']]
+
+        analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+
+        test_engine = Engine(cfg_list)
+        vulnerability_log = test_engine.find_vulnerabilities()
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
+        
+    def test_find_vulnerabilities_vulnerable(self):
+        Engine.run = self.run_empty
+
+        cfg = CFG()
+        tree = generate_ast('../example/vulnerable_code/XSS.py')
+        cfg.create(tree)
+        cfg_list = [cfg, cfg.functions['XSS1']]
+
+        analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+
+        test_engine = Engine(cfg_list)
+        vulnerability_log = test_engine.find_vulnerabilities()
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
