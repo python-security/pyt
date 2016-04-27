@@ -266,7 +266,9 @@ class CFG(ast.NodeVisitor):
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
         
         first_node = module_statements.first_statement
-        entry_node.connect(first_node)
+
+        if not CALL_IDENTIFIER in first_node.label:
+            entry_node.connect(first_node)
 
         exit_node = self.append_node(Node('Exit node', EXIT, None))
             
@@ -662,12 +664,14 @@ class CFG(ast.NodeVisitor):
 
     def return_handler(self, node, function_nodes, restore_nodes):
         """Handle the return from a function during a function call."""
+        call_node = None
         for n in function_nodes:
             if n.ast_type == ast.Return().__class__.__name__:
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
-                call_node = self.append_node(RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS))
-                previous_node.connect(call_node)
+                if not call_node:
+                    call_node = self.append_node(RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS))
+                    previous_node.connect(call_node)
                     
             else:
                 # lave rigtig kobling
