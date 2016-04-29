@@ -9,6 +9,7 @@ Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 TriggerNode = namedtuple('TriggerNode', 'trigger_word_tuple cfg_node')
 TriggerWordTuple = namedtuple('TriggerWordTuple', 'trigger_word sanitisers')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
+Definitions = namedtuple('Definitions', 'sources sinks')
 
 default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_definitions', 'flask_trigger_words.pyt')
 
@@ -32,7 +33,9 @@ def parse_section(iterator):
     except StopIteration:
         return
         
-def parse():
+def parse(trigger_word_file=default_trigger_word_file):
+    sources = list()
+    sinks = list()
     with open(trigger_word_file, 'r') as fd:
         for line in fd:
             line = line.rstrip()
@@ -40,8 +43,9 @@ def parse():
                 sources = list(parse_section(fd))
             elif line == SINKS_KEYWORD:
                 sinks = list(parse_section(fd))
+    return Definitions(sources, sinks)
         
-def identify_triggers(cfg):
+def identify_triggers(cfg, sources, sinks):
     sources_in_file = find_triggers(cfg, sources)
     sinks_in_file = find_triggers(cfg, sinks)
     
@@ -63,6 +67,7 @@ def label_contains(node, trigger_words):
             yield TriggerNode(TriggerWordTuple(trigger_word, sanitisers), node)
 
 def build_sanitiser_node_dict(cfg, sinks_in_file):
+    sanitisers = list()
     for sink in sinks_in_file:
         sanitisers.extend(sink.trigger_word_tuple.sanitisers)
 
@@ -97,11 +102,11 @@ def get_vulnerability(source, sink, triggers):
             return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word)
     return None
 
-def find_vulnerabilities():
-    parse()
+def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
+    definitions = parse(trigger_word_file)
     vulnerability_log = VulnerabilityLog()
     for cfg in cfg_list:
-        triggers = identify_triggers(cfg)
+        triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
         for sink in triggers.sinks:
             for source in triggers.sources:
                 vulnerability = get_vulnerability(source, sink, triggers)
