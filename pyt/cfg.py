@@ -723,8 +723,8 @@ class CFG(ast.NodeVisitor):
         return IgnoredNode()
 
     def visit_Break(self, node):
-        return self.append_node(Node(node.__class__.__name__, node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node('break', node.__class__.__name__, node, line_number = node.lineno))
 
     def visit_Pass(self, node):
-        return self.append_node(Node(node.__class__.__name__, node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node('pass', node.__class__.__name__, node, line_number = node.lineno))
 
