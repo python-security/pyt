@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
-from flask_engine import FlaskEngine
+from flask_adaptor import FlaskAdaptor
 from base_test_case import BaseTestCase
 
 class FlaskEngineTest(BaseTestCase):
@@ -13,7 +13,7 @@ class FlaskEngineTest(BaseTestCase):
         self.cfg.create(tree)
         cfg_list = [self.cfg]
 
-        flask = FlaskEngine(cfg_list)
+        flask = FlaskAdaptor(cfg_list)
         
         #self.assertEqual(len(flask_functions), 1)
 
