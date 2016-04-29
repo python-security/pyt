@@ -1,9 +1,9 @@
-"""Contains a class that can be used as engine."""
-from engine import Engine
+"""Contains a class that can be used as adaptor."""
+from framework_adaptor import Adaptor
 
 
-class FlaskEngine(Engine):
-    """The flask engine class which implements the specifics to find sources, sinks and sanitizers in flask web applications."""
+class FlaskAdaptor(Adaptor):
+    """The flask adaptor class manipulates the CFG to adapt to flask applications."""
 
     def is_flask_route_function(self, function):
         """Check whether function uses a decorator."""
