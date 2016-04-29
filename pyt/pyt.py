@@ -5,8 +5,8 @@ from cfg import generate_ast, CFG
 from draw import draw_cfg
 from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import analyse
-from flask_engine import FlaskEngine
-
+from flask_adaptor import FlaskAdaptor
+from vulnerabilities import find_vulnerabilities
 
 parser = argparse.ArgumentParser()
 
@@ -26,15 +26,16 @@ if __name__ == '__main__':
 
     cfg_list = [cfg]
 
-    engine_type = None
-    if args.trigger_word_file:
-        engine_type = FlaskEngine(cfg_list, args.trigger_word_file)
-    else:
-        engine_type = FlaskEngine(cfg_list) 
+    adaptor_type = FlaskAdaptor(cfg_list)
 
     analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
     
-    vulnerability_log = engine_type.find_vulnerabilities()
+    vulnerability_log = None
+    if args.trigger_word_file:
+        vulnerability_log = find_vulnerabilities(cfg_list, args.trigger_word_file)
+    else:
+        vulnerability_log = find_vulnerabilities(cfg_list)
+
     vulnerability_log.print_report()
 
     if args.draw_cfg:
