@@ -96,10 +96,12 @@ def is_sanitized(sink, sanitiser_dict):
 
 def get_vulnerability(source, sink, triggers):
     if source.cfg_node in sink.cfg_node.new_constraint:
+        source_trigger_word = source.trigger_word_tuple.trigger_word
+        sink_trigger_word = sink.trigger_word_tuple.trigger_word
         if not is_sanitized(sink, triggers.sanitiser_dict):
-            source_trigger_word = source.trigger_word_tuple.trigger_word
-            sink_trigger_word = sink.trigger_word_tuple.trigger_word
             return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word)
+        elif is_sanitized(sink, triggers.sanitiser_dict):
+            return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.trigger_word_tuple.sanitisers)
     return None
 
 def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
