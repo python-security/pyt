@@ -1,3 +1,4 @@
+"""A framework adaptor is a adaptor used to adapt the source code to a specific framework."""
 import os
 from collections import namedtuple
 
