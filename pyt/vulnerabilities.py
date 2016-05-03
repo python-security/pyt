@@ -4,7 +4,7 @@ import os
 from collections import namedtuple
 
 from cfg import CFG, generate_ast, Node
-from vulnerability_log import Vulnerability, VulnerabilityLog
+from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
 
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
