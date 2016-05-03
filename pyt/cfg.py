@@ -147,7 +147,28 @@ class RestoreNode(AssignmentNode):
             line_number(Optional[int]): The line of the expression the Node represents.
         """
         super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)
+        
 
+class CallReturnNode(AssignmentNode):
+    """CFG node that represents a return from a call."""
+    
+    def __init__(self, label, ast_type, ast_node, restore_nodes, right_hand_side_variables, *, line_number=None):
+        """Create an CallReturn node.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            ast_type (str): The type of the node as represented in the AST.
+            restore_nodes(list[Node]): List of nodes that where restored in the function call.
+            line_number(Optional[int]): The line of the expression the Node represents.
+        """
+        super(AssignmentNode, self).__init__(label, ast_type, ast_node, right_hand_side_variables, line_number=line_number)
+        self.restore_nodes = restore_nodes
+
+    def __repr__(self):
+        output_string = super(AssignmentNode, self).__repr__()
+        output_string += '\n'
+        return ''.join((output_string, 'restore_nodes:\t', str(self.restore_nodes)))
+    
 
 class Arguments(object):
     """Represents arguments of a function."""
