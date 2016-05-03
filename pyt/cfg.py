@@ -9,6 +9,7 @@ from collections import namedtuple, OrderedDict
 from copy import deepcopy
 
 from label_visitor import LabelVisitor
+from right_hand_side_visitor import RHSVisitor
 
 ENTRY = 'ENTRY'
 EXIT = 'EXIT'
@@ -115,27 +116,29 @@ class FunctionNode(Node):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
     
-    def __init__(self, label, left_hand_side, ast_node, *, line_number=None):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number=None):
         """Create an Assignment node.
 
         Args:
             label (str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
         super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, ast_node, line_number=line_number)
         self.left_hand_side = left_hand_side
+        self.right_hand_side_variables = right_hand_side_variables
 
     def __repr__(self):
         output_string = super(AssignmentNode, self).__repr__()
         output_string += '\n'
-        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side)))
+        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side), '\n', 'right_hand_side_variables:\t', str(self.right_hand_side_variables)))
 
 
 class RestoreNode(AssignmentNode):
     """Node used for handling restore nodes returning from function calls."""
 
-    def __init__(self, label, left_hand_side, *, line_number=None):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None):
         """Create an Restore node.
 
         Args:
@@ -143,13 +146,13 @@ class RestoreNode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(RestoreNode, self).__init__(label, left_hand_side, None, line_number=line_number)
+        super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)
         
 
 class CallReturnNode(AssignmentNode):
     """CFG node that represents a return from a call."""
     
-    def __init__(self, label, ast_type, ast_node, restore_nodes, *, line_number=None):
+    def __init__(self, label, ast_type, ast_node, restore_nodes, right_hand_side_variables, *, line_number=None):
         """Create an CallReturn node.
 
         Args:
@@ -158,7 +161,7 @@ class CallReturnNode(AssignmentNode):
             restore_nodes(list[Node]): List of nodes that where restored in the function call.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(AssignmentNode, self).__init__(label, ast_type, ast_node, line_number=line_number)
+        super(AssignmentNode, self).__init__(label, ast_type, ast_node, right_hand_side_variables, line_number=line_number)
         self.restore_nodes = restore_nodes
 
     def __repr__(self):
@@ -456,7 +459,7 @@ class CFG(ast.NodeVisitor):
 
         return left_hand_side
 
-    def assign_tuple_target(self, node):
+    def assign_tuple_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
         for i, target in enumerate(node.targets[0].elts):
             value = node.value.elts[i]
@@ -468,19 +471,19 @@ class CFG(ast.NodeVisitor):
                 new_ast_node = ast.Assign(target, value)
                 new_ast_node.lineno = node.lineno
                 
-                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
+                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node, right_hand_side_variables))
                 
             else:
                 label.result += ' = '
                 label.visit(value)
                 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), line_number = node.lineno)))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number = node.lineno)))
 
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
 
-    def assign_multi_target(self, node):
+    def assign_multi_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
         
         for target in node.targets:
@@ -490,28 +493,29 @@ class CFG(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(node.value)
                 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), line_number = node.lineno)))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number = node.lineno)))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
     
-    def visit_Assign(self, node): 
+    def visit_Assign(self, node):
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node.value)
         if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
-            return self.assign_tuple_target(node)
+            return self.assign_tuple_target(node, rhs_visitor.result)
         elif len(node.targets) > 1:                #  x = y = 3
-            return self.assign_multi_target(node)        
+            return self.assign_multi_target(node, rhs_visitor.result)        
         else:                                      
             if isinstance(node.value, ast.Call):   #  x = call()
                 label = LabelVisitor()
                 label.visit(node.targets[0])
-                return self.assignment_call_node(label.result, node)
+                return self.assignment_call_node(label.result, node, rhs_visitor.result)
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
+                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number = node.lineno))
 
-                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, line_number = node.lineno))
-
-    def assignment_call_node(self, left_hand_label, ast_node):
+    def assignment_call_node(self, left_hand_label, ast_node, right_hand_side_variables):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
 
@@ -521,11 +525,11 @@ class CFG(ast.NodeVisitor):
         call_assignment = None
         if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, right_hand_side_variables, line_number=ast_node.lineno)
             call.connect(call_assignment)
         else: #  assignment to builtin
             call_label = call.label
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, right_hand_side_variables, line_number=ast_node.lineno)
 
         self.nodes.append(call_assignment)
         
@@ -534,8 +538,11 @@ class CFG(ast.NodeVisitor):
     def visit_AugAssign(self, node):
         label = LabelVisitor()
         label.visit(node)
+
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node.value)
     
-        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, line_number = node.lineno))
+        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number = node.lineno))
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
@@ -606,7 +613,7 @@ class CFG(ast.NodeVisitor):
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
             previous_node = self.nodes[-1]
-            saved_scope_node = self.append_node(RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name))
+            saved_scope_node = self.append_node(RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, [assignment.left_hand_side]))
             
             saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.left_hand_side))
             previous_node.connect(saved_scope_node)
@@ -618,9 +625,9 @@ class CFG(ast.NodeVisitor):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
             
             if isinstance(parameter, ast.Num):
-                n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name, None)
+                n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name, None, None)
             elif isinstance(parameter, ast.Name):
-                n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name, None)
+                n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name, None, [parameter.id])
             else:
                 raise TypeError('Unhandled type: ' + str(type(parameter)))
             
@@ -633,7 +640,7 @@ class CFG(ast.NodeVisitor):
             temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
             local_name = function.arguments[i]
             previous_node = self.nodes[-1]
-            local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name, None))
+            local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name, None, [temp_name]))
             previous_node.connect(local_scope_node)
 
     def insert_function_body(self, node):
@@ -651,7 +658,7 @@ class CFG(ast.NodeVisitor):
         """
         restore_nodes = list()
         for var in saved_variables:
-            restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS))
+            restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS, [var.LHS]))
 
         for n, successor in zip(restore_nodes, restore_nodes[1:]):
             n.connect(successor)
@@ -670,7 +677,8 @@ class CFG(ast.NodeVisitor):
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
-                    call_node = self.append_node(RestoreNode(LHS + ' = ' + 'ret_' + node.func.id, LHS))
+                    RHS = 'ret_' + node.func.id
+                    call_node = self.append_node(RestoreNode(LHS + ' = ' + RHS, LHS, [RHS]))
                     previous_node.connect(call_node)
                     
             else:
