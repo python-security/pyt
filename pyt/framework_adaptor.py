@@ -1,17 +1,14 @@
 """A framework adaptor is a adaptor used to adapt the source code to a specific framework."""
-import os
-from collections import namedtuple
-
-from cfg import CFG, generate_ast, Node
-from vulnerability_log import Vulnerability, VulnerabilityLog
+from abc import ABCMeta, abstractmethod
 
 
-class Adaptor(object):
+class Adaptor(metaclass=ABCMeta):
     """An engine that should be used as base class to specify how to find all sources and sinks."""
 
     def __init__(self, cfg_list):
         self.cfg_list = cfg_list
         self.run()
 
+    @abstractmethod
     def run(self):
-        raise NotImplementedError('Should be implemented.')
+        pass
