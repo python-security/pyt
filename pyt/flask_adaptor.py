@@ -17,4 +17,7 @@ class FlaskAdaptor(FrameworkAdaptor):
 
     def run(self):
         """Executed by the super class, everything that needs to be executed goes here."""
-        self.cfg_list.extend(self.find_flask_route_functions(self.cfg_list[0].functions))
+        function_cfgs = list()
+        for cfg in self.cfg_list:
+            function_cfgs.extend(self.find_flask_route_functions(cfg.functions))
+        self.cfg_list.extend(function_cfgs)
