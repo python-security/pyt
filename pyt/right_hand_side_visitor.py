@@ -16,6 +16,8 @@ class RHSVisitor(NodeVisitor):
 
     def visit_Call(self, node):
         if node.args:
-            map(self.generic_visit, node.args)
+            for arg in node.args:
+                self.visit(arg)
         if node.keywords:
-            map(self.generic_visit, node.keywords)
+            for keyword in node.keywords:
+                self.visit(keyword)
