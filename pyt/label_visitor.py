@@ -2,6 +2,9 @@ from ast import NodeVisitor
 import ast
 
 class LabelVisitor(NodeVisitor):
+    def __init__(self):
+        self.result = ''
+    
     def handle_comma_separated(self, comma_separated_list):
         if comma_separated_list:
             for element in range(len(comma_separated_list)-1):
@@ -237,7 +240,3 @@ class LabelVisitor(NodeVisitor):
 
     def visit_Str(self,node):
         self.result += "'" + node.s + "'"
-
-
-    def __init__(self):
-        self.result = ''
