@@ -2,7 +2,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Adaptor(metaclass=ABCMeta):
+class FrameworkAdaptor(metaclass=ABCMeta):
     """An engine that should be used as base class to specify how to find all sources and sinks."""
 
     def __init__(self, cfg_list):

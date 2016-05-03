@@ -1,8 +1,8 @@
 """Contains a class that can be used as adaptor."""
-from framework_adaptor import Adaptor
+from framework_adaptor import FrameworkAdaptor
 
 
-class FlaskAdaptor(Adaptor):
+class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
 
     def is_flask_route_function(self, function):
