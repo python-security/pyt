@@ -3,7 +3,7 @@ import os
 
 from cfg import generate_ast, CFG
 from draw import draw_cfg
-from reaching_definitions import ReachingDefinitionsAnalysis
+from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     adaptor_type = FlaskAdaptor(cfg_list)
 
-    analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+    analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
     
     vulnerability_log = None
     if args.trigger_word_file:
