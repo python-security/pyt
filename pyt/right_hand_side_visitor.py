@@ -13,3 +13,9 @@ class RHSVisitor(NodeVisitor):
 
     def visit_Name(self, node):
         self.result.append(node.id)
+
+    def visit_Call(self, node):
+        if node.args:
+            map(self.generic_visit, node.args)
+        if node.keywords:
+            map(self.generic_visit, node.keywords)
