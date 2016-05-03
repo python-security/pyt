@@ -55,7 +55,7 @@ class Node(object):
 
     def connect(self, successor):
         """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
-        if self.ast_type == ast.Return().__class__.__name__ and not successor.ast_type == EXIT:
+        if isinstance(self, ReturnNode) and not successor.ast_type == EXIT:
             return
         self.outgoing.append(successor)
         successor.ingoing.append(self)
@@ -144,31 +144,26 @@ class RestoreNode(AssignmentNode):
         Args:
             label (str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
         super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)
         
 
-class CallReturnNode(AssignmentNode):
+class ReturnNode(AssignmentNode):
     """CFG node that represents a return from a call."""
     
-    def __init__(self, label, ast_type, ast_node, restore_nodes, right_hand_side_variables, *, line_number=None):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None):
         """Create an CallReturn node.
 
         Args:
             label (str): The label of the node, describing the expression it represents.
             ast_type (str): The type of the node as represented in the AST.
             restore_nodes(list[Node]): List of nodes that where restored in the function call.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(AssignmentNode, self).__init__(label, ast_type, ast_node, right_hand_side_variables, line_number=line_number)
-        self.restore_nodes = restore_nodes
-
-    def __repr__(self):
-        output_string = super(AssignmentNode, self).__repr__()
-        output_string += '\n'
-        return ''.join((output_string, 'restore_nodes:\t', str(self.restore_nodes)))
-    
+        super(ReturnNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)    
 
 class Arguments(object):
     """Represents arguments of a function."""
@@ -378,7 +373,7 @@ class CFG(ast.NodeVisitor):
     def return_connection_handler(self, function_CFG, exit_node):
         """Connect all return statements to the Exit node."""
         for function_body_node in function_CFG.nodes:
-            if function_body_node.ast_type == ast.Return().__class__.__name__:
+            if isinstance(function_body_node, ReturnNode):
                 if not exit_node in function_body_node.outgoing:
                     function_body_node.connect(exit_node)                    
 
@@ -446,7 +441,7 @@ class CFG(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         LHS = 'ret_' + this_function_name
-        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, node, rhs_visitor.result, line_number = node.lineno))
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno))
 
     def extract_left_hand_side(self, target):
         """Extract the left hand side varialbe from a target.
@@ -474,7 +469,7 @@ class CFG(ast.NodeVisitor):
                 new_ast_node = ast.Assign(target, value)
                 new_ast_node.lineno = node.lineno
                 
-                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node, right_hand_side_variables))
+                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
                 
             else:
                 label.result += ' = '
@@ -512,15 +507,18 @@ class CFG(ast.NodeVisitor):
             if isinstance(node.value, ast.Call):   #  x = call()
                 label = LabelVisitor()
                 label.visit(node.targets[0])
-                return self.assignment_call_node(label.result, node, rhs_visitor.result)
+                return self.assignment_call_node(label.result, node)
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
                 return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number = node.lineno))
 
-    def assignment_call_node(self, left_hand_label, ast_node, right_hand_side_variables):
+    def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
+
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(ast_node.value)
 
         call = self.visit(ast_node.value)
         
@@ -528,11 +526,11 @@ class CFG(ast.NodeVisitor):
         call_assignment = None
         if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, right_hand_side_variables, line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno)
             call.connect(call_assignment)
         else: #  assignment to builtin
             call_label = call.label
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, right_hand_side_variables, line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno)
 
         self.nodes.append(call_assignment)
         
@@ -609,7 +607,7 @@ class CFG(ast.NodeVisitor):
     def save_local_scope(self):
         """Save the local scope before entering a function call."""
         saved_variables = list()
-        for assignment in [node for node in self.nodes if isinstance(node, AssignmentNode)]:
+        for assignment in [node for node in self.nodes if type(node) == AssignmentNode]:
             if isinstance(assignment, RestoreNode):
                 continue
            
@@ -676,7 +674,7 @@ class CFG(ast.NodeVisitor):
         """Handle the return from a function during a function call."""
         call_node = None
         for n in function_nodes:
-            if n.ast_type == ast.Return().__class__.__name__:
+            if isinstance(n, ReturnNode):
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
