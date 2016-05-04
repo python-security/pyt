@@ -185,6 +185,21 @@ def get_vulnerability(source, sink, triggers):
             return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers)
     return None
 
+def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions):
+    """Find vulnerabilities in a cfg.
+
+    Args:
+        cfg(CFG): The CFG look find vulnerabilities in.
+        vulnerabilitiy_log: The log in which to place found vulnerabilities.
+        definitions: Source and sink definitions.
+    """
+    triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
+    for sink in triggers.sinks:
+        for source in triggers.sources:
+            vulnerability = get_vulnerability(source, sink, triggers)
+            if vulnerability:
+                vulnerability_log.append(vulnerability)
+
 def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
@@ -196,13 +211,9 @@ def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
         A VulnerabilityLog with found vulnerabilities.
     """
     definitions = parse(trigger_word_file)
+    
     vulnerability_log = VulnerabilityLog()
     for cfg in cfg_list:
-        triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
-        for sink in triggers.sinks:
-            for source in triggers.sources:
-                vulnerability = get_vulnerability(source, sink, triggers)
-                if vulnerability:
-                    vulnerability_log.append(vulnerability)
+        find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions)
     return vulnerability_log
    
