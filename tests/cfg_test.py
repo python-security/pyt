@@ -4,7 +4,7 @@ from ast import parse
 
 from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node
+from cfg import CFG, generate_ast, Node, EntryExitNode
 
 
 class CFGGeneralTest(BaseTestCase):
@@ -50,8 +50,8 @@ class CFGGeneralTest(BaseTestCase):
 
         self.assertInCfg([(1,0),(2,1)])
         
-        self.assertEqual(self.cfg.nodes[start_node].ast_type, 'ENTRY')
-        self.assertEqual(self.cfg.nodes[exit_node].ast_type, 'EXIT')
+        self.assertEqual(type(self.cfg.nodes[start_node]), EntryExitNode)
+        self.assertEqual(type(self.cfg.nodes[exit_node]), EntryExitNode)
 
     def test_start_and_exit_nodes_line_numbers(self):
         self.cfg = CFG()
@@ -444,9 +444,6 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertEqual(self.cfg.nodes[node].label, 'x = 1')
         self.assertEqual(self.cfg.nodes[node_2].label, 'y = 2')
 
-        self.assertEqual(self.cfg.nodes[start_node].ast_type, 'ENTRY')
-        self.assertEqual(self.cfg.nodes[exit_node].ast_type, 'EXIT')
-
     def test_assignment_multi_target_call(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/assignment_multiple_assign_call.py')
@@ -462,9 +459,6 @@ class CFGAssignmentMultiTest(BaseTestCase):
         
         self.assertEqual(node.label, 'x = int(5)')
         self.assertEqual(node_2.label, 'y = int(4)')
-
-        self.assertEqual(start_node.ast_type, 'ENTRY')
-        self.assertEqual(exit_node.ast_type, 'EXIT')
 
     def test_assignment_multi_target_line_numbers(self):
         self.cfg = CFG()
@@ -672,8 +666,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         tree = generate_ast('../example/example_inputs/function_with_multiple_return.py')
         self.cfg.create(tree)
 
-        print(repr(self.cfg))
-        #self.assert_length(self.cfg.nodes, expected_length=9)
+        self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
         entry_foo = 1
@@ -740,7 +733,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
 
 class CFGBreak(BaseTestCase):
     """Break in while and for and other places"""
-    def test_if_line_numbers(self):
+    def test_break(self):
         self.cfg = CFG()
         tree = generate_ast('../example/example_inputs/while_break.py')
         

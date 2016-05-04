@@ -11,8 +11,6 @@ from copy import deepcopy
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
 
-ENTRY = 'ENTRY'
-EXIT = 'EXIT'
 CALL_IDENTIFIER = '¤'
 
 
@@ -33,19 +31,17 @@ class IgnoredNode(object):
 class Node(object):
     """A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables."""
     
-    def __init__(self, label, ast_type, ast_node, *, line_number=None):
+    def __init__(self, label, ast_node, *, line_number=None):
         """Create a Node that can be used in a CFG.
 
         Args:
             label (str): The label of the node, describing the expression it represents.
-            ast_type (str): The type of the node as represented in the AST.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
         self.ingoing = list()
         self.outgoing = list()
 
         self.label = label
-        self.ast_type = ast_type
         self.ast_node = ast_node
         self.line_number = line_number
 
@@ -55,7 +51,7 @@ class Node(object):
 
     def connect(self, successor):
         """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
-        if isinstance(self, ReturnNode) and not successor.ast_type == EXIT:
+        if isinstance(self, ReturnNode) and not type(successor) is EntryExitNode:
             return
         self.outgoing.append(successor)
         successor.ingoing.append(self)
@@ -74,7 +70,6 @@ class Node(object):
         """Print a representation of the node."""
         label = ' '.join(('Label: ', self.label))
         line_number = 'Line number: ' + str(self.line_number)
-        ast_type = ' '.join(('Type:\t\t', self.ast_type))
         outgoing = ''
         ingoing = ''
         if self.ingoing is not  None:
@@ -96,7 +91,7 @@ class Node(object):
             new_constraint = 'New constraint: ' +  ', '.join([x.label for x in self.new_constraint])
         else:
             new_constraint = 'New constraint:'
-        return '\n' + '\n'.join((label, line_number, ast_type, ingoing, outgoing, old_constraint, new_constraint))
+        return '\n' + '\n'.join((label, line_number, ingoing, outgoing, old_constraint, new_constraint))
 
 
 class FunctionNode(Node):
@@ -110,9 +105,23 @@ class FunctionNode(Node):
         
         This node is a dummy node representing a function definition
         """
-        super(FunctionNode, self).__init__(self.__class__.__name__, ast.FunctionDef().__class__.__name__, ast_node)
+        super(FunctionNode, self).__init__(self.__class__.__name__, ast_node)
 
 
+class BreakNode(Node):
+    """CFG Node that represents a Break node."""
+    
+    def __init__(self, ast_node, *, line_number=None):
+        super(BreakNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number)
+
+
+class EntryExitNode(Node):
+    """CFG Node that represents a Exit or an Entry node."""
+    
+    def __init__(self, label, ast_node):
+        super(EntryExitNode, self).__init__(label, ast_node)
+
+        
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
     
@@ -125,7 +134,7 @@ class AssignmentNode(Node):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(AssignmentNode, self).__init__(label, ast.Assign().__class__.__name__, ast_node, line_number=line_number)
+        super(AssignmentNode, self).__init__(label, ast_node, line_number=line_number)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
 
@@ -158,7 +167,6 @@ class ReturnNode(AssignmentNode):
 
         Args:
             label (str): The label of the node, describing the expression it represents.
-            ast_type (str): The type of the node as represented in the AST.
             restore_nodes(list[Node]): List of nodes that where restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
@@ -256,7 +264,7 @@ class CFG(ast.NodeVisitor):
         Args:
             module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
         """
-        entry_node = self.append_node(Node('Entry node', ENTRY, None))
+        entry_node = self.append_node(EntryExitNode("Entry module", None))
                 
         module_statements = self.visit(module_node)
 
@@ -268,7 +276,7 @@ class CFG(ast.NodeVisitor):
         if not CALL_IDENTIFIER in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(Node('Exit node', EXIT, None))
+        exit_node = self.append_node(EntryExitNode("Exit module", None))
             
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
@@ -291,7 +299,7 @@ class CFG(ast.NodeVisitor):
             return False
         elif isinstance(node, ControlFlowNode):
             return True
-        elif node.ast_type is ast.FunctionDef().__class__.__name__:
+        elif type(node) is FunctionNode:
             return False
         else:
             return True
@@ -338,7 +346,7 @@ class CFG(ast.NodeVisitor):
 
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
-            elif isinstance(node, Node) and node.ast_type is ast.Break.__name__:
+            elif type(node) is BreakNode:
                 break_nodes.append(node)
 
             if self.node_to_connect(node):
@@ -359,11 +367,11 @@ class CFG(ast.NodeVisitor):
         function_CFG.functions = self.functions
         self.functions[node.name] = Function(function_CFG.nodes, node.args, node.decorator_list)
 
-        entry_node = function_CFG.append_node(Node('Entry node: ' + node.name, ENTRY, None))
+        entry_node = function_CFG.append_node(EntryExitNode("Entry " + node.name, None))
         function_body_connect_statements = function_CFG.stmt_star_handler(node.body)
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = function_CFG.append_node(Node('Exit node: ' + node.name, EXIT, None))
+        exit_node = function_CFG.append_node(EntryExitNode("Exit " + node.name, None))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         self.return_connection_handler(function_CFG, exit_node)
@@ -403,13 +411,13 @@ class CFG(ast.NodeVisitor):
 
     def remove_breaks(self, last_statements):
         """Remove all break statements in last_statements."""
-        return [n for n in last_statements if isinstance(n, Node) and n.ast_type is not ast.Break.__name__]
+        return [n for n in last_statements if type(n) is not BreakNode]
 
     def visit_If(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno))
         
         self.add_if_label(test)
         
@@ -575,7 +583,7 @@ class CFG(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number = node.lineno))
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno))
 
         self.add_while_label(test)
         
@@ -592,7 +600,7 @@ class CFG(ast.NodeVisitor):
         target_label = LabelVisitor()
         target = target_label.visit(node.target)
 
-        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node.__class__.__name__, node, line_number = node.lineno))
+        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno))
 
         if isinstance(node.iter, ast.Call) and node.iter.func.id in self.functions:
             last_node = self.visit(node.iter)
@@ -690,7 +698,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        builtin_call = Node(label.result, node.__class__.__name__, node, line_number = node.lineno)
+        builtin_call = Node(label.result, node, line_number = node.lineno)
         
         if not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
             function = self.functions[node.func.id]
@@ -719,7 +727,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        return self.append_node(Node(label.result,node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node(label.result, node, line_number = node.lineno))
 
     # Visitors that are just ignoring statements
     def visit_Import(self, node):
@@ -732,8 +740,8 @@ class CFG(ast.NodeVisitor):
         return IgnoredNode()
 
     def visit_Break(self, node):
-        return self.append_node(Node('break', node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(BreakNode(node, line_number = node.lineno))
 
     def visit_Pass(self, node):
-        return self.append_node(Node('pass', node.__class__.__name__, node, line_number = node.lineno))
+        return self.append_node(Node('pass', node, line_number = node.lineno))
 
