@@ -78,7 +78,7 @@ def identify_triggers(cfg, sources, sinks):
     
     return Triggers(sources_in_file, sinks_in_file, sanitiser_node_dict)
 
-def find_triggers(cfg, trigger_word_list):
+def find_triggers(cfg, trigger_words):
     """Find triggers from the trigger_word_list in the cfg.
 
     Args:
@@ -90,7 +90,7 @@ def find_triggers(cfg, trigger_word_list):
     """
     l = list()
     for node in cfg.nodes:
-        l.extend(iter(label_contains(node, trigger_word_list)))
+        l.extend(iter(label_contains(node, trigger_words)))
     return l
       
 def label_contains(node, trigger_words):
