@@ -47,9 +47,9 @@ class EngineTest(BaseTestCase):
 
         trigger_node_1 = l[0]
         trigger_node_2 = l[1]
-        self.assertEqual(trigger_node_1.trigger_word_tuple.trigger_word, 'get')
+        self.assertEqual(trigger_node_1.trigger_word, 'get')
         self.assertEqual(trigger_node_1.cfg_node, cfg_node)
-        self.assertEqual(trigger_node_2.trigger_word_tuple.trigger_word, 'request')
+        self.assertEqual(trigger_node_2.trigger_word, 'request')
         self.assertEqual(trigger_node_2.cfg_node, cfg_node)
         
         cfg_node = Node('request.get("stefan")', None, None, line_number=None)
@@ -84,7 +84,7 @@ class EngineTest(BaseTestCase):
         cfg.create(tree)
         cfg = cfg.functions['XSS1']
         cfg_node = Node(None, None, None, line_number=None)
-        sinks_in_file = [vulnerabilities.TriggerNode(vulnerabilities.TriggerWordTuple('replace', ['escape']), cfg_node)]
+        sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
 
         sanitiser_dict = vulnerabilities.build_sanitiser_node_dict(cfg, sinks_in_file)
         self.assert_length(sanitiser_dict, expected_length=1)
@@ -94,7 +94,7 @@ class EngineTest(BaseTestCase):
     def test_is_sanitized_false(self):
         cfg_node_1 = Node('Not sanitising at all', None, None, line_number=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, None, line_number=None)
-        sinks_in_file = [vulnerabilities.TriggerNode(vulnerabilities.TriggerWordTuple('replace', ['escape']), cfg_node_2)]
+        sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict)
@@ -104,7 +104,7 @@ class EngineTest(BaseTestCase):
         cfg_node_1 = Node('Awesome sanitiser', None, None, line_number=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, None, line_number=None)
         cfg_node_2.new_constraint.add(cfg_node_1)
-        sinks_in_file = [vulnerabilities.TriggerNode(vulnerabilities.TriggerWordTuple('replace', ['escape']), cfg_node_2)]
+        sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict)

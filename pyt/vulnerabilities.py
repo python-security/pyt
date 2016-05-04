@@ -8,8 +8,7 @@ from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerab
 
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
-TriggerNode = namedtuple('TriggerNode', 'trigger_word_tuple cfg_node')
-TriggerWordTuple = namedtuple('TriggerWordTuple', 'trigger_word sanitisers')
+TriggerNode = namedtuple('TriggerNode', 'trigger_word sanitisers cfg_node')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
 Definitions = namedtuple('Definitions', 'sources sinks')
 
@@ -107,7 +106,7 @@ def label_contains(node, trigger_words):
         if trigger_word_tuple[0] in node.label:
             trigger_word = trigger_word_tuple[0]
             sanitisers = trigger_word_tuple[1]
-            yield TriggerNode(TriggerWordTuple(trigger_word, sanitisers), node)
+            yield TriggerNode(trigger_word, sanitisers, node)
 
 def build_sanitiser_node_dict(cfg, sinks_in_file):
     """Build a dict of string -> TriggerNode pairs, where the string is the sanitiser and the TriggerNode is a TriggerNode of the sanitiser.
@@ -121,7 +120,7 @@ def build_sanitiser_node_dict(cfg, sinks_in_file):
     """
     sanitisers = list()
     for sink in sinks_in_file:
-        sanitisers.extend(sink.trigger_word_tuple.sanitisers)
+        sanitisers.extend(sink.sanitisers)
 
     sanitisers_in_file = list()
     for sanitiser in sanitisers:
@@ -158,7 +157,7 @@ def is_sanitized(sink, sanitiser_dict):
     Returns: 
         True of False
     """
-    for sanitiser in sink.trigger_word_tuple.sanitisers:
+    for sanitiser in sink.sanitisers:
         for cfg_node in sanitiser_dict[sanitiser]:
             if cfg_node in sink.cfg_node.new_constraint:
                 return True
@@ -178,12 +177,12 @@ def get_vulnerability(source, sink, triggers):
         A Vulnerability if it exists, else None
     """
     if source.cfg_node in sink.cfg_node.new_constraint:
-        source_trigger_word = source.trigger_word_tuple.trigger_word
-        sink_trigger_word = sink.trigger_word_tuple.trigger_word
+        source_trigger_word = source.trigger_word
+        sink_trigger_word = sink.trigger_word
         if not is_sanitized(sink, triggers.sanitiser_dict):
             return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word)
         elif is_sanitized(sink, triggers.sanitiser_dict):
-            return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.trigger_word_tuple.sanitisers)
+            return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers)
     return None
 
 def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
