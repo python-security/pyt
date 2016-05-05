@@ -696,30 +696,48 @@ class CFG(ast.NodeVisitor):
             return result[0:-1]
         else:
             return self.get_call_names(node.value, result + node.attr + '.')
-        
+
+    def insert_function(self, cfg, node):
+        function = cfg.functions[node.func.id]
+        self.function_index += 1
+
+        saved_variables = self.save_local_scope()
+
+        self.save_actual_parameters_in_temp(node.args, function)
+
+        self.create_local_scope_from_actual_parameters(node.args, function)
+
+        function_nodes = cfg.insert_function_body(node)
+
+        restore_nodes = self.restore_saved_local_scope(saved_variables)
+
+        self.return_handler(node, function_nodes, restore_nodes)
+            
+        return self.nodes[-1]
+
+    def is_project_function(self, node):
+        call_name = self.get_call_names(node, '')
+        print(call_name)
+        if self.imports:
+            for i in self.imports:
+                if call_name == i.name:
+                    return i.path
+        return None
+
     def visit_Call(self, node):
         label = LabelVisitor()
         label.visit(node)
 
         builtin_call = Node(label.result, node, line_number = node.lineno)
 
-        if not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
-            function = self.functions[node.func.id]
-            self.function_index += 1
-            
-            saved_variables = self.save_local_scope()
-
-            self.save_actual_parameters_in_temp(node.args, function)
-
-            self.create_local_scope_from_actual_parameters(node.args, function)
-
-            function_nodes = self.insert_function_body(node)
-
-            restore_nodes = self.restore_saved_local_scope(saved_variables)
-
-            self.return_handler(node, function_nodes, restore_nodes)
-            
-            return self.nodes[-1]
+        path = self.is_project_function(node.func)
+        if path:
+            cfg = CFG(self.imports)
+            tree = generate_ast(path)
+            cfg.create(tree)
+            return self.insert_function(cfg, node)
+        elif not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
+            return self.insert_function(self, node)
         else:
             if not self.undecided:
                 self.nodes.append(builtin_call)
