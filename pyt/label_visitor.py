@@ -26,6 +26,13 @@ class LabelVisitor(NodeVisitor):
         self.handle_comma_separated(node.elts)
         
         self.result += ']'
+
+    def visit_withitem(self, node):
+        self.result += 'with '
+        self.visit(node.context_expr)
+        if node.optional_vars:
+            self.result += ' as '
+            self.visit(node.optional_vars)
     
     def visit_Return(self, node):
         if node.value:
