@@ -687,12 +687,21 @@ class CFG(ast.NodeVisitor):
                 # lave rigtig kobling
                 pass
 
+    def get_call_names(self, node, result):
+        """Recursively finds all function names."""
+        if isinstance(node, ast.Name):
+            return result + node.id
+        elif isinstance(node, ast.Call):
+            return result[0:-1]
+        else:
+            return self.get_call_names(node.value, result + node.attr + '.')
+        
     def visit_Call(self, node):
         label = LabelVisitor()
         label.visit(node)
 
         builtin_call = Node(label.result, node, line_number = node.lineno)
-        
+
         if not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
             function = self.functions[node.func.id]
             self.function_index += 1
