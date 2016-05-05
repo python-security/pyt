@@ -12,13 +12,6 @@ from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
 
 CALL_IDENTIFIER = '¤'
-
-
-def generate_ast(path):
-    """Generate an Abstract Syntax Tree using the ast module."""
-    with open(path, 'r') as f:
-        return ast.parse(f.read())
-
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statements')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements break_statements')
