@@ -449,6 +449,8 @@ class CFG(ast.NodeVisitor):
         """Recursively finds all names."""
         if isinstance(node, ast.Name):
             return node.id + result
+        elif isinstance(node, ast.Subscript):
+            return result
         else:
             return self.get_names(node.value, result + '.' + node.attr)
 
@@ -457,7 +459,7 @@ class CFG(ast.NodeVisitor):
 
         Removes list indexes, stars and other left hand side elements.
         """
-        left_hand_side = target.id
+        left_hand_side = self.get_names(target, '')
 
         left_hand_side.replace('*', '')
         if '[' in left_hand_side:
@@ -755,6 +757,15 @@ class CFG(ast.NodeVisitor):
         label.visit(node)
 
         return self.append_node(Node(label.result, node, line_number = node.lineno))
+
+    def visit_With(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.items[0])
+
+        with_node = Node(label_visitor.result, node)
+        connect_statements = self.stmt_star_handler(node.body)
+        with_node.connect(connect_statements.first_statement)
+        return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
 
     # Visitors that are just ignoring statements
     def visit_Import(self, node):
