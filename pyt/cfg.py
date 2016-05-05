@@ -717,7 +717,6 @@ class CFG(ast.NodeVisitor):
 
     def is_project_function(self, node):
         call_name = self.get_call_names(node, '')
-        print(call_name)
         if self.imports:
             for i in self.imports:
                 if call_name == i.name:
