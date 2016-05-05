@@ -357,7 +357,7 @@ class CFG(ast.NodeVisitor):
         return self.stmt_star_handler(node.body)
 
     def visit_FunctionDef(self, node):
-        function_CFG = CFG()
+        function_CFG = CFG(self.imports)
         function_CFG.functions = self.functions
         self.functions[node.name] = Function(function_CFG.nodes, node.args, node.decorator_list)
 
