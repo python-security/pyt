@@ -227,12 +227,13 @@ class Function(object):
 class CFG(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self):
+    def __init__(self, imports=None):
         """Create an empty CFG."""
         self.nodes = list()
         self.functions = OrderedDict()
         self.function_index = 0
         self.undecided = False
+        self.imports = imports
 
     def __repr__(self):
         output = ''
