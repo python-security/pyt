@@ -445,6 +445,13 @@ class CFG(ast.NodeVisitor):
         LHS = 'ret_' + this_function_name
         return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno))
 
+    def get_names(self, node, result):
+        """Recursively finds all names."""
+        if isinstance(node, ast.Name):
+            return node.id + result
+        else:
+            return self.get_names(node.value, result + '.' + node.attr)
+
     def extract_left_hand_side(self, target):
         """Extract the left hand side varialbe from a target.
 
