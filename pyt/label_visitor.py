@@ -146,10 +146,15 @@ class LabelVisitor(NodeVisitor):
         self.result += '('
 
         self.handle_comma_separated(node.args)
-        
-        #keyword handling
-
+        self.result += ', '
+        self.handle_comma_separated(node.keywords)
         self.result += ')'
+
+    def visit_keyword(self, node):
+        if node.arg:
+            self.result += node.arg
+            self.result += '='
+        self.visit(node.value)
 
     def insert_space(self):
         self.result += ' '
