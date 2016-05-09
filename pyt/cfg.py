@@ -742,7 +742,7 @@ class CFG(ast.NodeVisitor):
             
         return self.nodes[-1]
 
-    def is_project_function(self, node):
+    def in_project(self, node):
         call_name = self.get_call_names(node, '')
         if self.imports:
             for i in self.imports:
@@ -756,7 +756,7 @@ class CFG(ast.NodeVisitor):
 
         builtin_call = Node(label.result, node, line_number = node.lineno)
 
-        path = self.is_project_function(node.func)
+        path = self.in_project(node.func)
         if path:
             cfg = CFG(self.imports)
             tree = generate_ast(path)
