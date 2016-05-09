@@ -27,6 +27,15 @@ class LabelVisitor(NodeVisitor):
         
         self.result += ']'
 
+    def visit_Raise(self, node):
+        self.result += 'raise'
+        if node.exc:
+            self.result += ' '
+            self.visit(node.exc)
+        if node.cause:
+            self.result += ' from '
+            self.visit(node.cause)
+
     def visit_withitem(self, node):
         self.result += 'with '
         self.visit(node.context_expr)

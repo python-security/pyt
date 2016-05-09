@@ -44,7 +44,7 @@ class Node(object):
 
     def connect(self, successor):
         """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
-        if isinstance(self, ReturnNode) and not type(successor) is EntryExitNode:
+        if isinstance(self, ConnectToExitNode) and not type(successor) is EntryExitNode:
             return
         self.outgoing.append(successor)
         successor.ingoing.append(self)
@@ -87,6 +87,10 @@ class Node(object):
         return '\n' + '\n'.join((label, line_number, ingoing, outgoing, old_constraint, new_constraint))
 
 
+class ConnectToExitNode():
+    pass
+
+
 class FunctionNode(Node):
     """CFG Node that represents a function definition.
     
@@ -99,6 +103,14 @@ class FunctionNode(Node):
         This node is a dummy node representing a function definition
         """
         super(FunctionNode, self).__init__(self.__class__.__name__, ast_node)
+
+
+class RaiseNode(Node, ConnectToExitNode):
+    """CFG Node that represents a Raise statement."""
+    
+    def __init__(self, ast_node, *, line_number=None):
+        """Create a Raise node."""
+        super(RaiseNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number)
 
 
 class BreakNode(Node):
@@ -152,7 +164,7 @@ class RestoreNode(AssignmentNode):
         super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)
         
 
-class ReturnNode(AssignmentNode):
+class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
     
     def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None):
@@ -375,7 +387,7 @@ class CFG(ast.NodeVisitor):
     def return_connection_handler(self, function_CFG, exit_node):
         """Connect all return statements to the Exit node."""
         for function_body_node in function_CFG.nodes:
-            if isinstance(function_body_node, ReturnNode):
+            if isinstance(function_body_node, ConnectToExitNode):
                 if not exit_node in function_body_node.outgoing:
                     function_body_node.connect(exit_node)                    
 
@@ -414,7 +426,7 @@ class CFG(ast.NodeVisitor):
         test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno))
         
         self.add_if_label(test)
-        
+
         body_connect_stmts = self.stmt_star_handler(node.body)
         test.connect(body_connect_stmts.first_statement)
         
@@ -444,6 +456,12 @@ class CFG(ast.NodeVisitor):
         rhs_visitor.visit(node.value)
         LHS = 'ret_' + this_function_name
         return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno))
+
+    def visit_Raise(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        return self.append_node(RaiseNode(label.result, line_number=node.lineno))
 
     def get_names(self, node, result):
         """Recursively finds all names."""
@@ -685,7 +703,7 @@ class CFG(ast.NodeVisitor):
         """Handle the return from a function during a function call."""
         call_node = None
         for n in function_nodes:
-            if isinstance(n, ReturnNode):
+            if isinstance(n, ConnectToExitNode):
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
