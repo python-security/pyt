@@ -370,21 +370,28 @@ class CFG(ast.NodeVisitor):
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
 
+    def visit_ClassDef(self, node):
+        class_name = None
+        if self.current_path:
+            class_name = '.'.join((self.current_path, node.name))
+        else:
+            class_name = node.name
+        if class_name in self.imports:
+            if self.imports[class_name] == None:
+                self.imports[class_name] = node
+                self.stmt_star_handler(node.body)
+        return IgnoredNode()
+
     def visit_FunctionDef(self, node):
-        function_CFG = CFG(self.imports)
-        function_CFG.functions = self.functions
-        self.functions[node.name] = Function(function_CFG.nodes, node.args, node.decorator_list)
-
-        entry_node = function_CFG.append_node(EntryExitNode("Entry " + node.name, None))
-        function_body_connect_statements = function_CFG.stmt_star_handler(node.body)
-        entry_node.connect(function_body_connect_statements.first_statement)
-
-        exit_node = function_CFG.append_node(EntryExitNode("Exit " + node.name, None))
-        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
-
-        self.return_connection_handler(function_CFG, exit_node)
-
-        return FunctionNode(node)
+        function_name = None
+        if self.current_path:
+            function_name = '.'.join((self.current_path, node.name))
+        else:
+            function_name = node.name
+        if function_name in self.imports:
+            if self.imports[function_name] == None:
+                self.imports[function_name] = node
+        return IgnoredNode()
 
     def return_connection_handler(self, function_CFG, exit_node):
         """Connect all return statements to the Exit node."""
