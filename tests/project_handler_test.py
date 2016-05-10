@@ -18,18 +18,19 @@ class ProjectHandlerTest(unittest.TestCase):
         self.assertEqual(is_python_module(not_python_module), False)
 
     def test_get_python_modules(self):
-        project_folder = os.path.normpath('../example\\test_project')
+        project_folder = os.path.normpath(os.path.join('..', 'example', 'test_project'))
+
         project_namespace = 'test_project'
         folder = 'folder'
         directory = 'directory'
         
         modules = get_python_modules(project_folder)
 
-        app_path = project_folder + '\\app.py'
-        utils_path = project_folder + '\\utils.py'
-        exceptions_path = project_folder + '\\exceptions.py'
-        some_path = project_folder + '\\' + folder + '\\some.py'
-        indhold_path = project_folder + '\\' + folder + '\\indhold.py'
+        app_path = os.path.join(project_folder, 'app.py')
+        utils_path = os.path.join(project_folder,'utils.py')
+        exceptions_path = os.path.join(project_folder, 'exceptions.py')
+        some_path = os.path.join(project_folder, folder, 'some.py')
+        indhold_path = os.path.join(project_folder, folder, 'indhold.py')
         
         app_name = project_namespace + '.' + 'app'
         utils_name = project_namespace + '.' + 'utils'

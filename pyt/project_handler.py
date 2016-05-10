@@ -16,13 +16,13 @@ def is_python_module(path):
     return False
 
 def get_python_modules(path):
-    module_root = path.split('\\')[-1]
+    module_root = os.path.split(path)[1]
     modules = list()
     for root, directories, filenames in os.walk(path):
         for filename in filenames:
             if is_python_module(filename):
 
-                components = root.split('\\')
+                components = root.split(os.sep)
                 i = components.index(module_root)
                 directory = '.'.join(components[i:])
 
