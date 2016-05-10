@@ -123,8 +123,8 @@ class BreakNode(Node):
 class EntryExitNode(Node):
     """CFG Node that represents a Exit or an Entry node."""
     
-    def __init__(self, label, ast_node):
-        super(EntryExitNode, self).__init__(label, ast_node)
+    def __init__(self, label):
+        super(EntryExitNode, self).__init__(label, None)
 
         
 class AssignmentNode(Node):
@@ -239,13 +239,15 @@ class Function(object):
 class CFG(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self, imports=None):
+    def __init__(self, project_modules):
         """Create an empty CFG."""
         self.nodes = list()
         self.functions = OrderedDict()
         self.function_index = 0
         self.undecided = False
-        self.imports = imports
+        self.project_modules = project_modules
+        self.imports = dict() # {call_name: ast_node}
+        self.current_path = None
 
     def __repr__(self):
         output = ''
@@ -270,7 +272,7 @@ class CFG(ast.NodeVisitor):
         Args:
             module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
         """
-        entry_node = self.append_node(EntryExitNode("Entry module", None))
+        entry_node = self.append_node(EntryExitNode("Entry module"))
                 
         module_statements = self.visit(module_node)
 
@@ -282,7 +284,7 @@ class CFG(ast.NodeVisitor):
         if not CALL_IDENTIFIER in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryExitNode("Exit module", None))
+        exit_node = self.append_node(EntryExitNode("Exit module"))
             
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
