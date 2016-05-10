@@ -16,11 +16,16 @@ def is_python_module(path):
     return False
 
 def get_python_modules(path):
+    module_root = path.split('/')[-1]
     modules = list()
     for root, directories, filenames in os.walk(path):
         for filename in filenames:
             if is_python_module(filename):
-                modules.append((filename.replace('.py', ''), os.path.join(root, filename)))
+                directory = os.path.dirname(os.path.realpath(os.path.join(root, filename))).split(module_root)[-1].replace('/', '')
+                if directory:
+                    modules.append(('.'.join((module_root, directory, filename.replace('.py', ''))), os.path.join(root, filename)))
+                else:
+                    modules.append(('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename)))
     return modules
 
 def get_project_module_names(path):
