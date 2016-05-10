@@ -16,6 +16,11 @@ ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statement
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements break_statements')
 
+def generate_ast(path):
+    """Generate an Abstract Syntax Tree using the ast module."""
+    with open(path, 'r') as f:
+        return ast.parse(f.read())
+
 
 class IgnoredNode(object):
     """Ignored Node sent from a ast node that is not yet implemented."""
