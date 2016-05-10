@@ -824,12 +824,26 @@ class CFG(ast.NodeVisitor):
             if isinstance(ast_node, ast.FunctionDef):
                 return self.add_function(node, ast_node)
             elif isinstance(ast_node, ast.ClassDef):
-                return self.add_class(node)
+                return self.add_class(node, ast_node)
 
-    def add_class(self, call_node):
+    def add_class(self, call_node, def_node):
         label_visitor = LabelVisitor()
         label_visitor.visit(call_node)
-        return self.append_node(Node(label_visitor.result, call_node))
+
+        previous_node = self.nodes[-1]
+
+        entry_node = self.append_node(EntryExitNode("Entry " + def_node.name))
+
+        previous_node.connect(entry_node)
+
+        function_body_connect_statements = self.stmt_star_handler(def_node.body)
+        
+        entry_node.connect(function_body_connect_statements.first_statement)
+
+        exit_node = self.append_node(EntryExitNode("Exit " + def_node.name))
+        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
+
+        return Node(label_visitor.result, call_node)
         
     def visit_Name(self, node):
         label = LabelVisitor()
