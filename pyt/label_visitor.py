@@ -145,8 +145,11 @@ class LabelVisitor(NodeVisitor):
         self.visit(node.func)
         self.result += '('
 
-        self.handle_comma_separated(node.args)
-        self.result += ', '
+        if node.keywords:
+            self.handle_comma_separated(node.args)
+            self.result += ','
+        else:
+            self.handle_comma_separated(node.args)
         self.handle_comma_separated(node.keywords)
         self.result += ')'
 
