@@ -7,6 +7,7 @@ from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
+from project_handler import get_python_modules
 
 parser = argparse.ArgumentParser()
 
@@ -20,8 +21,11 @@ parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.'
 args = parser.parse_args()
 
 if __name__ == '__main__':
+    project_modules = get_python_modules('/'.join(args.filename.split('/')[0:-1]))
+    print('/'.join(args.filename.split('/')[0:-1]))
+
     tree = generate_ast(args.filename)
-    cfg = CFG()
+    cfg = CFG(project_modules)
     cfg.create(tree)
 
     cfg_list = [cfg]
