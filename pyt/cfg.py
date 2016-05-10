@@ -248,6 +248,7 @@ class CFG(ast.NodeVisitor):
         self.project_modules = project_modules
         self.imports = dict() # {call_name: ast_node}
         self.current_path = None
+        self.module_definitions = dict()
 
     def __repr__(self):
         output = ''
@@ -380,6 +381,8 @@ class CFG(ast.NodeVisitor):
             if self.imports[class_name] == None:
                 self.imports[class_name] = node
                 self.stmt_star_handler(node.body)
+        else:
+            self.module_definitions[class_name] = node
         return IgnoredNode()
 
     def visit_FunctionDef(self, node):
@@ -391,6 +394,8 @@ class CFG(ast.NodeVisitor):
         if function_name in self.imports:
             if self.imports[function_name] == None:
                 self.imports[function_name] = node
+        else:
+            self.module_definitions[function_name] = node
         return IgnoredNode()
 
     def return_connection_handler(self, function_CFG, exit_node):
@@ -789,17 +794,23 @@ class CFG(ast.NodeVisitor):
 
 
     def visit_Call(self, node):
-        try:
+        ast_node = None
+        import_name = None
+        if self.current_path:
             import_name = self.current_path + '.' + node.func.id
+        if node.func.id in self.module_definitions:
+            ast_node = self.module_definitions[node.func.id]
+        elif import_name in self.imports:
             ast_node = self.imports[import_name]
-        except:
+        else:      
             label = LabelVisitor()
             label.visit(node)
             builtin_call = Node(label.result, node, line_number = node.lineno)
             if not self.undecided:
                 self.nodes.append(builtin_call)
-            self.undecided = False
+                self.undecided = False
             return builtin_call
+
         if ast_node:
             if isinstance(ast_node, ast.FunctionDef):
                 return self.add_function(ast_node)
