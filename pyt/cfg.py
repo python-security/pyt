@@ -247,13 +247,13 @@ class CFG(ast.NodeVisitor):
     def __init__(self, project_modules):
         """Create an empty CFG."""
         self.nodes = list()
-        self.functions = OrderedDict()
         self.function_index = 0
         self.undecided = False
         self.project_modules = project_modules
         self.imports = dict() # {call_name: ast_node}
         self.current_path = None
         self.module_definitions = dict()
+        self.function_names = list()
 
     def __repr__(self):
         output = ''
@@ -396,6 +396,8 @@ class CFG(ast.NodeVisitor):
             function_name = '.'.join((self.current_path, node.name))
         else:
             function_name = node.name
+        self.function_names.append(function_name)
+
         if function_name in self.imports:
             if self.imports[function_name] == None:
                 self.imports[function_name] = node
@@ -403,9 +405,9 @@ class CFG(ast.NodeVisitor):
             self.module_definitions[function_name] = node
         return IgnoredNode()
 
-    def return_connection_handler(self, function_CFG, exit_node):
+    def return_connection_handler(self, nodes, exit_node):
         """Connect all return statements to the Exit node."""
-        for function_body_node in function_CFG.nodes:
+        for function_body_node in nodes:
             if isinstance(function_body_node, ConnectToExitNode):
                 if not exit_node in function_body_node.outgoing:
                     function_body_node.connect(exit_node)                    
@@ -469,7 +471,7 @@ class CFG(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function_name = list(self.functions.keys())[-1]
+        this_function_name = self.function_names[-1]
 
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
@@ -581,6 +583,8 @@ class CFG(ast.NodeVisitor):
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno)
 
         self.nodes.append(call_assignment)
+
+        self.undecided = False
         
         return call_assignment
     
@@ -635,14 +639,14 @@ class CFG(ast.NodeVisitor):
         #issue23
         iterator_label = LabelVisitor()
         iterator = iterator_label.visit(node.iter)
-        self.undecided = False 
+        self.undecided = False
 
         target_label = LabelVisitor()
         target = target_label.visit(node.target)
 
         for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno))
 
-        if isinstance(node.iter, ast.Call) and node.iter.func.id in self.functions:
+        if isinstance(node.iter, ast.Call) and node.iter.func.id in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
             
@@ -691,13 +695,6 @@ class CFG(ast.NodeVisitor):
             previous_node = self.nodes[-1]
             local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name, None, [temp_name]))
             previous_node.connect(local_scope_node)
-
-    def insert_function_body(self, node):
-        """Insert the function body into the CFG."""
-        function_nodes = deepcopy(self.functions[node.func.id].nodes)
-        self.nodes[-1].connect(function_nodes[0])
-        self.nodes.extend(function_nodes)
-        return function_nodes
 
     def restore_saved_local_scope(self, saved_variables):
         """Restore the previously saved variables to their original values.
@@ -769,33 +766,37 @@ class CFG(ast.NodeVisitor):
                     return i.path
         return None
 
-    def add_function(self, node):
+    def add_function(self, call_node, def_node):
         self.function_index += 1
 
         saved_variables = self.save_local_scope()
-        
-        self.save_actual_parameters_in_temp(node.args, Arguments(node.args))
 
-        self.create_local_scope_from_actual_parameters(node.args, Arguments(node.args))
+        self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
 
-        function_nodes = self.get_function_nodes(node)
+        self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
+
+        function_nodes = self.get_function_nodes(def_node)
 
         restore_nodes = self.restore_saved_local_scope(saved_variables)
 
-        self.return_handler(node, function_nodes, restore_nodes)
+        self.return_handler(call_node, function_nodes, restore_nodes)
         return self.nodes[-1]
 
     def get_function_nodes(self, node):
         length = len(self.nodes)
-        entry_node = self.append_node(EntryExitNode("Entry " + node.name, None))
+        previous_node = self.nodes[-1]
+        entry_node = self.append_node(EntryExitNode("Entry " + node.name))
+        previous_node.connect(entry_node)
         function_body_connect_statements = self.stmt_star_handler(node.body)
+        
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = self.append_node(EntryExitNode("Exit " + node.name, None))
+        exit_node = self.append_node(EntryExitNode("Exit " + node.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         self.return_connection_handler(self.nodes[length:], exit_node)
-        return self.nodes[lenght:]
+
+        return self.nodes[length:]
 
 
     def visit_Call(self, node):
@@ -803,22 +804,25 @@ class CFG(ast.NodeVisitor):
         import_name = None
         if self.current_path:
             import_name = self.current_path + '.' + node.func.id
+
         if node.func.id in self.module_definitions:
             ast_node = self.module_definitions[node.func.id]
         elif import_name in self.imports:
             ast_node = self.imports[import_name]
-        else:      
+        else:
             label = LabelVisitor()
             label.visit(node)
             builtin_call = Node(label.result, node, line_number = node.lineno)
+
             if not self.undecided:
                 self.nodes.append(builtin_call)
-                self.undecided = False
+            self.undecided = False
             return builtin_call
+        self.undecided = False
 
         if ast_node:
             if isinstance(ast_node, ast.FunctionDef):
-                return self.add_function(ast_node)
+                return self.add_function(node, ast_node)
             elif isinstance(ast_node, ast.ClassDef):
                 return self.add_class(node)
 
