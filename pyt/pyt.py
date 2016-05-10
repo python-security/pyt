@@ -21,10 +21,12 @@ parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.'
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    project_modules = get_python_modules('/'.join(args.filename.split('/')[0:-1]))
-    print('/'.join(args.filename.split('/')[0:-1]))
 
-    tree = generate_ast(args.filename)
+    path = os.path.normpath(args.filename)
+    
+    project_modules = get_python_modules(os.path.dirname(path))
+    
+    tree = generate_ast(path)
     cfg = CFG(project_modules)
     cfg.create(tree)
 
