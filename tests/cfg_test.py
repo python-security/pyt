@@ -5,7 +5,7 @@ from ast import parse
 from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node, EntryExitNode
-
+from project_handler import get_python_modules
 
 class CFGGeneralTest(BaseTestCase):
     def test_repr_cfg(self):
@@ -587,10 +587,12 @@ class CFGFunctionNodeTest(BaseTestCase):
         return (successor, node)
 
     def test_simple_function(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple_function.py')
+        path = '../example/example_inputs/simple_function.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
-        
+
+        print(repr(self.cfg))
         self.assert_length(self.cfg.nodes, expected_length=8)
         
         entry = 0
@@ -602,14 +604,18 @@ class CFGFunctionNodeTest(BaseTestCase):
         y_load = 6
         exit_ = 7
 
-        self.assertInCfg([self.connected(entry, y_assignment), self.connected(y_assignment, save_y),
-                          self.connected(save_y, entry_foo), self.connected(entry_foo, body_foo),
-                          self.connected(body_foo, exit_foo), self.connected(exit_foo, y_load),
+        self.assertInCfg([self.connected(entry, y_assignment),
+                          self.connected(y_assignment, save_y),
+                          self.connected(save_y, entry_foo),
+                          self.connected(entry_foo, body_foo),
+                          self.connected(body_foo, exit_foo),
+                          self.connected(exit_foo, y_load),
                           self.connected(y_load, exit_)])
 
     def test_function_line_numbers(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple_function.py')
+        path = '../example/example_inputs/simple_function.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
         
         y_assignment = self.cfg.nodes[1]
@@ -625,8 +631,9 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertLineNumber(body_foo, 2)
 
     def test_function_parameters(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/parameters_function.py')
+        path = '../example/example_inputs/parameters_function.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
         
         self.assert_length(self.cfg.nodes, expected_length=12)
@@ -652,8 +659,9 @@ class CFGFunctionNodeTest(BaseTestCase):
                           self.connected(restore_actual_y, exit_)])
         
     def test_function_with_return(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple_function_with_return.py')
+        path = '../example/example_inputs/simple_function_with_return.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
         
         self.assert_length(self.cfg.nodes, expected_length=18)
@@ -662,8 +670,9 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertInCfg(list(l))
 
     def test_function_multiple_return(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/function_with_multiple_return.py')
+        path = '../example/example_inputs/function_with_multiple_return.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
 
         self.assert_length(self.cfg.nodes, expected_length=9)
@@ -689,9 +698,10 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, call_foo)])
         
 
-    def test_function_line_numbers(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/simple_function_with_return.py')
+    def test_function_line_numbers_2(self):
+        path = '../example/example_inputs/simple_function_with_return.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
         
         assignment_with_function = self.cfg.nodes[1]
@@ -699,11 +709,13 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertLineNumber(assignment_with_function, 9)
 
     def test_multiple_parameters(self):
-        self.cfg = CFG()
-        tree = generate_ast('../example/example_inputs/multiple_parameters_function.py')
+        path = '../example/example_inputs/multiple_parameters_function.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
         self.cfg.create(tree)
         
         length = len(self.cfg.nodes)
+        print(repr(self.cfg))
         self.assertEqual(length, 21)
         l = zip(range(1, length), range(length))
 
@@ -800,3 +812,12 @@ class Recusion(BaseTestCase):
         self.cfg.create(tree)
 
         #self.assert_length(self.cfg.nodes, expected_length=0)
+
+class Class(BaseTestCase):
+    """Test Class def."""
+    def test_function_parameters(self):
+        path = '../example/example_inputs/class.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
+        self.cfg.create(tree)
+        print(repr(self.cfg))
