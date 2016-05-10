@@ -658,10 +658,10 @@ class CFG(ast.NodeVisitor):
             previous_node.connect(saved_scope_node)
         return saved_variables
 
-    def save_actual_parameters_in_temp(self, args, function):
+    def save_actual_parameters_in_temp(self, args, arguments):
         """Save the actual parameters of a function call."""
         for i, parameter in enumerate(args):
-            temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]
+            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
             
             if isinstance(parameter, ast.Num):
                 n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name, None, None)
@@ -673,11 +673,11 @@ class CFG(ast.NodeVisitor):
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
-    def create_local_scope_from_actual_parameters(self, args, function):
+    def create_local_scope_from_actual_parameters(self, args, arguments):
         """Create the local scope before entering the body of a function call."""
         for i, parameter in enumerate(args):
-            temp_name = 'temp_' + str(self.function_index) + '_' + function.arguments[i]                
-            local_name = function.arguments[i]
+            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]                
+            local_name = arguments[i]
             previous_node = self.nodes[-1]
             local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name, None, [temp_name]))
             previous_node.connect(local_scope_node)
@@ -759,26 +759,58 @@ class CFG(ast.NodeVisitor):
                     return i.path
         return None
 
+    def add_function(self, node):
+        self.function_index += 1
+
+        saved_variables = self.save_local_scope()
+        
+        self.save_actual_parameters_in_temp(node.args, Arguments(node.args))
+
+        self.create_local_scope_from_actual_parameters(node.args, Arguments(node.args))
+
+        function_nodes = self.get_function_nodes(node)
+
+        restore_nodes = self.restore_saved_local_scope(saved_variables)
+
+        self.return_handler(node, function_nodes, restore_nodes)
+        return self.nodes[-1]
+
+    def get_function_nodes(self, node):
+        length = len(self.nodes)
+        entry_node = self.append_node(EntryExitNode("Entry " + node.name, None))
+        function_body_connect_statements = self.stmt_star_handler(node.body)
+        entry_node.connect(function_body_connect_statements.first_statement)
+
+        exit_node = self.append_node(EntryExitNode("Exit " + node.name, None))
+        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
+
+        self.return_connection_handler(self.nodes[length:], exit_node)
+        return self.nodes[lenght:]
+
+
     def visit_Call(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
-        builtin_call = Node(label.result, node, line_number = node.lineno)
-
-        path = self.in_project(node.func)
-        if path:
-            cfg = CFG(self.imports)
-            tree = generate_ast(path)
-            cfg.create(tree)
-            return self.insert_function(cfg, node)
-        elif not isinstance(node.func, ast.Attribute) and node.func.id in self.functions:
-            return self.insert_function(self, node)
-        else:
+        try:
+            import_name = self.current_path + '.' + node.func.id
+            ast_node = self.imports[import_name]
+        except:
+            label = LabelVisitor()
+            label.visit(node)
+            builtin_call = Node(label.result, node, line_number = node.lineno)
             if not self.undecided:
                 self.nodes.append(builtin_call)
             self.undecided = False
             return builtin_call
+        if ast_node:
+            if isinstance(ast_node, ast.FunctionDef):
+                return self.add_function(ast_node)
+            elif isinstance(ast_node, ast.ClassDef):
+                return self.add_class(node)
 
+    def add_class(self, call_node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(call_node)
+        return self.append_node(Node(label_visitor.result, call_node))
+        
     def visit_Name(self, node):
         label = LabelVisitor()
         label.visit(node)
