@@ -794,11 +794,26 @@ class CFG(ast.NodeVisitor):
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
 
-    # Visitors that are just ignoring statements
+    def add_module(self, module):
+        tree = generate_ast(module[1])
+        self.append_node(EntryExitNode('Entry ' + module[0]))
+        self.current_path = '.'.join(module[0].split('.')[:-1])
+        if not module[0] in self.imports:
+            self.imports[module[0]] = None
+        self.generic_visit(tree)
+        return self.append_node(EntryExitNode('Exit ' + module[0]))
+
     def visit_Import(self, node):
+        for name in node.names:
+            for module in self.project_modules:
+                if name.name == module[0]:
+                    return self.add_module(module)
         return IgnoredNode()
 
     def visit_ImportFrom(self, node):
+        for module in self.project_modules:
+            if node.module == module[0]:
+                return self.add_module(module)
         return IgnoredNode()
 
     def visit_Str(self, node):
