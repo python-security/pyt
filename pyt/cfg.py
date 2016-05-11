@@ -866,7 +866,7 @@ class CFG(ast.NodeVisitor):
         self.current_path = '.'.join(module[0].split('.')[:-1])
         if not module[0] in self.imports:
             self.imports[module[0]] = None
-        self.generic_visit(tree)
+        self.visit(tree)
         return self.append_node(EntryExitNode('Exit ' + module[0]))
 
     def visit_Import(self, node):
