@@ -800,13 +800,27 @@ class CFG(ast.NodeVisitor):
 
 
     def visit_Call(self, node):
+        _id = None
+        if isinstance(node.func, ast.Name):
+            _id = node.func.id
+        elif isinstance(node.func, ast.Attribute):
+            n = node.func
+            _id = ''
+            while isinstance(n, ast.Attribute):
+                _id += n.attr
+                _id += '.'
+                n = n.value
+            _id += n.id
+        else:
+            raise Exception('Case not handled.')
+
         ast_node = None
         import_name = None
         if self.current_path:
-            import_name = self.current_path + '.' + node.func.id
+            import_name = self.current_path + '.' + _id
 
-        if node.func.id in self.module_definitions:
-            ast_node = self.module_definitions[node.func.id]
+        if _id in self.module_definitions:
+            ast_node = self.module_definitions[_id]
         elif import_name in self.imports:
             ast_node = self.imports[import_name]
         else:
