@@ -285,16 +285,44 @@ class CFG(ast.NodeVisitor):
         if not module_statements:
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
         
-        first_node = module_statements.first_statement
+        if not isinstance(module_statements, IgnoredNode):
+            first_node = module_statements.first_statement
 
+            if not CALL_IDENTIFIER in first_node.label:
+                entry_node.connect(first_node)
+
+            exit_node = self.append_node(EntryExitNode("Exit module"))
+        
+            last_nodes = module_statements.last_statements
+            exit_node.connect_predecessors(last_nodes)
+        else:
+            exit_node = self.append_node(EntryExitNode("Exit module"))    
+            entry_node.connect(exit_node)
+
+    def create_function(self, function_node):
+        """Create a Control Flow Graph for at separate function
+
+        Args:
+            function_node: is the node to create a CFG of
+        """
+        print(function_node.name)
+        
+        self.function_names.append(function_node.name)
+        
+        entry_node = self.append_node(EntryExitNode("Entry module"))
+                
+        module_statements = self.stmt_star_handler(function_node.body)
+
+        first_node = module_statements.first_statement
+        
         if not CALL_IDENTIFIER in first_node.label:
             entry_node.connect(first_node)
 
         exit_node = self.append_node(EntryExitNode("Exit module"))
-            
+        
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
-    
+            
     def get_first_statement(self, node_or_tuple):
         """Find the first statement of the provided object.
 

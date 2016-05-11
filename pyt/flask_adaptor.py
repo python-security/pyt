@@ -18,7 +18,7 @@ class FlaskAdaptor(FrameworkAdaptor):
 
     def get_cfg(self, ast_node, cfg):
         cfg = CFG(cfg.project_modules)
-        cfg.create(ast_node)
+        cfg.create_function(ast_node)
         return cfg
 
     def find_flask_route_functions(self, cfg):
