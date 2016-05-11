@@ -579,11 +579,20 @@ class CFG(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
-            return self.assign_tuple_target(node, rhs_visitor.result)
+            if isinstance(node.value, ast.Tuple):
+                return self.assign_tuple_target(node, rhs_visitor.result)
+            elif isinstance(node.value, ast.Call):
+                call = None
+                for element in node.targets[0].elts:
+                    label = LabelVisitor()
+                    label.visit(element)
+                    call = self.assignment_call_node(label.result, node)
+                return call
         elif len(node.targets) > 1:                #  x = y = 3
             return self.assign_multi_target(node, rhs_visitor.result)        
         else:                                      
             if isinstance(node.value, ast.Call):   #  x = call()
+                
                 label = LabelVisitor()
                 label.visit(node.targets[0])
                 return self.assignment_call_node(label.result, node)
