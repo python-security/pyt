@@ -372,6 +372,7 @@ class CFG(ast.NodeVisitor):
             first_statement = self.get_first_statement(cfg_statements[0])
             last_statements = self.get_last_statements(cfg_statements)
             return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
+        return IgnoredNode()
     
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
