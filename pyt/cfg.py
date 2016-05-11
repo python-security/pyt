@@ -675,7 +675,9 @@ class CFG(ast.NodeVisitor):
 
         for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno))
 
-        if isinstance(node.iter, ast.Call) and node.iter.func.id in self.function_names:
+        
+        
+        if isinstance(node.iter, ast.Call) and self.get_call_names(node.iter.func, '')  in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
             
@@ -766,7 +768,11 @@ class CFG(ast.NodeVisitor):
             return result + node.id
         elif isinstance(node, ast.Call):
             return result[0:-1]
+        elif isinstance(node, ast.Str):
+            return result + node.s
         else:
+            print('attr ',node.attr)
+            print('value ', node.value)
             return self.get_call_names(node.value, result + node.attr + '.')
 
     def insert_function(self, cfg, node):
@@ -827,22 +833,9 @@ class CFG(ast.NodeVisitor):
 
         return self.nodes[length:]
 
-
     def visit_Call(self, node):
-        _id = None
-        if isinstance(node.func, ast.Name):
-            _id = node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            n = node.func
-            _id = ''
-            while isinstance(n, ast.Attribute):
-                _id += n.attr
-                _id += '.'
-                n = n.value
-            _id += n.id
-        else:
-            raise Exception('Case not handled.')
-
+        _id = self.get_call_names(node.func, '')
+        
         ast_node = None
         import_name = None
         if self.current_path:
