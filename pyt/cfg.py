@@ -721,6 +721,11 @@ class CFG(ast.NodeVisitor):
                 n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name, None, None)
             elif isinstance(parameter, ast.Name):
                 n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name, None, [parameter.id])
+            elif isinstance(parameter, ast.Str):
+                label = LabelVisitor()
+                label.visit(parameter)
+                
+                n = AssignmentNode(temp_name + ' = ' + label.result, temp_name, None, None)
             else:
                 raise TypeError('Unhandled type: ' + str(type(parameter)))
             
