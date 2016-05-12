@@ -10,6 +10,8 @@ from copy import deepcopy
 
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
+from module_definitions import ModuleDefinition, ModuleDefinitions
+from project_handler import get_directory_modules
 
 CALL_IDENTIFIER = '¤'
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statements')
@@ -244,16 +246,15 @@ class Function(object):
 class CFG(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self, project_modules):
+    def __init__(self, project_modules, local_modules):
         """Create an empty CFG."""
         self.nodes = list()
         self.function_index = 0
         self.undecided = False
         self.project_modules = project_modules
-        self.imports = dict() # {call_name: ast_node}
-        self.current_path = None
-        self.module_definitions = dict()
+        self.local_modules = local_modules
         self.function_names = list()
+        self.module_definitions_stack = list()
 
     def __repr__(self):
         output = ''
@@ -278,6 +279,8 @@ class CFG(ast.NodeVisitor):
         Args:
             module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
         """
+        self.module_definitions_stack.append(ModuleDefinitions())
+        
         entry_node = self.append_node(EntryExitNode("Entry module"))
                 
         module_statements = self.visit(module_node)
@@ -406,32 +409,25 @@ class CFG(ast.NodeVisitor):
         return self.stmt_star_handler(node.body)
 
     def visit_ClassDef(self, node):
-        class_name = None
-        if self.current_path:
-            class_name = '.'.join((self.current_path, node.name))
-        else:
-            class_name = node.name
-        if class_name in self.imports:
-            if self.imports[class_name] == None:
-                self.imports[class_name] = node
-                self.stmt_star_handler(node.body)
-        else:
-            self.module_definitions[class_name] = node
+        self.stmt_star_handler(node.body)
+        
         return IgnoredNode()
 
     def visit_FunctionDef(self, node):
-        function_name = None
-        if self.current_path:
-            function_name = '.'.join((self.current_path, node.name))
-        else:
-            function_name = node.name
-        self.function_names.append(function_name)
+        local_definitions = self.module_definitions_stack[-1]
+        parent_definitions = self.module_definitions_stack[-2]
 
-        if function_name in self.imports:
-            if self.imports[function_name] == None:
-                self.imports[function_name] = node
+        if parent_definitions.is_import():
+            parent_definition = ModuleDefinition(parent_definitions, node.name)
+            parent_definition.node = node
+            parent_definitions.append(parent_definition)
+
+            local_definition = ModuleDefinition(local_definition, node.name)
+            local_definition.node = node
+            local_definitions.append(local_definition)
         else:
-            self.module_definitions[function_name] = node
+            parent_definitions.set_defintion_node(node, node.name)
+            
         return IgnoredNode()
 
     def return_connection_handler(self, nodes, exit_node):
@@ -849,33 +845,20 @@ class CFG(ast.NodeVisitor):
 
     def visit_Call(self, node):
         _id = self.get_call_names(node.func, '')
-        
         ast_node = None
-        import_name = None
-        if self.current_path:
-            import_name = self.current_path + '.' + _id
+        
+        local_definitions = self.module_definitions_stack[-1]
+        definition = local_definitions.get_definition(_id)
 
-        if _id in self.module_definitions:
-            ast_node = self.module_definitions[_id]
-        elif import_name in self.imports:
-            ast_node = self.imports[import_name]
-        else:
-            label = LabelVisitor()
-            label.visit(node)
-            builtin_call = Node(label.result, node, line_number = node.lineno)
+        label = LabelVisitor()
+        label.visit(node)
+        builtin_call = Node(label.result, node, line_number = node.lineno)
 
-            if not self.undecided:
-                self.nodes.append(builtin_call)
-            self.undecided = False
-            return builtin_call
+        if not self.undecided:
+            self.nodes.append(builtin_call)
         self.undecided = False
-
-        if ast_node:
-            if isinstance(ast_node, ast.FunctionDef):
-                return self.add_function(node, ast_node)
-            elif isinstance(ast_node, ast.ClassDef):
-                return self.add_class(node, ast_node)
-
+        return builtin_call
+        
     def add_class(self, call_node, def_node):
         label_visitor = LabelVisitor()
         label_visitor.visit(call_node)
@@ -910,26 +893,44 @@ class CFG(ast.NodeVisitor):
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
 
-    def add_module(self, module):
-        tree = generate_ast(module[1])
+    def add_module(self, module, module_name, local_names):
+        module_path = module[1]
+        self.local_modules = get_directory_modules(module_path)
+        tree = generate_ast(module_path)
+
+        module_definitions = ModuleDefinitions(module_name)
+        self.module_definitions_stack.append(module_definitions)
+
+        if local_names:
+            for name in local_names:
+                definition = ModuleDefinition(module_definitions, name)
+                module_definitions.append(definition)    
+                
         self.append_node(EntryExitNode('Entry ' + module[0]))
-        self.current_path = '.'.join(module[0].split('.')[:-1])
-        if not module[0] in self.imports:
-            self.imports[module[0]] = None
         self.visit(tree)
-        return self.append_node(EntryExitNode('Exit ' + module[0]))
+        exit_node = self.append_node(EntryExitNode('Exit ' + module[0]))
+
+        self.module_definitions_stack.pop()
+
+        return exit_node
 
     def visit_Import(self, node):
         for name in node.names:
+            for module in self.local_modules:
+                if name.name == module[0]:
+                    return self.add_module(module, name.name, None)
             for module in self.project_modules:
                 if name.name == module[0]:
-                    return self.add_module(module)
+                    return self.add_module(module, name.name, None)
         return IgnoredNode()
 
     def visit_ImportFrom(self, node):
+        for module in self.local_modules:
+            if node.module == module[0]:
+                    return self.add_module(module, None, [name.name for name in node.names])
         for module in self.project_modules:
             if node.module == module[0]:
-                return self.add_module(module)
+                    return self.add_module(module, None, [name.name for name in node.names])
         return IgnoredNode()
 
     def visit_Str(self, node):

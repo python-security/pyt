@@ -6,14 +6,28 @@ Then
 import ast
 import os
 
-from cfg import CFG
-
 CLASS_FUNCTION_SEPERATOR = ':'
 
 def is_python_module(path):
     if os.path.splitext(path)[1] == '.py':
         return True
     return False
+
+local_modules = list()
+def get_directory_modules(directory):
+    
+    if not os.path.isdir(directory):
+        directory = os.path.dirname(directory)
+        
+    if local_modules and os.path.dirname(local_modules[0][1]) == directory:
+        return local_modules
+    
+    for path in os.listdir(directory):
+        if is_python_module(path):
+            module_name = os.path.splitext(path)[0]
+            local_modules.append((module_name, os.path.join(directory,path)))
+
+    return local_modules
 
 def get_python_modules(path):
     module_root = os.path.split(path)[1]
@@ -27,6 +41,7 @@ def get_python_modules(path):
                     modules.append(('.'.join((module_root, directory, filename.replace('.py', ''))), os.path.join(root, filename)))
                 else:
                     modules.append(('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename)))
+
     return modules
 
 def get_project_module_names(path):
