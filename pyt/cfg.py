@@ -803,14 +803,6 @@ class CFG(ast.NodeVisitor):
             
         return self.nodes[-1]
 
-    def in_project(self, node):
-        call_name = self.get_call_names(node, '')
-        if self.imports:
-            for i in self.imports:
-                if call_name == i.name:
-                    return i.path
-        return None
-
     def add_function(self, call_node, def_node):
         self.function_index += 1
 
