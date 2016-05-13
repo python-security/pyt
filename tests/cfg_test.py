@@ -721,6 +721,14 @@ class CFGFunctionNodeTest(BaseTestCase):
 
         self.assertInCfg(list(l))
 
+    def test_call_on_call(self):
+        path = '../example/example_inputs/call_on_call.py'
+        self.cfg = CFG(get_python_modules(path))
+        tree = generate_ast(path)
+        self.cfg.create(tree)
+        
+        print(self.cfg)
+
 
 class CFGCallWithAttributeTest(BaseTestCase):
     def setUp(self):
