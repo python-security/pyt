@@ -23,6 +23,27 @@ def generate_ast(path):
     with open(path, 'r') as f:
         return ast.parse(f.read())
 
+def list_to_dotted_string(list_of_components):
+    reverse = list_of_components[::-1]
+    return '.'.join(reverse)
+    
+def get_call_names_helper(node, result):
+    """Recursively finds all function names."""
+    if isinstance(node, ast.Name):
+        result.append(node.id)
+        return list_to_dotted_string(result)
+    elif isinstance(node, ast.Call):
+        return list_to_dotted_string(result)
+    elif isinstance(node, ast.Str):
+        result.append(node.s)
+        return list_to_dotted_string(result)
+    else:
+        result.append(node.attr)
+        return get_call_names_helper(node.value, result)
+
+def get_call_names(node):
+    result = list()
+    return get_call_names_helper(node, result)
 
 class IgnoredNode(object):
     """Ignored Node sent from a ast node that is not yet implemented."""
@@ -689,7 +710,7 @@ class CFG(ast.NodeVisitor):
 
         
         
-        if isinstance(node.iter, ast.Call) and self.get_call_names(node.iter.func, '')  in self.function_names:
+        if isinstance(node.iter, ast.Call) and get_call_names(node.iter.func)  in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
             
@@ -771,26 +792,13 @@ class CFG(ast.NodeVisitor):
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
-                    RHS = 'ret_' + node.func.id
+                    RHS = 'ret_' + get_call_names(node.func)
                     call_node = self.append_node(RestoreNode(LHS + ' = ' + RHS, LHS, [RHS]))
                     previous_node.connect(call_node)
                     
             else:
                 # lave rigtig kobling
                 pass
-
-    def get_call_names(self, node, result):
-        """Recursively finds all function names."""
-        if isinstance(node, ast.Name):
-            return result + node.id
-        elif isinstance(node, ast.Call):
-            return result[0:-1]
-        elif isinstance(node, ast.Str):
-            return result + node.s
-        else:
-            print('attr ',node.attr)
-            print('value ', node.value)
-            return self.get_call_names(node.value, result + node.attr + '.')
 
     def insert_function(self, cfg, node):
         function = cfg.functions[node.func.id]
@@ -843,7 +851,7 @@ class CFG(ast.NodeVisitor):
         return self.nodes[length:]
 
     def visit_Call(self, node):
-        _id = self.get_call_names(node.func, '')
+        _id = get_call_names(node.func)
         ast_node = None
         
         local_definitions = self.module_definitions_stack[-1]
