@@ -721,14 +721,14 @@ class CFG(ast.NodeVisitor):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
             
             if isinstance(parameter, ast.Num):
-                n = AssignmentNode(temp_name + ' = ' + str(parameter.n), temp_name, None, None)
+                n = RestoreNode(temp_name + ' = ' + str(parameter.n), temp_name, None)
             elif isinstance(parameter, ast.Name):
-                n = AssignmentNode(temp_name + ' = ' + parameter.id, temp_name, None, [parameter.id])
+                n = RestoreNode(temp_name + ' = ' + parameter.id, temp_name, [parameter.id])
             elif isinstance(parameter, ast.Str):
                 label = LabelVisitor()
                 label.visit(parameter)
                 
-                n = AssignmentNode(temp_name + ' = ' + label.result, temp_name, None, None)
+                n = RestoreNode(temp_name + ' = ' + label.result, temp_name, None)
             else:
                 raise TypeError('Unhandled type: ' + str(type(parameter)))
             
@@ -741,7 +741,7 @@ class CFG(ast.NodeVisitor):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]                
             local_name = arguments[i]
             previous_node = self.nodes[-1]
-            local_scope_node = self.append_node(AssignmentNode(local_name + ' = ' + temp_name, local_name, None, [temp_name]))
+            local_scope_node = self.append_node(RestoreNode(local_name + ' = ' + temp_name, local_name, [temp_name]))
             previous_node.connect(local_scope_node)
 
     def restore_saved_local_scope(self, saved_variables):
