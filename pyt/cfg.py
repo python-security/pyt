@@ -417,17 +417,24 @@ class CFG(ast.NodeVisitor):
         local_definitions = self.module_definitions_stack[-1]
         parent_definitions = self.module_definitions_stack[-2]
 
-        if parent_definitions.is_import():
-            parent_definition = ModuleDefinition(parent_definitions, node.name)
+        if local_definitions.is_import():
+            parent_definition = ModuleDefinition(parent_definitions, node.name, local_definitions.module_name)
             parent_definition.node = node
             parent_definitions.append(parent_definition)
-
-            local_definition = ModuleDefinition(local_definition, node.name)
+            print('name',node.name, 'parent_definition.name', parent_definition.name)
+            print('defintions.name ', parent_definitions.module_name)
+            print('local', local_definitions.module_name)
+            
+            local_definition = ModuleDefinition(local_definitions, node.name, None)
             local_definition.node = node
             local_definitions.append(local_definition)
+
+            print('local_definition.name', local_definition.name)
         else:
+            local_definitions.set_defintion_node(node, node.name)
             parent_definitions.set_defintion_node(node, node.name)
-            
+
+        self.function_names.append(node.name)
         return IgnoredNode()
 
     def return_connection_handler(self, nodes, exit_node):
@@ -803,32 +810,32 @@ class CFG(ast.NodeVisitor):
             
         return self.nodes[-1]
 
-    def add_function(self, call_node, def_node):
+    def add_function(self, call_node, definition):
         self.function_index += 1
-
+        def_node = definition.node
         saved_variables = self.save_local_scope()
 
         self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
 
         self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
 
-        function_nodes = self.get_function_nodes(def_node)
+        function_nodes = self.get_function_nodes(definition)
 
         restore_nodes = self.restore_saved_local_scope(saved_variables)
 
         self.return_handler(call_node, function_nodes, restore_nodes)
         return self.nodes[-1]
 
-    def get_function_nodes(self, node):
+    def get_function_nodes(self, definition):
         length = len(self.nodes)
         previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryExitNode("Entry " + node.name))
+        entry_node = self.append_node(EntryExitNode("Entry " + definition.name))
         previous_node.connect(entry_node)
-        function_body_connect_statements = self.stmt_star_handler(node.body)
+        function_body_connect_statements = self.stmt_star_handler(definition.node.body)
         
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = self.append_node(EntryExitNode("Exit " + node.name))
+        exit_node = self.append_node(EntryExitNode("Exit " + definition.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         self.return_connection_handler(self.nodes[length:], exit_node)
