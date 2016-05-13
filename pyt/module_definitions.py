@@ -42,7 +42,5 @@ class ModuleDefinitions():
         definition = self.get_definition(name)
         if definition:
             definition.node = node
-        else:
-            raise Exception('Attempting to set node on nonexisting defintion')
 
             
