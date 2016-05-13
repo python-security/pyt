@@ -23,8 +23,9 @@ class ModuleDefinition():
 
 class ModuleDefinitions():
     def __init__(self, module_name=None):
-        self.definitions = []
+        self.definitions = list()
         self.module_name = module_name
+        self.classes = list()
 
     def append(self, definition):
         self.definitions.append(definition)
