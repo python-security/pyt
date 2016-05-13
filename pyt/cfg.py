@@ -430,34 +430,64 @@ class CFG(ast.NodeVisitor):
         return self.stmt_star_handler(node.body)
 
     def visit_ClassDef(self, node):
+        self.add_to_definitions(node)
+
+        local_definitions = self.module_definitions_stack[-1]
+        local_definitions.classes.append(node.name)
+
+        parent_definitions = self.get_parent_definitions()
+        if parent_definitions:
+            parent_definitions.classes.append(node.name)
+        
         self.stmt_star_handler(node.body)
+
+        local_definitions.classes.pop()
+        if parent_definitions:
+            parent_definitions.classes.pop()
         
         return IgnoredNode()
 
+    def get_parent_definitions(self):
+        parent_definitions = None
+        if len(self.module_definitions_stack) > 1:
+            parent_definitions = self.module_definitions_stack[-2]
+        return parent_definitions
+
     def visit_FunctionDef(self, node):
+        self.add_to_definitions(node)
+        
+        return IgnoredNode()
+
+    def add_to_definitions(self, node):
         local_definitions = self.module_definitions_stack[-1]
-        parent_definitions = self.module_definitions_stack[-2]
+        parent_definitions = self.get_parent_definitions()
 
         if local_definitions.is_import():
-            parent_definition = ModuleDefinition(parent_definitions, node.name, local_definitions.module_name)
-            parent_definition.node = node
-            parent_definitions.append(parent_definition)
-            print('name',node.name, 'parent_definition.name', parent_definition.name)
-            print('defintions.name ', parent_definitions.module_name)
+            if parent_definitions:
+                parent_qualified_name = '.'.join(parent_definitions.classes + [node.name])
+                parent_definition = ModuleDefinition(parent_definitions, parent_qualified_name, local_definitions.module_name)
+                parent_definition.node = node
+                parent_definitions.append(parent_definition)
+                print('name',node.name, 'parent_definition.name', parent_definition.name)
+                print('defintions.name ', parent_definitions.module_name)
             print('local', local_definitions.module_name)
-            
-            local_definition = ModuleDefinition(local_definitions, node.name, None)
+
+            local_qualified_name = '.'.join(local_definitions.classes + [node.name])
+            local_definition = ModuleDefinition(local_definitions, local_qualified_name, None)
             local_definition.node = node
             local_definitions.append(local_definition)
 
             print('local_definition.name', local_definition.name)
         else:
+            print('HEST')
+            print(str(local_definitions))
+            print(node.name)
             local_definitions.set_defintion_node(node, node.name)
-            parent_definitions.set_defintion_node(node, node.name)
+            if parent_definitions:
+                parent_definitions.set_defintion_node(node, node.name)
 
         self.function_names.append(node.name)
-        return IgnoredNode()
-
+    
     def return_connection_handler(self, nodes, exit_node):
         """Connect all return statements to the Exit node."""
         for function_body_node in nodes:
