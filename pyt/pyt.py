@@ -7,7 +7,7 @@ from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
-from project_handler import get_python_modules
+from project_handler import get_python_modules, get_directory_modules
 
 parser = argparse.ArgumentParser()
 
@@ -23,11 +23,13 @@ args = parser.parse_args()
 if __name__ == '__main__':
 
     path = os.path.normpath(args.filename)
-    
-    project_modules = get_python_modules(os.path.dirname(path))
+
+    directory = os.path.dirname(path)
+    project_modules = get_python_modules(directory)
+    local_modules = get_directory_modules(directory)
     
     tree = generate_ast(path)
-    cfg = CFG(project_modules)
+    cfg = CFG(project_modules, local_modules)
     cfg.create(tree)
 
     cfg_list = [cfg]
