@@ -849,6 +849,9 @@ class CFG(ast.NodeVisitor):
         local_definitions = self.module_definitions_stack[-1]
         definition = local_definitions.get_definition(_id)
 
+        if definition:
+            return self.add_function(node, definition)
+        
         label = LabelVisitor()
         label.visit(node)
         builtin_call = Node(label.result, node, line_number = node.lineno)
@@ -897,13 +900,16 @@ class CFG(ast.NodeVisitor):
         self.local_modules = get_directory_modules(module_path)
         tree = generate_ast(module_path)
 
+        parent_definitions = self.module_definitions_stack[-1]
+        
         module_definitions = ModuleDefinitions(module_name)
         self.module_definitions_stack.append(module_definitions)
 
         if local_names:
             for name in local_names:
-                definition = ModuleDefinition(module_definitions, name)
-                module_definitions.append(definition)    
+                definition = ModuleDefinition(module_definitions, name, module_name)
+                module_definitions.append(definition)
+                parent_definitions.append(definition)
                 
         self.append_node(EntryExitNode('Entry ' + module[0]))
         self.visit(tree)
