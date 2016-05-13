@@ -1,3 +1,5 @@
+project_definitions = list()
+
 class ModuleDefinition():
     name = None
     node = None
@@ -20,15 +22,18 @@ class ModuleDefinition():
         if self.node:
             node = str(self.node)
         return 'ModuleDefinition: ' + ';'.join((name, node))
-
+    
 class ModuleDefinitions():
-    def __init__(self, module_name=None):
+    def __init__(self, import_names=None, module_name=None):
         self.definitions = list()
         self.module_name = module_name
         self.classes = list()
+        self.import_names = import_names
 
     def append(self, definition):
-        self.definitions.append(definition)
+        project_definitions.append(definition)
+        if definition.name in self.import_names:
+            self.definitions.append(definition)
 
     def is_import(self):
         return self.module_name

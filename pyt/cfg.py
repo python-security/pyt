@@ -462,29 +462,16 @@ class CFG(ast.NodeVisitor):
         local_definitions = self.module_definitions_stack[-1]
         parent_definitions = self.get_parent_definitions()
 
-        if local_definitions.is_import():
-            if parent_definitions:
-                parent_qualified_name = '.'.join(parent_definitions.classes + [node.name])
-                parent_definition = ModuleDefinition(parent_definitions, parent_qualified_name, local_definitions.module_name)
-                parent_definition.node = node
-                parent_definitions.append(parent_definition)
-                print('name',node.name, 'parent_definition.name', parent_definition.name)
-                print('defintions.name ', parent_definitions.module_name)
-            print('local', local_definitions.module_name)
+        if parent_definitions:
+            parent_qualified_name = '.'.join(parent_definitions.classes + [node.name])
+            parent_definition = ModuleDefinition(parent_definitions, parent_qualified_name, local_definitions.module_name)
+            parent_definition.node = node
+            parent_definitions.append(parent_definition)
 
-            local_qualified_name = '.'.join(local_definitions.classes + [node.name])
-            local_definition = ModuleDefinition(local_definitions, local_qualified_name, None)
-            local_definition.node = node
-            local_definitions.append(local_definition)
-
-            print('local_definition.name', local_definition.name)
-        else:
-            print('HEST')
-            print(str(local_definitions))
-            print(node.name)
-            local_definitions.set_defintion_node(node, node.name)
-            if parent_definitions:
-                parent_definitions.set_defintion_node(node, node.name)
+        local_qualified_name = '.'.join(local_definitions.classes + [node.name])
+        local_definition = ModuleDefinition(local_definitions, local_qualified_name, None)
+        local_definition.node = node
+        local_definitions.append(local_definition)
 
         self.function_names.append(node.name)
     
@@ -947,16 +934,11 @@ class CFG(ast.NodeVisitor):
         tree = generate_ast(module_path)
 
         parent_definitions = self.module_definitions_stack[-1]
+        parent_definitions.import_names = local_names
         
-        module_definitions = ModuleDefinitions(module_name)
+        module_definitions = ModuleDefinitions(local_names, module_name)
         self.module_definitions_stack.append(module_definitions)
 
-        if local_names:
-            for name in local_names:
-                definition = ModuleDefinition(module_definitions, name, module_name)
-                module_definitions.append(definition)
-                parent_definitions.append(definition)
-                
         self.append_node(EntryExitNode('Entry ' + module[0]))
         self.visit(tree)
         exit_node = self.append_node(EntryExitNode('Exit ' + module[0]))
