@@ -4,13 +4,13 @@ class ModuleDefinition():
     path = None
     module_definitions = None
 
-    def __init__(self, module_definitions, name):
-        if module_definitions.module_name:
-            self.name = module_definitions.module_name + '.' + name
+    def __init__(self, local_module_definitions, name, parent_module_name):
+        if parent_module_name:
+            self.name = parent_module_name + '.' + name
         else:
             self.name = name
 
-        self.module_definitions = module_definitions
+        self.module_definitions = local_module_definitions
 
 class ModuleDefinitions():
     def __init__(self, module_name=None):
