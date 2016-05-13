@@ -12,6 +12,15 @@ class ModuleDefinition():
 
         self.module_definitions = local_module_definitions
 
+    def __str__(self):
+        name = 'NoName'
+        node = 'NoNode'
+        if self.name:
+            name = self.name
+        if self.node:
+            node = str(self.node)
+        return 'ModuleDefinition: ' + ';'.join((name, node))
+
 class ModuleDefinitions():
     def __init__(self, module_name=None):
         self.definitions = []
