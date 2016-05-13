@@ -40,6 +40,8 @@ class ModuleDefinitions():
     def set_defintion_node(self, node, name):
         definition = self.get_definition(name)
         if definition:
-            self.node = node
+            definition.node = node
+        else:
+            raise Exception('Attempting to set node on nonexisting defintion')
 
             
