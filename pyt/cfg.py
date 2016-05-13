@@ -850,16 +850,7 @@ class CFG(ast.NodeVisitor):
 
         return self.nodes[length:]
 
-    def visit_Call(self, node):
-        _id = get_call_names(node.func)
-        ast_node = None
-        
-        local_definitions = self.module_definitions_stack[-1]
-        definition = local_definitions.get_definition(_id)
-
-        if definition:
-            return self.add_function(node, definition)
-        
+    def add_builtin(self, node):
         label = LabelVisitor()
         label.visit(node)
         builtin_call = Node(label.result, node, line_number = node.lineno)
@@ -868,7 +859,24 @@ class CFG(ast.NodeVisitor):
             self.nodes.append(builtin_call)
         self.undecided = False
         return builtin_call
+
+    def visit_Call(self, node):
+        _id = get_call_names(node.func)
+        ast_node = None
         
+        local_definitions = self.module_definitions_stack[-1]
+        definition = local_definitions.get_definition(_id)
+    
+        if definition:
+            if isinstance(definition.node, ast.ClassDef):
+                init = local_definitions.get_definition(_id + '.__init__')
+                self.add_builtin(node)
+            elif isinstance(definition.node, ast.FunctionDef): 
+                return self.add_function(node, definition)
+            else:
+                raise Exception('Definition was neither FunctionDef or ClassDef, cannot add the function ')
+        return self.add_builtin(node)
+
     def add_class(self, call_node, def_node):
         label_visitor = LabelVisitor()
         label_visitor.visit(call_node)
