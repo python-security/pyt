@@ -43,4 +43,11 @@ class ModuleDefinitions():
         if definition:
             definition.node = node
 
+    def __str__(self):
+        module = 'NoModuleName'
+        if self.module_name:
+            module = self.module_name
+            
+        return 'Definitions: ' + ' '.join([str(definition) for definition in self.definitions]) + '\nmodule_name: ' + module + '\n'
+
             
