@@ -1,0 +1,12 @@
+<html>
+  <body>
+    <div id="content">
+      <form method="post" action="{{ url_for('menu') }}">
+        <label for="suggestion">Please enter your suggestion for the menu:</label>
+        <input type="text" name="suggestion" /><br />
+        <input type="submit" />
+      </form>
+    </div>
+    {{menu}}
+  </body>
+<html>
