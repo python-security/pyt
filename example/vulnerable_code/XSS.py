@@ -1,6 +1,4 @@
-from flask import Flask, render_template, request, make_response
-import random
-import string
+from flask import Flask, request, make_response
 app = Flask(__name__)
 
 @app.route('/XSS_param', methods =['GET'])
