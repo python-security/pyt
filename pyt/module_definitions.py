@@ -21,8 +21,13 @@ class ModuleDefinition():
             name = self.name
         if self.node:
             node = str(self.node)
-        return 'ModuleDefinition: ' + ';'.join((name, node))
-    
+        return self.__class__.__name__ + ': ' + ';'.join((name, node))
+
+
+class LocalModuleDefinition(ModuleDefinition):
+    pass
+
+
 class ModuleDefinitions():
     def __init__(self, import_names=None, module_name=None):
         self.definitions = list()
@@ -31,7 +36,9 @@ class ModuleDefinitions():
         self.import_names = import_names
 
     def append(self, definition):
-        if definition.name in self.import_names:
+        if isinstance(definition, LocalModuleDefinition):
+            self.definitions.append(definition)
+        elif definition.name in self.import_names:
             self.definitions.append(definition)
 
         if not definition.node in project_definitions:

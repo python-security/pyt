@@ -11,7 +11,7 @@ from copy import deepcopy
 
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
-from module_definitions import ModuleDefinition, ModuleDefinitions
+from module_definitions import ModuleDefinition, ModuleDefinitions, LocalModuleDefinition
 from project_handler import get_directory_modules
 
 CALL_IDENTIFIER = '¤'
@@ -474,7 +474,7 @@ class CFG(ast.NodeVisitor):
             parent_definitions.append(parent_definition)
 
         local_qualified_name = '.'.join(local_definitions.classes + [node.name])
-        local_definition = ModuleDefinition(local_definitions, local_qualified_name, None)
+        local_definition = LocalModuleDefinition(local_definitions, local_qualified_name, None)
         local_definition.node = node
         local_definitions.append(local_definition)
 
