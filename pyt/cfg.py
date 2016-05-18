@@ -983,3 +983,5 @@ class CFG(ast.NodeVisitor):
     def visit_Pass(self, node):
         return self.append_node(Node('pass', node, line_number = node.lineno))
 
+    def visit_Continue(self, node):
+        return self.append_node(Node('continue', node, line_number = node.lineno))
