@@ -1,4 +1,4 @@
-project_definitions = list()
+project_definitions = dict()
 
 class ModuleDefinition():
     name = None
@@ -31,9 +31,11 @@ class ModuleDefinitions():
         self.import_names = import_names
 
     def append(self, definition):
-        project_definitions.append(definition)
         if definition.name in self.import_names:
             self.definitions.append(definition)
+
+        if not definition.node in project_definitions:
+            project_definitions[definition.node] = definition
 
     def is_import(self):
         return self.module_name

@@ -30,7 +30,7 @@ class FlaskAdaptor(FrameworkAdaptor):
         return cfg
 
     def get_func_nodes(self):
-        return (definition.node for definition in project_definitions if isinstance(definition.node, ast.FunctionDef))
+        return [definition.node for definition in project_definitions.values() if isinstance(definition.node, ast.FunctionDef)]
 
     def find_flask_route_functions(self, cfg):
         """Find all flask functions with decorators."""
