@@ -9,6 +9,13 @@ from module_definitions import project_definitions
 class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
 
+    def get_last(self, iterator):
+        """Get last element of iterator.(Python is awesome!)"""
+        item = None
+        for item in iterator:
+            pass
+        return item
+
     def is_flask_route_function(self, ast_node):
         """Check whether function uses a decorator."""
         for decorator in ast_node.decorator_list:
