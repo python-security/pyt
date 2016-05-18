@@ -8,6 +8,7 @@ import ast
 import os
 from collections import namedtuple, OrderedDict
 from copy import deepcopy
+import logging
 
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
@@ -18,6 +19,7 @@ CALL_IDENTIFIER = '¤'
 ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statements')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements break_statements')
+logger = logging.getLogger(__name__)
 
 def generate_ast(path):
     """Generate an Abstract Syntax Tree using the ast module."""
@@ -435,6 +437,7 @@ class CFG(ast.NodeVisitor):
         return self.stmt_star_handler(node.body)
 
     def visit_ClassDef(self, node):
+        logger.debug(node.name)
         self.add_to_definitions(node)
 
         local_definitions = self.module_definitions_stack[-1]
@@ -459,6 +462,7 @@ class CFG(ast.NodeVisitor):
         return parent_definitions
 
     def visit_FunctionDef(self, node):
+        logger.debug(node.name)
         self.add_to_definitions(node)
         
         return IgnoredNode()
@@ -887,6 +891,8 @@ class CFG(ast.NodeVisitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
+        logging.debug(_id)
+
         ast_node = None
         
         local_definitions = self.module_definitions_stack[-1]
