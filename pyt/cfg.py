@@ -334,7 +334,7 @@ class CFG(ast.NodeVisitor):
         Args:
             function_node: is the node to create a CFG of
         """
-        print(function_node.name)
+        self.module_definitions_stack.append(ModuleDefinitions())
         
         self.function_names.append(function_node.name)
         
