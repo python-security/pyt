@@ -27,26 +27,28 @@ def generate_ast(path):
     raise IOError('Input needs to be a file.')
 
 def list_to_dotted_string(list_of_components):
-    reverse = list_of_components[::-1]
-    return '.'.join(reverse)
+    return '.'.join(list_of_components)
     
 def get_call_names_helper(node, result):
     """Recursively finds all function names."""
     if isinstance(node, ast.Name):
         result.append(node.id)
-        return list_to_dotted_string(result)
+        return result
     elif isinstance(node, ast.Call):
-        return list_to_dotted_string(result)
+        return result
     elif isinstance(node, ast.Str):
         result.append(node.s)
-        return list_to_dotted_string(result)
+        return result
     else:
         result.append(node.attr)
         return get_call_names_helper(node.value, result)
 
+def get_call_names_as_string(node):
+    return list_to_dotted_string(get_call_names(node))
+
 def get_call_names(node):
     result = list()
-    return get_call_names_helper(node, result)
+    return reversed(get_call_names_helper(node, result))
 
 class IgnoredNode(object):
     """Ignored Node sent from a ast node that is not yet implemented."""
@@ -733,7 +735,7 @@ class CFG(ast.NodeVisitor):
 
         
         
-        if isinstance(node.iter, ast.Call) and get_call_names(node.iter.func)  in self.function_names:
+        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func)  in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
             
@@ -815,7 +817,7 @@ class CFG(ast.NodeVisitor):
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
-                    RHS = 'ret_' + get_call_names(node.func)
+                    RHS = 'ret_' + get_call_names_as_string(node.func)
                     call_node = self.append_node(RestoreNode(LHS + ' = ' + RHS, LHS, [RHS]))
                     previous_node.connect(call_node)
                     
@@ -884,7 +886,7 @@ class CFG(ast.NodeVisitor):
         return builtin_call
 
     def visit_Call(self, node):
-        _id = get_call_names(node.func)
+        _id = get_call_names_as_string(node.func)
         ast_node = None
         
         local_definitions = self.module_definitions_stack[-1]
