@@ -636,9 +636,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = '../example/example_inputs/multiple_parameters_function.py'
 
         self.cfg_create_from_file(path)
-
-        print(repr(self.cfg))
-
         
         length = len(self.cfg.nodes)
 

@@ -5,7 +5,7 @@ from ast import parse, Name, Call, Str, Attribute
 from base_test_case import BaseTestCase
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node, EntryExitNode, get_call_names
+from cfg import CFG, generate_ast, Node, EntryExitNode, get_call_names_as_string
 from project_handler import get_python_modules, get_directory_modules
 from flask_adaptor import FlaskAdaptor
 
@@ -30,7 +30,7 @@ class ImportTest(BaseTestCase):
         m = parse('hi(a)')
         call = m.body[0].value
 
-        result = get_call_names(call.func)
+        result = get_call_names_as_string(call.func)
 
         self.assertEqual(result, 'hi')
 
@@ -38,7 +38,7 @@ class ImportTest(BaseTestCase):
         m = parse('defg.hi(a)')
         call = m.body[0].value
 
-        result = get_call_names(call.func)
+        result = get_call_names_as_string(call.func)
 
         self.assertEqual(result, 'defg.hi')
 
@@ -47,6 +47,6 @@ class ImportTest(BaseTestCase):
         m = parse('abc.defg.hi(a)')
         call = m.body[0].value
 
-        result = get_call_names(call.func)
+        result = get_call_names_as_string(call.func)
 
         self.assertEqual(result, 'abc.defg.hi')

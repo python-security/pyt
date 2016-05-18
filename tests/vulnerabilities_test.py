@@ -7,6 +7,7 @@ from base_test_case import BaseTestCase
 from cfg import CFG, generate_ast, Node
 from fixed_point import analyse
 from reaching_definitions import ReachingDefinitionsAnalysis
+from flask_adaptor import FlaskAdaptor
 
 
 class EngineTest(BaseTestCase):
@@ -58,9 +59,7 @@ class EngineTest(BaseTestCase):
         self.assert_length(l, expected_length=2)
 
     def test_find_triggers(self):
-        cfg = CFG()
-        tree = generate_ast('../example/vulnerable_code/XSS.py')
-        cfg.create(tree)
+        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
 
         trigger_words = [('get', [])]
 
@@ -79,9 +78,8 @@ class EngineTest(BaseTestCase):
         
         
     def test_build_sanitiser_node_dict(self):
-        cfg = CFG()
-        tree = generate_ast('../example/vulnerable_code/XSS_sanitised.py')
-        cfg.create(tree)
+        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+
         cfg = cfg.functions['XSS1']
         cfg_node = Node(None, None,  line_number=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
@@ -111,9 +109,8 @@ class EngineTest(BaseTestCase):
         self.assertEqual(result, True)
 
     def test_find_vulnerabilities_sanitised(self):
-        cfg = CFG()
-        tree = generate_ast('../example/vulnerable_code/XSS_sanitised.py')
-        cfg.create(tree)
+        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+
         cfg_list = [cfg, cfg.functions['XSS1']]
 
         analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
@@ -122,12 +119,12 @@ class EngineTest(BaseTestCase):
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
         
     def test_find_vulnerabilities_vulnerable(self):
-        cfg = CFG()
-        tree = generate_ast('../example/vulnerable_code/XSS.py')
-        cfg.create(tree)
-        cfg_list = [cfg, cfg.functions['XSS1']]
-
+        self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
+        cfg_list = [self.cfg]
+        FlaskAdaptor(cfg_list)
+        
         analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        vulnerability_log.print_report()
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
