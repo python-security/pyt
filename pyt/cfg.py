@@ -904,7 +904,8 @@ class CFG(ast.NodeVisitor):
             if isinstance(definition.node, ast.ClassDef):
                 init = local_definitions.get_definition(_id + '.__init__')
                 self.add_builtin(node)
-            elif isinstance(definition.node, ast.FunctionDef): 
+            elif isinstance(definition.node, ast.FunctionDef):
+                self.undecided = False
                 return self.add_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ClassDef, cannot add the function ')
