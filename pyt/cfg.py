@@ -5,6 +5,7 @@ The method generate_ast(path) can the used to generate input for the CFG class' 
 """
 
 import ast
+import os
 from collections import namedtuple, OrderedDict
 from copy import deepcopy
 
@@ -20,8 +21,10 @@ ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statem
 
 def generate_ast(path):
     """Generate an Abstract Syntax Tree using the ast module."""
-    with open(path, 'r') as f:
-        return ast.parse(f.read())
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            return ast.parse(f.read())
+    raise IOError('Input needs to be a file.')
 
 def list_to_dotted_string(list_of_components):
     reverse = list_of_components[::-1]
