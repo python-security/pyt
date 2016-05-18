@@ -560,7 +560,7 @@ class CFG(ast.NodeVisitor):
         return self.append_node(RaiseNode(label.result, line_number=node.lineno))
 
     def visit_Try(self, node):
-        return IgnoredNode()
+        return Node('Try', node)
 
     def get_names(self, node, result):
         """Recursively finds all names."""
