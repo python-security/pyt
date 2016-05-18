@@ -62,7 +62,7 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(expected_length, actual_length)
 
     def cfg_create_from_file(self, filename):
-        self.cfg = CFG(None, None)
+        self.cfg = CFG([],[])
         tree = generate_ast(filename)
         
         self.cfg.create(tree)
