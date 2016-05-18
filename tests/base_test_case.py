@@ -1,5 +1,10 @@
 """A module that contains a base class that has helper methods for testing PyT."""
 import unittest
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath('../pyt'))
+from cfg import CFG, generate_ast
 
 
 class BaseTestCase(unittest.TestCase):
@@ -55,3 +60,9 @@ class BaseTestCase(unittest.TestCase):
     def assert_length(self, _list, *, expected_length):
         actual_length = len(_list)
         self.assertEqual(expected_length, actual_length)
+
+    def cfg_create_from_file(self, filename):
+        self.cfg = CFG(None, None)
+        tree = generate_ast(filename)
+        
+        self.cfg.create(tree)
