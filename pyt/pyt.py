@@ -23,7 +23,7 @@ parser.add_argument('-l', '--log-level', help='Chose logging level: CRITICAL, ER
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    logger = log.get_logger(args.log_level, show_path=False)
+    logger = log.get_logger(args.log_level, __name__, show_path=False)
 
     path = os.path.normpath(args.filename)
 
