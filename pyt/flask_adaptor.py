@@ -20,12 +20,12 @@ class FlaskAdaptor(FrameworkAdaptor):
         """Check whether function uses a decorator."""
         for decorator in ast_node.decorator_list:
             if isinstance(decorator, ast.Call):
-                if get_call_names(decorator.func) == 'route':
+                if self.get_last(get_call_names(decorator.func)) == 'route':
                     return True
         return False
 
     def get_cfg(self, ast_node, cfg):
-        cfg = CFG(cfg.project_modules)
+        cfg = CFG(cfg.project_modules, cfg.local_modules)
         cfg.create_function(ast_node)
         return cfg
 
