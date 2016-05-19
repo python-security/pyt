@@ -242,7 +242,8 @@ class Function(object):
         return output
     
 class CFG():
-    nodes = list()
+    def __init__(self, nodes):
+        self.nodes = nodes
 
     def append(self, node):
         self.nodes.append(node)
