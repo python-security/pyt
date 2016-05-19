@@ -157,7 +157,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)
+        FlaskAdaptor(cfg_list, list(), list())
         
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -169,7 +169,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)
+        FlaskAdaptor(cfg_list, list(), list())
         
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -183,7 +183,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)
+        FlaskAdaptor(cfg_list, list(), list())
         
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
