@@ -731,3 +731,17 @@ class Recusion(BaseTestCase):
 
         #self.assert_length(self.cfg.nodes, expected_length=0)
 
+from cfg import Visitor
+from ast_helper import generate_ast
+from project_handler import get_directory_modules, get_python_modules
+class VisitorImport(BaseTestCase):
+    def test_import(self):
+        path = '../example/import_test/import.py'
+        tree = generate_ast(path)
+        v = Visitor(tree, get_python_modules(path), get_directory_modules(path))
+
+    def test_import_from(self):
+        path = '../example/import_test/import_from.py'
+        tree = generate_ast(path)
+        v = Visitor(tree, get_python_modules(path), get_directory_modules(path))
+        

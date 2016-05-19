@@ -949,19 +949,28 @@ class Visitor(ast.NodeVisitor):
         for name in node.names:
             for module in self.local_modules:
                 if name.name == module[0]:
-                    return self.add_module(module, name.name, None)
+                    return self.add_module(module, name.name, name.asname)
             for module in self.project_modules:
                 if name.name == module[0]:
-                    return self.add_module(module, name.name, None)
+                    return self.add_module(module, name.name, name.asname)
         return IgnoredNode()
+
+    def alias_handler(self, alias_list):
+        l = list()
+        for alias in alias_list:
+            if alias.asname:
+                l.append(alias.asname)
+            else:
+                l.append(alias.name)
+        return l
 
     def visit_ImportFrom(self, node):
         for module in self.local_modules:
             if node.module == module[0]:
-                    return self.add_module(module, None, [name.name for name in node.names])
+                return self.add_module(module, None, self.alias_handler(node.names))
         for module in self.project_modules:
             if node.module == module[0]:
-                    return self.add_module(module, None, [name.name for name in node.names])
+                    return self.add_module(module, None, self.alias_handler(node.names))
         return IgnoredNode()
 
     def visit_Str(self, node):
