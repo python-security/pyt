@@ -258,19 +258,6 @@ class CFG():
     def extend(self, items):
         return self.nodes.extend(items)
 
-class CFGBuilder(ast.NodeVisitor):
-    """A Control Flow Graph containing a list of nodes."""
-    
-    def __init__(self, project_modules, local_modules):
-        """Create an empty CFG."""
-        self.nodes = CFG()
-        self.function_index = 0
-        self.undecided = False
-        self.project_modules = project_modules
-        self.local_modules = local_modules
-        self.function_names = list()
-        self.module_definitions_stack = list()
-
     def __repr__(self):
         output = ''
         for x, n in enumerate(self.nodes):
@@ -283,22 +270,31 @@ class CFGBuilder(ast.NodeVisitor):
             output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
         return output
 
-    def append_node(self, Node):
-        """Append a node to the CFG and return it."""
-        self.nodes.append(Node)
-        return Node
-        
-    def create(self, module_node):
-        """Create a Control Flow Graph.
 
-        Args:
-            module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
-        """
+class Visitor(ast.NodeVisitor):
+    """A Control Flow Graph containing a list of nodes."""
+    
+    def __init__(self, node, project_modules, local_modules, function_cfg=False):
+        """Create an empty CFG."""
+        self.nodes = list()
+        self.function_index = 0
+        self.undecided = False
+        self.project_modules = project_modules
+        self.local_modules = local_modules
+        self.function_names = list()
+        self.module_definitions_stack = list()
+
+        if function_cfg:
+            self.init_function_cfg(node)
+        else:
+            self.init_cfg(node)
+
+    def init_cfg(self, node):
         self.module_definitions_stack.append(ModuleDefinitions())
         
         entry_node = self.append_node(EntryExitNode("Entry module"))
                 
-        module_statements = self.visit(module_node)
+        module_statements = self.visit(node)
 
         if not module_statements:
             raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
@@ -316,21 +312,15 @@ class CFGBuilder(ast.NodeVisitor):
         else:
             exit_node = self.append_node(EntryExitNode("Exit module"))    
             entry_node.connect(exit_node)
-        return self.nodes
 
-    def create_function(self, function_node):
-        """Create a Control Flow Graph for at separate function
-
-        Args:
-            function_node: is the node to create a CFG of
-        """
+    def init_function_cfg(self, node):
         self.module_definitions_stack.append(ModuleDefinitions())
         
-        self.function_names.append(function_node.name)
+        self.function_names.append(node.name)
         
         entry_node = self.append_node(EntryExitNode("Entry module"))
                 
-        module_statements = self.stmt_star_handler(function_node.body)
+        module_statements = self.stmt_star_handler(node.body)
 
         first_node = module_statements.first_statement
         
@@ -342,8 +332,11 @@ class CFGBuilder(ast.NodeVisitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
-        return self.nodes
-            
+    def append_node(self, Node):
+        """Append a node to the CFG and return it."""
+        self.nodes.append(Node)
+        return Node
+
     def get_first_statement(self, node_or_tuple):
         """Find the first statement of the provided object.
 
