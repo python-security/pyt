@@ -1,3 +1,4 @@
+"""A setup module for loggin."""
 import logging
 from collections import OrderedDict
 
@@ -6,6 +7,7 @@ log_formats = (('Date', '%(asctime)s'), ('path', '%(pathname)s'), ('filename', '
 log_format_dict = OrderedDict(log_formats)
 
 def get_level(level):
+    """Convert string level to int level value."""
     if level == None:
         #Default level=WARNING
         return 30
@@ -27,6 +29,7 @@ def get_level(level):
         raise TypeError('Unknown level type, should be: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG or NOTSET. Level value is: ', level)
         
 def set_logger(level, show_path=True):
+    """Set the logger values and what should be shown as output in the logfile."""
     level = get_level(level)
     if not show_path:
         log_format_dict.pop('path')
