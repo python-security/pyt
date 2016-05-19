@@ -982,3 +982,22 @@ class CFGBuilder(ast.NodeVisitor):
 
     def visit_Continue(self, node):
         return self.append_node(Node('continue', node, line_number = node.lineno))
+
+def build_cfg(module_node, project_modules, local_modules):
+    """Create a Control Flow Graph.
+    
+    Args:
+        module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
+    """
+
+    visitor = Visitor(module_node, project_modules, local_modules)
+    return CFG(visitor.nodes)
+
+def build_function_cfg(module_node, project_modules, local_modules):
+    """Create a Control Flow Graph for at separate function
+
+    Args:
+        function_node: is the node to create a CFG of
+    """
+    visitor = Visitor(module_node, project_modules, local_modules, function_cfg=True)
+    return CFG(visitor.nodes)
