@@ -245,19 +245,6 @@ class CFG():
     def __init__(self, nodes):
         self.nodes = nodes
 
-    def append(self, node):
-        self.nodes.append(node)
-    def __iter__(self):
-        return self.nodes.__iter__()
-    def __next__(self):
-        return self.nodes.__next__()
-    def __getitem__(self, item):
-        return self.nodes.__getitem__(item)
-    def __len__(self):
-        return self.nodes.__len__()
-    def extend(self, items):
-        return self.nodes.extend(items)
-
     def __repr__(self):
         output = ''
         for x, n in enumerate(self.nodes):
