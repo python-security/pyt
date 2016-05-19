@@ -1,3 +1,5 @@
+"""This module is the comand line tool of pyt."""
+
 import argparse
 import os
 
