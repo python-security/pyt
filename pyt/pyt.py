@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from cfg import generate_ast, CFGBuilder
+from cfg import generate_ast, build_cfg
 from draw import draw_cfg
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from fixed_point import analyse
@@ -34,12 +34,11 @@ if __name__ == '__main__':
     local_modules = get_directory_modules(directory)
     
     tree = generate_ast(path)
-    cfg_builder = CFGBuilder(project_modules, local_modules)
-    cfg = cfg_builder.create(tree)
+    cfg = build_cfg(tree, project_modules, local_modules)
 
     cfg_list = [cfg]
 
-    adaptor_type = FlaskAdaptor(cfg_builder, cfg_list)
+    adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
 
     analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
     

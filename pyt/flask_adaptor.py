@@ -3,7 +3,7 @@ import ast
 
 from framework_adaptor import FrameworkAdaptor
 from ast_helper import get_call_names
-from cfg import CFGBuilder
+from cfg import build_cfg, build_function_cfg
 from project_handler import get_python_modules
 from module_definitions import project_definitions
 
@@ -26,8 +26,7 @@ class FlaskAdaptor(FrameworkAdaptor):
         return False
 
     def get_cfg(self, ast_node):
-        cfg_builder = CFGBuilder(self.cfg_builder.project_modules, self.cfg_builder.local_modules)
-        cfg = self.cfg_builder.create_function(ast_node)
+        cfg = build_function_cfg(ast_node, self.project_modules, self.local_modules)
         return cfg
 
     def get_func_nodes(self):
