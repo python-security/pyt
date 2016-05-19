@@ -11,7 +11,7 @@ class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
 
     def get_last(self, iterator):
-        """Get last element of iterator.(Python is awesome!)"""
+        """Get last element of iterator.(Python is awesome!)."""
         item = None
         for item in iterator:
             pass
@@ -26,10 +26,12 @@ class FlaskAdaptor(FrameworkAdaptor):
         return False
 
     def get_cfg(self, ast_node):
+        """Build a function cfg and return it."""
         cfg = build_function_cfg(ast_node, self.project_modules, self.local_modules)
         return cfg
 
     def get_func_nodes(self):
+        """Get all nodes from a function."""
         return [definition.node for definition in project_definitions.values() if isinstance(definition.node, ast.FunctionDef)]
 
     def find_flask_route_functions(self, cfg):
