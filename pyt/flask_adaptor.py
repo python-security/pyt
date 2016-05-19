@@ -3,6 +3,7 @@ import ast
 
 from framework_adaptor import FrameworkAdaptor
 from cfg import CFG, get_call_names
+from ast_helper import get_call_names
 from project_handler import get_python_modules
 from module_definitions import project_definitions
 
