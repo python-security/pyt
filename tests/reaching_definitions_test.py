@@ -8,14 +8,14 @@ from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast, Node
 from reaching_definitions import ReachingDefinitionsAnalysis
-from fixed_point import fixed_point_analysis
+from fixed_point import FixedPointAnalysis
 
 class FixedPointTest(BaseTestCase):
     connection = namedtuple('connection', 'constraintset element')
     def setUp(self):
         self.cfg_create_from_file('../example/example_inputs/example.py')
 
-        self.analysis = fixed_point_analysis(self.cfg, ReachingDefinitionsAnalysis)
+        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsAnalysis)
 
     def assertInCfg(self, connections):
         ''' Assert that all connections in the connections list exists in the cfg,
