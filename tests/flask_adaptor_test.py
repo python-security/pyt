@@ -13,7 +13,7 @@ class FlaskEngineTest(BaseTestCase):
         
         cfg_list = [self.cfg]
 
-        flask = FlaskAdaptor(cfg_list)
+        flask = FlaskAdaptor(cfg_list, list(), list())
         
         #self.assertEqual(len(flask_functions), 1)
 

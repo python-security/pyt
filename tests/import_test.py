@@ -15,13 +15,10 @@ class ImportTest(BaseTestCase):
         
         project_modules = get_python_modules(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
-
-        tree = generate_ast(path)
         
-        cfg = CFG(project_modules, local_modules)
-        cfg.create(tree)
+        self.cfg_create_from_file(path, project_modules, local_modules)
         
-        cfg_list = [cfg]
+        cfg_list = [self.cfg]
         
         #adaptor_type = FlaskAdaptor(cfg_list)
 

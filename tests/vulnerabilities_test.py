@@ -65,7 +65,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)        
+        FlaskAdaptor(cfg_list, list(), list())        
 
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
@@ -88,7 +88,7 @@ class EngineTest(BaseTestCase):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)       
+        FlaskAdaptor(cfg_list, list(), list())       
 
         cfg = cfg_list[1]
         
@@ -145,7 +145,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list)
+        FlaskAdaptor(cfg_list, list(), list())
         
         analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
 

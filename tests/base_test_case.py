@@ -4,7 +4,8 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast
+from cfg import build_cfg
+from ast_helper import generate_ast
 from module_definitions import project_definitions
 
 
@@ -62,9 +63,7 @@ class BaseTestCase(unittest.TestCase):
         actual_length = len(_list)
         self.assertEqual(expected_length, actual_length)
 
-    def cfg_create_from_file(self, filename):
+    def cfg_create_from_file(self, filename, project_modules=list(), local_modules=list()):
         project_definitions.clear()
-        self.cfg = CFG([],[])
         tree = generate_ast(filename)
-        
-        self.cfg.create(tree)
+        self.cfg = build_cfg(tree, project_modules, local_modules)
