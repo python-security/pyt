@@ -2,8 +2,8 @@
 import ast
 
 from framework_adaptor import FrameworkAdaptor
-from cfg import CFG, get_call_names
 from ast_helper import get_call_names
+from cfg import CFGBuilder
 from project_handler import get_python_modules
 from module_definitions import project_definitions
 
@@ -25,9 +25,9 @@ class FlaskAdaptor(FrameworkAdaptor):
                     return True
         return False
 
-    def get_cfg(self, ast_node, cfg):
-        cfg = CFG(cfg.project_modules, cfg.local_modules)
-        cfg.create_function(ast_node)
+    def get_cfg(self, ast_node):
+        cfg_builder = CFGBuilder(self.cfg_builder.project_modules, self.cfg_builder.local_modules)
+        cfg = self.cfg_builder.create_function(ast_node)
         return cfg
 
     def get_func_nodes(self):
@@ -37,7 +37,7 @@ class FlaskAdaptor(FrameworkAdaptor):
         """Find all flask functions with decorators."""
         for ast_node in self.get_func_nodes():
             if ast_node and self.is_flask_route_function(ast_node):
-                yield self.get_cfg(ast_node, cfg)
+                yield self.get_cfg(ast_node)
 
     def run(self):
         """Executed by the super class, everything that needs to be executed goes here."""

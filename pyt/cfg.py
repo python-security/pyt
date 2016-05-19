@@ -241,13 +241,28 @@ class Function(object):
             output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
         return output
     
+class CFG():
+    nodes = list()
 
-class CFG(ast.NodeVisitor):
+    def append(self, node):
+        self.nodes.append(node)
+    def __iter__(self):
+        return self.nodes.__iter__()
+    def __next__(self):
+        return self.nodes.__next__()
+    def __getitem__(self, item):
+        return self.nodes.__getitem__(item)
+    def __len__(self):
+        return self.nodes.__len__()
+    def extend(self, items):
+        return self.nodes.extend(items)
+
+class CFGBuilder(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
     def __init__(self, project_modules, local_modules):
         """Create an empty CFG."""
-        self.nodes = list()
+        self.nodes = CFG()
         self.function_index = 0
         self.undecided = False
         self.project_modules = project_modules
@@ -300,6 +315,7 @@ class CFG(ast.NodeVisitor):
         else:
             exit_node = self.append_node(EntryExitNode("Exit module"))    
             entry_node.connect(exit_node)
+        return self.nodes
 
     def create_function(self, function_node):
         """Create a Control Flow Graph for at separate function
@@ -324,6 +340,8 @@ class CFG(ast.NodeVisitor):
         
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
+
+        return self.nodes
             
     def get_first_statement(self, node_or_tuple):
         """Find the first statement of the provided object.
