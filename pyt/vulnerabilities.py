@@ -176,7 +176,7 @@ def get_vulnerability(source, sink, triggers):
     Returns:
         A Vulnerability if it exists, else None
     """
-    if source.cfg_node in sink.cfg_node.new_constraint:
+    if source.cfg_node in sink.cfg_node.new_constraint and source.cfg_node.left_hand_side in sink.cfg_node.right_hand_side_variables:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
         if not is_sanitized(sink, triggers.sanitiser_dict):
