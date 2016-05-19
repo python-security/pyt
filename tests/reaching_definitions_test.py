@@ -13,9 +13,8 @@ from fixed_point import fixed_point_analysis
 class FixedPointTest(BaseTestCase):
     connection = namedtuple('connection', 'constraintset element')
     def setUp(self):
-        tree = generate_ast('../example/example_inputs/example.py')
-        self.cfg = CFG()
-        self.cfg.create(tree)
+        self.cfg_create_from_file('../example/example_inputs/example.py')
+
         self.analysis = fixed_point_analysis(self.cfg, ReachingDefinitionsAnalysis)
 
     def assertInCfg(self, connections):

@@ -5,6 +5,7 @@ import os
 
 sys.path.insert(0, os.path.abspath('../pyt'))
 from cfg import CFG, generate_ast
+from module_definitions import project_definitions
 
 
 class BaseTestCase(unittest.TestCase):
@@ -62,6 +63,7 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(expected_length, actual_length)
 
     def cfg_create_from_file(self, filename):
+        project_definitions.clear()
         self.cfg = CFG([],[])
         tree = generate_ast(filename)
         

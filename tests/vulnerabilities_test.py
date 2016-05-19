@@ -10,6 +10,7 @@ from reaching_definitions import ReachingDefinitionsAnalysis
 from flask_adaptor import FlaskAdaptor
 
 
+
 class EngineTest(BaseTestCase):
     def run_empty(self):
         return
@@ -59,11 +60,16 @@ class EngineTest(BaseTestCase):
         self.assert_length(l, expected_length=2)
 
     def test_find_triggers(self):
-        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
+        self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
 
+        cfg_list = [self.cfg]
+
+        FlaskAdaptor(cfg_list)        
+
+        XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
-        l = vulnerabilities.find_triggers(cfg.functions['XSS1'], trigger_words)
+        l = vulnerabilities.find_triggers(XSS1, trigger_words)
         self.assert_length(l, expected_length=1)
         
 
@@ -78,15 +84,20 @@ class EngineTest(BaseTestCase):
         
         
     def test_build_sanitiser_node_dict(self):
-        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+        self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+        cfg_list = [self.cfg]
 
-        cfg = cfg.functions['XSS1']
+        FlaskAdaptor(cfg_list)       
+
+        cfg = cfg_list[1]
+        
         cfg_node = Node(None, None,  line_number=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
 
         sanitiser_dict = vulnerabilities.build_sanitiser_node_dict(cfg, sinks_in_file)
         self.assert_length(sanitiser_dict, expected_length=1)
         self.assertIn('escape', sanitiser_dict.keys())
+
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
 
     def test_is_sanitized_false(self):
@@ -109,22 +120,23 @@ class EngineTest(BaseTestCase):
         self.assertEqual(result, True)
 
     def test_find_vulnerabilities_sanitised(self):
-        cfg = self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+        self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
 
-        cfg_list = [cfg, cfg.functions['XSS1']]
+        cfg_list = [self.cfg]
 
         analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
-        
+
     def test_find_vulnerabilities_vulnerable(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
+
         cfg_list = [self.cfg]
+
         FlaskAdaptor(cfg_list)
         
         analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
-        vulnerability_log.print_report()
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)

@@ -38,7 +38,7 @@ class ModuleDefinitions():
     def append(self, definition):
         if isinstance(definition, LocalModuleDefinition):
             self.definitions.append(definition)
-        elif definition.name in self.import_names:
+        elif self.import_names and definition.name in self.import_names:
             self.definitions.append(definition)
 
         if not definition.node in project_definitions:

@@ -14,10 +14,9 @@ class ImportTest(BaseTestCase):
         path = os.path.normpath('../example/import_test_project/main.py')
         
         project_modules = get_python_modules(os.path.dirname(path))
-        
-        tree = generate_ast(path)
-
         local_modules = get_directory_modules(os.path.dirname(path))
+
+        tree = generate_ast(path)
         
         cfg = CFG(project_modules, local_modules)
         cfg.create(tree)
