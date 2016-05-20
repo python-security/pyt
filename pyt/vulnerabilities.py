@@ -2,13 +2,15 @@
 
 import os
 from collections import namedtuple
+from ast import Call, Name, Str
+import logging
 
-from cfg import CFG, generate_ast, Node
+from cfg import CFG, generate_ast, Node, AssignmentNode
 from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
 
+logger = logging.getLogger(__name__)
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
-TriggerNode = namedtuple('TriggerNode', 'trigger_word sanitisers cfg_node')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
 Definitions = namedtuple('Definitions', 'sources sinks')
 
@@ -17,6 +19,20 @@ default_trigger_word_file = os.path.join(os.path.dirname(__file__), 'trigger_def
 SANITISER_SEPARATOR = '->'
 SOURCES_KEYWORD = 'sources:'
 SINKS_KEYWORD = 'sinks:'
+
+class TriggerNode():
+    def __init__(self, trigger_word, sanitisers, cfg_node, secondary_nodes=None):
+        self.trigger_word = trigger_word
+        self.sanitisers = sanitisers
+        self.cfg_node = cfg_node
+        self.secondary_nodes = secondary_nodes
+
+    def append(self, cfg_node):
+        if not cfg_node == self.cfg_node:
+            if self.secondary_nodes and cfg_node not in self.secondary_nodes:
+                self.secondary_nodes.append(cfg_node)
+            else:
+                self.secondary_nodes = [cfg_node]
 
 def parse_section(iterator):
     """Parse a section of a file. Stops at empty line.
@@ -72,10 +88,41 @@ def identify_triggers(cfg, sources, sinks):
     """
     sources_in_file = find_triggers(cfg, sources)
     sinks_in_file = find_triggers(cfg, sinks)
-    
+
+    find_secondary_sources(cfg, sources_in_file)
+       
     sanitiser_node_dict = build_sanitiser_node_dict(cfg, sinks_in_file)
     
     return Triggers(sources_in_file, sinks_in_file, sanitiser_node_dict)
+
+def append_if_reassigned(source, node):
+    assign_to_source = source.cfg_node.left_hand_side in node.right_hand_side_variables
+    reassign_source = source.cfg_node.left_hand_side in node.left_hand_side and assign_to_source
+
+    if source.cfg_node in node.new_constraint and assign_to_source or reassign_source:
+        if node.line_number:
+            logger.debug('adding ' + str(node) + ' to secondary sources ')    
+            source.append(node)
+
+def append_if_reassigned_intermediate(source, intermediate, node):
+    assign_to_source = intermediate.left_hand_side in node.right_hand_side_variables
+    reassign_source = source.cfg_node.left_hand_side in node.left_hand_side and assign_to_source
+    node_in_constraint = intermediate in node.new_constraint
+        
+    if node_in_constraint and assign_to_source or reassign_source:
+        if node.line_number:
+            logger.debug('adding ' + str(node) + ' to secondary sources ')
+            source.append(node)
+
+        
+def find_secondary_sources(cfg, sources):
+    for node in cfg.nodes:
+        if isinstance(node, AssignmentNode):
+            for source in sources:
+                append_if_reassigned(source, node)
+                if source.secondary_nodes:
+                    for secondary in source.secondary_nodes:
+                        append_if_reassigned_intermediate(source, secondary, node)
 
 def find_triggers(cfg, trigger_words):
     """Find triggers from the trigger_word_list in the cfg.
@@ -163,6 +210,29 @@ def is_sanitized(sink, sanitiser_dict):
                 return True
     return False
 
+def get_sink_args(cfg_node):
+    if type(cfg_node) == AssignmentNode:
+        return get_sink_args(cfg_node.ast_node.value)
+    elif isinstance(cfg_node, Node):
+        return get_sink_args(cfg_node.ast_node)
+    elif isinstance(cfg_node, Call):
+        args = list()
+
+        for arg in cfg_node.args + cfg_node.keywords:
+            if isinstance(arg, Name):
+                args.append(arg.id)
+            elif isinstance(arg, Str):
+                args.append(arg.s)
+            elif isinstance(arg, Call):
+                args.extend(get_sink_args(arg))
+            else:
+                raise Exception('what is it', type(arg))
+        return args
+    else:
+        raise Exception('why are you here?')
+
+            
+            
 def get_vulnerability(source, sink, triggers):
     """Get vulnerability between source and sink if it exists.
 
@@ -176,11 +246,25 @@ def get_vulnerability(source, sink, triggers):
     Returns:
         A Vulnerability if it exists, else None
     """
-    if source.cfg_node in sink.cfg_node.new_constraint and source.cfg_node.left_hand_side in sink.cfg_node.right_hand_side_variables:
+    source_in_sink = source.cfg_node in sink.cfg_node.new_constraint
+    secondary_in_sink = [secondary for secondary in source.secondary_nodes if secondary in sink.cfg_node.new_constraint]
+    trigger_node_in_sink = source_in_sink or secondary_in_sink
+    
+    sink_args = get_sink_args(sink.cfg_node)
+    source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args
+    secondary_nodes_in_sink_args = any(True for node in secondary_in_sink if node.left_hand_side in sink_args)
+    lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
+
+    logger.debug('Checking for vuln:')
+    logger.debug('source ' + str(source.cfg_node.label))
+    logger.debug('sink ' + str(sink.cfg_node.label))
+    logger.debug('secondary ' + str([node.label for node in source.secondary_nodes]))
+                 
+    if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
         if not is_sanitized(sink, triggers.sanitiser_dict):
-            return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word)
+            return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, source.secondary_nodes)
         elif is_sanitized(sink, triggers.sanitiser_dict):
             return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers)
     return None

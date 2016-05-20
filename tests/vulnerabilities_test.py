@@ -125,7 +125,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
@@ -147,9 +147,10 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, list(), list())
         
-        analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_reassign(self):
@@ -162,6 +163,7 @@ class EngineTest(BaseTestCase):
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+#        vulnerability_log.print_report()
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign(self):
@@ -176,7 +178,17 @@ class EngineTest(BaseTestCase):
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
-        vulnerability_log.print_report()
+    def test_find_vulnerabilities_variable_multiple_assign(self):
+        self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_multiple_assign.py')
+
+        cfg_list = [self.cfg]
+
+        FlaskAdaptor(cfg_list)
+        
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign_no_vuln(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_assign_no_vuln.py')
@@ -189,5 +201,3 @@ class EngineTest(BaseTestCase):
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
-
-        vulnerability_log.print_report()
