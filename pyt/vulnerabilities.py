@@ -31,7 +31,7 @@ class TriggerNode():
         if not cfg_node == self.cfg_node:
             if self.secondary_nodes and cfg_node not in self.secondary_nodes:
                 self.secondary_nodes.append(cfg_node)
-            else:
+            elif not self.secondary_nodes:
                 self.secondary_nodes = [cfg_node]
 
 def parse_section(iterator):
@@ -98,8 +98,9 @@ def identify_triggers(cfg, sources, sinks):
 def append_if_reassigned(source, node):
     assign_to_source = source.cfg_node.left_hand_side in node.right_hand_side_variables
     reassign_source = source.cfg_node.left_hand_side in node.left_hand_side and assign_to_source
-
-    if source.cfg_node in node.new_constraint and assign_to_source or reassign_source:
+    node_in_constraint = source.cfg_node in node.new_constraint
+        
+    if node_in_constraint and assign_to_source or reassign_source:
         if node.line_number:
             logger.debug('adding ' + str(node) + ' to secondary sources ')    
             source.append(node)
@@ -247,7 +248,10 @@ def get_vulnerability(source, sink, triggers):
         A Vulnerability if it exists, else None
     """
     source_in_sink = source.cfg_node in sink.cfg_node.new_constraint
-    secondary_in_sink = [secondary for secondary in source.secondary_nodes if secondary in sink.cfg_node.new_constraint]
+
+    secondary_in_sink = []
+    if source.secondary_nodes:
+        secondary_in_sink = [secondary for secondary in source.secondary_nodes if secondary in sink.cfg_node.new_constraint]
     trigger_node_in_sink = source_in_sink or secondary_in_sink
     
     sink_args = get_sink_args(sink.cfg_node)
@@ -258,15 +262,16 @@ def get_vulnerability(source, sink, triggers):
     logger.debug('Checking for vuln:')
     logger.debug('source ' + str(source.cfg_node.label))
     logger.debug('sink ' + str(sink.cfg_node.label))
-    logger.debug('secondary ' + str([node.label for node in source.secondary_nodes]))
                  
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
-        if not is_sanitized(sink, triggers.sanitiser_dict):
+        sink_is_sanitised = is_sanitized(sink, triggers.sanitiser_dict)
+
+        if not sink_is_sanitised :
             return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, source.secondary_nodes)
-        elif is_sanitized(sink, triggers.sanitiser_dict):
-            return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers)
+        elif sink_is_sanitised:
+            return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers, source.secondary_nodes)
     return None
 
 def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions):
