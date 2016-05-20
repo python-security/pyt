@@ -28,11 +28,16 @@ def get_level(level):
     else:
         raise TypeError('Unknown level type, should be: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG or NOTSET. Level value is: ', level)
         
-def set_logger(level, show_path=True):
+def set_logger(level, show_path=True, filename=True, module=True):
     """Set the logger values and what should be shown as output in the logfile."""
     level = get_level(level)
     if not show_path:
         log_format_dict.pop('path')
+    if not filename:
+        log_format_dict.pop('filename')
+    if not module:
+        log_format_dict.pop('module')
+        
     logging.basicConfig(filename='logger.log', level=level, format=separator.join(log_format_dict.values()))
     logger = logging.getLogger(__name__)
     logger.info('FORMAT: ' + separator.join(log_format_dict.keys()))
