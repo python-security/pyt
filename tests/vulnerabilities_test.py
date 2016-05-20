@@ -7,7 +7,6 @@ from base_test_case import BaseTestCase
 from cfg import CFG, generate_ast, Node
 from fixed_point import analyse
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from reaching_definitions import ReachingDefinitionsAnalysis
 from flask_adaptor import FlaskAdaptor
 
 
@@ -119,11 +118,11 @@ class EngineTest(BaseTestCase):
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict)
         self.assertEqual(result, True)
-
+        
     def test_find_vulnerabilities_no_vuln(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_no_vuln.py')
-
         cfg_list = [self.cfg]
+        FlaskAdaptor(cfg_list, [], [])
 
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -132,13 +131,13 @@ class EngineTest(BaseTestCase):
 
     def test_find_vulnerabilities_sanitised(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
-
         cfg_list = [self.cfg]
-
-        analyse(cfg_list, analysis_type=ReachingDefinitionsAnalysis)
+        FlaskAdaptor(cfg_list, [], [])
+        
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
-        self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_vulnerable(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
