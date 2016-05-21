@@ -445,12 +445,12 @@ class Visitor(ast.NodeVisitor):
 
         if parent_definitions:
             parent_qualified_name = '.'.join(parent_definitions.classes + [node.name])
-            parent_definition = ModuleDefinition(parent_definitions, parent_qualified_name, local_definitions.module_name)
+            parent_definition = ModuleDefinition(parent_definitions, parent_qualified_name, local_definitions.module_name, self.filenames[-1])
             parent_definition.node = node
             parent_definitions.append(parent_definition)
 
         local_qualified_name = '.'.join(local_definitions.classes + [node.name])
-        local_definition = LocalModuleDefinition(local_definitions, local_qualified_name, None)
+        local_definition = LocalModuleDefinition(local_definitions, local_qualified_name, None, self.filenames[-1])
         local_definition.node = node
         local_definitions.append(local_definition)
 

@@ -11,11 +11,12 @@ class ModuleDefinition():
     path = None
     module_definitions = None
 
-    def __init__(self, local_module_definitions, name, parent_module_name):
+    def __init__(self, local_module_definitions, name, parent_module_name, path):
         if parent_module_name:
             self.name = parent_module_name + '.' + name
         else:
             self.name = name
+        self.path = path
 
         self.module_definitions = local_module_definitions
 
