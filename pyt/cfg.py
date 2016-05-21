@@ -30,7 +30,7 @@ class IgnoredNode(object):
 class Node(object):
     """A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables."""
     
-    def __init__(self, label, ast_node, *, line_number=None):
+    def __init__(self, label, ast_node, *, line_number, path):
         """Create a Node that can be used in a CFG.
 
         Args:
@@ -43,6 +43,7 @@ class Node(object):
         self.label = label
         self.ast_node = ast_node
         self.line_number = line_number
+        self.path = path
 
         # Used by the Fixedpoint algorithm
         self.old_constraint = set()
@@ -122,21 +123,21 @@ class RaiseNode(Node, ConnectToExitNode):
 class BreakNode(Node):
     """CFG Node that represents a Break node."""
     
-    def __init__(self, ast_node, *, line_number=None):
-        super(BreakNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number)
+    def __init__(self, ast_node, *, line_number, path):
+        super(BreakNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number, path=path)
 
 
 class EntryExitNode(Node):
     """CFG Node that represents a Exit or an Entry node."""
     
     def __init__(self, label):
-        super(EntryExitNode, self).__init__(label, None)
+        super(EntryExitNode, self).__init__(label, None, line_number=None, path=None)
 
         
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
     
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number=None):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
         """Create an Assignment node.
 
         Args:
@@ -145,7 +146,7 @@ class AssignmentNode(Node):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(AssignmentNode, self).__init__(label, ast_node, line_number=line_number)
+        super(AssignmentNode, self).__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
 
@@ -158,7 +159,7 @@ class AssignmentNode(Node):
 class RestoreNode(AssignmentNode):
     """Node used for handling restore nodes returning from function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None, path=None):
         """Create an Restore node.
 
         Args:
@@ -167,13 +168,13 @@ class RestoreNode(AssignmentNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)
+        super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
         
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
     
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
         """Create an CallReturn node.
 
         Args:
@@ -182,7 +183,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(ReturnNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number)    
+        super(ReturnNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)    
 
 class Arguments(object):
     """Represents arguments of a function."""
@@ -261,7 +262,7 @@ class CFG():
 class Visitor(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self, node, project_modules, local_modules, function_cfg=False):
+    def __init__(self, node, project_modules, local_modules, filename, function_cfg=False):
         """Create an empty CFG."""
         self.nodes = list()
         self.function_index = 0
