@@ -200,3 +200,15 @@ class EngineTest(BaseTestCase):
 
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
+
+    def test_find_vulnerabilities_command_injection(self):
+        self.cfg_create_from_file('../example/vulnerable_code/command_injection.py')
+
+        cfg_list = [self.cfg]
+
+        FlaskAdaptor(cfg_list, [], [])
+        
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
