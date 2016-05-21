@@ -738,10 +738,10 @@ class VisitorImport(BaseTestCase):
     def test_import(self):
         path = '../example/import_test/import.py'
         tree = generate_ast(path)
-        v = Visitor(tree, get_python_modules(path), get_directory_modules(path))
+        v = Visitor(tree, get_python_modules(path), get_directory_modules(path), path)
 
     def test_import_from(self):
         path = '../example/import_test/import_from.py'
         tree = generate_ast(path)
-        v = Visitor(tree, get_python_modules(path), get_directory_modules(path))
+        v = Visitor(tree, get_python_modules(path), get_directory_modules(path), path)
         

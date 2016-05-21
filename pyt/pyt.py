@@ -41,7 +41,7 @@ if __name__ == '__main__':
     local_modules = get_directory_modules(directory)
     
     tree = generate_ast(path)
-    cfg = build_cfg(tree, project_modules, local_modules)
+    cfg = build_cfg(tree, project_modules, local_modules, path)
 
     cfg_list = [cfg]
 

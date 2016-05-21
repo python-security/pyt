@@ -66,4 +66,4 @@ class BaseTestCase(unittest.TestCase):
     def cfg_create_from_file(self, filename, project_modules=list(), local_modules=list()):
         project_definitions.clear()
         tree = generate_ast(filename)
-        self.cfg = build_cfg(tree, project_modules, local_modules)
+        self.cfg = build_cfg(tree, project_modules, local_modules, filename)
