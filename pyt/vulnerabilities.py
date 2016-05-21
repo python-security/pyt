@@ -2,7 +2,7 @@
 
 import os
 from collections import namedtuple
-from ast import Call, Name, Str
+import ast
 import logging
 
 from cfg import CFG, generate_ast, Node, AssignmentNode
@@ -216,18 +216,20 @@ def get_sink_args(cfg_node):
         return get_sink_args(cfg_node.ast_node.value)
     elif isinstance(cfg_node, Node):
         return get_sink_args(cfg_node.ast_node)
-    elif isinstance(cfg_node, Call):
+    elif isinstance(cfg_node, ast.Call):
         args = list()
 
         for arg in cfg_node.args + cfg_node.keywords:
-            if isinstance(arg, Name):
+            if isinstance(arg, ast.Name):
                 args.append(arg.id)
-            elif isinstance(arg, Str):
+            elif isinstance(arg, ast.Str):
                 args.append(arg.s)
-            elif isinstance(arg, Call):
+            elif isinstance(arg, ast.Call):
                 args.extend(get_sink_args(arg))
+            elif isinstance(arg, ast.keyword):
+                args.append(arg.value)
             else:
-                raise Exception('what is it', type(arg))
+                raise Exception('This case is not handled: ', type(arg))
         return args
     else:
         raise Exception('why are you here?')
