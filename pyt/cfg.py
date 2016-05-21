@@ -271,6 +271,7 @@ class Visitor(ast.NodeVisitor):
         self.local_modules = local_modules
         self.function_names = list()
         self.module_definitions_stack = list()
+        self.filenames = [filename]
 
         if function_cfg:
             self.init_function_cfg(node)
@@ -494,7 +495,7 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno))
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
         
         self.add_if_label(test)
 
@@ -515,7 +516,7 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number=node.lineno))
+        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Return(self, node):
         label = LabelVisitor()
@@ -526,16 +527,16 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         LHS = 'ret_' + this_function_name
-        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno))
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
         label = LabelVisitor()
         label.visit(node)
 
-        return self.append_node(RaiseNode(label.result, line_number=node.lineno))
+        return self.append_node(RaiseNode(label.result, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Try(self, node):
-        return Node('Try', node)
+        return Node('Try', node, line_number=node.lineno, path=self.filenames[-1])
 
     def get_names(self, node, result):
         """Recursively finds all names."""
@@ -578,7 +579,7 @@ class Visitor(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(value)
                 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number = node.lineno)))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number = node.lineno, path=self.filenames[-1])))
 
 
         self.connect_nodes(new_assignment_nodes)
@@ -594,7 +595,7 @@ class Visitor(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(node.value)
                 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number = node.lineno)))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number = node.lineno, path=self.filenames[-1])))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
@@ -623,7 +624,7 @@ class Visitor(ast.NodeVisitor):
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
-                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number = node.lineno))
+                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
@@ -638,11 +639,11 @@ class Visitor(ast.NodeVisitor):
         call_assignment = None
         if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno, path=self.filenames[-1])
             call.connect(call_assignment)
         else: #  assignment to builtin
             call_label = call.label
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno)
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
         self.nodes.append(call_assignment)
 
@@ -657,7 +658,7 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
     
-        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number = node.lineno))
+        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
@@ -689,7 +690,7 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno))
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
 
         self.add_while_label(test)
         
@@ -706,7 +707,7 @@ class Visitor(ast.NodeVisitor):
         target_label = LabelVisitor()
         target = target_label.visit(node.target)
 
-        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno))
+        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno, path=self.filenames[-1]))
 
         
         
@@ -853,7 +854,7 @@ class Visitor(ast.NodeVisitor):
     def add_builtin(self, node):
         label = LabelVisitor()
         label.visit(node)
-        builtin_call = Node(label.result, node, line_number = node.lineno)
+        builtin_call = Node(label.result, node, line_number = node.lineno, path=self.filenames[-1])
 
         if not self.undecided:
             self.nodes.append(builtin_call)
@@ -897,25 +898,26 @@ class Visitor(ast.NodeVisitor):
         exit_node = self.append_node(EntryExitNode("Exit " + def_node.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
-        return Node(label_visitor.result, call_node)
+        return Node(label_visitor.result, call_node, line_number=call_node.lineno, path=self.filenames[-1])
         
     def visit_Name(self, node):
         label = LabelVisitor()
         label.visit(node)
 
-        return self.append_node(Node(label.result, node, line_number = node.lineno))
+        return self.append_node(Node(label.result, node, line_number = node.lineno, path=self.filenames[-1]))
 
     def visit_With(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.items[0])
 
-        with_node = Node(label_visitor.result, node)
+        with_node = Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1])
         connect_statements = self.stmt_star_handler(node.body)
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
 
     def add_module(self, module, module_name, local_names):
         module_path = module[1]
+        self.filenames.append(module_path)
         self.local_modules = get_directory_modules(module_path)
         tree = generate_ast(module_path)
 
@@ -930,6 +932,7 @@ class Visitor(ast.NodeVisitor):
         exit_node = self.append_node(EntryExitNode('Exit ' + module[0]))
 
         self.module_definitions_stack.pop()
+        self.filenames.pop()
 
         return exit_node
 
@@ -965,29 +968,29 @@ class Visitor(ast.NodeVisitor):
         return IgnoredNode()
 
     def visit_Break(self, node):
-        return self.append_node(BreakNode(node, line_number = node.lineno))
+        return self.append_node(BreakNode(node, line_number = node.lineno, path=self.filenames[-1]))
 
     def visit_Pass(self, node):
-        return self.append_node(Node('pass', node, line_number = node.lineno))
+        return self.append_node(Node('pass', node, line_number = node.lineno, path=self.filenames[-1]))
 
     def visit_Continue(self, node):
-        return self.append_node(Node('continue', node, line_number = node.lineno))
+        return self.append_node(Node('continue', node, line_number = node.lineno, path=self.filenames[-1]))
 
-def build_cfg(module_node, project_modules, local_modules):
+def build_cfg(module_node, project_modules, local_modules, filename):
     """Create a Control Flow Graph.
     
     Args:
         module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
     """
 
-    visitor = Visitor(module_node, project_modules, local_modules)
+    visitor = Visitor(module_node, project_modules, local_modules, filename)
     return CFG(visitor.nodes)
 
-def build_function_cfg(module_node, project_modules, local_modules):
+def build_function_cfg(module_node, project_modules, local_modules, filename):
     """Create a Control Flow Graph for at separate function
 
     Args:
         function_node: is the node to create a CFG of
     """
-    visitor = Visitor(module_node, project_modules, local_modules, function_cfg=True)
+    visitor = Visitor(module_node, project_modules, local_modules, filename, function_cfg=True)
     return CFG(visitor.nodes)
