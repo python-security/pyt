@@ -14,12 +14,13 @@ import log
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('filename', help = 'Filename of the file that should be analysed.', type = str)
-parser.add_argument('-d', '--draw-cfg', help = 'Draw CFG and output as .svg file.', action='store_true')
-parser.add_argument('-o', '--output-filename', help = 'Output filename.', type = str)
-print_group = parser.add_mutually_exclusive_group()
-print_group.add_argument('-p', '--print', help = 'Prints the nodes of the CFG.', action='store_true')
-print_group.add_argument('-vp', '--verbose-print', help = 'Verbose printing of -p.', action='store_true')
+parser.add_argument('filename', help='Filename of the file that should be analysed.', type=str)
+parser.add_argument('-pr', '--project-root', help='Add project root, this is important when the entry file is not at the root of the project.', type=str)
+parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .svg file.', action='store_true')
+parser.add_argument('-o', '--output-filename', help='Output filename.', type=str)
+print_group=parser.add_mutually_exclusive_group()
+print_group.add_argument('-p', '--print', help='Prints the nodes of the CFG.', action='store_true')
+print_group.add_argument('-vp', '--verbose-print', help='Verbose printing of -p.', action='store_true')
 parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.', type=str)
 parser.add_argument('-l', '--log-level', help='Chose logging level: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
 parser.add_argument('-a', '--adaptor', help='Chose an adaptor: FLASK(Default) or DJANGO.', type=str)
@@ -31,7 +32,11 @@ if __name__ == '__main__':
 
     path = os.path.normpath(args.filename)
 
-    directory = os.path.dirname(path)
+    directory = None
+    if args.project_root:
+        directory = os.path.normpath(args.project_root)
+    else:
+        directory = os.path.dirname(path)
     project_modules = get_python_modules(directory)
     local_modules = get_directory_modules(directory)
     
