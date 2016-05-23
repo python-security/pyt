@@ -231,6 +231,8 @@ def get_sink_args(cfg_node):
             else:
                 raise Exception('This case is not handled: ', type(arg))
         return args
+    elif not cfg_node:
+        return []
     else:
         raise Exception('why are you here?')
 
