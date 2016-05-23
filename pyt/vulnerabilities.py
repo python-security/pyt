@@ -5,7 +5,7 @@ from collections import namedtuple
 import ast
 import logging
 
-from cfg import CFG, generate_ast, Node, AssignmentNode
+from cfg import CFG, generate_ast, Node, AssignmentNode, ReturnNode
 from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
 
 logger = logging.getLogger(__name__)
@@ -213,6 +213,8 @@ def is_sanitized(sink, sanitiser_dict):
 
 def get_sink_args(cfg_node):
     if type(cfg_node) == AssignmentNode:
+        return get_sink_args(cfg_node.ast_node.value)
+    elif type(cfg_node) == ReturnNode:
         return get_sink_args(cfg_node.ast_node.value)
     elif isinstance(cfg_node, Node):
         return get_sink_args(cfg_node.ast_node)

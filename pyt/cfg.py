@@ -174,7 +174,7 @@ class RestoreNode(AssignmentNode):
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
     
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, ast_node, *, line_number, path):
         """Create an CallReturn node.
 
         Args:
@@ -183,7 +183,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(ReturnNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)    
+        super(ReturnNode, self).__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)    
 
 class Arguments(object):
     """Represents arguments of a function."""
@@ -527,7 +527,7 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         LHS = 'ret_' + this_function_name
-        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
         label = LabelVisitor()
