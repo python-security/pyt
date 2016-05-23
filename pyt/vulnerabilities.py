@@ -229,12 +229,12 @@ def get_sink_args(cfg_node):
             elif isinstance(arg, ast.keyword):
                 args.append(arg.value)
             else:
-                raise Exception('This case is not handled: ', type(arg))
+                raise Exception('Unexpected argument type:', type(arg))
         return args
     elif not cfg_node:
         return []
     else:
-        raise Exception('why are you here?')
+        raise Exception('Unexpected node type:', type(cfg_node))
 
             
             
