@@ -233,8 +233,8 @@ def get_sink_args(cfg_node):
             else:
                 raise Exception('Unexpected argument type:', type(arg))
         return args
-    elif not cfg_node:
-        return []
+    elif isinstance(cfg_node, ast.Str):
+        return None
     else:
         raise Exception('Unexpected node type:', type(cfg_node))
 
@@ -261,8 +261,8 @@ def get_vulnerability(source, sink, triggers):
     trigger_node_in_sink = source_in_sink or secondary_in_sink
     
     sink_args = get_sink_args(sink.cfg_node)
-    source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args
-    secondary_nodes_in_sink_args = any(True for node in secondary_in_sink if node.left_hand_side in sink_args)
+    source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args if sink_args else None
+    secondary_nodes_in_sink_args = any(True for node in secondary_in_sink if node.left_hand_side in sink_args) if sink_args else None
     lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
 
     logger.debug('Checking for vuln:')
