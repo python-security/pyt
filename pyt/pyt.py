@@ -14,7 +14,7 @@ import log
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('filename', help='Filename of the file that should be analysed.', type=str)
+parser.add_argument('filepath', help='Path to the file that should be analysed.', type=str)
 parser.add_argument('-pr', '--project-root', help='Add project root, this is important when the entry file is not at the root of the project.', type=str)
 parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .svg file.', action='store_true')
 parser.add_argument('-o', '--output-filename', help='Output filename.', type=str)
@@ -30,7 +30,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
     log.set_logger(args.log_level, show_path=False)
 
-    path = os.path.normpath(args.filename)
+    path = os.path.normpath(args.filepath)
 
     directory = None
     if args.project_root:
