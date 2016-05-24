@@ -262,7 +262,7 @@ class CFG():
 class Visitor(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self, node, project_modules, local_modules, filename, function_cfg=False):
+    def __init__(self, node, project_modules, local_modules, filename, module_definitions=None):
         """Create an empty CFG."""
         self.nodes = list()
         self.function_index = 0
@@ -273,8 +273,8 @@ class Visitor(ast.NodeVisitor):
         self.module_definitions_stack = list()
         self.filenames = [filename]
 
-        if function_cfg:
-            self.init_function_cfg(node)
+        if module_definitions:
+            self.init_function_cfg(node, module_definitions)
         else:
             self.init_cfg(node)
 
@@ -302,8 +302,8 @@ class Visitor(ast.NodeVisitor):
             exit_node = self.append_node(EntryExitNode("Exit module"))    
             entry_node.connect(exit_node)
 
-    def init_function_cfg(self, node):
-        self.module_definitions_stack.append(ModuleDefinitions())
+    def init_function_cfg(self, node, module_definitions):
+        self.module_definitions_stack.append(module_definitions)
         
         self.function_names.append(node.name)
         
@@ -986,11 +986,11 @@ def build_cfg(module_node, project_modules, local_modules, filename):
     visitor = Visitor(module_node, project_modules, local_modules, filename)
     return CFG(visitor.nodes)
 
-def build_function_cfg(module_node, project_modules, local_modules, filename):
+def build_function_cfg(module_node, project_modules, local_modules, filename, module_definitions):
     """Create a Control Flow Graph for at separate function
 
     Args:
         function_node: is the node to create a CFG of
     """
-    visitor = Visitor(module_node, project_modules, local_modules, filename, function_cfg=True)
+    visitor = Visitor(module_node, project_modules, local_modules, filename, module_definitions)
     return CFG(visitor.nodes)

@@ -25,20 +25,20 @@ class FlaskAdaptor(FrameworkAdaptor):
                     return True
         return False
 
-    def get_cfg(self, ast_node, path):
+    def get_cfg(self, definition):
         """Build a function cfg and return it."""
-        cfg = build_function_cfg(ast_node, self.project_modules, self.local_modules, path)
+        cfg = build_function_cfg(definition.node, self.project_modules, self.local_modules, definition.path, definition.module_definitions)
         return cfg
 
     def get_func_nodes(self):
         """Get all nodes from a function."""
-        return [(definition.node, definition.path) for definition in project_definitions.values() if isinstance(definition.node, ast.FunctionDef)]
+        return [definition for definition in project_definitions.values() if isinstance(definition.node, ast.FunctionDef)]
 
     def find_flask_route_functions(self, cfg):
         """Find all flask functions with decorators."""
-        for ast_node in self.get_func_nodes():
-            if ast_node[0] and self.is_flask_route_function(ast_node[0]):
-                yield self.get_cfg(ast_node[0], ast_node[1])
+        for definition in self.get_func_nodes():
+            if definition.node and self.is_flask_route_function(definition.node):
+                yield self.get_cfg(definition)
 
     def run(self):
         """Executed by the super class, everything that needs to be executed goes here."""
