@@ -801,24 +801,6 @@ class Visitor(ast.NodeVisitor):
                 # lave rigtig kobling
                 pass
 
-    def insert_function(self, cfg, node):
-        function = cfg.functions[node.func.id]
-        self.function_index += 1
-
-        saved_variables = self.save_local_scope()
-
-        self.save_actual_parameters_in_temp(node.args, function)
-
-        self.create_local_scope_from_actual_parameters(node.args, function)
-
-        function_nodes = cfg.insert_function_body(node)
-
-        restore_nodes = self.restore_saved_local_scope(saved_variables)
-
-        self.return_handler(node, function_nodes, restore_nodes)
-            
-        return self.nodes[-1]
-
     def add_function(self, call_node, definition):
         self.function_index += 1
         def_node = definition.node
