@@ -16,10 +16,14 @@ def get_directory_modules(directory):
     
     if not os.path.isdir(directory):
         directory = os.path.dirname(directory)
+
+    if directory == '':
+        return local_modules
+    
         
     if local_modules and os.path.dirname(local_modules[0][1]) == directory:
         return local_modules
-    
+
     for path in os.listdir(directory):
         if is_python_module(path):
             module_name = os.path.splitext(path)[0]
