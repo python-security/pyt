@@ -151,7 +151,7 @@ def label_contains(node, trigger_words):
         Iterable of TriggerNodes found. Can be multiple because multiple trigger_words can be in one node.
     """
     for trigger_word_tuple in trigger_words:
-        if trigger_word_tuple[0] + '(' in node.label:
+        if trigger_word_tuple[0] in node.label:
             trigger_word = trigger_word_tuple[0]
             sanitisers = trigger_word_tuple[1]
             yield TriggerNode(trigger_word, sanitisers, node)
