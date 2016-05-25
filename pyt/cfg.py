@@ -746,7 +746,7 @@ class Visitor(ast.NodeVisitor):
                 n = RestoreNode(temp_name + ' = ' + str(parameter.n), temp_name, None)
             elif isinstance(parameter, ast.Name):
                 n = RestoreNode(temp_name + ' = ' + parameter.id, temp_name, [parameter.id])
-            elif isinstance(parameter, ast.Str):
+            elif isinstance(parameter, ast.Str) or isinstance(parameter, ast.Subscript):
                 label = LabelVisitor()
                 label.visit(parameter)
                 
