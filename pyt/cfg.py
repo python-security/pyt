@@ -817,7 +817,7 @@ class Visitor(ast.NodeVisitor):
 
         except IndexError:
             error_call = get_call_names_as_string(call_node.func)
-            print('ERROR:Possible nameclash in "{}". Call omitted!'.format(error_call))
+            print('Error: Possible nameclash in "{}". Call omitted!\n'.format(error_call))
 
 
 
