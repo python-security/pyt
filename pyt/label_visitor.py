@@ -164,6 +164,18 @@ class LabelVisitor(NodeVisitor):
 
     def visit_NameConstant(self, node):
         self.result += str(node.value)
+
+    def visit_Subscript(self, node):
+        self.visit(node.value)
+
+        self.result += '['
+
+        self.visit(node.slice)
+        
+        self.result += ']'
+
+    def visit_Slice(self, node):
+        raise Exception('Slice used, time to implement!')
         
     #  operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift | RShift | BitOr | BitXor | BitAnd | FloorDiv
     def visit_Add(self, node):
