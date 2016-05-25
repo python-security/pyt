@@ -743,14 +743,14 @@ class Visitor(ast.NodeVisitor):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
             
             if isinstance(parameter, ast.Num):
-                n = RestoreNode(temp_name + ' = ' + str(parameter.n), temp_name, None)
+                n = RestoreNode(temp_name + ' = ' + str(parameter.n), temp_name, [str(parameter.n)])
             elif isinstance(parameter, ast.Name):
                 n = RestoreNode(temp_name + ' = ' + parameter.id, temp_name, [parameter.id])
             elif isinstance(parameter, ast.Str) or isinstance(parameter, ast.Subscript):
                 label = LabelVisitor()
                 label.visit(parameter)
                 
-                n = RestoreNode(temp_name + ' = ' + label.result, temp_name, None)
+                n = RestoreNode(temp_name + ' = ' + label.result, temp_name, [label.result])
             else:
                 raise TypeError('Unhandled type: ' + str(type(parameter)))
             
