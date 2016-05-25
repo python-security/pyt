@@ -802,19 +802,26 @@ class Visitor(ast.NodeVisitor):
                 pass
 
     def add_function(self, call_node, definition):
-        self.function_index += 1
-        def_node = definition.node
-        saved_variables = self.save_local_scope()
+        try:
+            self.function_index += 1
+            def_node = definition.node
+            saved_variables = self.save_local_scope()
 
-        self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
+            self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
 
-        self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
+            self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
+            function_nodes = self.get_function_nodes(definition)
+            restore_nodes = self.restore_saved_local_scope(saved_variables)
 
-        function_nodes = self.get_function_nodes(definition)
+            self.return_handler(call_node, function_nodes, restore_nodes)
 
-        restore_nodes = self.restore_saved_local_scope(saved_variables)
+        except IndexError:
+            error_call = get_call_names_as_string(call_node.func)
+            print('ERROR:Possible nameclash in "{}". Call omitted!'.format(error_call))
 
-        self.return_handler(call_node, function_nodes, restore_nodes)
+
+
+
         return self.nodes[-1]
 
     def get_function_nodes(self, definition):
