@@ -270,6 +270,7 @@ class Visitor(ast.NodeVisitor):
         self.project_modules = project_modules
         self.local_modules = local_modules
         self.function_names = list()
+        self.function_return_stack = list()
         self.module_definitions_stack = list()
         self.filenames = [filename]
 
@@ -306,6 +307,7 @@ class Visitor(ast.NodeVisitor):
         self.module_definitions_stack.append(module_definitions)
         
         self.function_names.append(node.name)
+        self.function_return_stack.append(node.name)
         
         entry_node = self.append_node(EntryExitNode("Entry module"))
                 
@@ -522,8 +524,8 @@ class Visitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function_name = self.function_names[-1]
-
+        this_function_name = self.function_return_stack[-1]
+        
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         LHS = 'ret_' + this_function_name
@@ -814,6 +816,7 @@ class Visitor(ast.NodeVisitor):
             restore_nodes = self.restore_saved_local_scope(saved_variables, parameters)
 
             self.return_handler(call_node, function_nodes, restore_nodes)
+            self.function_return_stack.pop()
 
         except IndexError:
             error_call = get_call_names_as_string(call_node.func)
@@ -852,6 +855,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
+        self.function_return_stack.append(_id)
         logging.debug(_id)
 
         ast_node = None
