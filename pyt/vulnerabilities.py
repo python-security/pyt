@@ -231,6 +231,9 @@ def get_sink_args(cfg_node):
                 args.extend(get_sink_args(arg))
             elif isinstance(arg, ast.keyword):
                 args.append(arg.value)
+            elif isinstance(arg, ast.Attribute):
+                import ast_helper
+                args.append(ast_helper.get_call_names_as_string(arg))
             else:
                 raise Exception('Unexpected argument type:', type(arg))
         return args
