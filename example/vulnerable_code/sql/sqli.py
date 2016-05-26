@@ -28,8 +28,8 @@ def index():
     print(User.query.all(), file=sys.stderr)
     return 'Result is displayed in console.'
 
-@app.route('/filter')
-def filter():
+@app.route('/filtering')
+def filtering():
     param = request.args.get('param', 'not set')
     Session = sessionmaker(bind=db.engine)
     session = Session()
