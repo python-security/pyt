@@ -614,7 +614,7 @@ class Visitor(ast.NodeVisitor):
                     call = self.assignment_call_node(label.result, node)
                 return call
         elif len(node.targets) > 1:                #  x = y = 3
-            return self.assign_multi_target(node, rhs_visitor.result)        
+            return self.assign_multi_target(node, rhs_visitor.result)
         else:                                      
             if isinstance(node.value, ast.Call):   #  x = call()
                 
@@ -739,26 +739,23 @@ class Visitor(ast.NodeVisitor):
 
     def save_actual_parameters_in_temp(self, args, arguments):
         """Save the actual parameters of a function call."""
+        parameters = dict()
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
-            
-            if isinstance(parameter, ast.Num):
-                n = RestoreNode(temp_name + ' = ' + str(parameter.n), temp_name, [str(parameter.n)])
-            elif isinstance(parameter, ast.Name):
-                n = RestoreNode(temp_name + ' = ' + parameter.id, temp_name, [parameter.id])
-            elif isinstance(parameter, ast.Str) or isinstance(parameter, ast.Subscript):
-                label = LabelVisitor()
-                label.visit(parameter)
-                
-                n = RestoreNode(temp_name + ' = ' + label.result, temp_name, [label.result])
-            else:
-                raise TypeError('Unhandled type: ' + str(type(parameter)))
+
+            label_visitor = LabelVisitor()
+            label_visitor.visit(parameter)        
+            n = RestoreNode(temp_name + ' = ' + label_visitor.result, temp_name, [label_visitor.result])
             
             self.nodes[-1].connect(n)
             self.nodes.append(n)
 
+            parameters[label_visitor.result] = arguments[i]
+        return parameters
+
     def create_local_scope_from_actual_parameters(self, args, arguments):
         """Create the local scope before entering the body of a function call."""
+        parameters = dict()
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]                
             local_name = arguments[i]
@@ -766,7 +763,7 @@ class Visitor(ast.NodeVisitor):
             local_scope_node = self.append_node(RestoreNode(local_name + ' = ' + temp_name, local_name, [temp_name]))
             previous_node.connect(local_scope_node)
 
-    def restore_saved_local_scope(self, saved_variables):
+    def restore_saved_local_scope(self, saved_variables, parameters):
         """Restore the previously saved variables to their original values.
 
         Args:
@@ -774,7 +771,10 @@ class Visitor(ast.NodeVisitor):
         """
         restore_nodes = list()
         for var in saved_variables:
-            restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS, [var.LHS]))
+            if var.RHS in parameters:
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + parameters[var.RHS], var.RHS, [var.LHS]))
+            else:
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS, [var.LHS]))
 
         for n, successor in zip(restore_nodes, restore_nodes[1:]):
             n.connect(successor)
@@ -807,11 +807,11 @@ class Visitor(ast.NodeVisitor):
             def_node = definition.node
             saved_variables = self.save_local_scope()
 
-            self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
+            parameters = self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
 
             self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
             function_nodes = self.get_function_nodes(definition)
-            restore_nodes = self.restore_saved_local_scope(saved_variables)
+            restore_nodes = self.restore_saved_local_scope(saved_variables, parameters)
 
             self.return_handler(call_node, function_nodes, restore_nodes)
 
