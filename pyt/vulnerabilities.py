@@ -95,36 +95,37 @@ def identify_triggers(cfg, sources, sinks):
     
     return Triggers(sources_in_file, sinks_in_file, sanitiser_node_dict)
 
-def append_if_reassigned(source, node):
-    assign_to_source = source.cfg_node.left_hand_side in node.right_hand_side_variables
-    reassign_source = source.cfg_node.left_hand_side in node.left_hand_side and assign_to_source
-    node_in_constraint = source.cfg_node in node.new_constraint
-        
-    if node_in_constraint and assign_to_source or reassign_source:
-        if node.line_number:
-            logger.debug('adding ' + str(node) + ' to secondary sources ')    
-            source.append(node)
+def filter_cfg_nodes(cfg, cfg_node_type):
+    return [node for node in cfg.nodes if isinstance(node, cfg_node_type)]
 
-def append_if_reassigned_intermediate(source, intermediate, node):
-    assign_to_source = intermediate.left_hand_side in node.right_hand_side_variables
-    reassign_source = source.cfg_node.left_hand_side in node.left_hand_side and assign_to_source
-    node_in_constraint = intermediate in node.new_constraint
-        
-    if node_in_constraint and assign_to_source or reassign_source:
-        if node.line_number:
-            logger.debug('adding ' + str(node) + ' to secondary sources ')
-            source.append(node)
-
-        
 def find_secondary_sources(cfg, sources):
-    for node in cfg.nodes:
-        if isinstance(node, AssignmentNode):
-            for source in sources:
-                append_if_reassigned(source, node)
-                if source.secondary_nodes:
-                    for secondary in source.secondary_nodes:
-                        append_if_reassigned_intermediate(source, secondary, node)
+    assignments = dict()
+    assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
 
+    for source in sources:
+        source.secondary_nodes = find_assignments(assignment_nodes, source)
+
+def find_assignments(assignment_nodes, source):
+    old = list()
+    new = [source.cfg_node]
+
+    update_assignments(new, assignment_nodes, source.cfg_node)
+    while new != old:
+        old = new
+        update_assignments(new, assignment_nodes, source.cfg_node)
+    return new
+
+def update_assignments(l, assignment_nodes, source):
+    for node in assignment_nodes:
+        for other in l:
+            if node not in l:
+                append_if_reassigned(l, other, node)
+
+def append_if_reassigned(l, secondary, node):
+    # maybe:  secondary in node.new_constraint and 
+    if secondary.left_hand_side in node.right_hand_side_variables or secondary.left_hand_side == node.left_hand_side:
+        l.append(node)
+    
 def find_triggers(cfg, trigger_words):
     """Find triggers from the trigger_word_list in the cfg.
 
