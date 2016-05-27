@@ -86,10 +86,12 @@ def identify_triggers(cfg, sources, sinks):
     Returns:
         Triggers tuple with sink and source nodes and a sanitiser node dict.
     """
-    sources_in_file = find_triggers(cfg, sources)
-    sinks_in_file = find_triggers(cfg, sinks)
+    assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
+    
+    sources_in_file = find_triggers(assignment_nodes, sources)
+    find_secondary_sources(assignment_nodes, sources_in_file)
 
-    find_secondary_sources(cfg, sources_in_file)
+    sinks_in_file = find_triggers(cfg.nodes, sinks)
        
     sanitiser_node_dict = build_sanitiser_node_dict(cfg, sinks_in_file)
     
@@ -98,9 +100,8 @@ def identify_triggers(cfg, sources, sinks):
 def filter_cfg_nodes(cfg, cfg_node_type):
     return [node for node in cfg.nodes if isinstance(node, cfg_node_type)]
 
-def find_secondary_sources(cfg, sources):
+def find_secondary_sources(assignment_nodes, sources):
     assignments = dict()
-    assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
 
     for source in sources:
         source.secondary_nodes = find_assignments(assignment_nodes, source)
@@ -116,17 +117,22 @@ def find_assignments(assignment_nodes, source):
     return new
 
 def update_assignments(l, assignment_nodes, source):
+    
     for node in assignment_nodes:
         for other in l:
             if node not in l:
                 append_if_reassigned(l, other, node)
 
 def append_if_reassigned(l, secondary, node):
-    # maybe:  secondary in node.new_constraint and 
-    if secondary.left_hand_side in node.right_hand_side_variables or secondary.left_hand_side == node.left_hand_side:
-        l.append(node)
+    # maybe:  secondary in node.new_constraint and
+    try:
+        if secondary.left_hand_side in node.right_hand_side_variables or secondary.left_hand_side == node.left_hand_side:
+            l.append(node)
+    except AttributeError:
+        print(secondary)
+        exit(0)
     
-def find_triggers(cfg, trigger_words):
+def find_triggers(nodes, trigger_words):
     """Find triggers from the trigger_word_list in the cfg.
 
     Args:
@@ -137,7 +143,7 @@ def find_triggers(cfg, trigger_words):
         List of found TriggerNodes
     """
     l = list()
-    for node in cfg.nodes:
+    for node in nodes:
         l.extend(iter(label_contains(node, trigger_words)))
     return l
       

@@ -69,7 +69,7 @@ class EngineTest(BaseTestCase):
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
-        l = vulnerabilities.find_triggers(XSS1, trigger_words)
+        l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
         self.assert_length(l, expected_length=1)
         
 
