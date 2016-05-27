@@ -3,15 +3,14 @@ import ast
 
 from framework_adaptor import FrameworkAdaptor
 from ast_helper import get_call_names
-from cfg import build_cfg, build_function_cfg
-from project_handler import get_python_modules
+from cfg import build_function_cfg
 from module_definitions import project_definitions
 
 class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
 
     def get_last(self, iterator):
-        """Get last element of iterator.(Python is awesome!)."""
+        """Get last element of iterator."""
         item = None
         for item in iterator:
             pass
