@@ -5,9 +5,10 @@ delimiter = '#¤%&/()=?'
 results_file = 'results'
 pyt_path = '../pyt/pyt.py'
 example_file_path = '../example/vulnerable_code/'
+python_name = open('python_name.txt', 'r').read().rstrip()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('python', help='Specify Python 3.', type=str)
+parser.add_argument('-py', '--python', help='Specify Python 3.', type=str)
 parser.add_argument('-s', '--save-results', help='Add new results', action='store_true')
 parser.add_argument('-p', '--pyt-output', help='Print output of PyT for each file.', action='store_true')
 
@@ -38,7 +39,7 @@ def save_results(python):
     with open(results_file, 'w') as fd:
         for f in files:
             print('################# ' + f + ' #################')
-            process = run([args.python, pyt_path, f], stdout=PIPE)
+            process = run([python, pyt_path, f], stdout=PIPE)
             fd.write(str(process.stdout))
             fd.write(delimiter)
             print('Saved result to file: "' + results_file + '".')
@@ -46,14 +47,17 @@ def save_results(python):
 def print_pyt_output(python):
     for f in files:
         print('################# ' + f + ' #################')
-        run([args.python, pyt_path, f])
+        run([python, pyt_path, f])
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
+    if args.python:
+        python_name = args.python
+
     if args.save_results:
-        save_results(args.python)
+        save_results(python_name)
     elif args.pyt_output:
-        print_pyt_output(args.python)
+        print_pyt_output(python_name)
     else:
-        check_files(args.python)
+        check_files(python_name)
