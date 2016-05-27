@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('filepath', help='Path to the file that should be analysed.', type=str)
 parser.add_argument('-pr', '--project-root', help='Add project root, this is important when the entry file is not at the root of the project.', type=str)
-parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .svg file.', action='store_true')
+parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .pdf file.', action='store_true')
 parser.add_argument('-o', '--output-filename', help='Output filename.', type=str)
 print_group=parser.add_mutually_exclusive_group()
 print_group.add_argument('-p', '--print', help='Prints the nodes of the CFG.', action='store_true')
