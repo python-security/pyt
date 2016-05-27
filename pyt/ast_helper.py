@@ -7,7 +7,7 @@ def generate_ast(path):
     if os.path.isfile(path):
         with open(path, 'r') as f:
             return ast.parse(f.read())
-    raise IOError('Input needs to be a file.')
+    raise IOError('Input needs to be a file. Path: ' + path)
 
 def list_to_dotted_string(list_of_components):
     """Convert a list to a string seperated by a dot."""
