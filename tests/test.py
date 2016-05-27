@@ -4,11 +4,9 @@ from unittest import makeSuite
 from unittest import TestLoader
 from run import check_files
 
-python = 'python'
+python = open('python_name.txt', 'r').read().rstrip()
 
 test_suite = TestSuite()
-
-
 loader = TestLoader()
 suite = loader.discover('.',pattern='*_test.py')
 
