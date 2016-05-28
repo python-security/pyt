@@ -2,7 +2,7 @@
 import ast
 
 from framework_adaptor import FrameworkAdaptor
-from ast_helper import get_call_names
+from ast_helper import get_call_names, Arguments
 from cfg import build_function_cfg
 from module_definitions import project_definitions
 
