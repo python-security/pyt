@@ -67,3 +67,6 @@ class Arguments(object):
 
     def __getitem__(self, key):
         return self.arguments.__getitem__(key)
+
+    def __len__(self):
+        return self.args.__len__()
