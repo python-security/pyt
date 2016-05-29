@@ -12,7 +12,7 @@ parser.add_argument('-py', '--python', help='Specify Python 3.', type=str)
 parser.add_argument('-s', '--save-results', help='Add new results', action='store_true')
 parser.add_argument('-p', '--pyt-output', help='Print output of PyT for each file.', action='store_true')
 
-files = ['XSS.py', 'command_injection.py', 'path_traversal.py', 'path_traversal_sanitised.py', 'sql/sqli.py', 'XSS_form.py', 'XSS_no_vuln.py', 'XSS_reassign.py', 'XSS_sanitised.py', 'XSS_variable_assign_no_vuln.py', 'XSS_variable_assign.py', 'XSS_variable_multiple_assign.py']
+files = ['XSS.py', 'command_injection.py', 'path_traversal.py', 'path_traversal_sanitised.py', 'sql/sqli.py', 'XSS_form.py', 'XSS_url.py', 'XSS_no_vuln.py', 'XSS_reassign.py', 'XSS_sanitised.py', 'XSS_variable_assign_no_vuln.py', 'XSS_variable_assign.py', 'XSS_variable_multiple_assign.py']
 files = [example_file_path + filename for filename in files]
 
 def check_files(python):
