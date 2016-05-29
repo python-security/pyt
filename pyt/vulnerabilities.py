@@ -6,6 +6,7 @@ import ast
 import logging
 
 from cfg import CFG, generate_ast, Node, AssignmentNode, ReturnNode
+from framework_adaptor import TaintedNode
 from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
 
 logger = logging.getLogger(__name__)
@@ -87,8 +88,13 @@ def identify_triggers(cfg, sources, sinks):
         Triggers tuple with sink and source nodes and a sanitiser node dict.
     """
     assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
+    tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
+    tainted_trigger_nodes = [TriggerNode('Flask function URL parameter', None, node) for node in tainted_nodes]
+
     
     sources_in_file = find_triggers(assignment_nodes, sources)
+    sources_in_file.extend(tainted_trigger_nodes)
+    
     find_secondary_sources(assignment_nodes, sources_in_file)
 
     sinks_in_file = find_triggers(cfg.nodes, sinks)
@@ -108,16 +114,16 @@ def find_secondary_sources(assignment_nodes, sources):
 
 def find_assignments(assignment_nodes, source):
     old = list()
-    new = [source.cfg_node]
+    new = [source.cfg_node] # added in order to propagate reassignments of the source node
 
     update_assignments(new, assignment_nodes, source.cfg_node)
     while new != old:
         old = new
         update_assignments(new, assignment_nodes, source.cfg_node)
+    new.remove(source.cfg_node) # remove source node from result
     return new
 
 def update_assignments(l, assignment_nodes, source):
-    
     for node in assignment_nodes:
         for other in l:
             if node not in l:
@@ -126,10 +132,12 @@ def update_assignments(l, assignment_nodes, source):
 def append_if_reassigned(l, secondary, node):
     # maybe:  secondary in node.new_constraint and
     try:
-        if secondary.left_hand_side in node.right_hand_side_variables or secondary.left_hand_side == node.left_hand_side:
+        if secondary.left_hand_side in node.right_hand_side_variables or\
+           secondary.left_hand_side == node.left_hand_side:
             l.append(node)
     except AttributeError:
         print(secondary)
+        print('EXCEPT' + secondary)
         exit(0)
     
 def find_triggers(nodes, trigger_words):
