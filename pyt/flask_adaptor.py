@@ -5,6 +5,7 @@ from framework_adaptor import FrameworkAdaptor
 from ast_helper import get_call_names, Arguments
 from cfg import build_function_cfg
 from module_definitions import project_definitions
+from framework_adaptor import TaintedNode
 
 class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
@@ -27,6 +28,25 @@ class FlaskAdaptor(FrameworkAdaptor):
     def get_cfg(self, definition):
         """Build a function cfg and return it."""
         cfg = build_function_cfg(definition.node, self.project_modules, self.local_modules, definition.path, definition.module_definitions)
+
+        args = Arguments(definition.node.args)
+
+        if args:
+            definition_lineno = definition.node.lineno
+
+            cfg.nodes[0].outgoing = [] 
+            cfg.nodes[1].ingoing = []
+            
+            for i, argument in enumerate(args, 1):
+                taint = TaintedNode(argument, argument, None, [], line_number=definition_lineno, path=definition.path)
+                previous_node = cfg.nodes[0]
+                previous_node.connect(taint)
+                cfg.nodes.insert(1, taint)
+
+            last_inserted = cfg.nodes[i]
+            after_last = cfg.nodes[i+1]
+            last_inserted.connect(after_last)            
+
         return cfg
 
     def get_func_nodes(self):
