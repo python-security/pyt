@@ -23,7 +23,15 @@ def check_files(python):
         print(results_file + ' file was not found. Generate this file by running this script with option --save-results or -s.')
         exit(1)
 
+    results.pop() # last element is empty because results file always ends with a delimiter
+        
     passed = True
+
+    if len(results) != len(files):
+        print('Number of results are not equal to the number of files')
+        print('Results: ' + str(len(results)) + ' Files: ' + str(len(files)))
+        exit(0)
+
     for i, f in enumerate(files):
         print('################# ' + f + ' #################')
         process = run([python, pyt_path, f], stdout=PIPE)
