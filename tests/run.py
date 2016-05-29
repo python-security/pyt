@@ -6,6 +6,7 @@ results_file = 'results'
 pyt_path = '../pyt/pyt.py'
 example_file_path = '../example/vulnerable_code/'
 python_name = open('python_name.txt', 'r').read().rstrip()
+encoding = 'utf-8'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-py', '--python', help='Specify Python 3.', type=str)
@@ -17,7 +18,7 @@ files = [example_file_path + filename for filename in files]
 
 def check_files(python):
     try:
-        with open(results_file, 'r') as fd:
+        with open(results_file, 'r', encoding=encoding) as fd:
             results = fd.read().split(delimiter)
     except FileNotFoundError:
         print(results_file + ' file was not found. Generate this file by running this script with option --save-results or -s.')
@@ -44,7 +45,7 @@ def check_files(python):
     return passed
 
 def save_results(python):
-    with open(results_file, 'w', encoding='utf-8') as fd:
+    with open(results_file, 'w', encoding=encoding) as fd:
         for f in files:
             print('################# ' + f + ' #################')
             process = run([python, pyt_path, f], stdout=PIPE)
