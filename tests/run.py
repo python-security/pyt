@@ -44,7 +44,7 @@ def check_files(python):
     return passed
 
 def save_results(python):
-    with open(results_file, 'w') as fd:
+    with open(results_file, 'w', encoding='utf-8') as fd:
         for f in files:
             print('################# ' + f + ' #################')
             process = run([python, pyt_path, f], stdout=PIPE)
