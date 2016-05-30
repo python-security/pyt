@@ -48,9 +48,9 @@ def draw_cfg(cfg, output_filename = 'output'):
     graph = Digraph(format='pdf')
     
     for node in cfg.nodes:
-        if node.label == 'Exit node':
+        if 'Exit' in node.label:
             graph.node(node.label, 'Exit', shape='none')
-        elif node.label == 'Entry node':
+        elif 'Entry' in node.label:
             graph.node(node.label, 'Entry', shape='none')
         else:
             graph.node(node.label.strip(IGNORED_LABEL_NAME_CHARACHTERS), node.label)
