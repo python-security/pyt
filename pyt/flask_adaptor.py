@@ -1,4 +1,4 @@
-"""Contains a class that can be used as adaptor."""
+"""Adaptor for Flask web applications."""
 import ast
 
 from framework_adaptor import FrameworkAdaptor
