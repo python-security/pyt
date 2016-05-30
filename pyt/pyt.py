@@ -10,6 +10,7 @@ from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
+from save import create_database
 import log
 
 parser = argparse.ArgumentParser()
@@ -24,6 +25,7 @@ print_group.add_argument('-vp', '--verbose-print', help='Verbose printing of -p.
 parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.', type=str)
 parser.add_argument('-l', '--log-level', help='Chose logging level: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
 parser.add_argument('-a', '--adaptor', help='Chose an adaptor: FLASK(Default) or DJANGO.', type=str)
+parser.add_argument('-db', '--create-database', help='Creates a sql file that can be used to create a database.', action='store_true')
 
 args = parser.parse_args()
 
@@ -70,6 +72,6 @@ if __name__ == '__main__':
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
             print(repr(e))
-    
 
-    
+    if args.create_database:
+        create_database(cfg_list, vulnerability_log)
