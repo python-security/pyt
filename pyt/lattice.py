@@ -19,7 +19,7 @@ from graphviz import Digraph
 
 IGNORED_LABEL_NAME_CHARACHTERS = ':'
 
-styles = {
+lattice_styles = {
     'graph': {
         'fontsize': '16',
         'fontcolor': 'black',
