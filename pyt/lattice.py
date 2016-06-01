@@ -11,6 +11,8 @@ class Node():
     def __str__(self):
         return 'Node: ' + str(self.s) + ' Parent: ' + str(self.parent) + ' Children: ' + str(self.children)
 
+    def __hash__(self):
+        return hash(str(self.s))
 
             
 from graphviz import Digraph
@@ -23,12 +25,13 @@ styles = {
         'fontcolor': 'black',
         'bgcolor': 'transparent',
         'rankdir': 'TB',
-        'splines': 'ortho',
+        'splines': 'line',
         'margin' : '0.01',
+        'ranksep': '1',
     },
     'nodes': {
         'fontname': 'Gotham',
-        'shape': 'box',
+        'shape': 'none',
         'fontcolor': 'black',
         'color': 'black',
         'style': 'filled',
@@ -37,7 +40,7 @@ styles = {
     'edges': {
         'style': 'filled',
         'color': 'black',
-        'arrowhead': 'normal',
+        'arrowhead': 'none',
         'fontname': 'Courier',
         'fontsize': '12',
         'fontcolor': 'black',
