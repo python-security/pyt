@@ -4,7 +4,7 @@ import argparse
 import os
 
 from cfg import generate_ast, build_cfg
-from draw import draw_cfg
+from draw import draw_cfgs
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
@@ -61,9 +61,9 @@ if __name__ == '__main__':
 
     if args.draw_cfg:
         if args.output_filename:
-            draw_cfg(cfg, args.output_filename)
+            draw_cfgs(cfg_list, args.output_filename)
         else:
-            draw_cfg(cfg)
+            draw_cfgs(cfg_list)
     if args.print:
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
