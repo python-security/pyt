@@ -48,14 +48,22 @@ def draw_cfg(cfg, output_filename = 'output'):
     graph = Digraph(format='pdf')
     
     for node in cfg.nodes:
-        if 'Exit' in node.label:
-            graph.node(node.label, 'Exit', shape='none')
-        elif 'Entry' in node.label:
-            graph.node(node.label, 'Entry', shape='none')
+        stripped_label = node.label.replace(IGNORED_LABEL_NAME_CHARACHTERS, '')
+        
+        print(stripped_label)
+        if 'Exit' in stripped_label:
+            graph.node(stripped_label, 'Exit', shape='none')
+        elif 'Entry' in stripped_label:
+            graph.node(stripped_label, 'Entry', shape='none')
         else:
-            graph.node(node.label.strip(IGNORED_LABEL_NAME_CHARACHTERS), node.label)
+            graph.node(stripped_label, stripped_label)
+            
         for ingoing_node in node.ingoing:
-            graph.edge(ingoing_node.label, node.label)
+            graph.edge(ingoing_node.label.replace(IGNORED_LABEL_NAME_CHARACHTERS, ''), stripped_label)
 
     graph = apply_styles(graph, styles)
     graph.render(filename = output_filename)
+
+def draw_cfgs(cfg_list, output_prefix='output'):
+    for i, cfg in enumerate(cfg_list):
+        draw_cfg(cfg, output_prefix + '_' + str(i))
