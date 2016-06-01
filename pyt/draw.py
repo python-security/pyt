@@ -3,6 +3,7 @@ from graphviz import Digraph
 from cfg import AssignmentNode
 from itertools import permutations
 from subprocess import run
+import argparse
 
 IGNORED_LABEL_NAME_CHARACHTERS = ':'
 
@@ -179,6 +180,19 @@ def draw_lattice(cfg, output_filename='output'):
     add_anchor(output_filename)
     run_dot(output_filename)
 
+def draw_lattice_from_labels(labels, output_filename):
+    graph = Digraph(format='pdf')
+
+    root = make_lattice(labels, len(labels)-1)
+    l = list()
+    draw_node(l, graph, root)
+
+    graph = apply_styles(graph, lattice_styles)
+    graph.render(filename = output_filename+'.dot')
+
+    add_anchor(output_filename)
+    run_dot(output_filename)
+    
 def draw_lattices(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):
         draw_lattice(cfg, output_prefix + '_' + str(i))    
@@ -186,3 +200,11 @@ def draw_lattices(cfg_list, output_prefix='output'):
 def draw_cfgs(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):
         draw_cfg(cfg, output_prefix + '_' + str(i))
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-l', '--labels', nargs='+', help='Set of labels in lattice.')
+parser.add_argument('-n', '--name', help='Specify filename.', type=str)
+if __name__ == '__main__':
+    args = parser.parse_args()
+
+    draw_lattice_from_labels(args.labels, args.name)
