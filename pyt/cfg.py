@@ -874,7 +874,7 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.items[0])
 
-        with_node = Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1])
+        with_node = self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
         connect_statements = self.stmt_star_handler(node.body)
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
