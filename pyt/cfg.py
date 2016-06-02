@@ -782,18 +782,17 @@ class Visitor(ast.NodeVisitor):
 
             parameters = self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args), call_node.lineno)
 
+            self.filenames.append(definition.path)
             self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args), def_node.lineno)
             function_nodes = self.get_function_nodes(definition)
+            self.filenames.pop() # Maybe move after restore nodes
             restore_nodes = self.restore_saved_local_scope(saved_variables, parameters, def_node.lineno)
-
             self.return_handler(call_node, function_nodes, restore_nodes)
             self.function_return_stack.pop()
 
         except IndexError:
             error_call = get_call_names_as_string(call_node.func)
             print('Error: Possible nameclash in "{}". Call omitted!\n'.format(error_call))
-
-
 
 
         return self.nodes[-1]
