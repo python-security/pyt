@@ -555,7 +555,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         y_load = self.cfg.nodes[6]
 
         self.assertLineNumber(y_assignment, 5)
-        self.assertLineNumber(save_y, None)
+        self.assertLineNumber(save_y, 1)
         self.assertLineNumber(entry_foo, None)
         self.assertLineNumber(body_foo, 2)
 
