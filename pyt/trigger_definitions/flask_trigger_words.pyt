@@ -1,6 +1,7 @@
 sources:
 get(
 form[
+.data
 Markup(
 
 sinks:
