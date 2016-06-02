@@ -135,9 +135,9 @@ def get_children(p, s, length):
             if setsubset == node.s:
                 append = False
                 break
-        n = Node(setsubset, p)
-        n.children = get_children(n, setsubset, length-1)
         if append:
+            n = Node(setsubset, p)
+            n.children = get_children(n, setsubset, length-1)
             children.add(n)
     return children
 
