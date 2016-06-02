@@ -159,7 +159,7 @@ class AssignmentNode(Node):
 class RestoreNode(AssignmentNode):
     """Node used for handling restore nodes returning from function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number=None, path=None):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
         """Create an Restore node.
 
         Args:
@@ -694,7 +694,7 @@ class Visitor(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    def save_local_scope(self):
+    def save_local_scope(self, line_number):
         """Save the local scope before entering a function call."""
         saved_variables = list()
         for assignment in [node for node in self.nodes if type(node) == AssignmentNode]:
@@ -704,13 +704,13 @@ class Visitor(ast.NodeVisitor):
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' + assignment.left_hand_side
             previous_node = self.nodes[-1]
-            saved_scope_node = self.append_node(RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, [assignment.left_hand_side]))
+            saved_scope_node = self.append_node(RestoreNode(save_name + ' = ' + assignment.left_hand_side, save_name, [assignment.left_hand_side], line_number=line_number, path=self.filenames[-1]))
             
             saved_variables.append(SavedVariable(LHS = save_name, RHS = assignment.left_hand_side))
             previous_node.connect(saved_scope_node)
         return saved_variables
 
-    def save_actual_parameters_in_temp(self, args, arguments):
+    def save_actual_parameters_in_temp(self, args, arguments, line_number):
         """Save the actual parameters of a function call."""
         parameters = dict()
         for i, parameter in enumerate(args):
@@ -718,7 +718,7 @@ class Visitor(ast.NodeVisitor):
 
             label_visitor = LabelVisitor()
             label_visitor.visit(parameter)        
-            n = RestoreNode(temp_name + ' = ' + label_visitor.result, temp_name, [label_visitor.result])
+            n = RestoreNode(temp_name + ' = ' + label_visitor.result, temp_name, [label_visitor.result], line_number=line_number, path=self.filenames[-1])
             
             self.nodes[-1].connect(n)
             self.nodes.append(n)
@@ -726,17 +726,17 @@ class Visitor(ast.NodeVisitor):
             parameters[label_visitor.result] = arguments[i]
         return parameters
 
-    def create_local_scope_from_actual_parameters(self, args, arguments):
+    def create_local_scope_from_actual_parameters(self, args, arguments, line_number):
         """Create the local scope before entering the body of a function call."""
         parameters = dict()
         for i, parameter in enumerate(args):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]                
             local_name = arguments[i]
             previous_node = self.nodes[-1]
-            local_scope_node = self.append_node(RestoreNode(local_name + ' = ' + temp_name, local_name, [temp_name]))
+            local_scope_node = self.append_node(RestoreNode(local_name + ' = ' + temp_name, local_name, [temp_name], line_number=line_number, path=self.filenames[-1]))
             previous_node.connect(local_scope_node)
 
-    def restore_saved_local_scope(self, saved_variables, parameters):
+    def restore_saved_local_scope(self, saved_variables, parameters, line_number):
         """Restore the previously saved variables to their original values.
 
         Args:
@@ -745,9 +745,9 @@ class Visitor(ast.NodeVisitor):
         restore_nodes = list()
         for var in saved_variables:
             if var.RHS in parameters:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + parameters[var.RHS], var.RHS, [var.LHS]))
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + parameters[var.RHS], var.RHS, [var.LHS], line_number=line_number, path=self.filenames[-1]))
             else:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS, [var.LHS]))
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS, var.RHS, [var.LHS], line_number=line_number, path=self.filenames[-1]))
 
         for n, successor in zip(restore_nodes, restore_nodes[1:]):
             n.connect(successor)
@@ -767,7 +767,7 @@ class Visitor(ast.NodeVisitor):
                 previous_node = self.nodes[-1]
                 if not call_node:
                     RHS = 'ret_' + get_call_names_as_string(node.func)
-                    call_node = self.append_node(RestoreNode(LHS + ' = ' + RHS, LHS, [RHS]))
+                    call_node = self.append_node(RestoreNode(LHS + ' = ' + RHS, LHS, [RHS], line_number=node.lineno, path=self.filenames[-1]))
                     previous_node.connect(call_node)
                     
             else:
@@ -778,13 +778,13 @@ class Visitor(ast.NodeVisitor):
         try:
             self.function_index += 1
             def_node = definition.node
-            saved_variables = self.save_local_scope()
+            saved_variables = self.save_local_scope(def_node.lineno)
 
-            parameters = self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args))
+            parameters = self.save_actual_parameters_in_temp(call_node.args, Arguments(def_node.args), call_node.lineno)
 
-            self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args))
+            self.create_local_scope_from_actual_parameters(call_node.args, Arguments(def_node.args), def_node.lineno)
             function_nodes = self.get_function_nodes(definition)
-            restore_nodes = self.restore_saved_local_scope(saved_variables, parameters)
+            restore_nodes = self.restore_saved_local_scope(saved_variables, parameters, def_node.lineno)
 
             self.return_handler(call_node, function_nodes, restore_nodes)
             self.function_return_stack.pop()
