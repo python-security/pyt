@@ -157,6 +157,8 @@ def add_anchor(filename):
                 s[1] = ss + ':n\n'
                 s.insert(1, delimiter)
                 out.append(''.join(s))
+            elif 'set()' in line:
+                out.append('"set()" [label="{}"]')
             else:
                 out.append(line)
     with open(filename, 'w') as fd:
