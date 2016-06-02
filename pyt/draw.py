@@ -111,12 +111,14 @@ class Node():
 
 
 def draw_node(l, graph, node):
-    graph.node(str(node.s), str(node.s))
+    node_label = str(node.s)
+    graph.node(node_label, node_label)
     for child in node.children:
-        graph.node(str(child.s), str(child.s))
-        if not (str(node.s), str(child.s)) in l:
-            graph.edge(str(node.s), str(child.s), )
-            l.append((str(node.s), str(child.s)))
+        child_label = str(child.s)
+        graph.node(child_label, child_label)
+        if not (node_label, child_label) in l:
+            graph.edge(node_label, child_label, )
+            l.append((node_label, child_label))
         draw_node(l, graph, child)
 
 def make_lattice(s, length):
