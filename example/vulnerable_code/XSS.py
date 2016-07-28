@@ -5,7 +5,7 @@ app = Flask(__name__)
 def XSS1():
     param = request.args.get('param', 'not set')
 
-    html = open('templates/XSS_param.html').read()
+    html = open('templates/xss.html').read()
     resp = make_response(html.replace('{{ param }}', param))
     return resp
 
