@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('project', help='Path to where the project is located which PyT should analyse.', type=str)
 parser.add_argument('project_file', help='Path to the file where PyT should start to analyse.', type=str)
-parser.add_argument('-n', '--number-of-results', help='Number of results to be shown. Default: 10.')
+parser.add_argument('-n', '--number-of-results', help='Number of results to be shown. Default: 10.', type=int)
 
 args = parser.parse_args()
 
