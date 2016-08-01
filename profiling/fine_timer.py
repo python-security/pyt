@@ -1,5 +1,6 @@
 import pstats
 import argparse
+import os
 from subprocess import run, PIPE
 
 python = 'python3'
@@ -21,6 +22,15 @@ if args.number_of_results:
 run([python, '-m', 'cProfile', '-o', stats_filename,
      pyt_path, '-pr', args.project, args.project_file], stdout=PIPE)
 
-stats = pstats.Stats('stats')
-stats.sort_stats('cumulative')
-stats.print_stats(number_of_results)
+def clean_up():
+    if os.path.isfile(stats_filename):
+        os.remove(stats_filename)
+
+def prepare_results():
+    stats = pstats.Stats(stats_filename)
+    stats.sort_stats('cumulative')
+    stats.print_stats(number_of_results)
+
+prepare_results()
+clean_up()
+
