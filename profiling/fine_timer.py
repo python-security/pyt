@@ -69,11 +69,11 @@ def remove_profile(filename):
             fd.write(line)
 
 def fixed_point_timer(project, project_file):
-    filename = 'reaching_definitions_taint.py'
+    analysis_filename = '../pyt/reaching_definitions_taint.py'
     list_of_functions = ['arrow', 'join', 'fixpointmethod']
-    insert_profile('../pyt/' + filename, list_of_functions)
+    insert_profile(analysis_filename, list_of_functions)
     if project:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, '-pr', project, project_file])
     else:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, project_file])
-    remove_profile('../pyt/' + filename)
+    remove_profile(analysis_filename)
