@@ -7,10 +7,13 @@ pyt_path = '../pyt/pyt.py'
 STATS_FILENAME = 'stats.prof'
 snakeviz = 'snakeviz'
 KERNPROF = 'kernprof'
+LINE_PROFILER_FILE = 'pyt.py.lprof'
 
 def clean_up():
     if os.path.isfile(STATS_FILENAME):
         os.remove(STATS_FILENAME)
+    if os.path.isfile(LINE_PROFILER_FILE):
+        os.remove(LINE_PROFILER_FILE)
 
 def prepare_results(number_of_results):
     stats = pstats.Stats(STATS_FILENAME)
