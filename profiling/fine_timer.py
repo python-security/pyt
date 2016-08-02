@@ -2,10 +2,10 @@ import pstats
 import os
 from subprocess import run as sub_run, PIPE
 
-python = 'python3'
-pyt_path = '../pyt/pyt.py'
+PYTHON = 'python3'
+PYT_PATH = '../pyt/pyt.py'
 STATS_FILENAME = 'stats.prof'
-snakeviz = 'snakeviz'
+SNAKEVIZ = 'snakeviz'
 KERNPROF = 'kernprof'
 LINE_PROFILER_FILE = 'pyt.py.lprof'
 
@@ -22,7 +22,7 @@ def prepare_results(number_of_results):
 
 def visualise():
     try:
-        sub_run([snakeviz, STATS_FILENAME])
+        sub_run([SNAKEVIZ, STATS_FILENAME])
     except KeyboardInterrupt:
         pass
     except:
@@ -32,11 +32,11 @@ def visualise():
 
 def run(project, project_file, number_of_results):
     if project:
-        sub_run([python, '-m', 'cProfile', '-o', STATS_FILENAME,
-            pyt_path, '-pr', project, project_file], stdout=PIPE)
+        sub_run([PYTHON, '-m', 'cProfile', '-o', STATS_FILENAME,
+            PYT_PATH, '-pr', project, project_file], stdout=PIPE)
     else:
-        sub_run([python, '-m', 'cProfile', '-o', STATS_FILENAME,
-            pyt_path, project_file], stdout=PIPE)
+        sub_run([PYTHON, '-m', 'cProfile', '-o', STATS_FILENAME,
+            PYT_PATH, project_file], stdout=PIPE)
 
     prepare_results(number_of_results)
 
@@ -73,7 +73,7 @@ def fixed_point_timer(project, project_file):
     list_of_functions = ['arrow', 'join', 'fixpointmethod']
     insert_profile('../pyt/' + filename, list_of_functions)
     if project:
-        sub_run([KERNPROF, '-l', '-v', pyt_path, '-pr', project, project_file])
+        sub_run([KERNPROF, '-l', '-v', PYT_PATH, '-pr', project, project_file])
     else:
-        sub_run([KERNPROF, '-l', '-v', pyt_path, project_file])
+        sub_run([KERNPROF, '-l', '-v', PYT_PATH, project_file])
     remove_profile('../pyt/' + filename)
