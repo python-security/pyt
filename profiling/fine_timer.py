@@ -4,7 +4,7 @@ from subprocess import run as sub_run, PIPE
 
 python = 'python3'
 pyt_path = '../pyt/pyt.py'
-STATS_FILENAME = 'stats'
+STATS_FILENAME = 'stats.prof'
 snakeviz = 'snakeviz'
 KERNPROF = 'kernprof'
 
