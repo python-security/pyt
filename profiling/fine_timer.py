@@ -6,6 +6,7 @@ python = 'python3'
 pyt_path = '../pyt/pyt.py'
 stats_filename = 'stats'
 snakeviz = 'snakeviz'
+KERNPROF = 'kernprof'
 
 def clean_up():
     if os.path.isfile(stats_filename):
@@ -36,3 +37,40 @@ def run(project, project_file, number_of_results):
 
     prepare_results(number_of_results)
 
+def get_indendation(line):
+    return line.split('def')[0]
+
+def insert_profile(filename, list_of_functions):
+    out = list()
+    old_line = ''
+    with open(filename, 'r') as fd:
+        for line in fd:
+            for func in list_of_functions:
+                if '@profile' not in old_line and 'def ' + func in line:
+                    out.append(get_indendation(line) + '@profile\n')
+            old_line = line
+            out.append(line)
+
+    with open(filename, 'w') as fd:
+        for line in out:
+            fd.write(line)
+
+def remove_profile(filename):
+    out = list()
+    with open(filename, 'r') as fd:
+        for line in fd:
+            if '@profile' not in line:
+                out.append(line)
+    with open(filename, 'w') as fd:
+        for line in out:
+            fd.write(line)
+
+def fixed_point_timer(project, project_file):
+    filename = 'reaching_definitions_taint.py'
+    list_of_functions = ['arrow', 'join', 'fixpointmethod']
+    insert_profile('../pyt/' + filename, list_of_functions)
+    if project:
+        sub_run([KERNPROF, '-l', '-v', pyt_path, '-pr', project, project_file])
+    else:
+        sub_run([KERNPROF, '-l', '-v', pyt_path, project_file])
+    remove_profile('../pyt/' + filename)

@@ -8,6 +8,7 @@ parser.add_argument('project_file', help='Path to the file where PyT should star
 parser.add_argument('-pr', '--project', help='Path to where the project is located which PyT should analyse.', type=str)
 parser.add_argument('-n', '--number-of-results', help='Number of results to be shown. Default: 10.', type=int)
 parser.add_argument('-v', '--visualise', help='Visualise the results in an interactive way.', action='store_true')
+parser.add_argument('-fp', '--fixed-point', help='Run line profiling on the fixed point algorithm.', action='store_true')
 
 args = parser.parse_args()
 
@@ -19,5 +20,8 @@ fine_timer.run(args.project, args.project_file, number_of_results)
 
 if args.visualise:
     fine_timer.visualise()
+
+if args.fixed_point:
+    fine_timer.fixed_point_timer(args.project, args.project_file)
 
 fine_timer.clean_up()
