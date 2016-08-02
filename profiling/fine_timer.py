@@ -18,8 +18,12 @@ def prepare_results(number_of_results):
     stats.print_stats(number_of_results)
 
 def run(project, project_file, number_of_results):
-    sub_run([python, '-m', 'cProfile', '-o', stats_filename,
-     pyt_path, '-pr', project, project_file], stdout=PIPE)
+    if project:
+        sub_run([python, '-m', 'cProfile', '-o', stats_filename,
+            pyt_path, '-pr', project, project_file], stdout=PIPE)
+    else:
+        sub_run([python, '-m', 'cProfile', '-o', stats_filename,
+            pyt_path, project_file], stdout=PIPE)
+
     prepare_results(number_of_results)
-    clean_up()
 
