@@ -19,11 +19,19 @@ if args.number_of_results:
 
 fine_timer.run(args.project, args.project_file, number_of_results)
 
-if args.visualise:
-    fine_timer.visualise()
-
 if args.fixed_point:
     fine_timer.fixed_point_timer(args.project, args.project_file)
+
+if args.visualise:
+    try:
+        print()
+        print('#############################')
+        print('C-c to to clean up and exit.')
+        print('#############################')
+        print()
+        fine_timer.visualise()
+    except KeyboardInterrupt:
+        pass
 
 if not args.keep_intermediate_files:
     fine_timer.clean_up()
