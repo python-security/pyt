@@ -22,7 +22,7 @@ def prepare_results(number_of_results):
 
 def visualise():
     try:
-        sub_run([SNAKEVIZ, STATS_FILENAME])
+        sub_run([SNAKEVIZ, STATS_FILENAME], stdout=PIPE)
     except KeyboardInterrupt:
         pass
     except:
