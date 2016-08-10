@@ -1,0 +1,261 @@
+############################################### Profiling 2016-08-10 13:53:08.742765 ###############################################
+
+##### Profiling test_projects/flaskbb_lite_1/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_1/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.100027 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                               @profile
+    12                                               def join(self, cfg_node):
+    13     34596        19687      0.6     19.7          JOIN = set()
+    14     64654        36026      0.6     36.0          for ingoing in cfg_node.ingoing:
+    15     30058        30505      1.0     30.5              JOIN |= ingoing.old_constraint
+    16     34596        13809      0.4     13.8          return JOIN
+
+Total time: 1.30757 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                               @profile
+    19                                               def arrow(self, JOIN, _id):
+    20     30657        17686      0.6      1.4          result = set()
+    21    899053       393007      0.4     30.1          for cfg_node in JOIN:
+    22                                                       # if _id is not found in the LHS of cfg_node, the node will not be deleted
+    23    868396       424534      0.5     32.5              if _id is not cfg_node.left_hand_side:
+    24    863528       459466      0.5     35.1                  result.add(cfg_node)
+    25     30657        12879      0.4      1.0          return result
+
+Total time: 2.6588 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 27
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    27                                               @profile
+    28                                               def fixpointmethod(self, cfg_node):
+    29                                                   # Assignment: JOIN(v) arrow(id) join(v)
+    30     34596        26784      0.8      1.0          if isinstance(cfg_node, AssignmentNode):
+    31     30657       230261      7.5      8.7              JOIN = self.join(cfg_node)
+    32     30657        14232      0.5      0.5              arrow_result = JOIN
+    33     30657        20338      0.7      0.8              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    34     30657      2303651     75.1     86.6                  arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
+    35     30657        20023      0.7      0.8              arrow_result.add(cfg_node)
+    36     30657        18586      0.6      0.7              cfg_node.new_constraint = arrow_result
+    37                                                       
+    38                                                   else:
+    39                                                       # Default case join(v)
+    40      3939        24928      6.3      0.9              cfg_node.new_constraint = self.join(cfg_node)
+
+Wed Aug 10 13:53:09 2016    stats.prof
+
+         1115433 function calls (1109189 primitive calls) in 0.435 seconds
+
+   Ordered by: cumulative time
+   List reduced from 751 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     48/1    0.004    0.000    0.435    0.435 {built-in method builtins.exec}
+        1    0.000    0.000    0.435    0.435 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000    0.357    0.357 ../pyt/fixed_point.py:41(analyse)
+        7    0.000    0.000    0.356    0.051 ../pyt/fixed_point.py:28(fixpoint_runner)
+      194    0.018    0.000    0.330    0.002 ../pyt/fixed_point.py:35(fixpoint_iteration)
+    34596    0.041    0.000    0.312    0.000 ../pyt/reaching_definitions_taint.py:25(fixpointmethod)
+    30657    0.177    0.000    0.239    0.000 ../pyt/reaching_definitions_taint.py:17(arrow)
+   894220    0.064    0.000    0.064    0.000 {method 'add' of 'set' objects}
+     44/9    0.000    0.000    0.041    0.005 <frozen importlib._bootstrap>:966(_find_and_load)
+     44/9    0.000    0.000    0.041    0.005 <frozen importlib._bootstrap>:939(_find_and_load_unlocked)
+
+
+##### Profiling test_projects/flaskbb_lite_2/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_2/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_2/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_2/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 7.80966 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                               @profile
+    12                                               def join(self, cfg_node):
+    13   1548602      1023302      0.7     13.1          JOIN = set()
+    14   2994137      1996115      0.7     25.6          for ingoing in cfg_node.ingoing:
+    15   1445535      4154997      2.9     53.2              JOIN |= ingoing.old_constraint
+    16   1548602       635246      0.4      8.1          return JOIN
+
+Total time: 374.495 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                               @profile
+    19                                               def arrow(self, JOIN, _id):
+    20   1467058       974029      0.7      0.3          result = set()
+    21 254661642    109700721      0.4     29.3          for cfg_node in JOIN:
+    22                                                       # if _id is not found in the LHS of cfg_node, the node will not be deleted
+    23 253194584    129272131      0.5     34.5              if _id is not cfg_node.left_hand_side:
+    24 252813382    133927025      0.5     35.8                  result.add(cfg_node)
+    25   1467058       621407      0.4      0.2          return result
+
+Total time: 648.407 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 27
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    27                                               @profile
+    28                                               def fixpointmethod(self, cfg_node):
+    29                                                   # Assignment: JOIN(v) arrow(id) join(v)
+    30   1548602      1461537      0.9      0.2          if isinstance(cfg_node, AssignmentNode):
+    31   1467058     14371167      9.8      2.2              JOIN = self.join(cfg_node)
+    32   1467058       686717      0.5      0.1              arrow_result = JOIN
+    33   1467058      1226815      0.8      0.2              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    34   1467058    628106513    428.1     96.9                  arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
+    35   1467058       986740      0.7      0.2              arrow_result.add(cfg_node)
+    36   1467058      1027157      0.7      0.2              cfg_node.new_constraint = arrow_result
+    37                                                       
+    38                                                   else:
+    39                                                       # Default case join(v)
+    40     81544       540392      6.6      0.1              cfg_node.new_constraint = self.join(cfg_node)
+
+Wed Aug 10 13:54:42 2016    stats.prof
+
+         261667345 function calls (261646062 primitive calls) in 90.121 seconds
+
+   Ordered by: cumulative time
+   List reduced from 754 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     48/1    0.004    0.000   90.121   90.121 {built-in method builtins.exec}
+        1    0.000    0.000   90.121   90.121 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000   89.886   89.886 ../pyt/fixed_point.py:41(analyse)
+       14    0.007    0.000   89.886    6.420 ../pyt/fixed_point.py:28(fixpoint_runner)
+     1102    1.791    0.002   84.617    0.077 ../pyt/fixed_point.py:35(fixpoint_iteration)
+  1548602    2.404    0.000   82.826    0.000 ../pyt/reaching_definitions_taint.py:25(fixpointmethod)
+  1467058   56.285    0.000   75.867    0.000 ../pyt/reaching_definitions_taint.py:17(arrow)
+254280475   19.708    0.000   19.708    0.000 {method 'add' of 'set' objects}
+  1548602    4.236    0.000    4.236    0.000 ../pyt/reaching_definitions_taint.py:11(join)
+     1102    0.007    0.000    2.950    0.003 ../pyt/fixed_point.py:18(constraints_changed)
+
+
+##### Profiling test_projects/flaskbb_lite_3/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_3/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_3/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_3/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 1.36268 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                               @profile
+    12                                               def join(self, cfg_node):
+    13    360436       245064      0.7     18.0          JOIN = set()
+    14    696038       456391      0.7     33.5          for ingoing in cfg_node.ingoing:
+    15    335602       512314      1.5     37.6              JOIN |= ingoing.old_constraint
+    16    360436       148911      0.4     10.9          return JOIN
+
+Total time: 39.8733 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                               @profile
+    19                                               def arrow(self, JOIN, _id):
+    20    332441       232814      0.7      0.6          result = set()
+    21  25459412     11771649      0.5     29.5          for cfg_node in JOIN:
+    22                                                       # if _id is not found in the LHS of cfg_node, the node will not be deleted
+    23  25126971     12591490      0.5     31.6              if _id is not cfg_node.left_hand_side:
+    24  25049392     15128989      0.6     37.9                  result.add(cfg_node)
+    25    332441       148387      0.4      0.4          return result
+
+Total time: 69.2388 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 27
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    27                                               @profile
+    28                                               def fixpointmethod(self, cfg_node):
+    29                                                   # Assignment: JOIN(v) arrow(id) join(v)
+    30    360436       328782      0.9      0.5          if isinstance(cfg_node, AssignmentNode):
+    31    332441      2875202      8.6      4.2              JOIN = self.join(cfg_node)
+    32    332441       168029      0.5      0.2              arrow_result = JOIN
+    33    332441       255674      0.8      0.4              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    34    332441     64963372    195.4     93.8                  arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
+    35    332441       229760      0.7      0.3              arrow_result.add(cfg_node)
+    36    332441       208997      0.6      0.3              cfg_node.new_constraint = arrow_result
+    37                                                       
+    38                                                   else:
+    39                                                       # Default case join(v)
+    40     27995       208969      7.5      0.3              cfg_node.new_constraint = self.join(cfg_node)
+
+Wed Aug 10 14:05:57 2016    stats.prof
+
+         27061502 function calls (27053131 primitive calls) in 9.258 seconds
+
+   Ordered by: cumulative time
+   List reduced from 755 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     48/1    0.005    0.000    9.258    9.258 {built-in method builtins.exec}
+        1    0.000    0.000    9.258    9.258 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000    9.111    9.111 ../pyt/fixed_point.py:41(analyse)
+        7    0.002    0.000    9.111    1.302 ../pyt/fixed_point.py:28(fixpoint_runner)
+      412    0.261    0.001    8.550    0.021 ../pyt/fixed_point.py:35(fixpoint_iteration)
+   360436    0.518    0.000    8.288    0.000 ../pyt/reaching_definitions_taint.py:25(fixpointmethod)
+   332441    5.368    0.000    7.166    0.000 ../pyt/reaching_definitions_taint.py:17(arrow)
+ 25381868    1.825    0.000    1.825    0.000 {method 'add' of 'set' objects}
+   360436    0.531    0.000    0.531    0.000 ../pyt/reaching_definitions_taint.py:11(join)
+      405    0.307    0.001    0.307    0.001 ../pyt/fixed_point.py:22(swap_constraints)
+
+
+
