@@ -10,7 +10,7 @@ PROFILER = 'profiler.py'
 TEST_PROJECT_1 = 'test_projects/flaskbb_lite_1/flaskbb/app.py'
 TEST_PROJECT_2 = 'test_projects/flaskbb_lite_2/flaskbb/app.py'
 TEST_PROJECT_3 = 'test_projects/flaskbb_lite_3/flaskbb/app.py'
-TEST_PROJECTS = [TEST_PROJECT_1]#,TEST_PROJECT_2, TEST_PROJECT_3]
+TEST_PROJECTS = [TEST_PROJECT_1, TEST_PROJECT_2, TEST_PROJECT_3]
 FIXED_POINT_FLAG = '-fp'
 PROFILING_DB = 'db.txt'
 
@@ -19,7 +19,7 @@ with open(PROFILING_DB, 'a') as fd:
 {} ###############################################\n\n'.format(datetime.now()))
 
 for tp in TEST_PROJECTS:
-    print('Profiling: ', tp)        
+    print('Profiling: ', tp)
     with open(PROFILING_DB, 'a') as fd:
         fd.write('##### Profiling {} #####\n\n'.format(tp))
     with open(PROFILING_DB, 'a') as fd:
