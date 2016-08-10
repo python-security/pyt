@@ -1,4 +1,6 @@
 language: python
 python:
   - "3.5"
+install: pip install line_profiler
 script: cd tests && python test.py
+script: cd profiling && python profiling_runner.py
