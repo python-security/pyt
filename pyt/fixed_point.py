@@ -24,7 +24,12 @@ class FixedPointAnalysis():
         for node in self.cfg.nodes:
             node.old_constraint = node.new_constraint
             node.new_constraint = None
-            
+
+    def dep(self, q_1):
+        for node in self.cfg.nodes:
+            if q_1 in node.new_constraint:
+                yield node
+
     def fixpoint_runner(self):
         """Work list algorithm that runs the fixpoint algorithm."""
         q = self.cfg.nodes
@@ -39,9 +44,8 @@ class FixedPointAnalysis():
             q = q[1:]
 
             if y != x_1:
-                for n in self.cfg.nodes:
-                    if q_1 in n.new_constraint:
-                        q.append(n)
+                for n in self.dep(q_1):
+                    q.append(n)
                 q_1.old_constraint = q_1.new_constraint # x_1 = y
                 # q_1.new_constraint = None - Is this needed?
 
