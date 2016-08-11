@@ -520,3 +520,93 @@ Thu Aug 11 08:42:55 2016    stats.prof
 
 
 
+############################################### Profiling 2016-08-11 15:16:20.611658 ###############################################
+
+##### Profiling test_projects/flaskbb_lite_1/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_1/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.199352 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                               @profile
+    12                                               def join(self, cfg_node):
+    13     53882        41174      0.8     20.7          JOIN = set()
+    14    100291        74362      0.7     37.3          for ingoing in cfg_node.ingoing:
+    15     46409        61079      1.3     30.6              JOIN |= ingoing.old_constraint
+    16     53882        22737      0.4     11.4          return JOIN
+
+Total time: 2.83935 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                               @profile
+    19                                               def arrow(self, JOIN, _id):
+    20     47426        34092      0.7      1.2          result = set()
+    21   1966577       811851      0.4     28.6          for cfg_node in JOIN:
+    22                                                       # if _id is not found in the LHS of cfg_node, the node will not be deleted
+    23   1919151       901967      0.5     31.8              if _id is not cfg_node.left_hand_side:
+    24   1910922      1072742      0.6     37.8                  result.add(cfg_node)
+    25     47426        18697      0.4      0.7          return result
+
+Total time: 5.77989 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 27
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    27                                               @profile
+    28                                               def fixpointmethod(self, cfg_node):
+    29                                                   # Assignment: JOIN(v) arrow(id) join(v)
+    30     53882        64655      1.2      1.1          if isinstance(cfg_node, AssignmentNode):
+    31     47426       426010      9.0      7.4              JOIN = self.join(cfg_node)
+    32     47426        22625      0.5      0.4              arrow_result = JOIN
+    33     47426        38035      0.8      0.7              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    34     47426      5082041    107.2     87.9                  arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
+    35     47426        33748      0.7      0.6              arrow_result.add(cfg_node)
+    36     47426        63677      1.3      1.1              cfg_node.new_constraint = arrow_result
+    37                                                       
+    38                                                   else:
+    39                                                       # Default case join(v)
+    40      6456        49096      7.6      0.8              cfg_node.new_constraint = self.join(cfg_node)
+
+Thu Aug 11 15:16:25 2016    stats.prof
+
+         2337803 function calls (2331559 primitive calls) in 4.504 seconds
+
+   Ordered by: cumulative time
+   List reduced from 734 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     48/1    0.005    0.000    4.505    4.505 {built-in method builtins.exec}
+        1    0.000    0.000    4.505    4.505 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000    4.419    4.419 ../pyt/fixed_point.py:57(analyse)
+        7    3.615    0.516    4.419    0.631 ../pyt/fixed_point.py:32(fixpoint_runner)
+    53882    0.123    0.000    0.796    0.000 ../pyt/reaching_definitions_taint.py:25(fixpointmethod)
+    47426    0.430    0.000    0.580    0.000 ../pyt/reaching_definitions_taint.py:17(arrow)
+  1958383    0.154    0.000    0.154    0.000 {method 'add' of 'set' objects}
+    53882    0.079    0.000    0.079    0.000 ../pyt/reaching_definitions_taint.py:11(join)
+     44/9    0.000    0.000    0.045    0.005 <frozen importlib._bootstrap>:966(_find_and_load)
+     44/9    0.000    0.000    0.045    0.005 <frozen importlib._bootstrap>:939(_find_and_load_unlocked)
+
+
+##### Profiling test_projects/flaskbb_lite_2/flaskbb/app.py #####
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Rest could not be run took over 30 minutes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
