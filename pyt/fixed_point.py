@@ -26,12 +26,25 @@ class FixedPointAnalysis():
             node.new_constraint = None
             
     def fixpoint_runner(self):
-        """Runs the fixpoint algorithm."""
-        self.fixpoint_iteration()
-        while self.constraints_changed():
-            self.swap_constraints()
-            self.fixpoint_iteration()
-        
+        """Work list algorithm that runs the fixpoint algorithm."""
+        q = self.cfg.nodes
+
+        while q != []:
+            self.analysis.fixpointmethod(q[0])
+
+            y = q[0].new_constraint
+            x_1 = q[0].old_constraint
+            q_1 = q[0]
+
+            q = q[1:]
+
+            if y != x_1:
+                for n in self.cfg.nodes:
+                    if q_1 in n.new_constraint:
+                        q.append(n)
+                q_1.old_constraint = q_1.new_constraint # x_1 = y
+                # q_1.new_constraint = None - Is this needed?
+
     def fixpoint_iteration(self):
         """A fixpoint iteration."""
         for node in self.cfg.nodes:
