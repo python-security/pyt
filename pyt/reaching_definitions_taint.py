@@ -1,5 +1,4 @@
 from cfg import AssignmentNode
-from copy import deepcopy
 from analysis_base import AnalysisBase
 
 class ReachingDefinitionsTaintAnalysis(AnalysisBase):
