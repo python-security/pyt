@@ -25,28 +25,24 @@ class FixedPointAnalysis():
             node.old_constraint = node.new_constraint
             node.new_constraint = None
 
-    def dep(self):
-        for node in self.cfg.nodes:
-                yield node
+    def dep(self, q_1): # Useless to have this as a function atm
+        """Represents the dep mapping from Schwartzbach."""
+        return q_1.outgoing
 
     def fixpoint_runner(self):
         """Work list algorithm that runs the fixpoint algorithm."""
         q = self.cfg.nodes
 
         while q != []:
+            # y = F_i(x_1, ..., x_n):
             self.analysis.fixpointmethod(q[0])
-
             y = q[0].new_constraint
-            x_1 = q[0].old_constraint
-            q_1 = q[0]
+            x_i = q[0].old_constraint
 
-            q = q[1:]
-
-            if y != x_1:
-                for n in self.dep():
-                    q.append(n)
-                q_1.old_constraint = q_1.new_constraint # x_1 = y
-                # q_1.new_constraint = None - Is this needed?
+            if y != x_i:
+                q.extend(self.dep(q[0])) # for (v in dep(v_i)) q.append(v)
+                q[0].old_constraint = q[0].new_constraint # x_1 = y
+            q = q[1:] # q = q.tail()
 
     def fixpoint_iteration(self):
         """A fixpoint iteration."""
