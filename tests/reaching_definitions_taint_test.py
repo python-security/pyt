@@ -37,3 +37,14 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           (1,2), (2,2),
                           (1,3), (2,3),
                           (1,4), (2,4)])
+
+    def test_if_program(self):
+        self.cfg_create_from_file('../example/example_inputs/if_program.py')
+        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis)
+        self.analysis.fixpoint_runner()
+
+        self.assertInCfg([(1,1),
+                          (1,2),
+                          (1,3), (3,3),
+                          (1,4), (3,4),
+                          (1,5), (3,5)])
