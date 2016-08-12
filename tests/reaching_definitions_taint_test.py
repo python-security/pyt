@@ -48,3 +48,25 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           (1,3), (3,3),
                           (1,4), (3,4),
                           (1,5), (3,5)])
+
+    def constraints(self, list_of_constraints, node_number):
+        for c in list_of_constraints:
+            yield (c,node_number)
+
+    def test_example(self):
+        self.cfg_create_from_file('../example/example_inputs/example.py')
+        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis)
+        self.analysis.fixpoint_runner()
+
+        self.assertInCfg([(1,1),
+                          (1,2), (2,2),
+                          *self.constraints([1,2,4,6,7,9,10], 3),
+                          *self.constraints([1,2,4,6,7,9,10], 4),
+                          *self.constraints([1,2,4,6,7,9,10], 5),
+                          *self.constraints([1,2,4,6,7,9,10], 6),
+                          *self.constraints([1,2,4,6,7,9], 7),
+                          *self.constraints([1,2,4,6,7,9], 8),
+                          *self.constraints([1,2,4,6,7,9], 9),
+                          *self.constraints([1,2,4,6,7,9,10], 10),
+                          *self.constraints([1,2,4,6,7,9,10], 11),
+                          *self.constraints([1,2,4,6,7,9,10], 12)])
