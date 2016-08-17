@@ -70,3 +70,19 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           *self.constraints([1,2,4,6,7,9,10], 10),
                           *self.constraints([1,2,4,6,7,9,10], 11),
                           *self.constraints([1,2,4,6,7,9,10], 12)])
+
+    def test_func_with_params(self):
+        self.cfg_create_from_file('../example/example_inputs/function_with_params.py')
+        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis)
+        self.analysis.fixpoint_runner()
+
+        self.assertInCfg([(1,1),
+                          (1,2), (2,2),
+                          (1,3), (2,3), (3,3),
+                          (1,4), (2,4), (3,4), (4,4),
+                          (1,5), (2,5), (3,5), (4,5),
+                          *self.constraints([1,2,3,4,6], 6),
+                          *self.constraints([1,2,3,4,6], 7),
+                          *self.constraints([1,2,3,4,6], 8),
+                          *self.constraints([2,3,4,6,9], 9),
+                          *self.constraints([2,3,4,6,9], 10)])
