@@ -86,3 +86,17 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           *self.constraints([1,2,3,4,6], 8),
                           *self.constraints([2,3,4,6,9], 9),
                           *self.constraints([2,3,4,6,9], 10)])
+
+    def test_while(self):
+        self.cfg_create_from_file('../example/example_inputs/while.py')
+        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis)
+        self.analysis.fixpoint_runner()
+
+        self.assertInCfg([(1,1),
+                          (1,2), (3,2),
+                          (1,3), (3,3),
+                          (1,4), (3,4),
+                          (1,5), (3,5),
+                          (6,6),
+                          (1,7), (3,7), (6,7),
+                          (1,8), (3,8), (6,8)])
