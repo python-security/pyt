@@ -20,7 +20,7 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
             if _id is not cfg_node.left_hand_side:
                 result.add(cfg_node)
         return result
-        
+
     def fixpointmethod(self, cfg_node):
         # Assignment: JOIN(v) arrow(id) join(v)
         if isinstance(cfg_node, AssignmentNode):
@@ -30,7 +30,12 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
                 arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
             arrow_result.add(cfg_node)
             cfg_node.new_constraint = arrow_result
-            
+
         else:
             # Default case join(v)
             cfg_node.new_constraint = self.join(cfg_node)
+
+    def dep(self, q_1): # Useless to have this as a function atm
+        """Represents the dep mapping from Schwartzbach."""
+        for node in q_1.outgoing:
+            yield node
