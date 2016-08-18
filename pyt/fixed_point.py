@@ -1,7 +1,7 @@
-import ast
+"""This module implements the fixed point algorithm."""
 import argparse
 
-from cfg import Node, AssignmentNode, CFG, generate_ast
+from cfg import CFG, generate_ast
 from reaching_definitions import ReachingDefinitionsAnalysis
 from liveness import LivenessAnalysis
 
