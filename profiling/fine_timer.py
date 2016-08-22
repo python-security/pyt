@@ -72,8 +72,12 @@ def fixed_point_timer(project, project_file):
     analysis_filename = '../pyt/reaching_definitions_taint.py'
     list_of_functions = ['arrow', 'join', 'fixpointmethod']
     insert_profile(analysis_filename, list_of_functions)
+    fixed_point_filename = '../pyt/fixed_point.py'
+    list_of_functions = ['fixpoint_runner', 'fixpoint_iteration']
+    insert_profile(fixed_point_filename, list_of_functions)
     if project:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, '-pr', project, project_file])
     else:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, project_file])
     remove_profile(analysis_filename)
+    remove_profile(fixed_point_filename)
