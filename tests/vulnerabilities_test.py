@@ -177,6 +177,18 @@ class EngineTest(BaseTestCase):
         vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
+    def test_find_vulnerabilities_assign_other_var(self):
+        self.cfg_create_from_file('../example/vulnerable_code/XSS_assign_to_other_var.py')
+
+        cfg_list = [self.cfg]
+
+        FlaskAdaptor(cfg_list, [], [])
+        
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+
     def test_find_vulnerabilities_variable_multiple_assign(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_multiple_assign.py')
 
