@@ -19,6 +19,9 @@ class LatticeTest(BaseTestCase):
                 return False
         return True
 
+    def assert_element_equal(self, e1, e2):
+        self.assertEqual(self.is_lattice_element_equal(e1, e2), True)
+
     def test_generate_integer_elements(self):
         lattice = Lattice([1,2,3], subset_relation)
 
@@ -45,32 +48,32 @@ class LatticeTest(BaseTestCase):
         b = 'y = 2'
         c = 'x = y'
         lattice = Lattice([a, b, c], subset_relation)
-        self.assertEqual(self.is_lattice_element_equal(lattice.join(LatticeElement([a]), LatticeElement([b])), LatticeElement((a, b))), True)
+        self.assert_element_equal(lattice.join(LatticeElement([a]), LatticeElement([b])), LatticeElement((a, b)))
 
     def test_meet1(self):
         a = 'x = 1'
         b = 'y = 2'
         c = 'x = y'
         lattice = Lattice([a, b, c], subset_relation)
-        self.assertEqual(self.is_lattice_element_equal(lattice.meet(LatticeElement([a,b]), LatticeElement([b,c])), LatticeElement([b])), True)
+        self.assert_element_equal(lattice.meet(LatticeElement([a,b]), LatticeElement([b,c])), LatticeElement([b]))
 
     def test_meet2(self):
         a = 'x = 1'
         b = 'y = 2'
         c = 'x = y'
         lattice = Lattice([a, b, c], subset_relation)
-        self.assertEqual(self.is_lattice_element_equal(lattice.meet(LatticeElement([a,b]), LatticeElement([a,b,c])), LatticeElement([a, b])), True)
+        self.assert_element_equal(lattice.meet(LatticeElement([a,b]), LatticeElement([a,b,c])), LatticeElement([a, b]))
 
     def test_largest_element(self):
         a = 'x = 1'
         b = 'y = 2'
         c = 'x = y'
         lattice = Lattice([a, b, c], subset_relation)
-        self.assertEqual(self.is_lattice_element_equal(lattice.largest_element(), LatticeElement([a,b,c])), True)
+        self.assert_element_equal(lattice.largest_element(), LatticeElement([a,b,c]))
 
     def test_smallest_element(self):
         a = 'x = 1'
         b = 'y = 2'
         c = 'x = y'
         lattice = Lattice([a, b, c], subset_relation)
-        self.assertEqual(self.is_lattice_element_equal(lattice.smallest_element(), LatticeElement([])), True)
+        self.assert_element_equal(lattice.smallest_element(), LatticeElement([]))
