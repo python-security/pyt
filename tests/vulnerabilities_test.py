@@ -8,7 +8,7 @@ from cfg import CFG, generate_ast, Node
 from fixed_point import analyse
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from flask_adaptor import FlaskAdaptor
-
+from lattice import generate_lattices, Lattice
 
 
 class EngineTest(BaseTestCase):
@@ -106,7 +106,9 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict)
+        lattice = Lattice([cfg_node_1, cfg_node_2], [cfg_node_1, cfg_node_2])
+
+        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, False)
 
     def test_is_sanitized_true(self):
@@ -116,7 +118,10 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict)
+        lattice = Lattice([cfg_node_1, cfg_node_2], [cfg_node_1, cfg_node_2])
+        lattice.table[cfg_node_2] = 0b1
+
+        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, True)
         
     def test_find_vulnerabilities_no_vuln(self):
@@ -124,19 +129,23 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
         FlaskAdaptor(cfg_list, [], [])
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        lattices = generate_lattices(cfg_list)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_sanitised(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_vulnerable(self):
@@ -145,10 +154,12 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
 
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
@@ -158,11 +169,12 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
-#        vulnerability_log.print_report()
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign(self):
@@ -171,10 +183,12 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_assign_other_var(self):
@@ -183,10 +197,12 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_multiple_assign(self):
@@ -195,10 +211,15 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        #for x,y in lattices[1].table.items():
+         #   print(bin(y) + ': ' + x.label)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign_no_vuln(self):
@@ -207,10 +228,12 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_command_injection(self):
@@ -219,8 +242,10 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
-        
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list)
+        lattices = generate_lattices(cfg_list)
+
+        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)

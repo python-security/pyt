@@ -210,7 +210,7 @@ def find_sanitiser_nodes(sanitiser, sanitisers_in_file):
         if sanitiser == sanitiser_tuple.trigger_word:
             yield sanitiser_tuple.cfg_node
 
-def is_sanitized(sink, sanitiser_dict):
+def is_sanitized(sink, sanitiser_dict, lattice):
     """Check if sink is sanitised by any santiser in the sanitiser_dict.
 
     Args:
@@ -222,7 +222,7 @@ def is_sanitized(sink, sanitiser_dict):
     """
     for sanitiser in sink.sanitisers:
         for cfg_node in sanitiser_dict[sanitiser]:
-            if cfg_node in sink.cfg_node.new_constraint:
+            if lattice.has_element(cfg_node, sink.cfg_node):
                 return True
     return False
 
@@ -258,7 +258,7 @@ def get_sink_args(cfg_node):
 
             
             
-def get_vulnerability(source, sink, triggers):
+def get_vulnerability(source, sink, triggers, lattice):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers
@@ -271,11 +271,11 @@ def get_vulnerability(source, sink, triggers):
     Returns:
         A Vulnerability if it exists, else None
     """
-    source_in_sink = source.cfg_node in sink.cfg_node.new_constraint
+    source_in_sink = lattice.has_element(source.cfg_node, sink.cfg_node)
 
     secondary_in_sink = []
     if source.secondary_nodes:
-        secondary_in_sink = [secondary for secondary in source.secondary_nodes if secondary in sink.cfg_node.new_constraint]
+        secondary_in_sink = [secondary for secondary in source.secondary_nodes if lattice.has_element(secondary, sink.cfg_node)]
     trigger_node_in_sink = source_in_sink or secondary_in_sink
     
     sink_args = get_sink_args(sink.cfg_node)
@@ -290,7 +290,7 @@ def get_vulnerability(source, sink, triggers):
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
-        sink_is_sanitised = is_sanitized(sink, triggers.sanitiser_dict)
+        sink_is_sanitised = is_sanitized(sink, triggers.sanitiser_dict, lattice)
 
         if not sink_is_sanitised :
             return Vulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, source.secondary_nodes)
@@ -298,7 +298,7 @@ def get_vulnerability(source, sink, triggers):
             return SanitisedVulnerability(source.cfg_node, source_trigger_word, sink.cfg_node, sink_trigger_word, sink.sanitisers, source.secondary_nodes)
     return None
 
-def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions):
+def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice):
     """Find vulnerabilities in a cfg.
 
     Args:
@@ -309,11 +309,11 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions):
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
-            vulnerability = get_vulnerability(source, sink, triggers)
+            vulnerability = get_vulnerability(source, sink, triggers, lattice)
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
-def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
+def find_vulnerabilities(cfg_list, lattices, trigger_word_file=default_trigger_word_file):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
@@ -326,7 +326,7 @@ def find_vulnerabilities(cfg_list, trigger_word_file=default_trigger_word_file):
     definitions = parse(trigger_word_file)
     
     vulnerability_log = VulnerabilityLog()
-    for cfg in cfg_list:
-        find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions)
+    for cfg, lattice in zip(cfg_list, lattices):
+        find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice)
     return vulnerability_log
    
