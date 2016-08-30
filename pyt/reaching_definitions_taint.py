@@ -4,36 +4,40 @@ from analysis_base import AnalysisBase
 class ReachingDefinitionsTaintAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, lattice):
         super(ReachingDefinitionsTaintAnalysis, self).__init__(cfg, None)
-        
+        self.lattice = lattice
+
+    def get_assignment_nodes(self, iterable):
+        for node in iterable:
+            if isinstance(node, AssignmentNode):
+                yield node
+
     def join(self, cfg_node):
-        JOIN = set()
-        for ingoing in cfg_node.ingoing:
-            JOIN |= ingoing.old_constraint
-        return JOIN
+        #if isinstance(cfg_node, AssignmentNode):
+         #   return self.lattice.join([cfg_node], self.get_assignment_nodes(cfg_node.ingoing))
+        #else:
+        return self.lattice.constraint_join(cfg_node.ingoing)
 
     def arrow(self, JOIN, _id):
-        result = set()
-        for cfg_node in JOIN:
-            # if _id is not found in the LHS of cfg_node, the node will not be deleted
-            if _id is not cfg_node.left_hand_side:
-                result.add(cfg_node)
-        return result
+        r = JOIN
+        for node in self.lattice.get_elements(JOIN):
+            if node.left_hand_side == _id.left_hand_side:
+                r = r ^ self.lattice.d[node]
+        return r
 
     def fixpointmethod(self, cfg_node):
-        # Assignment: JOIN(v) arrow(id) join(v)
+        JOIN = self.join(cfg_node)
         if isinstance(cfg_node, AssignmentNode):
-            JOIN = self.join(cfg_node)
             arrow_result = JOIN
-            if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
-                arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
-            arrow_result.add(cfg_node)
-            cfg_node.new_constraint = arrow_result
 
+            if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+                arrow_result = self.arrow(JOIN, cfg_node)
+
+            arrow_result = arrow_result | self.lattice.d[cfg_node]
+            self.lattice.table[cfg_node] = arrow_result
         else:
-            # Default case join(v)
-            cfg_node.new_constraint = self.join(cfg_node)
+            self.lattice.table[cfg_node] = JOIN
 
     def dep(self, q_1): # Useless to have this as a function atm
         """Represents the dep mapping from Schwartzbach."""
