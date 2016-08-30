@@ -6,7 +6,7 @@ PYTHON = 'python3'
 PYT_PATH = '../pyt/pyt.py'
 STATS_FILENAME = 'stats.prof'
 SNAKEVIZ = 'snakeviz'
-KERNPROF = 'kernprof'
+KERNPROF = 'kernprof-3.5'
 LINE_PROFILER_FILE = 'pyt.py.lprof'
 
 def clean_up():

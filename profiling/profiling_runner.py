@@ -4,6 +4,7 @@ Saves the result for future reference.
 """
 from subprocess import Popen
 from datetime import datetime
+from shutil import which
 
 TRAVIS_PYTHON = 'python'
 PROFILER = 'profiler.py'
@@ -13,6 +14,11 @@ TEST_PROJECT_3 = 'test_projects/flaskbb_lite_3/flaskbb/app.py'
 TEST_PROJECTS = [TEST_PROJECT_1, TEST_PROJECT_2, TEST_PROJECT_3]
 FIXED_POINT_FLAG = '-fp'
 PROFILING_DB = 'db.txt'
+KERNPROF = 'kernprof-3.5'
+
+if which(KERNPROF) is None:
+    print('You need "kernprof" to run this script. Install: "pip3 install line_profiler".')
+    exit(1)
 
 with open(PROFILING_DB, 'a') as fd:
     fd.write('############################################### Profiling \
