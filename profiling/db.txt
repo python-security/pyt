@@ -1510,3 +1510,381 @@ Tue Aug 30 10:25:49 2016    stats.prof
 
 
 
+############################################### Profiling 2016-09-01 13:59:09.479503 ###############################################
+
+##### Profiling test_projects/flaskbb_lite_1/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_1/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_1/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.072167 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_runner at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                               @profile
+    20                                               def fixpoint_runner(self):
+    21                                                   """Work list algorithm that runs the fixpoint algorithm."""
+    22         7            7      1.0      0.0          q = self.cfg.nodes
+    23                                           
+    24       659          369      0.6      0.5          while q != []:
+    25       652          539      0.8      0.7              x_i = self.lattice.table[q[0]] # to get old constraint has to be here before fixpointmethod
+    26                                           
+    27                                                       # y = F_i(x_1, ..., x_n):
+    28       652        67639    103.7     93.7              self.analysis.fixpointmethod(q[0])
+    29                                                       #y = q[0].new_constraint
+    30       652          480      0.7      0.7              y = self.lattice.table[q[0]]
+    31                                                       #x_i = q[0].old_constraint
+    32                                           
+    33                                           
+    34       652          762      1.2      1.1              if y != x_i:
+    35                                                           # for (v in dep(v_i)) q.append(v):
+    36       612         1027      1.7      1.4                  for node in self.analysis.dep(q[0]):
+    37       285          251      0.9      0.3                      q.append(node)
+    38                                                           #q[0].old_constraint = q[0].new_constraint # x_1 = y
+    39       327          263      0.8      0.4                  self.lattice.table[q[0]] = y
+    40       652          830      1.3      1.2              q = q[1:] # q = q.tail()
+
+Total time: 0 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_iteration at line 42
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    42                                               @profile
+    43                                               def fixpoint_iteration(self):
+    44                                                   """A fixpoint iteration."""
+    45                                                   for node in self.cfg.nodes:
+    46                                                       self.analysis.fixpointmethod(node)
+
+Total time: 0.001285 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                               @profile
+    17                                               def join(self, cfg_node):
+    18                                                   #if isinstance(cfg_node, AssignmentNode):
+    19                                                    #   return self.lattice.join([cfg_node], self.get_assignment_nodes(cfg_node.ingoing))
+    20                                                   #else:
+    21       652         1285      2.0    100.0          return self.lattice.constraint_join(cfg_node.ingoing)
+
+Total time: 0.049356 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                               @profile
+    24                                               def arrow(self, JOIN, _id):
+    25       540          217      0.4      0.4          r = JOIN
+    26     11621        43488      3.7     88.1          for node in self.lattice.get_elements(JOIN):
+    27     11081         5349      0.5     10.8              if node.left_hand_side == _id.left_hand_side:
+    28       156          112      0.7      0.2                  r = r ^ self.lattice.d[node]
+    29       540          190      0.4      0.4          return r
+
+Total time: 0.0639 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 31
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    31                                               @profile
+    32                                               def fixpointmethod(self, cfg_node):
+    33       652         3179      4.9      5.0          JOIN = self.join(cfg_node)
+    34       652          529      0.8      0.8          if isinstance(cfg_node, AssignmentNode):
+    35       540          211      0.4      0.3              arrow_result = JOIN
+    36                                           
+    37       540          352      0.7      0.6              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    38       540        58747    108.8     91.9                  arrow_result = self.arrow(JOIN, cfg_node)
+    39                                           
+    40       540          447      0.8      0.7              arrow_result = arrow_result | self.lattice.d[cfg_node]
+    41       540          367      0.7      0.6              self.lattice.table[cfg_node] = arrow_result
+    42                                                   else:
+    43       112           68      0.6      0.1              self.lattice.table[cfg_node] = JOIN
+
+Thu Sep  1 13:59:09 2016    stats.prof
+
+         81594 function calls (75354 primitive calls) in 0.117 seconds
+
+   Ordered by: cumulative time
+   List reduced from 761 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     49/1    0.005    0.000    0.117    0.117 {built-in method builtins.exec}
+        1    0.000    0.000    0.117    0.117 ../pyt/pyt.py:1(<module>)
+    45/10    0.000    0.000    0.057    0.006 <frozen importlib._bootstrap>:966(_find_and_load)
+    45/10    0.000    0.000    0.057    0.006 <frozen importlib._bootstrap>:939(_find_and_load_unlocked)
+    45/10    0.000    0.000    0.055    0.006 <frozen importlib._bootstrap>:659(_load_unlocked)
+    39/10    0.000    0.000    0.055    0.005 <frozen importlib._bootstrap_external>:656(exec_module)
+    57/13    0.000    0.000    0.052    0.004 <frozen importlib._bootstrap>:214(_call_with_frames_removed)
+        7    0.000    0.000    0.032    0.005 ../pyt/cfg.py:236(__init__)
+     63/7    0.001    0.000    0.031    0.004 ../pyt/cfg.py:354(stmt_star_handler)
+  3524/31    0.004    0.000    0.031    0.001 /usr/lib64/python3.5/ast.py:241(visit)
+
+
+##### Profiling test_projects/flaskbb_lite_2/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_2/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_2/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_2/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.22713 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_runner at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                               @profile
+    20                                               def fixpoint_runner(self):
+    21                                                   """Work list algorithm that runs the fixpoint algorithm."""
+    22        14           14      1.0      0.0          q = self.cfg.nodes
+    23                                           
+    24      3628         2285      0.6      0.1          while q != []:
+    25      3614         3431      0.9      0.2              x_i = self.lattice.table[q[0]] # to get old constraint has to be here before fixpointmethod
+    26                                           
+    27                                                       # y = F_i(x_1, ..., x_n):
+    28      3614      2186964    605.1     98.2              self.analysis.fixpointmethod(q[0])
+    29                                                       #y = q[0].new_constraint
+    30      3614         2946      0.8      0.1              y = self.lattice.table[q[0]]
+    31                                                       #x_i = q[0].old_constraint
+    32                                           
+    33                                           
+    34      3614         4554      1.3      0.2              if y != x_i:
+    35                                                           # for (v in dep(v_i)) q.append(v):
+    36      3499         6172      1.8      0.3                  for node in self.analysis.dep(q[0]):
+    37      1697         2499      1.5      0.1                      q.append(node)
+    38                                                           #q[0].old_constraint = q[0].new_constraint # x_1 = y
+    39      1802         1525      0.8      0.1                  self.lattice.table[q[0]] = y
+    40      3614        16735      4.6      0.8              q = q[1:] # q = q.tail()
+
+Total time: 0 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_iteration at line 42
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    42                                               @profile
+    43                                               def fixpoint_iteration(self):
+    44                                                   """A fixpoint iteration."""
+    45                                                   for node in self.cfg.nodes:
+    46                                                       self.analysis.fixpointmethod(node)
+
+Total time: 0.008001 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                               @profile
+    17                                               def join(self, cfg_node):
+    18                                                   #if isinstance(cfg_node, AssignmentNode):
+    19                                                    #   return self.lattice.join([cfg_node], self.get_assignment_nodes(cfg_node.ingoing))
+    20                                                   #else:
+    21      3614         8001      2.2    100.0          return self.lattice.constraint_join(cfg_node.ingoing)
+
+Total time: 1.99811 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                               @profile
+    24                                               def arrow(self, JOIN, _id):
+    25      3373         1350      0.4      0.1          r = JOIN
+    26    219544      1894684      8.6     94.8          for node in self.lattice.get_elements(JOIN):
+    27    216171        99447      0.5      5.0              if node.left_hand_side == _id.left_hand_side:
+    28      1640         1497      0.9      0.1                  r = r ^ self.lattice.d[node]
+    29      3373         1134      0.3      0.1          return r
+
+Total time: 2.16572 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 31
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    31                                               @profile
+    32                                               def fixpointmethod(self, cfg_node):
+    33      3614        18819      5.2      0.9          JOIN = self.join(cfg_node)
+    34      3614         2983      0.8      0.1          if isinstance(cfg_node, AssignmentNode):
+    35      3373         1270      0.4      0.1              arrow_result = JOIN
+    36                                           
+    37      3373         2529      0.7      0.1              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    38      3373      2134597    632.8     98.6                  arrow_result = self.arrow(JOIN, cfg_node)
+    39                                           
+    40      3373         3140      0.9      0.1              arrow_result = arrow_result | self.lattice.d[cfg_node]
+    41      3373         2227      0.7      0.1              self.lattice.table[cfg_node] = arrow_result
+    42                                                   else:
+    43       241          158      0.7      0.0              self.lattice.table[cfg_node] = JOIN
+
+Thu Sep  1 13:59:10 2016    stats.prof
+
+         485366 function calls (464087 primitive calls) in 0.654 seconds
+
+   Ordered by: cumulative time
+   List reduced from 764 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     49/1    0.004    0.000    0.654    0.654 {built-in method builtins.exec}
+        1    0.000    0.000    0.654    0.654 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000    0.410    0.410 ../pyt/fixed_point.py:47(analyse)
+       14    0.023    0.002    0.409    0.029 ../pyt/fixed_point.py:19(fixpoint_runner)
+     3614    0.006    0.000    0.384    0.000 ../pyt/reaching_definitions_taint.py:29(fixpointmethod)
+     3373    0.026    0.000    0.373    0.000 ../pyt/reaching_definitions_taint.py:22(arrow)
+     3373    0.326    0.000    0.347    0.000 ../pyt/lattice.py:53(get_elements)
+       14    0.000    0.000    0.145    0.010 ../pyt/cfg.py:236(__init__)
+   166/14    0.004    0.000    0.145    0.010 ../pyt/cfg.py:354(stmt_star_handler)
+ 15012/55    0.016    0.000    0.144    0.003 /usr/lib64/python3.5/ast.py:241(visit)
+
+
+##### Profiling test_projects/flaskbb_lite_3/flaskbb/app.py #####
+
+1 vulnerability found:
+Vulnerability 1:
+File: test_projects/flaskbb_lite_3/flaskbb/app.py
+ > User input at line 249, trigger word "get(": 
+	param = request.args.get('param', 'not set')
+Reassigned in: 
+	File: test_projects/flaskbb_lite_3/flaskbb/app.py
+	 > Line 253: ret_make_response = resp
+File: test_projects/flaskbb_lite_3/flaskbb/app.py
+ > reaches line 252, trigger word "replace(": 
+	resp = make_response(html.replace('{{ param }}', param))
+
+Wrote profile results to pyt.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.976384 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_runner at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                               @profile
+    20                                               def fixpoint_runner(self):
+    21                                                   """Work list algorithm that runs the fixpoint algorithm."""
+    22         7            8      1.1      0.0          q = self.cfg.nodes
+    23                                           
+    24      2221         1375      0.6      0.1          while q != []:
+    25      2214         1990      0.9      0.2              x_i = self.lattice.table[q[0]] # to get old constraint has to be here before fixpointmethod
+    26                                           
+    27                                                       # y = F_i(x_1, ..., x_n):
+    28      2214       955243    431.5     97.8              self.analysis.fixpointmethod(q[0])
+    29                                                       #y = q[0].new_constraint
+    30      2214         1802      0.8      0.2              y = self.lattice.table[q[0]]
+    31                                                       #x_i = q[0].old_constraint
+    32                                           
+    33                                           
+    34      2214         2712      1.2      0.3              if y != x_i:
+    35                                                           # for (v in dep(v_i)) q.append(v):
+    36      2226         3941      1.8      0.4                  for node in self.analysis.dep(q[0]):
+    37      1086          999      0.9      0.1                      q.append(node)
+    38                                                           #q[0].old_constraint = q[0].new_constraint # x_1 = y
+    39      1140          935      0.8      0.1                  self.lattice.table[q[0]] = y
+    40      2214         7379      3.3      0.8              q = q[1:] # q = q.tail()
+
+Total time: 0 s
+File: ../pyt/fixed_point.py
+Function: fixpoint_iteration at line 42
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    42                                               @profile
+    43                                               def fixpoint_iteration(self):
+    44                                                   """A fixpoint iteration."""
+    45                                                   for node in self.cfg.nodes:
+    46                                                       self.analysis.fixpointmethod(node)
+
+Total time: 0.00497 s
+File: ../pyt/reaching_definitions_taint.py
+Function: join at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                               @profile
+    17                                               def join(self, cfg_node):
+    18                                                   #if isinstance(cfg_node, AssignmentNode):
+    19                                                    #   return self.lattice.join([cfg_node], self.get_assignment_nodes(cfg_node.ingoing))
+    20                                                   #else:
+    21      2214         4970      2.2    100.0          return self.lattice.constraint_join(cfg_node.ingoing)
+
+Total time: 0.844564 s
+File: ../pyt/reaching_definitions_taint.py
+Function: arrow at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                               @profile
+    24                                               def arrow(self, JOIN, _id):
+    25      2026          860      0.4      0.1          r = JOIN
+    26    109372       790705      7.2     93.6          for node in self.lattice.get_elements(JOIN):
+    27    107346        51460      0.5      6.1              if node.left_hand_side == _id.left_hand_side:
+    28       950          837      0.9      0.1                  r = r ^ self.lattice.d[node]
+    29      2026          702      0.3      0.1          return r
+
+Total time: 0.941991 s
+File: ../pyt/reaching_definitions_taint.py
+Function: fixpointmethod at line 31
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    31                                               @profile
+    32                                               def fixpointmethod(self, cfg_node):
+    33      2214        11688      5.3      1.2          JOIN = self.join(cfg_node)
+    34      2214         1853      0.8      0.2          if isinstance(cfg_node, AssignmentNode):
+    35      2026          783      0.4      0.1              arrow_result = JOIN
+    36                                           
+    37      2026         1545      0.8      0.2              if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+    38      2026       922854    455.5     98.0                  arrow_result = self.arrow(JOIN, cfg_node)
+    39                                           
+    40      2026         1768      0.9      0.2              arrow_result = arrow_result | self.lattice.d[cfg_node]
+    41      2026         1376      0.7      0.1              self.lattice.table[cfg_node] = arrow_result
+    42                                                   else:
+    43       188          124      0.7      0.0              self.lattice.table[cfg_node] = JOIN
+
+Thu Sep  1 13:59:13 2016    stats.prof
+
+         229906 function calls (221539 primitive calls) in 0.328 seconds
+
+   Ordered by: cumulative time
+   List reduced from 766 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     49/1    0.004    0.000    0.328    0.328 {built-in method builtins.exec}
+        1    0.000    0.000    0.328    0.328 ../pyt/pyt.py:1(<module>)
+        1    0.000    0.000    0.180    0.180 ../pyt/fixed_point.py:47(analyse)
+        7    0.012    0.002    0.180    0.026 ../pyt/fixed_point.py:19(fixpoint_runner)
+     2214    0.004    0.000    0.167    0.000 ../pyt/reaching_definitions_taint.py:29(fixpointmethod)
+     2026    0.013    0.000    0.160    0.000 ../pyt/reaching_definitions_taint.py:22(arrow)
+     2026    0.137    0.000    0.147    0.000 ../pyt/lattice.py:53(get_elements)
+        7    0.000    0.000    0.081    0.012 ../pyt/cfg.py:236(__init__)
+    113/7    0.002    0.000    0.081    0.012 ../pyt/cfg.py:354(stmt_star_handler)
+  5140/31    0.007    0.000    0.081    0.003 /usr/lib64/python3.5/ast.py:241(visit)
+
+
+
