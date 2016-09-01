@@ -24,7 +24,11 @@ class AnalysisBase(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def get_lattice_elements(self, cfg_nodes):
+    def get_lattice_elements(cfg_nodes):
+        pass
+
+    @abstractmethod
+    def equality(self, value):
         pass
 
     def dep(self, q_1): # Useless to have this as a function atm

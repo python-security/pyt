@@ -11,8 +11,10 @@ class Lattice:
             self.l.append(e)
         self.l = list(reversed(self.l))
         self.table = dict()
+
+        LatticeElement.__eq__ = analysis_type.equality
         for node in cfg_nodes:
-            self.table[node] = 0b0
+            self.table[node] = LatticeElement(0b0)
 
     def meet(self, iterable1, iterable2):
         r1 = self.constraint_join(iterable1)
@@ -81,6 +83,10 @@ class Lattice:
         except KeyError:
             print('KeyError FUCK')
             return None
+
+class LatticeElement:
+    def __init__(self, value):
+        self.value = value
 
 class ConstraintTable:
     def __init__(self, elements):

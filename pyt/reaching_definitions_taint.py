@@ -52,3 +52,6 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
         for node in cfg_nodes:
             if isinstance(node, AssignmentNode):
                 yield node
+
+    def equality(self, value):
+        return self.value == value
