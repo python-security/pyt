@@ -3,10 +3,10 @@ from cfg import AssignmentNode
 
 class Lattice:
 
-    def __init__(self, elements, cfg_nodes):
+    def __init__(self, cfg_nodes, analysis_type):
         self.d = dict()
         self.l = list()
-        for i, e in enumerate(elements):
+        for i, e in enumerate(analysis_type.get_lattice_elements(cfg_nodes)):
             self.d[e] = 0b1 << i
             self.l.append(e)
         self.l = list(reversed(self.l))
@@ -82,12 +82,16 @@ class Lattice:
             print('KeyError FUCK')
             return None
 
-
-def generate_lattices(cfg_list):
+class ConstraintTable:
+    def __init__(self, elements):
+        self.table = dict.fromkeys(elements, 0b0)
+    def __getitem__(self, key):
+        return self.table[key]
+        
+def generate_lattices(cfg_list, *, analysis_type):
     lattices = list()
     for cfg in cfg_list:
-        # Takes only assignment nodes for lattice elements atm - this should be paramterized
-        lattices.append(Lattice([node for node in cfg.nodes if isinstance(node, AssignmentNode)], cfg.nodes))
+        lattices.append(Lattice(cfg.nodes, analysis_type))
     return lattices
 
 

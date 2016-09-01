@@ -14,7 +14,11 @@ from lattice import generate_lattices, Lattice
 class EngineTest(BaseTestCase):
     def run_empty(self):
         return
-    
+
+    def get_lattice_elements(self, cfg_nodes):
+        """Dummy analysis method"""
+        return cfg_nodes
+
     def test_parse(self):
         definitions = vulnerabilities.parse(trigger_word_file=os.path.join(os.getcwd().replace('tests','pyt'), 'trigger_definitions', 'test_triggers.pyt'))
 
@@ -106,11 +110,12 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        lattice = Lattice([cfg_node_1, cfg_node_2], [cfg_node_1, cfg_node_2])
+        ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
+        lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, False)
-
+        
     def test_is_sanitized_true(self):
         cfg_node_1 = Node('Awesome sanitiser', None,  line_number=None, path=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
@@ -118,7 +123,8 @@ class EngineTest(BaseTestCase):
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 
-        lattice = Lattice([cfg_node_1, cfg_node_2], [cfg_node_1, cfg_node_2])
+        ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
+        lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
         lattice.table[cfg_node_2] = 0b1
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
@@ -129,7 +135,7 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -141,7 +147,7 @@ class EngineTest(BaseTestCase):
         cfg_list = [self.cfg]
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -155,7 +161,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -170,7 +176,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -184,7 +190,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -198,7 +204,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -212,7 +218,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -229,7 +235,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -243,7 +249,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list)
+        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
         analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
 

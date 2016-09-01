@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
 
-    lattices = generate_lattices(cfg_list)
+    lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
     analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
     

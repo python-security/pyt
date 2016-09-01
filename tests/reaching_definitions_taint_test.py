@@ -45,7 +45,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
     def test_linear_program(self):
         self.cfg_create_from_file('../example/example_inputs/linear.py')
-        lattice = generate_lattices([self.cfg])[0]
+        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
         self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
         self.analysis.fixpoint_runner()
 
@@ -57,7 +57,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
     def test_if_program(self):
         self.cfg_create_from_file('../example/example_inputs/if_program.py')
-        lattice = generate_lattices([self.cfg])[0]
+        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
         self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
         self.analysis.fixpoint_runner()
 
@@ -73,7 +73,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
     def test_example(self):
         self.cfg_create_from_file('../example/example_inputs/example.py')
-        lattice = generate_lattices([self.cfg])[0]
+        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
         self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
         self.analysis.fixpoint_runner()
 
@@ -92,7 +92,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
     def test_func_with_params(self):
         self.cfg_create_from_file('../example/example_inputs/function_with_params.py')
-        lattice = generate_lattices([self.cfg])[0]
+        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
         self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
         self.analysis.fixpoint_runner()
 
@@ -109,7 +109,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
     def test_while(self):
         self.cfg_create_from_file('../example/example_inputs/while.py')
-        lattice = generate_lattices([self.cfg])[0]
+        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
         self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
         self.analysis.fixpoint_runner()
 

@@ -1,6 +1,8 @@
 """Thos module contains a base class for the analysis component used in PyT."""
+from abc import abstractmethod, ABCMeta
 
-class AnalysisBase(object):
+
+class AnalysisBase(metaclass=ABCMeta):
     """Base class for fixed point analyses."""
 
     annotated_cfg_nodes = dict()
@@ -19,6 +21,11 @@ class AnalysisBase(object):
                 _visitor = visitor()
                 _visitor.visit(node.ast_node)
                 self.annotated_cfg_nodes[node] = _visitor.result
+
+    @staticmethod
+    @abstractmethod
+    def get_lattice_elements(self, cfg_nodes):
+        pass
 
     def dep(self, q_1): # Useless to have this as a function atm
         """Represents the dep mapping from Schwartzbach."""
