@@ -39,7 +39,7 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
         else:
             self.lattice.table[cfg_node] = JOIN
 
-    def dep(self, q_1): # Useless to have this as a function atm
+    def dep(self, q_1):
         """Represents the dep mapping from Schwartzbach."""
         for node in q_1.outgoing:
             yield node
