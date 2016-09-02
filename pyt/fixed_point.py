@@ -38,11 +38,6 @@ class FixedPointAnalysis():
                 self.lattice.table[q[0]] = y
             q = q[1:] # q = q.tail()
 
-    def fixpoint_iteration(self):
-        """A fixpoint iteration."""
-        for node in self.cfg.nodes:
-            self.analysis.fixpointmethod(node)
-            
 
 def analyse(cfg_list, lattices, *, analysis_type):
     """Analyse a list of control flow graphs with a given analysis type."""
