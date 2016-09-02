@@ -13,8 +13,7 @@ class Lattice:
         self.table = dict()
 
         LatticeElement.__eq__ = analysis_type.equality
-        for node in cfg_nodes:
-            self.table[node] = LatticeElement(0b0)
+        self.table = dict.fromkeys(cfg_nodes, 0b0)
 
     def meet(self, iterable1, iterable2):
         r1 = self.constraint_join(iterable1)
@@ -123,12 +122,6 @@ class LatticeElement:
 
     def __str__(self):
         return str(self.value)
-
-class ConstraintTable:
-    def __init__(self, elements):
-        self.table = dict.fromkeys(elements, 0b0)
-    def __getitem__(self, key):
-        return self.table[key]
         
 def generate_lattices(cfg_list, *, analysis_type):
     lattices = list()
@@ -136,18 +129,3 @@ def generate_lattices(cfg_list, *, analysis_type):
         lattices.append(Lattice(cfg.nodes, analysis_type))
     return lattices
 
-
-if __name__ == '__main__':
-    from sys import getsizeof as gso
-    l = Lattice(['a', 'b', 'c']) # Consider duplicates
-    print(l.d['a'])
-    print(bin(l.join(['a'], ['b'])))
-    print(l.d)
-    print([bin(x) for x in l.d.values()])
-    print(bin(l.meet(['a', 'b'], ['b', 'c'])))
-    print(l.l)
-    print(l.get_elements(4))
-    input()
-    l = Lattice([*range(10000)])
-    print(gso(l.d)/1000000, 'mb')
-    print(gso(l.l)/1000000, 'mb')
