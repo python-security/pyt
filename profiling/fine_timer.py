@@ -75,9 +75,15 @@ def fixed_point_timer(project, project_file):
     fixed_point_filename = '../pyt/fixed_point.py'
     list_of_functions = ['fixpoint_runner', 'fixpoint_iteration']
     insert_profile(fixed_point_filename, list_of_functions)
+    lattice_filename = '../pyt/lattice.py'
+    list_of_functions = ['get_elements']
+    insert_profile(fixed_point_filename, list_of_functions)
+
     if project:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, '-pr', project, project_file])
     else:
         sub_run([KERNPROF, '-l', '-v', PYT_PATH, project_file])
+
     remove_profile(analysis_filename)
     remove_profile(fixed_point_filename)
+    remove_profile(lattice_filename)
