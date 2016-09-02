@@ -14,6 +14,8 @@ class LatticeTest(BaseTestCase):
             for node in cfg_nodes:
                 if node.lattice_element == True:
                     yield node
+        def equality(self, value):
+            return self.value == value
 
     class Node:
         def __init__(self, value, lattice_element):
