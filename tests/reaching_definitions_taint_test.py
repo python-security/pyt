@@ -28,6 +28,11 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                 if (element, sets) not in connections:
                     self.assertEqual(lattice.has_element(self.cfg.nodes[element], self.cfg.nodes[sets]), False,  "(%s,%s)" % (self.cfg.nodes[element], self.cfg.nodes[sets])  +  " expected to be disconnected")
 
+    def constraints(self, list_of_constraints, node_number):
+        for c in list_of_constraints:
+            yield (c,node_number)
+
+
     def test_linear_program(self):
         self.cfg_create_from_file('../example/example_inputs/linear.py')
         lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
@@ -51,10 +56,6 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           (1,3), (3,3),
                           (1,4), (3,4),
                           (1,5), (3,5)], lattice)
-
-    def constraints(self, list_of_constraints, node_number):
-        for c in list_of_constraints:
-            yield (c,node_number)
 
     def test_example(self):
         self.cfg_create_from_file('../example/example_inputs/example.py')
