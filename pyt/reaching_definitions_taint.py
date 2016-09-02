@@ -8,18 +8,14 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
         super(ReachingDefinitionsTaintAnalysis, self).__init__(cfg, None)
         self.lattice = lattice
 
-    def get_assignment_nodes(self, iterable):
-        for node in iterable:
-            if isinstance(node, AssignmentNode):
-                yield node
-
     def join(self, cfg_node):
-        #if isinstance(cfg_node, AssignmentNode):
-         #   return self.lattice.join([cfg_node], self.get_assignment_nodes(cfg_node.ingoing))
-        #else:
+        """Joins all constraints of the ingoing nodes and returns them.
+        This represents the JOIN auxiliary definition from Schwartzbach."""
         return self.lattice.constraint_join(cfg_node.ingoing)
 
     def arrow(self, JOIN, _id):
+        """Removes all assignments from JOIN that has _id on the left hand side.
+        This represents the arrow id definition from Schwartzbach."""
         r = JOIN
         for node in self.lattice.get_elements(JOIN):
             if node.left_hand_side == _id.left_hand_side:
@@ -28,14 +24,17 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
 
     def fixpointmethod(self, cfg_node):
         JOIN = self.join(cfg_node)
+        # Assignment check
         if isinstance(cfg_node, AssignmentNode):
             arrow_result = JOIN
 
+            # Reassignment check:
             if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
                 arrow_result = self.arrow(JOIN, cfg_node)
 
             arrow_result = arrow_result | self.lattice.d[cfg_node]
             self.lattice.table[cfg_node] = arrow_result
+        # Default case:
         else:
             self.lattice.table[cfg_node] = JOIN
 
