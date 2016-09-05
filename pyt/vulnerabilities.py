@@ -232,6 +232,8 @@ def get_sink_args(cfg_node):
     elif type(cfg_node) == ReturnNode:
         return get_sink_args(cfg_node.ast_node.value)
     elif isinstance(cfg_node, Node):
+        if isinstance(cfg_node.ast_node, ast.For):
+            return cfg_node.label
         return get_sink_args(cfg_node.ast_node)
     elif isinstance(cfg_node, ast.Call):
         args = list()
@@ -245,7 +247,9 @@ def get_sink_args(cfg_node):
                 args.extend(get_sink_args(arg))
             elif isinstance(arg, ast.keyword):
                 args.append(arg.value)
-            elif isinstance(arg, ast.Attribute):
+            elif isinstance(arg, ast.NameConstant):
+                args.append(arg.value)
+            elif isinstance(arg, ast.Attribute) or isinstance(arg, ast.Subscript):
                 import ast_helper
                 args.append(ast_helper.get_call_names_as_string(arg))
             else:
