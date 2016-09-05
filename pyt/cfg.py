@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class IgnoredNode(object):
-    """Ignored Node sent from a ast node that is not yet implemented."""
+    """Ignored Node sent from a ast node that should not return anything."""
 
 
 class Node(object):
@@ -508,11 +508,18 @@ class Visitor(ast.NodeVisitor):
 
         return self.append_node(RaiseNode(label.result, line_number=node.lineno, path=self.filenames[-1]))
 
+    def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
+        try:
+            fallback_cfg_node.connect(body.first_statement)
+        except AttributeError:
+            body = ConnectStatements([fallback_cfg_node], [fallback_cfg_node], list())
+        return body
+        
     def visit_Try(self, node):
         try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
 
         body = self.stmt_star_handler(node.body)
-        try_node.connect(body.first_statement)
+        body = self.handle_stmt_star_ignore_node(body, try_node)
 
         last_statements = list()
         for handler in node.handlers:
@@ -524,7 +531,7 @@ class Visitor(ast.NodeVisitor):
             for body_node in body.last_statements:
                 body_node.connect(handler_node)
             handler_body = self.stmt_star_handler(handler.body)
-            handler_node.connect(handler_body.first_statement)
+            handler_body = self.handle_stmt_star_ignore_node(handler_body, handler_node)
             last_statements.extend(handler_body.last_statements)            
 
         if node.orelse:
@@ -540,7 +547,6 @@ class Visitor(ast.NodeVisitor):
                 last.connect(finalbody.first_statement)
 
             body.last_statements.extend(finalbody.last_statements)
-            #last_statements.extend(finalbody.last_statements)
 
         last_statements.extend(self.remove_breaks(body.last_statements))
 
