@@ -151,7 +151,81 @@ class CFGForTest(BaseTestCase):
         
         self.assertInCfg([(_for, entry), (_for, call_foo), (_for, _print), (entry_foo, _for), (ret_foo, entry_foo), (exit_foo, ret_foo), (call_foo, exit_foo), (_print, _for), (_exit, _for)])
 
-        
+class CFGTryTest(BaseTestCase):
+    def connected(self, node, successor):
+        return (successor, node)
+
+    def test_simple_try(self):
+        self.cfg_create_from_file('../example/example_inputs/try.py')
+
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        self.assert_length(self.cfg.nodes, expected_length=6)
+
+        entry = 0
+        try_ = 1
+        try_body = 2
+        except_ = 3
+        except_body = 4
+        _exit = 5
+
+        self.assertInCfg([self.connected(entry, try_),
+                          self.connected(try_, try_body),
+                          self.connected(try_body, except_),
+                          self.connected(except_, except_body),
+                          self.connected(except_body, _exit),
+                          self.connected(try_body, _exit)])
+
+    def test_orelse(self):
+        self.cfg_create_from_file('../example/example_inputs/try_orelse.py')
+
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        self.assert_length(self.cfg.nodes, expected_length=7)
+
+        entry = 0
+        try_ = 1
+        try_body = 2
+        except_im = 3
+        except_im_body_1 = 4
+        print_else = 5        
+        _exit = 6
+
+        self.assertInCfg([self.connected(entry, try_),
+                          self.connected(try_, try_body),
+                          self.connected(try_body, except_im),
+                          self.connected(try_body, print_else),
+                          self.connected(try_body, _exit),
+                          self.connected(except_im, except_im_body_1),
+                          self.connected(except_im_body_1, _exit),
+                          self.connected(print_else, _exit)])
+
+    def test_final(self):
+        self.cfg_create_from_file('../example/example_inputs/try_final.py')
+
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+
+        self.assert_length(self.cfg.nodes, expected_length=7)
+
+        entry = 0
+        try_ = 1
+        try_body = 2
+        except_im = 3
+        except_im_body_1 = 4
+        print_final = 5        
+        _exit = 6
+
+        self.assertInCfg([self.connected(entry, try_),
+                          self.connected(try_, try_body),
+                          self.connected(try_body, except_im),
+                          self.connected(try_body, print_final),
+                          self.connected(try_body, _exit),
+                          self.connected(except_im, except_im_body_1),
+                          self.connected(except_im_body_1, _exit),
+                          self.connected(except_im_body_1, print_final),                          
+                          self.connected(print_final, _exit)])
+
+
 class CFGIfTest(BaseTestCase):    
     def test_if_complete(self):
         self.cfg_create_from_file('../example/example_inputs/if_complete.py')

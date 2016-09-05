@@ -509,8 +509,43 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(RaiseNode(label.result, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Try(self, node):
-        return Node('Try', node, line_number=node.lineno, path=self.filenames[-1])
+        try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
 
+        body = self.stmt_star_handler(node.body)
+        try_node.connect(body.first_statement)
+
+        last_statements = list()
+        for handler in node.handlers:
+            try:
+                name = handler.type.id
+            except AttributeError:
+                name = ''
+            handler_node = self.append_node(Node('except ' + name + ':', handler, line_number=handler.lineno, path=self.filenames[-1]))
+            for body_node in body.last_statements:
+                body_node.connect(handler_node)
+            handler_body = self.stmt_star_handler(handler.body)
+            handler_node.connect(handler_body.first_statement)
+            last_statements.extend(handler_body.last_statements)            
+
+        if node.orelse:
+            orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
+            body.last_statements.extend(orelse_last_nodes)
+
+        if node.finalbody:
+            finalbody = self.stmt_star_handler(node.finalbody)
+            for last in last_statements:
+                last.connect(finalbody.first_statement)
+
+            for last in body.last_statements:
+                last.connect(finalbody.first_statement)
+
+            body.last_statements.extend(finalbody.last_statements)
+            #last_statements.extend(finalbody.last_statements)
+
+        last_statements.extend(self.remove_breaks(body.last_statements))
+
+        return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
+        
     def get_names(self, node, result):
         """Recursively finds all names."""
         if isinstance(node, ast.Name):
