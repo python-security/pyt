@@ -1,5 +1,3 @@
-from cfg import AssignmentNode
-
 
 class Lattice:
 
