@@ -49,7 +49,7 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
             if isinstance(node, AssignmentNode):
                 yield node
 
-    def equality(self, value, other):
+    def equal(self, value, other):
         return value == other
 
     def build_lattice(self, cfg):

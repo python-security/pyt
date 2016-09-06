@@ -28,7 +28,7 @@ class AnalysisBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def equality(self, value, other):
+    def equal(self, value, other):
         pass
 
     @abstractmethod
