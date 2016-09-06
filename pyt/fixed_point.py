@@ -30,7 +30,7 @@ class FixedPointAnalysis():
             #x_i = q[0].old_constraint
 
 
-            if y != x_i:
+            if not self.analysis.equality(y, x_i):
                 # for (v in dep(v_i)) q.append(v):
                 for node in self.analysis.dep(q[0]):
                     q.append(node)

@@ -53,8 +53,8 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
             if isinstance(node, AssignmentNode):
                 yield node
 
-    def equality(self, value):
-        return self.value == value
+    def equality(self, value, other):
+        return value == other
 
     def build_lattice(self, cfg):
         self.lattice = Lattice(cfg.nodes, ReachingDefinitionsTaintAnalysis)
