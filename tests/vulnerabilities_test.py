@@ -8,8 +8,8 @@ from cfg import CFG, generate_ast, Node
 from fixed_point import analyse
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from flask_adaptor import FlaskAdaptor
-from lattice import generate_lattices, Lattice
-
+from lattice import Lattice
+from constraint_table import constraint_table, initialize_constraint_table
 
 class EngineTest(BaseTestCase):
     def run_empty(self):
@@ -112,6 +112,8 @@ class EngineTest(BaseTestCase):
 
         ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
         lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
+        constraint_table[cfg_node_1] = 0
+        constraint_table[cfg_node_2] = 0
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, False)
@@ -125,133 +127,57 @@ class EngineTest(BaseTestCase):
 
         ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
         lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
-        lattice.table[cfg_node_2] = 0b1
+        constraint_table[cfg_node_2] = 0b1
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, True)
         
     def test_find_vulnerabilities_no_vuln(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_no_vuln.py')
-        cfg_list = [self.cfg]
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_no_vuln.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_sanitised(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
-        cfg_list = [self.cfg]
-        FlaskAdaptor(cfg_list, [], [])
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_sanitised.py')
 
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_vulnerable(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
-
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_reassign(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_reassign.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_reassign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_assign.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_assign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
-    def test_find_vulnerabilities_assign_other_var(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_assign_to_other_var.py')
+    def run_analysis(self, path):
+        self.cfg_create_from_file(path)
 
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
 
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        initialize_constraint_table(cfg_list)        
 
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        return vulnerabilities.find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis)
+
+    def test_find_vulnerabilities_assign_other_var(self):
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_assign_to_other_var.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_multiple_assign(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_multiple_assign.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        #for x,y in lattices[1].table.items():
-         #   print(bin(y) + ': ' + x.label)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_multiple_assign.py')        
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign_no_vuln(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_variable_assign_no_vuln.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_assign_no_vuln.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_command_injection(self):
-        self.cfg_create_from_file('../example/vulnerable_code/command_injection.py')
-
-        cfg_list = [self.cfg]
-
-        FlaskAdaptor(cfg_list, [], [])
-
-        lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
-
-        vulnerability_log = vulnerabilities.find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/command_injection.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)

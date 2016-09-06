@@ -1,17 +1,18 @@
 from cfg import AssignmentNode
 from analysis_base import AnalysisBase
+from lattice import Lattice
+from constraint_table import constraint_table, constraint_join
 
 class ReachingDefinitionsAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
-    def __init__(self, cfg, lattice):
+    def __init__(self, cfg):
         super(ReachingDefinitionsAnalysis, self).__init__(cfg, None)
-        self.lattice = lattice
 
     def join(self, cfg_node):
         """Joins all constraints of the ingoing nodes and returns them.
         This represents the JOIN auxiliary definition from Schwartzbach."""
-        return self.lattice.constraint_join(cfg_node.ingoing)
+        return constraint_join(cfg_node.ingoing)
 
     def arrow(self, JOIN, _id):
         """Removes all assignments from JOIN that has _id on the left hand side.
@@ -19,7 +20,7 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
         r = JOIN
         for node in self.lattice.get_elements(JOIN):
             if node.left_hand_side == _id.left_hand_side:
-                r = r ^ self.lattice.d[node]
+                r = r ^ self.lattice.el2bv[node]
         return r
 
     def fixpointmethod(self, cfg_node):
@@ -28,11 +29,11 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
         if isinstance(cfg_node, AssignmentNode):
             arrow_result = JOIN
             arrow_result = self.arrow(JOIN, cfg_node)
-            arrow_result = arrow_result | self.lattice.d[cfg_node]
-            self.lattice.table[cfg_node] = arrow_result
+            arrow_result = arrow_result | self.lattice.el2bv[cfg_node]
+            constraint_table[cfg_node] = arrow_result
         # Default case:
         else:
-            self.lattice.table[cfg_node] = JOIN
+            constraint_table[cfg_node] = JOIN
 
     def dep(self, q_1):
         """Represents the dep mapping from Schwartzbach."""
@@ -50,3 +51,7 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
 
     def equality(self, value):
         return self.value == value
+
+    def build_lattice(self, cfg):
+        self.lattice = Lattice(cfg.nodes, ReachingDefinitionsAnalysis)
+

@@ -8,6 +8,7 @@ import logging
 from cfg import CFG, generate_ast, Node, AssignmentNode, ReturnNode
 from framework_adaptor import TaintedNode
 from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
+from lattice import Lattice
 
 logger = logging.getLogger(__name__)
 
@@ -222,7 +223,7 @@ def is_sanitized(sink, sanitiser_dict, lattice):
     """
     for sanitiser in sink.sanitisers:
         for cfg_node in sanitiser_dict[sanitiser]:
-            if lattice.has_element(cfg_node, sink.cfg_node):
+            if lattice.in_constraint(cfg_node, sink.cfg_node):
                 return True
     return False
 
@@ -275,11 +276,11 @@ def get_vulnerability(source, sink, triggers, lattice):
     Returns:
         A Vulnerability if it exists, else None
     """
-    source_in_sink = lattice.has_element(source.cfg_node, sink.cfg_node)
+    source_in_sink = lattice.in_constraint(source.cfg_node, sink.cfg_node)
 
     secondary_in_sink = []
     if source.secondary_nodes:
-        secondary_in_sink = [secondary for secondary in source.secondary_nodes if lattice.has_element(secondary, sink.cfg_node)]
+        secondary_in_sink = [secondary for secondary in source.secondary_nodes if lattice.in_constraint(secondary, sink.cfg_node)]
     trigger_node_in_sink = source_in_sink or secondary_in_sink
     
     sink_args = get_sink_args(sink.cfg_node)
@@ -317,7 +318,7 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice):
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
-def find_vulnerabilities(cfg_list, lattices, trigger_word_file=default_trigger_word_file):
+def find_vulnerabilities(cfg_list, analysis_type, trigger_word_file=default_trigger_word_file):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
@@ -330,7 +331,7 @@ def find_vulnerabilities(cfg_list, lattices, trigger_word_file=default_trigger_w
     definitions = parse(trigger_word_file)
     
     vulnerability_log = VulnerabilityLog()
-    for cfg, lattice in zip(cfg_list, lattices):
-        find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice)
+    for cfg in cfg_list:
+        find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, Lattice(cfg.nodes, analysis_type))
     return vulnerability_log
    

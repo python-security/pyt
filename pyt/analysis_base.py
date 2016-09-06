@@ -1,7 +1,6 @@
 """Thos module contains a base class for the analysis component used in PyT."""
 from abc import abstractmethod, ABCMeta
 
-
 class AnalysisBase(metaclass=ABCMeta):
     """Base class for fixed point analyses."""
 
@@ -13,6 +12,7 @@ class AnalysisBase(metaclass=ABCMeta):
             self.annotate_cfg(cfg, visitor)
         self.visitor = visitor
         self.cfg = cfg
+        self.build_lattice(cfg)
 
     def annotate_cfg(self, cfg, visitor):
         """Add the visitor to the cfg nodes."""
@@ -29,6 +29,10 @@ class AnalysisBase(metaclass=ABCMeta):
 
     @abstractmethod
     def equality(self, value):
+        pass
+
+    @abstractmethod
+    def build_lattice(self, cfg):
         pass
 
     def dep(self, q_1): # Useless to have this as a function atm

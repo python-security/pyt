@@ -12,7 +12,7 @@ from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
 from save import create_database
-from lattice import generate_lattices
+from constraint_table import initialize_constraint_table
 import log
 
 parser = argparse.ArgumentParser()
@@ -52,15 +52,15 @@ if __name__ == '__main__':
 
     adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
 
-    lattices = generate_lattices(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+    initialize_constraint_table(cfg_list)
 
-    analyse(cfg_list, lattices, analysis_type=ReachingDefinitionsTaintAnalysis)
+    analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
     
     vulnerability_log = None
     if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list, lattices, args.trigger_word_file)
+        vulnerability_log = find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis, args.trigger_word_file)
     else:
-        vulnerability_log = find_vulnerabilities(cfg_list, lattices)
+        vulnerability_log = find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis)
 
     vulnerability_log.print_report()
 

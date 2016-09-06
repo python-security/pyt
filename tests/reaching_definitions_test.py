@@ -1,43 +1,14 @@
 import sys
 import os
-from collections import namedtuple, OrderedDict
 
-from base_test_case import BaseTestCase
+from analysis_base_test_case import AnalysisBaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node
 from reaching_definitions import ReachingDefinitionsAnalysis
-from fixed_point import FixedPointAnalysis
-from lattice import generate_lattices
 
 
-class ReachingDefinitionsTest(BaseTestCase):
-    connection = namedtuple('connection', 'constraintset element')
-    def setUp(self):
-        self.cfg = None
-
-    def assertInCfg(self, connections, lattice):
-        ''' Assert that all connections in the connections list exists in the cfg,
-        as well as all connections not in the list do not exist
-
-        connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
-        for connection in connections:
-            self.assertEqual(lattice.has_element(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]]), True, str(connection) + " expected to be connected")
-        nodes = len(self.cfg.nodes)
-        
-        for element in range(nodes):
-            for sets in range(nodes):
-                if (element, sets) not in connections:
-                    self.assertEqual(lattice.has_element(self.cfg.nodes[element], self.cfg.nodes[sets]), False,  "(%s,%s)" % (self.cfg.nodes[element], self.cfg.nodes[sets])  +  " expected to be disconnected")
-
-    def constraints(self, list_of_constraints, node_number):
-        for c in list_of_constraints:
-            yield (c,node_number)
-
+class ReachingDefinitionsTest(AnalysisBaseTestCase):
     def test_linear_program(self):
-        self.cfg_create_from_file('../example/example_inputs/linear.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/linear.py', ReachingDefinitionsAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -45,10 +16,7 @@ class ReachingDefinitionsTest(BaseTestCase):
                           (1,4), (2,4)], lattice)
 
     def test_example(self):
-        self.cfg_create_from_file('../example/example_inputs/example.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/example.py', ReachingDefinitionsAnalysis)
 
         self.assertInCfg([(1,1),
                           (2,2),

@@ -2,42 +2,14 @@ import sys
 import os
 from collections import namedtuple, OrderedDict
 
-from base_test_case import BaseTestCase
+from analysis_base_test_case import AnalysisBaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from fixed_point import FixedPointAnalysis
-from lattice import generate_lattices
-
-class ReachingDefinitionsTaintTest(BaseTestCase):
-    connection = namedtuple('connection', 'constraintset element')
-    def setUp(self):
-        self.cfg = None
-
-    def assertInCfg(self, connections, lattice):
-        ''' Assert that all connections in the connections list exists in the cfg,
-        as well as all connections not in the list do not exist
-
-        connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple'''
-        for connection in connections:
-            self.assertEqual(lattice.has_element(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]]), True, str(connection) + " expected to be connected")
-        nodes = len(self.cfg.nodes)
-        
-        for element in range(nodes):
-            for sets in range(nodes):
-                if (element, sets) not in connections:
-                    self.assertEqual(lattice.has_element(self.cfg.nodes[element], self.cfg.nodes[sets]), False,  "(%s,%s)" % (self.cfg.nodes[element], self.cfg.nodes[sets])  +  " expected to be disconnected")
-
-    def constraints(self, list_of_constraints, node_number):
-        for c in list_of_constraints:
-            yield (c,node_number)
 
 
+class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
     def test_linear_program(self):
-        self.cfg_create_from_file('../example/example_inputs/linear.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/linear.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -46,10 +18,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
 
 
     def test_if_program(self):
-        self.cfg_create_from_file('../example/example_inputs/if_program.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/if_program.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2),
@@ -58,10 +27,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           (1,5), (3,5)], lattice)
 
     def test_example(self):
-        self.cfg_create_from_file('../example/example_inputs/example.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/example.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -77,10 +43,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           *self.constraints([1,2,4,6,7,9,10], 12)], lattice)
 
     def test_func_with_params(self):
-        self.cfg_create_from_file('../example/example_inputs/function_with_params.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/function_with_params.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -94,10 +57,7 @@ class ReachingDefinitionsTaintTest(BaseTestCase):
                           *self.constraints([2,3,4,6,9], 10)], lattice)
 
     def test_while(self):
-        self.cfg_create_from_file('../example/example_inputs/while.py')
-        lattice = generate_lattices([self.cfg], analysis_type=ReachingDefinitionsTaintAnalysis)[0]
-        self.analysis = FixedPointAnalysis(self.cfg, ReachingDefinitionsTaintAnalysis, lattice)
-        self.analysis.fixpoint_runner()
+        lattice = self.run_analysis('../example/example_inputs/while.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (3,2),
