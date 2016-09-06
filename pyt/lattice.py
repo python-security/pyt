@@ -9,8 +9,6 @@ class Lattice:
             self.bv2el.append(e)
         self.bv2el = list(reversed(self.bv2el))
 
-        LatticeElement.__eq__ = analysis_type.equality
-
     def get_elements(self, number):
         r = list()
 
@@ -37,43 +35,3 @@ class Lattice:
             return False
 
         return constraint & value != 0
-
-class LatticeElement:
-    def __init__(self, value):
-        self.value = value
-
-    def __eq__(self, value):
-        raise Eception('This must be implemented by the analysis.')
-
-    def __or__(self, value):
-        return self.value | value
-
-    def __ror__(self, value):
-        return value | self.value
-
-    def __and__(self, value):
-        return self.value & value
-
-    def __rand__(self, value):
-        return value & self.value
-
-    def __lshift__(self, value):
-        return self.value << value
-
-    def __rshift__(self, value):
-        return self.value >> value
-
-    def __rlshift__(self, value):
-        return value << self.value
-
-    def __rrshift__(self, value):
-        return value >> self.value
-
-    def __xor__(self, value):
-        return self.value ^ value
-
-    def __rxor__(self, value):
-        return value ^ self.value
-
-    def __str__(self):
-        return str(self.value)
