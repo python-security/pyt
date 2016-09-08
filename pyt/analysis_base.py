@@ -29,6 +29,7 @@ class AnalysisBase(metaclass=ABCMeta):
 
     @abstractmethod
     def equal(self, value, other):
+        """Define the equality for two constraint sets that are defined by bitvectors."""
         pass
 
     @abstractmethod
