@@ -25,3 +25,7 @@ def constraint_meet(self, cfg_nodes):
     for e in cfg_nodes:
         r = r & constraint_table[e]
     return r
+
+def print_table():
+    for k, v in constraint_table.items():
+        print(str(k) + ': ' + bin(v))

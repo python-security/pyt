@@ -5,8 +5,9 @@ import os
 
 from cfg import generate_ast, build_cfg
 from draw import draw_cfgs, draw_lattices
-#from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from liveness import LivenessAnalysis
+from reaching_definitions import ReachingDefinitionsAnalysis
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
@@ -25,15 +26,22 @@ print_group=parser.add_mutually_exclusive_group()
 print_group.add_argument('-p', '--print', help='Prints the nodes of the CFG.', action='store_true')
 print_group.add_argument('-vp', '--verbose-print', help='Verbose printing of -p.', action='store_true')
 parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.', type=str)
-parser.add_argument('-l', '--log-level', help='Chose logging level: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
-parser.add_argument('-a', '--adaptor', help='Chose an adaptor: FLASK(Default) or DJANGO.', type=str)
+parser.add_argument('-l', '--log-level', help='Choose logging level: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
+parser.add_argument('-a', '--adaptor', help='Choose an adaptor: FLASK(Default) or DJANGO.', type=str)
 parser.add_argument('-db', '--create-database', help='Creates a sql file that can be used to create a database.', action='store_true')
 parser.add_argument('-dl', '--draw-lattice',  nargs='+', help='Draws a lattice.')
+parser.add_argument('-li', '--liveness', help='Run liveness analysis. Default is reaching definitions tainted version.', action='store_true')
+parser.add_argument('-re', '--reaching', help='Run reaching definitions analysis. Default is reaching definitions tainted version.', action='store_true')
 
 args = parser.parse_args()
 
 if __name__ == '__main__':
     log.set_logger(args.log_level, show_path=False)
+
+    if args.liveness:
+        ReachingDefinitionsTaintAnalysis = LivenessAnalysis
+    if args.reaching:
+        ReachingDefinitionsTaintAnalysis = ReachingDefinitionsAnalysis
 
     path = os.path.normpath(args.filepath)
 
@@ -70,6 +78,8 @@ if __name__ == '__main__':
         else:
             draw_cfgs(cfg_list)
     if args.print:
+        from constraint_table import constraint_table, print_table
+        print_table()
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
             print(e)
