@@ -34,6 +34,8 @@ analysis_group = parser.add_mutually_exclusive_group()
 analysis_group.add_argument('-li', '--liveness', help='Run liveness analysis. Default is reaching definitions tainted version.', action='store_true')
 analysis_group.add_argument('-re', '--reaching', help='Run reaching definitions analysis. Default is reaching definitions tainted version.', action='store_true')
 analysis_group.add_argument('-rt', '--reaching-taint', help='This is the default analysis: reaching definitions tainted version.', action='store_true')
+parser.add_argument('-intra', '--intraprocedural-analysis', help='Run intraprocedural analysis.', action='store_true')
+parser.add_argument('-plm', '--print-local-modules', help='Print local modules.', action='store_true')
 
 args = parser.parse_args()
 
@@ -97,6 +99,11 @@ if __name__ == '__main__':
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
             print(repr(e))
+
+    if args.print_local_modules:
+        from pprint import pprint
+        print('############## PROJECT MODULES ##############')
+        pprint(project_modules)
 
     if args.create_database:
         create_database(cfg_list, vulnerability_log)
