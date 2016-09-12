@@ -61,13 +61,13 @@ if __name__ == '__main__':
         directory = os.path.dirname(path)
     project_modules = get_python_modules(directory)
     local_modules = get_directory_modules(directory)
-    
+
     tree = generate_ast(path)
 
     cfg_list = list()
 
     if args.intraprocedural_analysis:
-        intraprocedural(project_modules, cfg_list)        
+        intraprocedural(project_modules, cfg_list)
     else:
         cfg_list.append(build_cfg(tree, project_modules, local_modules, path))
         adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
@@ -75,10 +75,11 @@ if __name__ == '__main__':
     initialize_constraint_table(cfg_list)
 
     analyse(cfg_list, analysis_type=analysis)
-    
+
     vulnerability_log = None
     if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list, analysis, args.trigger_word_file)
+        vulnerability_log = find_vulnerabilities(cfg_list, analysis,
+                                                 args.trigger_word_file)
     else:
         vulnerability_log = find_vulnerabilities(cfg_list, analysis)
 
@@ -92,8 +93,8 @@ if __name__ == '__main__':
     if args.print:
         from lattice import print_lattice
         l = print_lattice(cfg_list, analysis)
-        
-        from constraint_table import constraint_table, print_table
+
+        from constraint_table import print_table
         print_table(l)
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
@@ -112,4 +113,3 @@ if __name__ == '__main__':
         create_database(cfg_list, vulnerability_log)
     if args.draw_lattice:
         draw_lattices(cfg_list)
-        
