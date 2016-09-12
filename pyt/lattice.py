@@ -1,9 +1,11 @@
 from constraint_table import constraint_table
+
+
 class Lattice:
 
     def __init__(self, cfg_nodes, analysis_type):
-        self.el2bv = dict() # Element to bitvector dictionary
-        self.bv2el = list() # Bitvector to element list
+        self.el2bv = dict()  # Element to bitvector dictionary
+        self.bv2el = list()  # Bitvector to element list
         for i, e in enumerate(analysis_type.get_lattice_elements(cfg_nodes)):
             self.el2bv[e] = 0b1 << i
             self.bv2el.append(e)
@@ -15,7 +17,8 @@ class Lattice:
         if number == 0:
             return r
 
-        for i, x in enumerate(format(number, '0' + str(len(self.bv2el)) + 'b')):
+        for i, x in enumerate(format(number,
+                                     '0' + str(len(self.bv2el)) + 'b')):
             if x == '1':
                 r.append(self.bv2el[i])
         return r
@@ -35,6 +38,7 @@ class Lattice:
             return False
 
         return constraint & value != 0
+
 
 def print_lattice(cfg_list, analysis_type):
     nodes = list()
