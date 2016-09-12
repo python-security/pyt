@@ -1,6 +1,7 @@
 """Thos module contains a base class for the analysis component used in PyT."""
 from abc import abstractmethod, ABCMeta
 
+
 class AnalysisBase(metaclass=ABCMeta):
     """Base class for fixed point analyses."""
 
@@ -29,15 +30,15 @@ class AnalysisBase(metaclass=ABCMeta):
 
     @abstractmethod
     def equal(self, value, other):
-        """Define the equality for two constraint sets that are defined by bitvectors."""
+        """Define the equality for two constraint sets
+        that are defined by bitvectors."""
         pass
 
     @abstractmethod
     def build_lattice(self, cfg):
         pass
 
-    def dep(self, q_1): # Useless to have this as a function atm
+    def dep(self, q_1):
         """Represents the dep mapping from Schwartzbach."""
         for node in self.cfg.nodes:
             yield node
-

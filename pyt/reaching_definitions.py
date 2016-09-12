@@ -3,6 +3,7 @@ from analysis_base import AnalysisBase
 from lattice import Lattice
 from constraint_table import constraint_table, constraint_join
 
+
 class ReachingDefinitionsAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
@@ -41,7 +42,7 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
             yield node
 
     def get_lattice_elements(cfg_nodes):
-        """Returns all assignment nodes as they are the only lattice elements 
+        """Returns all assignment nodes as they are the only lattice elements
         in the reaching definitions analysis.
         This is a static method which is overwritten from the base class.
         """
@@ -54,4 +55,3 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
 
     def build_lattice(self, cfg):
         self.lattice = Lattice(cfg.nodes, ReachingDefinitionsAnalysis)
-

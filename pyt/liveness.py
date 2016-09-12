@@ -26,8 +26,17 @@ class LivenessAnalysis(AnalysisBase):
                 return True
         return False
 
+    def is_condition(self, cfg_node):
+        if isinstance(cfg_node.ast_node, ast.Compare):
+            return True
+        elif isinstance(cfg_node.ast_node, ast.While):
+            return True
+        elif self.is_output(cfg_node):
+            return True
+        return False
+
     def fixpointmethod(self, cfg_node):
-        
+
         if isinstance(cfg_node, EntryExitNode) and 'Exit' in cfg_node.label:
             constraint_table[cfg_node] = 0
         elif isinstance(cfg_node, AssignmentNode):
@@ -53,7 +62,8 @@ class LivenessAnalysis(AnalysisBase):
                 JOIN = JOIN | self.lattice.el2bv[var]
 
             constraint_table[cfg_node] = JOIN
-        elif isinstance(cfg_node.ast_node, ast.Compare) or isinstance(cfg_node.ast_node, ast.While) or self.is_output(cfg_node):
+        elif self.is_condition(cfg_node):
+
             varse = None
             if isinstance(cfg_node.ast_node, ast.While):
                 vv = VarsVisitor()
@@ -63,7 +73,7 @@ class LivenessAnalysis(AnalysisBase):
                 vv = VarsVisitor()
                 vv.visit(cfg_node.ast_node)
                 varse = vv.result
-            
+
             JOIN = self.join(cfg_node)
 
             for var in varse:
@@ -79,11 +89,11 @@ class LivenessAnalysis(AnalysisBase):
             yield node
 
     def get_lattice_elements(cfg_nodes):
-        """Returns all assignment nodes as they are the only lattice elements 
+        """Returns all assignment nodes as they are the only lattice elements
         in the reaching definitions analysis.
         This is a static method which is overwritten from the base class.
         """
-        lattice_elements = set() # Set to avoid duplicates
+        lattice_elements = set()  # set() to avoid duplicates
         for node in (node for node in cfg_nodes if node.ast_node):
             vv = VarsVisitor()
             vv.visit(node.ast_node)

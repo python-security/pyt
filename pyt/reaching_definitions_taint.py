@@ -3,6 +3,7 @@ from analysis_base import AnalysisBase
 from constraint_table import constraint_table, constraint_join
 from lattice import Lattice
 
+
 class ReachingDefinitionsTaintAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
@@ -30,7 +31,8 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
             arrow_result = JOIN
 
             # Reassignment check:
-            if not cfg_node.left_hand_side in cfg_node.right_hand_side_variables:
+            if cfg_node.left_hand_side not in\
+               cfg_node.right_hand_side_variables:
                 arrow_result = self.arrow(JOIN, cfg_node)
 
             arrow_result = arrow_result | self.lattice.el2bv[cfg_node]
@@ -45,7 +47,7 @@ class ReachingDefinitionsTaintAnalysis(AnalysisBase):
             yield node
 
     def get_lattice_elements(cfg_nodes):
-        """Returns all assignment nodes as they are the only lattice elements 
+        """Returns all assignment nodes as they are the only lattice elements
         in the reaching definitions analysis.
         This is a static method which is overwritten from the base class.
         """
