@@ -121,7 +121,6 @@ class EngineTest(BaseTestCase):
     def test_is_sanitized_true(self):
         cfg_node_1 = Node('Awesome sanitiser', None,  line_number=None, path=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
-        cfg_node_2.new_constraint.add(cfg_node_1)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
         sanitiser_dict = {'escape': [cfg_node_1]}
 

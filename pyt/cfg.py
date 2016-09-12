@@ -36,7 +36,7 @@ class IgnoredNode(object):
 class Node(object):
     """A Control Flow Graph node that contains a list of
     ingoing and outgoing nodes and a list of its variables."""
-    
+
     def __init__(self, label, ast_node, *, line_number, path):
         """Create a Node that can be used in a CFG.
 
@@ -51,10 +51,6 @@ class Node(object):
         self.ast_node = ast_node
         self.line_number = line_number
         self.path = path
-
-        # Used by the Fixedpoint algorithm
-        self.old_constraint = set()
-        self.new_constraint = set()
 
     def connect(self, successor):
         """Connect this node to its successor node by
@@ -81,26 +77,17 @@ class Node(object):
         line_number = 'Line number: ' + str(self.line_number)
         outgoing = ''
         ingoing = ''
-        if self.ingoing is not  None:
+        if self.ingoing:
             ingoing = ' '.join(('ingoing:\t', str([x.label for x in self.ingoing])))
         else:
             ingoing = ' '.join(('ingoing:\t', '[]'))
 
-        if self.outgoing is not None:
+        if self.outgoing:
             outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
         else:
             outgoing = ' '.join(('outgoing:\t', '[]'))
-    
-        if self.old_constraint is not None:
-            old_constraint = 'Old constraint:\t ' + ', '.join([x.label for x in self.old_constraint])
-        else:
-            old_constraint = 'Old constraint:\t '
 
-        if self.new_constraint is not None:
-            new_constraint = 'New constraint: ' +  ', '.join([x.label for x in self.new_constraint])
-        else:
-            new_constraint = 'New constraint:'
-        return '\n' + '\n'.join((label, line_number, ingoing, outgoing, old_constraint, new_constraint))
+        return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
 class ConnectToExitNode():
@@ -204,7 +191,8 @@ class Function(object):
         Args:
             nodes(list[Node]): The CFG of the Function.
             args(ast.args): The arguments from a function AST node.
-            decorator_list(list[ast.decorator]): The list of decorators from a function AST node.
+            decorator_list(list[ast.decorator]): The list of decorators
+            from a function AST node.
         """
         self.nodes = nodes
         self.arguments = Arguments(args)
@@ -275,7 +263,7 @@ class Visitor(ast.NodeVisitor):
         if not isinstance(module_statements, IgnoredNode):
             first_node = module_statements.first_statement
 
-            if not CALL_IDENTIFIER in first_node.label:
+            if CALL_IDENTIFIER not in first_node.label:
                 entry_node.connect(first_node)
 
             exit_node = self.append_node(EntryExitNode("Exit module"))
@@ -298,7 +286,7 @@ class Visitor(ast.NodeVisitor):
 
         first_node = module_statements.first_statement
         
-        if not CALL_IDENTIFIER in first_node.label:
+        if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
         exit_node = self.append_node(EntryExitNode("Exit module"))
@@ -315,7 +303,7 @@ class Visitor(ast.NodeVisitor):
         module_statements = self.stmt_star_handler(node.body)
 
         first_node = module_statements.first_statement
-        if not CALL_IDENTIFIER in first_node.label:
+        if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
         exit_node = self.append_node(EntryExitNode("Exit module"))
@@ -354,9 +342,9 @@ class Visitor(ast.NodeVisitor):
 
     def connect_control_flow_node(self, control_flow_node, next_node):
         """Connect a ControlFlowNode properly to the next_node."""
-        for last in control_flow_node[1]:                         # list of last nodes in ifs and elifs
+        for last in control_flow_node[1]:  # listof last nodes in ifs and elifs
             if isinstance(next_node, ControlFlowNode):
-                last.connect(next_node.test)        # connect to next if test case
+                last.connect(next_node.test)  # connect to next if test case
             else:
                 last.connect(next_node)
 
