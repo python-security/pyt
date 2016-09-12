@@ -89,8 +89,6 @@ class LivenessAnalysis(AnalysisBase):
             vv.visit(node.ast_node)
             for var in vv.result:
                 lattice_elements.add(var)
-        from pprint import pprint
-        pprint(lattice_elements)
         return lattice_elements
 
     def equal(self, value, other):
