@@ -5,10 +5,8 @@ from analysis_base import AnalysisBase
 from lattice import Lattice
 from constraint_table import constraint_table, constraint_join
 from ast_helper import get_call_names_as_string
-from right_hand_side_visitor import RHSVisitor
+from vars_visitor import VarsVisitor
 
-
-lattice_elements = list()
 
 class LivenessAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
@@ -28,16 +26,6 @@ class LivenessAnalysis(AnalysisBase):
                 return True
         return False
 
-    def remove_id(self):
-        pass
-
-    @staticmethod
-    def get_variables(cfg_node):
-        try:
-            return [node.id for node in ast.walk(cfg_node.ast_node) if isinstance(node, ast.Name)]
-        except AttributeError:
-            return list()
-
     def fixpointmethod(self, cfg_node):
         
         if isinstance(cfg_node, EntryExitNode) and 'Exit' in cfg_node.label:
@@ -46,13 +34,14 @@ class LivenessAnalysis(AnalysisBase):
             lvars = list()
             try:
                 for expr in cfg_node.ast_node.targets:
-                    rhsv = RHSVisitor()
-                    rhsv.visit(expr)
-                    lvars.extend(rhsv.result)
+                    vv = VarsVisitor()
+                    vv.visit(expr)
+                    lvars.extend(vv.result)
             except AttributeError:
-                rhsv = RHSVisitor()
-                rhsv.visit(cfg_node.ast_node.value)
-                lvars.extend(rhsv.result)
+                if cfg_node.ast_node:
+                    vv = VarsVisitor()
+                    vv.visit(cfg_node.ast_node.value)
+                    lvars.extend(vv.result)
 
             JOIN = self.join(cfg_node)
 
@@ -67,13 +56,13 @@ class LivenessAnalysis(AnalysisBase):
         elif isinstance(cfg_node.ast_node, ast.Compare) or isinstance(cfg_node.ast_node, ast.While) or self.is_output(cfg_node):
             varse = None
             if isinstance(cfg_node.ast_node, ast.While):
-                rhsv = RHSVisitor()
-                rhsv.visit(cfg_node.ast_node.test)
-                varse = rhsv.result
+                vv = VarsVisitor()
+                vv.visit(cfg_node.ast_node.test)
+                varse = vv.result
             elif self.is_output(cfg_node):
-                rhsv = RHSVisitor()
-                rhsv.visit(cfg_node.ast_node)
-                varse = rhsv.result
+                vv = VarsVisitor()
+                vv.visit(cfg_node.ast_node)
+                varse = vv.result
             
             JOIN = self.join(cfg_node)
 
@@ -94,12 +83,14 @@ class LivenessAnalysis(AnalysisBase):
         in the reaching definitions analysis.
         This is a static method which is overwritten from the base class.
         """
+        lattice_elements = set() # Set to avoid duplicates
         for node in (node for node in cfg_nodes if node.ast_node):
-            vv = VarsLatticeVisitor()
+            vv = VarsVisitor()
             vv.visit(node.ast_node)
             for var in vv.result:
-                if var not in lattice_elements:
-                    lattice_elements.append(var)
+                lattice_elements.add(var)
+        from pprint import pprint
+        pprint(lattice_elements)
         return lattice_elements
 
     def equal(self, value, other):
@@ -107,16 +98,3 @@ class LivenessAnalysis(AnalysisBase):
 
     def build_lattice(self, cfg):
         self.lattice = Lattice(cfg.nodes, LivenessAnalysis)
-
-class VarsLatticeVisitor(ast.NodeVisitor):
-
-    def __init__(self):
-        self.result = list()
-        self.call = False
-
-    def visit_Name(self, node):
-        if not self.call:
-            self.result.append(node.id)
-
-    def visit_Call(self, node):
-        self.call = True
