@@ -35,3 +35,14 @@ class Lattice:
             return False
 
         return constraint & value != 0
+
+def print_lattice(cfg_list, analysis_type):
+    nodes = list()
+    for cfg in cfg_list:
+        nodes.extend(cfg.nodes)
+    l = Lattice(nodes, analysis_type)
+
+    print('Lattice:')
+    for k, v in l.el2bv.items():
+        print(str(k) + ': ' + bin(v))
+    return l
