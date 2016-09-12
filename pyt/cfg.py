@@ -233,7 +233,7 @@ class CFG():
 class Visitor(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
     
-    def __init__(self, node, project_modules, local_modules, filename, module_definitions=None):
+    def __init__(self, node, project_modules, local_modules, filename, module_definitions=None, intraprocedural=False):
         """Create an empty CFG."""
         self.nodes = list()
         self.function_index = 0
@@ -244,8 +244,11 @@ class Visitor(ast.NodeVisitor):
         self.function_return_stack = list()
         self.module_definitions_stack = list()
         self.filenames = [filename]
+        self.intraprocedural = intraprocedural
 
-        if module_definitions:
+        if intraprocedural:
+            self.init_intra_function_cfg(node)
+        elif module_definitions:
             self.init_function_cfg(node, module_definitions)
         else:
             self.init_cfg(node)
@@ -294,6 +297,24 @@ class Visitor(ast.NodeVisitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
+    def init_intra_function_cfg(self, node):
+        self.function_names.append(node.name)
+        self.function_return_stack.append(node.name)
+        
+        entry_node = self.append_node(EntryExitNode("Entry module"))
+
+        module_statements = self.stmt_star_handler(node.body)
+
+        first_node = module_statements.first_statement
+        if not CALL_IDENTIFIER in first_node.label:
+            entry_node.connect(first_node)
+
+        exit_node = self.append_node(EntryExitNode("Exit module"))
+        
+        last_nodes = module_statements.last_statements
+        exit_node.connect_predecessors(last_nodes)
+
+    
     def append_node(self, Node):
         """Append a node to the CFG and return it."""
         self.nodes.append(Node)
@@ -980,14 +1001,35 @@ class Visitor(ast.NodeVisitor):
     def visit_Continue(self, node):
         return self.append_node(Node('continue', node, line_number = node.lineno, path=self.filenames[-1]))
 
-def build_cfg(module_node, project_modules, local_modules, filename):
+class IntraproceduralVisitor(Visitor):
+
+    def visit_Call(self, node):
+        return self.add_builtin(node)
+#    def visit_ClassDef(self, node):
+ #       return Node(node.name, node, line_number=node.lineno, path='')
+    #def visit_FunctionDef(self, node):
+        #return Node(node.name, node, line_number=node.lineno, path='')
+        #return IgnoredNode()
+
+
+def build_cfg(module_node, project_modules, local_modules, filename, intraprocedural=False):
     """Create a Control Flow Graph.
     
     Args:
         module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
     """
 
-    visitor = Visitor(module_node, project_modules, local_modules, filename)
+    visitor = Visitor(module_node, project_modules, local_modules, filename, intraprocedural)
+    return CFG(visitor.nodes)
+
+def build_intra_cfg(module_node, project_modules, local_modules, filename, intraprocedural=False):
+    """Create a Control Flow Graph.
+    
+    Args:
+        module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
+    """
+
+    visitor = IntraproceduralVisitor(module_node, project_modules, local_modules, filename, intraprocedural)
     return CFG(visitor.nodes)
 
 def build_function_cfg(module_node, project_modules, local_modules, filename, module_definitions):
@@ -998,3 +1040,29 @@ def build_function_cfg(module_node, project_modules, local_modules, filename, mo
     """
     visitor = Visitor(module_node, project_modules, local_modules, filename, module_definitions)
     return CFG(visitor.nodes)
+
+def build_intra_function_cfg(function_node, filename):
+    visitor = IntraproceduralVisitor(function_node, project_modules=None, local_modules=None, filename=filename, intraprocedural=True)
+    return CFG(visitor.nodes)
+
+class FunctionDefVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.result = list()
+
+    def visit_FunctionDef(self, node):
+        self.result.append(node)
+    #def visit_ClassDef(self, node):
+     #   self.result.append(node)
+
+def intraprocedural(project_modules, cfg_list):
+    functions = list()
+
+    for module in project_modules:
+        t = generate_ast(module[1])
+        cfg_list.append(build_intra_cfg(t, project_modules=[], local_modules=[], filename=module[1]))
+        fdv = FunctionDefVisitor()
+        fdv.visit(t)
+        functions.extend([(f, module[1]) for f in fdv.result])
+        
+    for f in functions:
+        cfg_list.append(build_intra_function_cfg(f[0], f[1]))
