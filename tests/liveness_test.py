@@ -14,6 +14,10 @@ class LivenessTest(AnalysisBaseTestCase):
         y = 0b10
         z = 0b100
 
+        lattice.el2bv['x'] = x
+        lattice.el2bv['y'] = y
+        lattice.el2bv['z'] = z
+
         self.assertEqual(constraint_table[self.cfg.nodes[0]], 0)
         self.assertEqual(constraint_table[self.cfg.nodes[1]], 0)
         self.assertEqual(constraint_table[self.cfg.nodes[2]], x)
