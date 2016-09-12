@@ -26,6 +26,7 @@ def constraint_meet(self, cfg_nodes):
         r = r & constraint_table[e]
     return r
 
-def print_table():
+def print_table(l):
+    print('Constraint table:')
     for k, v in constraint_table.items():
-        print(str(k) + ': ' + bin(v))
+        print(str(k) + ': ' + ','.join([str(n) for n in l.get_elements(v)]))
