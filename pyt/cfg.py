@@ -1,25 +1,31 @@
-"""This module contains classes for generating a Control Flow Graph of a python program.
+"""This module contains classes for generating a Control Flow Graph
+of a python program.
 
-The class CFG is the main entry point to this module
-The method generate_ast(path) can the used to generate input for the CFG class' create method
+The class Visitor is the main entry point to this module.
+It uses the visitor pattern implemented by the ast module from the
+standard library.
 """
 
 import ast
-import os
-from collections import namedtuple, OrderedDict
-from copy import deepcopy
+from collections import namedtuple
 import logging
 
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
-from module_definitions import ModuleDefinition, ModuleDefinitions, LocalModuleDefinition
+from module_definitions import ModuleDefinition, ModuleDefinitions,\
+    LocalModuleDefinition
 from project_handler import get_directory_modules
 from ast_helper import generate_ast, get_call_names_as_string, Arguments
 
+
 CALL_IDENTIFIER = '¤'
-ControlFlowNode = namedtuple('ControlFlowNode', 'test last_nodes break_statements')
+ControlFlowNode = namedtuple('ControlFlowNode',
+                             'test last_nodes break_statements')
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-ConnectStatements = namedtuple('ConnectStatements', 'first_statement last_statements break_statements')
+ConnectStatements = namedtuple('ConnectStatements',
+                               'first_statement' +
+                               ' last_statements' +
+                               ' break_statements')
 logger = logging.getLogger(__name__)
 
 
@@ -28,14 +34,15 @@ class IgnoredNode(object):
 
 
 class Node(object):
-    """A Control Flow Graph node that contains a list of ingoing and outgoing nodes and a list of its variables."""
+    """A Control Flow Graph node that contains a list of
+    ingoing and outgoing nodes and a list of its variables."""
     
     def __init__(self, label, ast_node, *, line_number, path):
         """Create a Node that can be used in a CFG.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
-            line_number(Optional[int]): The line of the expression the Node represents.
+            label (str): The label of the node, describing its expression.
+            line_number(Optional[int]): The line of the expression of the Node.
         """
         self.ingoing = list()
         self.outgoing = list()
@@ -50,8 +57,10 @@ class Node(object):
         self.new_constraint = set()
 
     def connect(self, successor):
-        """Connect this node to its successor node by setting its outgoing and the successors ingoing."""
-        if isinstance(self, ConnectToExitNode) and not type(successor) is EntryExitNode:
+        """Connect this node to its successor node by
+        setting its outgoing and the successors ingoing."""
+        if isinstance(self, ConnectToExitNode) and\
+           not type(successor) is EntryExitNode:
             return
         self.outgoing.append(successor)
         successor.ingoing.append(self)
@@ -100,13 +109,13 @@ class ConnectToExitNode():
 
 class FunctionNode(Node):
     """CFG Node that represents a function definition.
-    
-    Used as a dummy for creating a list of function definitions.    
+
+    Used as a dummy for creating a list of function definitions.
     """
-    
+
     def __init__(self, ast_node):
         """Create a function node.
-        
+
         This node is a dummy node representing a function definition
         """
         super(FunctionNode, self).__init__(self.__class__.__name__, ast_node)
@@ -349,7 +358,7 @@ class Visitor(ast.NodeVisitor):
             if isinstance(next_node, ControlFlowNode):
                 last.connect(next_node.test)        # connect to next if test case
             else:
-                last.connect(next_node)        
+                last.connect(next_node)
 
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
