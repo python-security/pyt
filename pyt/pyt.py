@@ -22,7 +22,7 @@ parser.add_argument('filepath', help='Path to the file that should be analysed.'
 parser.add_argument('-pr', '--project-root', help='Add project root, this is important when the entry file is not at the root of the project.', type=str)
 parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .pdf file.', action='store_true')
 parser.add_argument('-o', '--output-filename', help='Output filename.', type=str)
-print_group=parser.add_mutually_exclusive_group()
+print_group = parser.add_mutually_exclusive_group()
 print_group.add_argument('-p', '--print', help='Prints the nodes of the CFG.', action='store_true')
 print_group.add_argument('-vp', '--verbose-print', help='Verbose printing of -p.', action='store_true')
 parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.', type=str)
@@ -30,18 +30,25 @@ parser.add_argument('-l', '--log-level', help='Choose logging level: CRITICAL, E
 parser.add_argument('-a', '--adaptor', help='Choose an adaptor: FLASK(Default) or DJANGO.', type=str)
 parser.add_argument('-db', '--create-database', help='Creates a sql file that can be used to create a database.', action='store_true')
 parser.add_argument('-dl', '--draw-lattice',  nargs='+', help='Draws a lattice.')
-parser.add_argument('-li', '--liveness', help='Run liveness analysis. Default is reaching definitions tainted version.', action='store_true')
-parser.add_argument('-re', '--reaching', help='Run reaching definitions analysis. Default is reaching definitions tainted version.', action='store_true')
+analysis_group = parser.add_mutually_exclusive_group()
+analysis_group.add_argument('-li', '--liveness', help='Run liveness analysis. Default is reaching definitions tainted version.', action='store_true')
+analysis_group.add_argument('-re', '--reaching', help='Run reaching definitions analysis. Default is reaching definitions tainted version.', action='store_true')
+analysis_group.add_argument('-rt', '--reaching-taint', help='This is the default analysis: reaching definitions tainted version.', action='store_true')
 
 args = parser.parse_args()
 
 if __name__ == '__main__':
     log.set_logger(args.log_level, show_path=False)
 
+    analysis = None
     if args.liveness:
-        ReachingDefinitionsTaintAnalysis = LivenessAnalysis
-    if args.reaching:
-        ReachingDefinitionsTaintAnalysis = ReachingDefinitionsAnalysis
+        analysis = LivenessAnalysis
+    elif args.reaching:
+        analysis = ReachingDefinitionsAnalysis
+    elif args.reaching_taint:
+        analysis = ReachingDefinitionsTaintAnalysis
+    else:
+        analysis = ReachingDefinitionsTaintAnalysis
 
     path = os.path.normpath(args.filepath)
 
@@ -62,13 +69,13 @@ if __name__ == '__main__':
 
     initialize_constraint_table(cfg_list)
 
-    analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+    analyse(cfg_list, analysis_type=analysis)
     
     vulnerability_log = None
     if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis, args.trigger_word_file)
+        vulnerability_log = find_vulnerabilities(cfg_list, analysis, args.trigger_word_file)
     else:
-        vulnerability_log = find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis)
+        vulnerability_log = find_vulnerabilities(cfg_list, analysis)
 
     vulnerability_log.print_report()
 
@@ -78,8 +85,11 @@ if __name__ == '__main__':
         else:
             draw_cfgs(cfg_list)
     if args.print:
+        from lattice import print_lattice
+        l = print_lattice(cfg_list, analysis)
+        
         from constraint_table import constraint_table, print_table
-        print_table()
+        print_table(l)
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
             print(e)
