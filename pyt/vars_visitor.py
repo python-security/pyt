@@ -1,4 +1,5 @@
 import ast
+from ast_helper import get_call_names
 
 class VarsVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -80,6 +81,8 @@ class VarsVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node):
         if not isinstance(node.func, ast.Name):
+            calls = list(get_call_names(node.func))
+            self.result.append(calls[0])
             self.visit(node.func)
         if node.args:
             for arg in node.args:
@@ -108,6 +111,8 @@ class VarsVisitor(ast.NodeVisitor):
             self.visit(node.value)
 
     def visit_Subscript(self, node):
+        if isinstance(node.value, ast.Attribute):
+            self.result.append(list(get_call_names(node.value))[0])
         self.visit(node.value)
         self.slicev(node.slice)
 
