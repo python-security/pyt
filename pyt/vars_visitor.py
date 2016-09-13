@@ -76,7 +76,7 @@ class VarsVisitor(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         self.visit(node.left)
-        for c in node.comparators:            
+        for c in node.comparators:
             self.visit(c)
 
     def visit_Call(self, node):
