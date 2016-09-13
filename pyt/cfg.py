@@ -111,9 +111,9 @@ class FunctionNode(Node):
 class RaiseNode(Node, ConnectToExitNode):
     """CFG Node that represents a Raise statement."""
     
-    def __init__(self, ast_node, *, line_number=None):
+    def __init__(self, label, ast_node, *, line_number, path):
         """Create a Raise node."""
-        super(RaiseNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number)
+        super(RaiseNode, self).__init__(label, ast_node, line_number=line_number, path=path)
 
 
 class BreakNode(Node):
@@ -524,7 +524,7 @@ class Visitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        return self.append_node(RaiseNode(label.result, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(RaiseNode(label.result, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
         try:
