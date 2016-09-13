@@ -249,6 +249,8 @@ def get_sink_args(cfg_node):
                 args.append(arg.id)
             elif isinstance(arg, ast.Str):
                 args.append(arg.s)
+            elif isinstance(arg, ast.Num):
+                args.append(arg.n)
             elif isinstance(arg, ast.Call):
                 args.extend(get_sink_args(arg))
             elif isinstance(arg, ast.keyword):
