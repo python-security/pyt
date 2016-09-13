@@ -514,9 +514,13 @@ class Visitor(ast.NodeVisitor):
         label.visit(node)
 
         this_function_name = self.function_return_stack[-1]
-        
-        rhs_visitor = RHSVisitor()
-        rhs_visitor.visit(node.value)
+
+        try:
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(node.value)
+        except AttributeError:
+            rhs_visitor.result = 'EmptyReturn'
+
         LHS = 'ret_' + this_function_name
         return self.append_node(ReturnNode(LHS + ' = ' + label.result, LHS, rhs_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
 
