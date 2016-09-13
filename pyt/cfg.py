@@ -1002,6 +1002,13 @@ class Visitor(ast.NodeVisitor):
     def visit_Continue(self, node):
         return self.append_node(Node('continue', node, line_number = node.lineno, path=self.filenames[-1]))
 
+    def visit_Delete(self, node):
+        labelVisitor = LabelVisitor()
+        for expr in node.targets:
+            labelVisitor.visit(expr)
+        print(self.append_node(Node('del ' + labelVisitor.result, node, line_number = node.lineno, path=self.filenames[-1])))
+        return self.append_node(Node('del ' + labelVisitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
+
 class IntraproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
