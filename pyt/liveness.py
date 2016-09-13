@@ -51,21 +51,25 @@ class LivenessAnalysis(AnalysisBase):
             if var in self.lattice.get_elements(JOIN):  # Check if var in JOIN
                 JOIN = JOIN ^ self.lattice.el2bv[var]
         return JOIN
+
+    def add_vars_assignment(self, JOIN, cfg_node):
+        rvars = list()
+        vv = VarsVisitor()
+        vv.visit(cfg_node.ast_node.value)
+        rvars.extend(vv.result)
+
+        for var in rvars:
+            JOIN = JOIN | self.lattice.el2bv[var]
+        return JOIN
+
     def fixpointmethod(self, cfg_node):
 
         if isinstance(cfg_node, EntryExitNode) and 'Exit' in cfg_node.label:
             constraint_table[cfg_node] = 0
         elif isinstance(cfg_node, AssignmentNode):
             JOIN = self.join(cfg_node)
-
-            for var in lvars:
-                if var in self.lattice.get_elements(JOIN):
-                    JOIN = JOIN ^ self.lattice.el2bv[var]
-
-            for var in cfg_node.right_hand_side_variables:
-                JOIN = JOIN | self.lattice.el2bv[var]
-
             JOIN = self.remove_id_assignment(JOIN, cfg_node)
+            JOIN = self.add_vars_assignment(JOIN, cfg_node)
             constraint_table[cfg_node] = JOIN
         elif self.is_condition(cfg_node):
 
