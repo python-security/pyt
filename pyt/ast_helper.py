@@ -29,7 +29,7 @@ def get_call_names_helper(node, result):
     elif isinstance(node, ast.Call):
         return result
     elif isinstance(node, ast.Subscript):
-        return result
+        return get_call_names_helper(node.value, result)
     elif isinstance(node, ast.Str):
         result.append(node.s)
         return result
