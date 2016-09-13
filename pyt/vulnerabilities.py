@@ -268,8 +268,7 @@ def get_sink_args(cfg_node):
     else:
         raise Exception('Unexpected node type:', type(cfg_node))
 
-            
-            
+
 def get_vulnerability(source, sink, triggers, lattice):
     """Get vulnerability between source and sink if it exists.
 
