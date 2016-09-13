@@ -170,12 +170,24 @@ class LabelVisitor(NodeVisitor):
 
         self.result += '['
 
-        self.visit(node.slice)
+        self.slicev(node.slice)
         
         self.result += ']'
 
-    def visit_Slice(self, node):
-        raise Exception('Slice used, time to implement!')
+    def slicev(self, node):
+        if isinstance(node, ast.Slice):
+            if node.lower:
+                self.visit(node.lower)
+            if node.upper:
+                self.visit(node.upper)
+            if node.step:
+                self.visit(node.step)
+        elif isinstance(node, ast.ExtSlice):
+            if node.dims:
+                for d in node.dims:
+                    self.visit(d)
+        else:
+            self.visit(node.value)
         
     #  operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift | RShift | BitOr | BitXor | BitAnd | FloorDiv
     def visit_Add(self, node):
