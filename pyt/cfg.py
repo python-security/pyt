@@ -1071,13 +1071,22 @@ class FunctionDefVisitor(ast.NodeVisitor):
 
 def intraprocedural(project_modules, cfg_list):
     functions = list()
-
+    dup = list()
     for module in project_modules:
         t = generate_ast(module[1])
         cfg_list.append(build_intra_cfg(t, project_modules=[], local_modules=[], filename=module[1]))
+        dup.append(t)
         fdv = FunctionDefVisitor()
         fdv.visit(t)
+        dup.extend(fdv.result)
         functions.extend([(f, module[1]) for f in fdv.result])
-        
+
     for f in functions:
         cfg_list.append(build_intra_function_cfg(f[0], f[1]))
+
+    s = set()
+    for d in dup:
+        if d in s:
+            raise Exception('Duplicates in the functions definitions list.')
+        else:
+            s.add(d)
