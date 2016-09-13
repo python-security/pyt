@@ -236,6 +236,11 @@ def get_sink_args(cfg_node):
         if isinstance(cfg_node.ast_node, ast.For):
             return cfg_node.label
         return get_sink_args(cfg_node.ast_node)
+    elif isinstance(cfg_node, ast.ListComp):
+        from vars_visitor import VarsVisitor
+        vv = VarsVisitor()
+        vv.visit(cfg_node)
+        return vv.result
     elif isinstance(cfg_node, ast.Call):
         args = list()
 
