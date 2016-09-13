@@ -1057,7 +1057,7 @@ def build_function_cfg(module_node, project_modules, local_modules, filename, mo
     return CFG(visitor.nodes)
 
 def build_intra_function_cfg(function_node, filename):
-    visitor = IntraproceduralVisitor(function_node, project_modules=None, local_modules=None, filename=filename, intraprocedural=True)
+    visitor = IntraproceduralVisitor(function_node, project_modules=list(), local_modules=list(), filename=filename, intraprocedural=True)
     return CFG(visitor.nodes)
 
 class FunctionDefVisitor(ast.NodeVisitor):
