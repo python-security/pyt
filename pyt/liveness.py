@@ -62,6 +62,26 @@ class LivenessAnalysis(AnalysisBase):
             JOIN = JOIN | self.lattice.el2bv[var]
         return JOIN
 
+    def add_vars_conditiona(self, JOIN, cfg_node):
+        varse = None
+        if isinstance(cfg_node.ast_node, ast.While):
+            vv = VarsVisitor()
+            vv.visit(cfg_node.ast_node.test)
+            varse = vv.result
+        elif self.is_output(cfg_node):
+            vv = VarsVisitor()
+            vv.visit(cfg_node.ast_node)
+            varse = vv.result
+        elif isinstance(cfg_node.ast_node, ast.If):
+            vv = VarsVisitor()
+            vv.visit(cfg_node.ast_node.test)
+            varse = vv.result
+
+        for var in varse:
+            JOIN = JOIN | self.lattice.el2bv[var]
+
+        return JOIN
+
     def fixpointmethod(self, cfg_node):
 
         if isinstance(cfg_node, EntryExitNode) and 'Exit' in cfg_node.label:
@@ -72,26 +92,8 @@ class LivenessAnalysis(AnalysisBase):
             JOIN = self.add_vars_assignment(JOIN, cfg_node)
             constraint_table[cfg_node] = JOIN
         elif self.is_condition(cfg_node):
-
-            varse = None
-            if isinstance(cfg_node.ast_node, ast.While):
-                vv = VarsVisitor()
-                vv.visit(cfg_node.ast_node.test)
-                varse = vv.result
-            elif self.is_output(cfg_node):
-                vv = VarsVisitor()
-                vv.visit(cfg_node.ast_node)
-                varse = vv.result
-            elif isinstance(cfg_node.ast_node, ast.If):
-                vv = VarsVisitor()
-                vv.visit(cfg_node.ast_node.test)
-                varse = vv.result
-
             JOIN = self.join(cfg_node)
-
-            for var in varse:
-                JOIN = JOIN | self.lattice.el2bv[var]
-
+            JOIN = self.add_vars_conditiona(JOIN, cfg_node)
             constraint_table[cfg_node] = JOIN
         else:
             constraint_table[cfg_node] = self.join(cfg_node)
