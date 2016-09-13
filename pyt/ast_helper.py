@@ -1,4 +1,5 @@
-"""This module contains helper function useful when working with the ast module."""
+"""This module contains helper function.
+Useful when working with the ast module."""
 import ast
 import os
 
@@ -9,10 +10,12 @@ def generate_ast(path):
             return ast.parse(f.read())
     raise IOError('Input needs to be a file. Path: ' + path)
 
+
 def list_to_dotted_string(list_of_components):
     """Convert a list to a string seperated by a dot."""
     return '.'.join(list_of_components)
-    
+
+
 def get_call_names_helper(node, result):
     """Recursively finds all function names."""
     if isinstance(node, ast.Name):
@@ -29,9 +32,11 @@ def get_call_names_helper(node, result):
         result.append(node.attr)
         return get_call_names_helper(node.value, result)
 
+
 def get_call_names_as_string(node):
     """Get a list of call names as a string."""
     return list_to_dotted_string(get_call_names(node))
+
 
 def get_call_names(node):
     """Get a list of call names."""
