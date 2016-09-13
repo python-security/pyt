@@ -1,6 +1,6 @@
 """This module handles module definitions which basically is a list of module definition."""
 
-project_definitions = dict() # Contains all project definitions for a program run
+project_definitions = dict()  # Contains all project definitions for a program run
 
 
 class ModuleDefinition():
