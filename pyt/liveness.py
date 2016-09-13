@@ -27,9 +27,7 @@ class LivenessAnalysis(AnalysisBase):
         return False
 
     def is_condition(self, cfg_node):
-        if isinstance(cfg_node.ast_node, ast.Compare):
-            return True
-        elif isinstance(cfg_node.ast_node, ast.While):
+        if isinstance(cfg_node.ast_node, ast.While):
             return True
         elif self.is_output(cfg_node):
             return True
