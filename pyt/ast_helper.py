@@ -3,6 +3,10 @@ Useful when working with the ast module."""
 import ast
 import os
 
+
+BLACK_LISTED_CALL_NAMES = ['self']
+
+
 def generate_ast(path):
     """Generate an Abstract Syntax Tree using the ast module."""
     if os.path.isfile(path):
@@ -19,7 +23,8 @@ def list_to_dotted_string(list_of_components):
 def get_call_names_helper(node, result):
     """Recursively finds all function names."""
     if isinstance(node, ast.Name):
-        result.append(node.id)
+        if node.id not in BLACK_LISTED_CALL_NAMES:
+            result.append(node.id)
         return result
     elif isinstance(node, ast.Call):
         return result
