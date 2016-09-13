@@ -31,6 +31,8 @@ class LivenessAnalysis(AnalysisBase):
             return True
         elif self.is_output(cfg_node):
             return True
+        elif isinstance(cfg_node.ast_node, ast.If):
+            return True
         return False
 
     def remove_id_assignment(self, JOIN, cfg_node):
@@ -79,6 +81,10 @@ class LivenessAnalysis(AnalysisBase):
             elif self.is_output(cfg_node):
                 vv = VarsVisitor()
                 vv.visit(cfg_node.ast_node)
+                varse = vv.result
+            elif isinstance(cfg_node.ast_node, ast.If):
+                vv = VarsVisitor()
+                vv.visit(cfg_node.ast_node.test)
                 varse = vv.result
 
             JOIN = self.join(cfg_node)
