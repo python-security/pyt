@@ -295,12 +295,17 @@ class Visitor(ast.NodeVisitor):
         exit_node.connect_predecessors(last_nodes)
 
     def init_intra_function_cfg(self, node):
+        self.module_definitions_stack.append(ModuleDefinitions())        
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
         
         entry_node = self.append_node(EntryExitNode("Entry module"))
 
         module_statements = self.stmt_star_handler(node.body)
+        if isinstance(module_statements, IgnoredNode):
+            exit_node = self.append_node(EntryExitNode("Exit module"))
+            entry_node.connect(exit_node)
+            return
 
         first_node = module_statements.first_statement
         if CALL_IDENTIFIER not in first_node.label:
@@ -491,6 +496,8 @@ class Visitor(ast.NodeVisitor):
         self.add_if_label(test)
 
         body_connect_stmts = self.stmt_star_handler(node.body)
+        if isinstance(body_connect_stmts, IgnoredNode):
+            body_connect_stmts = ConnectStatements(first_statement=test, last_statements=[], break_statements=[])
         test.connect(body_connect_stmts.first_statement)
         
         if node.orelse:
