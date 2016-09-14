@@ -62,7 +62,7 @@ class LivenessAnalysis(AnalysisBase):
             JOIN = JOIN | self.lattice.el2bv[var]
         return JOIN
 
-    def add_vars_conditiona(self, JOIN, cfg_node):
+    def add_vars_conditional(self, JOIN, cfg_node):
         varse = None
         if isinstance(cfg_node.ast_node, ast.While):
             vv = VarsVisitor()
@@ -93,7 +93,7 @@ class LivenessAnalysis(AnalysisBase):
             constraint_table[cfg_node] = JOIN
         elif self.is_condition(cfg_node):
             JOIN = self.join(cfg_node)
-            JOIN = self.add_vars_conditiona(JOIN, cfg_node)
+            JOIN = self.add_vars_conditional(JOIN, cfg_node)
             constraint_table[cfg_node] = JOIN
         else:
             constraint_table[cfg_node] = self.join(cfg_node)
