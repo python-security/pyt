@@ -4,7 +4,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import build_cfg
+from interprocedural_cfg import interprocedural
 from ast_helper import generate_ast
 from module_definitions import project_definitions
 
@@ -66,4 +66,4 @@ class BaseTestCase(unittest.TestCase):
     def cfg_create_from_file(self, filename, project_modules=list(), local_modules=list()):
         project_definitions.clear()
         tree = generate_ast(filename)
-        self.cfg = build_cfg(tree, project_modules, local_modules, filename)
+        self.cfg = interprocedural(tree, project_modules, local_modules, filename)

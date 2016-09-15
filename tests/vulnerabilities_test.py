@@ -4,7 +4,7 @@ import sys
 sys.path.insert(1, os.path.abspath('../pyt'))
 import vulnerabilities
 from base_test_case import BaseTestCase
-from cfg import CFG, generate_ast, Node
+from base_cfg import Node
 from fixed_point import analyse
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from flask_adaptor import FlaskAdaptor

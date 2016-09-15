@@ -4,8 +4,9 @@ from ast import parse
 
 from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node, EntryExitNode
+from base_cfg import Node, EntryExitNode
 from project_handler import get_python_modules
+
 
 class CFGGeneralTest(BaseTestCase):
     def test_repr_cfg(self):
@@ -796,26 +797,3 @@ class CFGName(BaseTestCase):
         
         self.assert_length(self.cfg.nodes, expected_length=4)
         self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')
-
-class Recusion(BaseTestCase):
-    """Test resursive functions"""
-    def test_recursion(self):
-        pass
-    #self.cfg_create_from_file('../example/example_inputs/recursive.py')
-
-        #self.assert_length(self.cfg.nodes, expected_length=0)
-
-from cfg import Visitor
-from ast_helper import generate_ast
-from project_handler import get_directory_modules, get_python_modules
-class VisitorImport(BaseTestCase):
-    def test_import(self):
-        path = '../example/import_test/import.py'
-        tree = generate_ast(path)
-        v = Visitor(tree, get_python_modules(path), get_directory_modules(path), path)
-
-    def test_import_from(self):
-        path = '../example/import_test/import_from.py'
-        tree = generate_ast(path)
-        v = Visitor(tree, get_python_modules(path), get_directory_modules(path), path)
-        

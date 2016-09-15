@@ -1,13 +1,13 @@
 import os
 import sys
-from ast import parse, Name, Call, Str, Attribute
+from ast import parse, Name
 
 from base_test_case import BaseTestCase
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node, EntryExitNode, get_call_names_as_string
+from base_cfg import get_call_names_as_string
 from project_handler import get_python_modules, get_directory_modules
-from flask_adaptor import FlaskAdaptor
+
 
 class ImportTest(BaseTestCase):
     def test_import(self):

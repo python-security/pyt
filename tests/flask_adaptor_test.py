@@ -2,9 +2,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../pyt'))
-from cfg import CFG, generate_ast, Node
 from flask_adaptor import FlaskAdaptor
 from base_test_case import BaseTestCase
+
 
 class FlaskEngineTest(BaseTestCase):
     def test_find_flask_functions(self):
