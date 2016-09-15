@@ -1,7 +1,7 @@
 import ast
 from collections import namedtuple
 
-from base_cfg import Visitor, Node
+from base_cfg import Visitor, Node, CFG, EntryExitNode
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
 from ast_helper import generate_ast, get_call_names_as_string, Arguments
@@ -21,15 +21,14 @@ class IntraproceduralVisitor(Visitor):
 
         try:
             # FunctionDef ast node
-            self.init_function_cfg()
+            self.init_function_cfg(node)
         except:  # Error?!
             # Module ast node
-            self.init_module_cfg()
-
+            self.init_module_cfg(node)
 
     def init_module_cfg(self, node):
         entry_node = self.append_node(EntryExitNode("Entry module"))
-                
+
         module_statements = self.visit(node)
 
         if not module_statements:
@@ -103,7 +102,8 @@ def intraprocedural(project_modules, cfg_list):
     dup = list()
     for module in project_modules:
         t = generate_ast(module[1])
-        cfg_list.append(build_intra_cfg(t, project_modules=[], local_modules=[], filename=module[1]))
+        iv = IntraproceduralVisitor(t, filename=module[1])
+        cfg_list.append(CFG(iv.nodes))
         dup.append(t)
         fdv = FunctionDefVisitor()
         fdv.visit(t)
@@ -111,7 +111,8 @@ def intraprocedural(project_modules, cfg_list):
         functions.extend([(f, module[1]) for f in fdv.result])
 
     for f in functions:
-        cfg_list.append(build_intra_function_cfg(f[0], f[1]))
+        iv = IntraproceduralVisitor(f[0], filename=f[1])
+        cfg_list.append(CFG(iv.nodes))
 
     s = set()
     for d in dup:
