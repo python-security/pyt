@@ -68,23 +68,3 @@ class Visitor(ast.NodeVisitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
-
-def build_cfg(module_node, project_modules, local_modules, filename, intraprocedural=False):
-    """Create a Control Flow Graph.
-    
-    Args:
-        module_node(ast.Module) is the first node (Module) of an Abstract Syntax Tree generated with the module_node module.
-    """
-
-    visitor = Visitor(module_node, project_modules, local_modules, filename, intraprocedural)
-    return CFG(visitor.nodes)
-
-def build_function_cfg(module_node, project_modules, local_modules, filename, module_definitions):
-    """Create a Control Flow Graph for at separate function
-
-    Args:
-        function_node: is the node to create a CFG of
-    """
-    visitor = Visitor(module_node, project_modules, local_modules, filename, module_definitions)
-    return CFG(visitor.nodes)
-

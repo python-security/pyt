@@ -398,3 +398,13 @@ class InterproceduralVisitor(Visitor):
                     return self.add_module(module, None,
                                            self.alias_handler(node.names))
         return IgnoredNode()
+
+
+def interprocedural(node, project_modules, local_modules, filename,
+                    module_definitions=None):
+
+    visitor = InterproceduralVisitor(node,
+                                     project_modules,
+                                     local_modules, filename,
+                                     module_definitions)
+    return CFG(visitor.nodes)

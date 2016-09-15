@@ -71,7 +71,8 @@ if __name__ == '__main__':
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
-        cfg_list.append(build_cfg(tree, project_modules, local_modules, path))
+        cfg_list.append(interprocedural(tree, project_modules, local_modules,
+                                        path))
         adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
 
     initialize_constraint_table(cfg_list)
