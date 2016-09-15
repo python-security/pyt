@@ -1,3 +1,11 @@
+import ast
+
+from collections import namedtuple
+from right_hand_side_visitor import RHSVisitor
+from label_visitor import LabelVisitor
+from ast_helper import get_call_names_as_string, Arguments
+
+
 ControlFlowNode = namedtuple('ControlFlowNode',
                              'test last_nodes break_statements')
 
@@ -5,10 +13,68 @@ ConnectStatements = namedtuple('ConnectStatements',
                                'first_statement' +
                                ' last_statements' +
                                ' break_statements')
+CALL_IDENTIFIER = '¤'
 
 
 class IgnoredNode(object):
     """Ignored Node sent from a ast node that should not return anything."""
+
+
+class Node(object):
+    """A Control Flow Graph node that contains a list of
+    ingoing and outgoing nodes and a list of its variables."""
+
+    def __init__(self, label, ast_node, *, line_number, path):
+        """Create a Node that can be used in a CFG.
+
+        Args:
+            label (str): The label of the node, describing its expression.
+            line_number(Optional[int]): The line of the expression of the Node.
+        """
+        self.ingoing = list()
+        self.outgoing = list()
+
+        self.label = label
+        self.ast_node = ast_node
+        self.line_number = line_number
+        self.path = path
+
+    def connect(self, successor):
+        """Connect this node to its successor node by
+        setting its outgoing and the successors ingoing."""
+        if isinstance(self, ConnectToExitNode) and\
+           not type(successor) is EntryExitNode:
+            return
+        self.outgoing.append(successor)
+        successor.ingoing.append(self)
+
+    def connect_predecessors(self, predecessors):
+        """Connect all nodes in predecessors to this node."""
+        for n in predecessors:
+            self.ingoing.append(n)
+            n.outgoing.append(self)
+
+    def __str__(self):
+        """Print the label of the node."""
+        return ' '.join(('Label: ', self.label))
+
+    def __repr__(self):
+        """Print a representation of the node."""
+        label = ' '.join(('Label: ', self.label))
+        line_number = 'Line number: ' + str(self.line_number)
+        outgoing = ''
+        ingoing = ''
+        if self.ingoing:
+            ingoing = ' '.join(('ingoing:\t', str([x.label for x in self.ingoing])))
+        else:
+            ingoing = ' '.join(('ingoing:\t', '[]'))
+
+        if self.outgoing:
+            outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
+        else:
+            outgoing = ' '.join(('outgoing:\t', '[]'))
+
+        return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
 class ConnectToExitNode():
@@ -130,63 +196,6 @@ class Function(object):
         for x, n in enumerate(self.nodes):
             output = ''.join((output, 'Node: ' + str(x) + ' ' + str(n), '\n\n'))
         return output
-
-
-class Node(object):
-    """A Control Flow Graph node that contains a list of
-    ingoing and outgoing nodes and a list of its variables."""
-
-    def __init__(self, label, ast_node, *, line_number, path):
-        """Create a Node that can be used in a CFG.
-
-        Args:
-            label (str): The label of the node, describing its expression.
-            line_number(Optional[int]): The line of the expression of the Node.
-        """
-        self.ingoing = list()
-        self.outgoing = list()
-
-        self.label = label
-        self.ast_node = ast_node
-        self.line_number = line_number
-        self.path = path
-
-    def connect(self, successor):
-        """Connect this node to its successor node by
-        setting its outgoing and the successors ingoing."""
-        if isinstance(self, ConnectToExitNode) and\
-           not type(successor) is EntryExitNode:
-            return
-        self.outgoing.append(successor)
-        successor.ingoing.append(self)
-
-    def connect_predecessors(self, predecessors):
-        """Connect all nodes in predecessors to this node."""
-        for n in predecessors:
-            self.ingoing.append(n)
-            n.outgoing.append(self)
-
-    def __str__(self):
-        """Print the label of the node."""
-        return ' '.join(('Label: ', self.label))
-
-    def __repr__(self):
-        """Print a representation of the node."""
-        label = ' '.join(('Label: ', self.label))
-        line_number = 'Line number: ' + str(self.line_number)
-        outgoing = ''
-        ingoing = ''
-        if self.ingoing:
-            ingoing = ' '.join(('ingoing:\t', str([x.label for x in self.ingoing])))
-        else:
-            ingoing = ' '.join(('ingoing:\t', '[]'))
-
-        if self.outgoing:
-            outgoing = ' '.join(('outgoing:\t', str([x.label for x in self.outgoing])))
-        else:
-            outgoing = ' '.join(('outgoing:\t', '[]'))
-
-        return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
 class CFG():

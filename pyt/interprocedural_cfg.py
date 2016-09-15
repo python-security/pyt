@@ -8,9 +8,9 @@ from module_definitions import ModuleDefinition, ModuleDefinitions,\
 from project_handler import get_directory_modules
 from ast_helper import generate_ast, get_call_names_as_string, Arguments
 from base_cfg import Visitor, EntryExitNode, Node, IgnoredNode,\
-    ConnectToExitNode, ReturnNode, AssignmentNode, RestoreNode
+    ConnectToExitNode, ReturnNode, AssignmentNode, RestoreNode,\
+    CFG, CALL_IDENTIFIER
 
-CALL_IDENTIFIER = '¤'
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 
 

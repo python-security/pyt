@@ -3,7 +3,9 @@
 import argparse
 import os
 
-from cfg import generate_ast, build_cfg, intraprocedural
+from ast_helper import generate_ast
+from interprocedural_cfg import interprocedural
+from intraprocedural_cfg import intraprocedural
 from draw import draw_cfgs, draw_lattices
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from liveness import LivenessAnalysis

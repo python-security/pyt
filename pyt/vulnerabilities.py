@@ -5,9 +5,10 @@ from collections import namedtuple
 import ast
 import logging
 
-from cfg import CFG, generate_ast, Node, AssignmentNode, ReturnNode
+from base_cfg import Node, AssignmentNode, ReturnNode
 from framework_adaptor import TaintedNode
-from vulnerability_log import Vulnerability, VulnerabilityLog, SanitisedVulnerability
+from vulnerability_log import Vulnerability, VulnerabilityLog,\
+    SanitisedVulnerability
 from lattice import Lattice
 
 logger = logging.getLogger(__name__)

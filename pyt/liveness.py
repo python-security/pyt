@@ -1,6 +1,6 @@
 import ast
 
-from cfg import AssignmentNode, EntryExitNode
+from base_cfg import AssignmentNode, EntryExitNode
 from analysis_base import AnalysisBase
 from lattice import Lattice
 from constraint_table import constraint_table, constraint_join

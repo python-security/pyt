@@ -1,6 +1,6 @@
 """Draws CFG."""
 from graphviz import Digraph
-from cfg import AssignmentNode
+from base_cfg import AssignmentNode
 from itertools import permutations
 from subprocess import run
 import argparse
