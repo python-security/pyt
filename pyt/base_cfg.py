@@ -318,3 +318,312 @@ class Visitor(ast.NodeVisitor):
             else_connect_statements = self.stmt_star_handler(orelse)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
+
+    def remove_breaks(self, last_statements):
+        """Remove all break statements in last_statements."""
+        return [n for n in last_statements if type(n) is not BreakNode]
+
+    def visit_If(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.test)
+
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
+        
+        self.add_if_label(test)
+
+        body_connect_stmts = self.stmt_star_handler(node.body)
+        if isinstance(body_connect_stmts, IgnoredNode):
+            body_connect_stmts = ConnectStatements(first_statement=test, last_statements=[], break_statements=[])
+        test.connect(body_connect_stmts.first_statement)
+        
+        if node.orelse:
+            orelse_last_nodes = self.handle_or_else(node.orelse, test)
+            body_connect_stmts.last_statements.extend(orelse_last_nodes)
+        else:
+            body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
+
+        last_statements = self.remove_breaks(body_connect_stmts.last_statements)
+
+        return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
+
+    def visit_NameConstant(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node)
+
+        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number=node.lineno, path=self.filenames[-1]))
+
+    def visit_Raise(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        return self.append_node(RaiseNode(label.result, node, line_number=node.lineno, path=self.filenames[-1]))
+
+    def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
+        try:
+            fallback_cfg_node.connect(body.first_statement)
+        except AttributeError:
+            body = ConnectStatements([fallback_cfg_node], [fallback_cfg_node], list())
+        return body
+        
+    def visit_Try(self, node):
+        try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
+
+        body = self.stmt_star_handler(node.body)
+        body = self.handle_stmt_star_ignore_node(body, try_node)
+
+        last_statements = list()
+        for handler in node.handlers:
+            try:
+                name = handler.type.id
+            except AttributeError:
+                name = ''
+            handler_node = self.append_node(Node('except ' + name + ':', handler, line_number=handler.lineno, path=self.filenames[-1]))
+            for body_node in body.last_statements:
+                body_node.connect(handler_node)
+            handler_body = self.stmt_star_handler(handler.body)
+            handler_body = self.handle_stmt_star_ignore_node(handler_body, handler_node)
+            last_statements.extend(handler_body.last_statements)            
+
+        if node.orelse:
+            orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
+            body.last_statements.extend(orelse_last_nodes)
+
+        if node.finalbody:
+            finalbody = self.stmt_star_handler(node.finalbody)
+            for last in last_statements:
+                last.connect(finalbody.first_statement)
+
+            for last in body.last_statements:
+                last.connect(finalbody.first_statement)
+
+            body.last_statements.extend(finalbody.last_statements)
+
+        last_statements.extend(self.remove_breaks(body.last_statements))
+
+        return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
+
+    def get_names(self, node, result):
+        """Recursively finds all names."""
+        if isinstance(node, ast.Name):
+            return node.id + result
+        elif isinstance(node, ast.Subscript):
+            return result
+        else:
+            return self.get_names(node.value, result + '.' + node.attr)
+
+    def extract_left_hand_side(self, target):
+        """Extract the left hand side varialbe from a target.
+
+        Removes list indexes, stars and other left hand side elements.
+        """
+        left_hand_side = self.get_names(target, '')
+
+        left_hand_side.replace('*', '')
+        if '[' in left_hand_side:
+            index = left_hand_side.index('[')
+            left_hand_side = target[0:index]
+
+        return left_hand_side
+
+    def assign_tuple_target(self, node, right_hand_side_variables):
+        new_assignment_nodes = list()
+        for i, target in enumerate(node.targets[0].elts):
+            value = node.value.elts[i]
+            
+            label = LabelVisitor()
+            label.visit(target)
+            
+            if isinstance(value, ast.Call):
+                new_ast_node = ast.Assign(target, value)
+                new_ast_node.lineno = node.lineno
+                
+                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
+                
+            else:
+                label.result += ' = '
+                label.visit(value)
+                
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number = node.lineno, path=self.filenames[-1])))
+
+
+        self.connect_nodes(new_assignment_nodes)
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+
+    def assign_multi_target(self, node, right_hand_side_variables):
+        new_assignment_nodes = list()
+        
+        for target in node.targets:
+                label = LabelVisitor()
+                label.visit(target)
+                left_hand_side = label.result
+                label.result += ' = '
+                label.visit(node.value)
+                
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number = node.lineno, path=self.filenames[-1])))
+
+        self.connect_nodes(new_assignment_nodes)
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+    
+    def visit_Assign(self, node):
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node.value)
+        if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
+            if isinstance(node.value, ast.Tuple):
+                return self.assign_tuple_target(node, rhs_visitor.result)
+            elif isinstance(node.value, ast.Call):
+                call = None
+                for element in node.targets[0].elts:
+                    label = LabelVisitor()
+                    label.visit(element)
+                    call = self.assignment_call_node(label.result, node)
+                return call
+        elif len(node.targets) > 1:                #  x = y = 3
+            return self.assign_multi_target(node, rhs_visitor.result)
+        else:                                      
+            if isinstance(node.value, ast.Call):   #  x = call()
+                
+                label = LabelVisitor()
+                label.visit(node.targets[0])
+                return self.assignment_call_node(label.result, node)
+            else:                                  #  x = 4
+                label = LabelVisitor()
+                label.visit(node)
+                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
+
+    def assignment_call_node(self, left_hand_label, ast_node):
+        """Handle assignments that contain a function call on its right side."""
+        self.undecided = True # Used for handling functions in assignments
+
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(ast_node.value)
+
+        call = self.visit(ast_node.value)
+        
+        call_label = ''
+        call_assignment = None
+        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
+            call_label = call.left_hand_side
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno, path=self.filenames[-1])
+            call.connect(call_assignment)
+        else: #  assignment to builtin
+            call_label = call.label
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
+
+        self.nodes.append(call_assignment)
+
+        self.undecided = False
+        
+        return call_assignment
+    
+    def visit_AugAssign(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node.value)
+    
+        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
+
+    def loop_node_skeleton(self, test, node):
+        """Common handling of looped structures, while and for."""
+        body_connect_stmts = self.stmt_star_handler(node.body)
+
+        test.connect(body_connect_stmts.first_statement)        
+        test.connect_predecessors(body_connect_stmts.last_statements)
+
+        # last_nodes is used for making connections to the next node in the parent node
+        # this is handled in stmt_star_handler
+        last_nodes = list()
+        last_nodes.extend(body_connect_stmts.break_statements)
+        
+        if node.orelse:
+            orelse_connect_stmts = self.stmt_star_handler(node.orelse)
+
+            test.connect(orelse_connect_stmts.first_statement)
+            last_nodes.extend(orelse_connect_stmts.last_statements)
+        else:
+            last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
+
+        return ControlFlowNode(test, last_nodes, list())
+
+    def add_while_label(self, node):
+        """Prepend 'while' and append ':' to the label of a node."""
+        node.label = 'while ' + node.label + ':' 
+    
+    def visit_While(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.test)
+
+        test = self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
+
+        self.add_while_label(test)
+        
+        return self.loop_node_skeleton(test, node)
+
+    def visit_For(self, node):
+        self.undecided = True  # Used for handling functions in for loops
+
+        #issue23
+        iterator_label = LabelVisitor()
+        iterator = iterator_label.visit(node.iter)
+        self.undecided = False
+
+        target_label = LabelVisitor()
+        target = target_label.visit(node.target)
+
+        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number = node.lineno, path=self.filenames[-1]))
+
+        
+        
+        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func)  in self.function_names:
+            last_node = self.visit(node.iter)
+            last_node.connect(for_node)
+            
+        
+        return self.loop_node_skeleton(for_node, node)
+
+    def visit_Expr(self, node):
+        return self.visit(node.value)
+
+    def add_builtin(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+        builtin_call = Node(label.result, node, line_number = node.lineno, path=self.filenames[-1])
+
+        if not self.undecided:
+            self.nodes.append(builtin_call)
+        self.undecided = False
+        return builtin_call
+
+    def visit_Name(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        return self.append_node(Node(label.result, node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_With(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.items[0])
+
+        with_node = self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        connect_statements = self.stmt_star_handler(node.body)
+        with_node.connect(connect_statements.first_statement)
+        return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
+
+    def visit_Str(self, node):
+        return IgnoredNode()
+
+    def visit_Break(self, node):
+        return self.append_node(BreakNode(node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_Pass(self, node):
+        return self.append_node(Node('pass', node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_Continue(self, node):
+        return self.append_node(Node('continue', node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_Delete(self, node):
+        labelVisitor = LabelVisitor()
+        for expr in node.targets:
+            labelVisitor.visit(expr)
+        return self.append_node(Node('del ' + labelVisitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
