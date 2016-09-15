@@ -27,7 +27,9 @@ class FlaskAdaptor(FrameworkAdaptor):
 
     def get_cfg(self, definition):
         """Build a function cfg and return it."""
-        cfg = build_function_cfg(definition.node, self.project_modules, self.local_modules, definition.path, definition.module_definitions)
+        cfg = interprocedural(definition.node, self.project_modules,
+                              self.local_modules, definition.path,
+                              definition.module_definitions)
 
         args = Arguments(definition.node.args)
 
