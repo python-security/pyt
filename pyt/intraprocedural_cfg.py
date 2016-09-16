@@ -14,9 +14,7 @@ class IntraproceduralVisitor(Visitor):
         self.nodes = list()
         self.undecided = False  # Check if needed in intraprocedural
 
-        self.function_names = list()  # Probably not necessary check https://github.com/SW10IoT/pyt/issues/23
-        self.function_return_stack = list()  # Same as above
-
+        self.function_names = list()
         self.filenames = [filename]
 
         try:
@@ -50,8 +48,6 @@ class IntraproceduralVisitor(Visitor):
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node):
-        self.function_names.append(node.name)
-        self.function_return_stack.append(node.name)
 
         entry_node = self.append_node(EntryExitNode("Entry module"))
 
