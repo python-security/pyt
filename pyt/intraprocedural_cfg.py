@@ -1,7 +1,7 @@
 import ast
 from collections import namedtuple
 
-from base_cfg import Visitor, Node, CFG, EntryExitNode
+from base_cfg import Visitor, Node, CFG, EntryExitNode, IgnoredNode, CALL_IDENTIFIER
 from label_visitor import LabelVisitor
 from right_hand_side_visitor import RHSVisitor
 from ast_helper import generate_ast, get_call_names_as_string, Arguments
@@ -70,21 +70,36 @@ class IntraproceduralVisitor(Visitor):
         exit_node.connect_predecessors(last_nodes)
 
     def visit_ClassDef(self, node):
-        # Something here? y or n ?
-        pass
+        return Node('class ' + node.name, node,
+                    line_number=node.lineno, path=self.filenames[-1])
 
     def visit_FunctionDef(self, node):
-        # Something here? y or n ?
-        pass
+        arguments = Arguments(node.args)
+        return Node('def ' + node.name + '(' + ','.join(arguments) + '):',
+                    node, line_number=node.lineno, path=self.filenames[-1])
 
     def visit_Return(self, node):
-        # Something here? y or n ?
-        pass
+        labelVisitor = LabelVisitor()
+        labelVisitor.visit(node.value)
+        return Node(labelVisitor.result, node,
+                    line_number=node.lineno, path=self.filenames[-1])
 
     def visit_Call(self, node):
         return self.add_builtin(node)
 
-    # Import and ImportFrom?
+    def visit_Import(self, node):
+        names = [n.name for n in node.names]
+        return Node('Import ' + ', '.join(names), node,
+                    line_number=node.lineno, path=self.filenames[-1])
+
+    def visit_ImportFrom(self, node):
+        names = [a.name for a in node.names]
+        try:
+            from_import = 'from ' + node.module + ' '
+        except AttributeError:
+            from_import = ''
+        return Node(from_import + 'import ' + ', '.join(names), node,
+                    line_number=node.lineno, path=self.filenames[-1])
 
 
 class FunctionDefVisitor(ast.NodeVisitor):
