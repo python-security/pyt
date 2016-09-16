@@ -1,10 +1,9 @@
 import ast
-from collections import namedtuple
 
-from base_cfg import Visitor, Node, CFG, EntryExitNode, IgnoredNode, CALL_IDENTIFIER
+from base_cfg import Visitor, Node, CFG, EntryExitNode, IgnoredNode,\
+    CALL_IDENTIFIER
 from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
-from ast_helper import generate_ast, get_call_names_as_string, Arguments
+from ast_helper import generate_ast, Arguments
 
 
 class IntraproceduralVisitor(Visitor):
@@ -32,8 +31,9 @@ class IntraproceduralVisitor(Visitor):
         module_statements = self.visit(node)
 
         if not module_statements:
-            raise Exception('Empty module. It seems that your file is empty, there is nothing to analyse.')
-        
+            raise Exception('Empty module. It seems that your file is empty,' +
+                            ' there is nothing to analyse.')
+
         if not isinstance(module_statements, IgnoredNode):
             first_node = module_statements.first_statement
 
@@ -41,17 +41,17 @@ class IntraproceduralVisitor(Visitor):
                 entry_node.connect(first_node)
 
             exit_node = self.append_node(EntryExitNode("Exit module"))
-        
+
             last_nodes = module_statements.last_statements
             exit_node.connect_predecessors(last_nodes)
         else:
-            exit_node = self.append_node(EntryExitNode("Exit module"))    
+            exit_node = self.append_node(EntryExitNode("Exit module"))
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node):
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
-        
+
         entry_node = self.append_node(EntryExitNode("Entry module"))
 
         module_statements = self.stmt_star_handler(node.body)
@@ -65,32 +65,37 @@ class IntraproceduralVisitor(Visitor):
             entry_node.connect(first_node)
 
         exit_node = self.append_node(EntryExitNode("Exit module"))
-        
+
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
     def visit_ClassDef(self, node):
-        return Node('class ' + node.name, node,
-                    line_number=node.lineno, path=self.filenames[-1])
+        return self.append_node(Node('class ' + node.name, node,
+                                     line_number=node.lineno,
+                                     path=self.filenames[-1]))
 
     def visit_FunctionDef(self, node):
         arguments = Arguments(node.args)
-        return Node('def ' + node.name + '(' + ','.join(arguments) + '):',
-                    node, line_number=node.lineno, path=self.filenames[-1])
+        return self.append_node(Node('def ' + node.name + '(' +
+                                     ','.join(arguments) + '):',
+                                     node, line_number=node.lineno,
+                                     path=self.filenames[-1]))
 
     def visit_Return(self, node):
         labelVisitor = LabelVisitor()
         labelVisitor.visit(node.value)
-        return Node(labelVisitor.result, node,
-                    line_number=node.lineno, path=self.filenames[-1])
+        return self.append_node(Node(labelVisitor.result, node,
+                                     line_number=node.lineno,
+                                     path=self.filenames[-1]))
 
     def visit_Call(self, node):
         return self.add_builtin(node)
 
     def visit_Import(self, node):
         names = [n.name for n in node.names]
-        return Node('Import ' + ', '.join(names), node,
-                    line_number=node.lineno, path=self.filenames[-1])
+        return self.append_node(Node('Import ' + ', '.join(names), node,
+                                     line_number=node.lineno,
+                                     path=self.filenames[-1]))
 
     def visit_ImportFrom(self, node):
         names = [a.name for a in node.names]
@@ -98,8 +103,10 @@ class IntraproceduralVisitor(Visitor):
             from_import = 'from ' + node.module + ' '
         except AttributeError:
             from_import = ''
-        return Node(from_import + 'import ' + ', '.join(names), node,
-                    line_number=node.lineno, path=self.filenames[-1])
+        return self.append_node(Node(from_import + 'import ' +
+                                     ', '.join(names),
+                                     node, line_number=node.lineno,
+                                     path=self.filenames[-1]))
 
 
 class FunctionDefVisitor(ast.NodeVisitor):
