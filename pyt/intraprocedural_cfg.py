@@ -92,7 +92,7 @@ class IntraproceduralVisitor(Visitor):
         except AttributeError:
             rhs_visitor.result = 'EmptyReturn'
 
-        LHS = 'ret_' + node.name
+        LHS = 'ret_' + 'MAYBE_FUNCTION_NAME'
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
                                            node, line_number=node.lineno,
