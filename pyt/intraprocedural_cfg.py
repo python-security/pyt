@@ -1,7 +1,8 @@
 import ast
 
 from base_cfg import Visitor, Node, CFG, EntryExitNode, IgnoredNode,\
-    CALL_IDENTIFIER
+    CALL_IDENTIFIER, ReturnNode
+from right_hand_side_visitor import RHSVisitor
 from label_visitor import LabelVisitor
 from ast_helper import generate_ast, Arguments
 
@@ -82,11 +83,20 @@ class IntraproceduralVisitor(Visitor):
                                      path=self.filenames[-1]))
 
     def visit_Return(self, node):
-        labelVisitor = LabelVisitor()
-        labelVisitor.visit(node.value)
-        return self.append_node(Node(labelVisitor.result, node,
-                                     line_number=node.lineno,
-                                     path=self.filenames[-1]))
+        label = LabelVisitor()
+        label.visit(node)
+
+        try:
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(node.value)
+        except AttributeError:
+            rhs_visitor.result = 'EmptyReturn'
+
+        LHS = 'ret_' + node.name
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result,
+                                           LHS, rhs_visitor.result,
+                                           node, line_number=node.lineno,
+                                           path=self.filenames[-1]))
 
     def visit_Call(self, node):
         return self.add_builtin(node)
