@@ -16,7 +16,7 @@ from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
 from save import create_database
 from constraint_table import initialize_constraint_table
-import log
+
 
 parser = argparse.ArgumentParser()
 
@@ -42,7 +42,6 @@ parser.add_argument('-ppm', '--print-project-modules', help='Print project modul
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    log.set_logger(args.log_level, show_path=False)
 
     analysis = None
     if args.liveness:
