@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>Testing</title>
+    <style>
+      body {
+        background: white;
+        max-width: 768px;
+        margin: 24px auto 0;
+      }
+      .some-container-with-data {
+        background: #fafafa;
+        border: 1px solid #ccc;
+        padding: 8px 32px;
+        margin: 32px 0;
+      }
+      .some-other-container {
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Testing</h1>
+
+    <div class="some-container-with-data" data-ids="{{ ids|tojson }}">
+      <p>
+        <strong>Hover over this box</strong> to see the unintended consequence of
+        using a seemingly safe mix of "|tojson" + standard double-quoted HTML attributes.
+      </p>
+    </div>
+
+    <div class="some-other-container">
+      <p>
+        Note that in a real application, "data-ids" is a clean and
+        unobtrusive way to pass data to an external script, all
+        without having any "wire-up" code in your HTML.
+      </p>
+    </div>
+  </body>
+</html>
