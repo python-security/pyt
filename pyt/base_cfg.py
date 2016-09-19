@@ -487,10 +487,11 @@ class Visitor(ast.NodeVisitor):
                     call = self.assignment_call_node(label.result, node)
                 return call
             else:
-                print('Assignment not properly handled.',
-                      'Could result in not finding a vulnerability.')
                 label = LabelVisitor()
                 label.visit(node)
+                print('Assignment not properly handled.',
+                      'Could result in not finding a vulnerability.',
+                      'Assignment:', label.result)
                 return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, line_number = node.lineno, path=self.filenames[-1]))
                 
         elif len(node.targets) > 1:                #  x = y = 3
