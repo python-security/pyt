@@ -33,11 +33,11 @@ class VarsVisitorTest(VarsVisitorTestCase):
 
     def test_call2(self):
         vars = self.perform_vars_on_expression('print.print(x)')
-        self.assertEqual(vars.result, ['x'])
+        self.assertEqual(vars.result, ['print', 'x'])
 
     def test_call3(self):
         vars = self.perform_vars_on_expression('print.print.x(y).s(x)')
-        self.assertEqual(vars.result, ['y', 'x'])
+        self.assertEqual(vars.result, ['s', 'x', 'y', 'x'])
 
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print(arg = x)')
