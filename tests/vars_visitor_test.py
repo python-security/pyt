@@ -17,36 +17,36 @@ class VarsVisitorTestCase(unittest.TestCase):
 
         return vars
 
+
 class VarsVisitorTest(VarsVisitorTestCase):
     def test_assign_var_and_num(self):
         vars = self.perform_vars_on_expression('a = 1')
-        self.assertEqual(vars.result,['a'])
+        self.assertEqual(vars.result, ['a'])
 
     def test_assign_var_and_var(self):
         vars = self.perform_vars_on_expression('a = x')
-        self.assertEqual(vars.result,['a', 'x'])
+        self.assertEqual(vars.result, ['a', 'x'])
 
     def test_call1(self):
         vars = self.perform_vars_on_expression('print(x)')
-        self.assertEqual(vars.result,['x'])
+        self.assertEqual(vars.result, ['x'])
 
     def test_call2(self):
         vars = self.perform_vars_on_expression('print.print(x)')
-        self.assertEqual(vars.result,['x'])
+        self.assertEqual(vars.result, ['x'])
 
     def test_call3(self):
         vars = self.perform_vars_on_expression('print.print.x(y).s(x)')
-        self.assertEqual(vars.result,['y','x'])
-
+        self.assertEqual(vars.result, ['y', 'x'])
 
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print(arg = x)')
-        self.assertEqual(vars.result,['x'])
+        self.assertEqual(vars.result, ['x'])
 
     def test_keyword_numarg(self):
         vars = self.perform_vars_on_expression('print(arg = 1)')
-        self.assertEqual(vars.result,[])
+        self.assertEqual(vars.result, [])
 
     def test_subscript(self):
         vars = self.perform_vars_on_expression('l[a] = x + y')
-        self.assertEqual(vars.result,['l', 'a', 'x', 'y'])
+        self.assertEqual(vars.result, ['l', 'a', 'x', 'y'])
