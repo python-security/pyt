@@ -256,7 +256,7 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
-            if isinstance(n, ControlFlowNode):             # case for if
+            if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
