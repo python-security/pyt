@@ -636,3 +636,9 @@ class Visitor(ast.NodeVisitor):
         for expr in node.targets:
             labelVisitor.visit(expr)
         return self.append_node(Node('del ' + labelVisitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_Assert(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.test)
+
+        return self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
