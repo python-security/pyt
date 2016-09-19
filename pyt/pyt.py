@@ -16,33 +16,64 @@ from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
 from save import create_database
 from constraint_table import initialize_constraint_table
-import log
+
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('filepath', help='Path to the file that should be analysed.', type=str)
-parser.add_argument('-pr', '--project-root', help='Add project root, this is important when the entry file is not at the root of the project.', type=str)
-parser.add_argument('-d', '--draw-cfg', help='Draw CFG and output as .pdf file.', action='store_true')
-parser.add_argument('-o', '--output-filename', help='Output filename.', type=str)
-print_group = parser.add_mutually_exclusive_group()
-print_group.add_argument('-p', '--print', help='Prints the nodes of the CFG.', action='store_true')
-print_group.add_argument('-vp', '--verbose-print', help='Verbose printing of -p.', action='store_true')
-parser.add_argument('-t', '--trigger-word-file', help='Input trigger word file.', type=str)
-parser.add_argument('-l', '--log-level', help='Choose logging level: CRITICAL, ERROR, WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
-parser.add_argument('-a', '--adaptor', help='Choose an adaptor: FLASK(Default) or DJANGO.', type=str)
-parser.add_argument('-db', '--create-database', help='Creates a sql file that can be used to create a database.', action='store_true')
-parser.add_argument('-dl', '--draw-lattice',  nargs='+', help='Draws a lattice.')
-analysis_group = parser.add_mutually_exclusive_group()
-analysis_group.add_argument('-li', '--liveness', help='Run liveness analysis. Default is reaching definitions tainted version.', action='store_true')
-analysis_group.add_argument('-re', '--reaching', help='Run reaching definitions analysis. Default is reaching definitions tainted version.', action='store_true')
-analysis_group.add_argument('-rt', '--reaching-taint', help='This is the default analysis: reaching definitions tainted version.', action='store_true')
-parser.add_argument('-intra', '--intraprocedural-analysis', help='Run intraprocedural analysis.', action='store_true')
-parser.add_argument('-ppm', '--print-project-modules', help='Print project modules.', action='store_true')
+parser.add_argument('filepath',
+                    help='Path to the file that should be analysed.', type=str)
+parser.add_argument('-pr', '--project-root',
+                    help='Add project root, this is important when the entry' +
+                    ' file is not at the root of the project.', type=str)
+parser.add_argument('-d', '--draw-cfg',
+                    help='Draw CFG and output as .pdf file.',
+                    action='store_true')
+parser.add_argument('-o', '--output-filename',
+                    help='Output filename.', type=str)
 
-args = parser.parse_args()
+print_group = parser.add_mutually_exclusive_group()
+print_group.add_argument('-p', '--print',
+                         help='Prints the nodes of the CFG.',
+                         action='store_true')
+print_group.add_argument('-vp', '--verbose-print',
+                         help='Verbose printing of -p.', action='store_true')
+
+parser.add_argument('-t', '--trigger-word-file',
+                    help='Input trigger word file.', type=str)
+parser.add_argument('-l', '--log-level',
+                    help='Choose logging level: CRITICAL, ERROR,' +
+                    ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
+parser.add_argument('-a', '--adaptor',
+                    help='Choose an adaptor: FLASK(Default) or DJANGO.',
+                    type=str)
+parser.add_argument('-db', '--create-database',
+                    help='Creates a sql file that can be used to' +
+                    ' create a database.', action='store_true')
+parser.add_argument('-dl', '--draw-lattice',
+                    nargs='+', help='Draws a lattice.')
+
+analysis_group = parser.add_mutually_exclusive_group()
+analysis_group.add_argument('-li', '--liveness',
+                            help='Run liveness analysis. Default is' +
+                            ' reaching definitions tainted version.',
+                            action='store_true')
+analysis_group.add_argument('-re', '--reaching',
+                            help='Run reaching definitions analysis.' +
+                            ' Default is reaching definitions' +
+                            ' tainted version.', action='store_true')
+analysis_group.add_argument('-rt', '--reaching-taint',
+                            help='This is the default analysis:' +
+                            ' reaching definitions tainted version.',
+                            action='store_true')
+
+parser.add_argument('-intra', '--intraprocedural-analysis',
+                    help='Run intraprocedural analysis.', action='store_true')
+parser.add_argument('-ppm', '--print-project-modules',
+                    help='Print project modules.', action='store_true')
+
 
 if __name__ == '__main__':
-    log.set_logger(args.log_level, show_path=False)
+    args = parser.parse_args()
 
     analysis = None
     if args.liveness:
