@@ -65,7 +65,7 @@ class VarsVisitor(ast.NodeVisitor):
             self.comprehension(gen)
 
     def visit_Await(self, node):
-        self.visit(value)
+        self.visit(node.value)
 
     def visit_Yield(self, node):
         if node.value:
