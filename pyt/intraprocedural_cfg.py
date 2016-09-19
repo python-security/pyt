@@ -107,7 +107,7 @@ class IntraproceduralVisitor(Visitor):
         names = [a.name for a in node.names]
         try:
             from_import = 'from ' + node.module + ' '
-        except AttributeError:
+        except TypeError:
             from_import = ''
         return self.append_node(Node(from_import + 'import ' +
                                      ', '.join(names),
