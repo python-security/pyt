@@ -53,4 +53,18 @@ def build_use_def_chain(cfg_nodes):
 
 
 def build_def_use_chain(cfg_nodes):
-    pass
+    def_use = dict()
+    for node in cfg_nodes:
+        from base_cfg import AssignmentNode
+
+    lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
+
+    for node in cfg_nodes:
+        if isinstance(node, AssignmentNode):
+            def_use[node] = list()
+
+        for var in get_vars(node):
+            for cnode in get_constraint_nodes(node, lattice):
+                if var in cnode.left_hand_side:
+                    def_use[cnode].append(node)
+    return def_use
