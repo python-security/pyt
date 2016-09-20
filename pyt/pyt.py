@@ -14,7 +14,7 @@ from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
-from save import create_database
+from save import create_database, def_use_chain_to_file
 from constraint_table import initialize_constraint_table
 
 
@@ -71,6 +71,11 @@ parser.add_argument('-intra', '--intraprocedural-analysis',
 parser.add_argument('-ppm', '--print-project-modules',
                     help='Print project modules.', action='store_true')
 
+chains_group = parser.add_mutually_exclusive_group()
+chains_group.add_argument('-du', '--def-use-chain',
+                          help='Output a def-use chain.', action='store_true')
+chains_group.add_argument('-ud', '--use-def-chain',
+                          help='Output a use-def chain', action='store_true')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -147,3 +152,6 @@ if __name__ == '__main__':
         create_database(cfg_list, vulnerability_log)
     if args.draw_lattice:
         draw_lattices(cfg_list)
+
+    if args.def_use_chain:
+        def_use_chain_to_file(cfg_list)
