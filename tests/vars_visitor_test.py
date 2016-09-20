@@ -32,12 +32,20 @@ class VarsVisitorTest(VarsVisitorTestCase):
         self.assertEqual(vars.result, ['x'])
 
     def test_call2(self):
-        vars = self.perform_vars_on_expression('print.print(x)')
-        self.assertEqual(vars.result, ['print', 'x'])
+        vars = self.perform_vars_on_expression('s.print(x)')
+        self.assertEqual(vars.result, ['s', 'x'])
 
     def test_call3(self):
-        vars = self.perform_vars_on_expression('print.print.x(y).s(x)')
-        self.assertEqual(vars.result, ['s', 'x', 'y', 'x'])
+        vars = self.perform_vars_on_expression('obj.print.attr(y).s(x)')
+        self.assertEqual(vars.result, ['obj', 'y', 'x'])
+
+    def test_call4(self):
+        vars = self.perform_vars_on_expression('obj.print.attr(y.f).s(x)')
+        self.assertEqual(vars.result, ['obj', 'y', 'x'])
+
+    def test_call5(self):
+        vars = self.perform_vars_on_expression("resp = make_response(html.replace('{{ param }}', param))")
+        self.assertEqual(vars.result, ['resp', 'html', 'param'])
 
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print(arg = x)')

@@ -81,8 +81,6 @@ class VarsVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node):
         if not isinstance(node.func, ast.Name):
-            calls = list(get_call_names(node.func))
-            self.result.append(calls[-1])
             self.visit(node.func)
         if node.args:
             for arg in node.args:
@@ -94,6 +92,8 @@ class VarsVisitor(ast.NodeVisitor):
     def visit_Attribute(self, node):
         if not isinstance(node.value, ast.Name):
             self.visit(node.value)
+        else:
+            self.result.append(node.value.id)
 
     def slicev(self, node):
         if isinstance(node, ast.Slice):
