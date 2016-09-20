@@ -54,3 +54,18 @@ def create_database(cfg_list, vulnerability_log):
     create_vulnerabilities_table()
     for vulnerability in vulnerability_log.vulnerabilities:
         insert_vulnerability(vulnerability)
+
+
+def def_use_chain_to_file(cfg_list):
+    from definition_chains import build_def_use_chain
+    import os
+    with open('def-use_chain.pyt', 'w') as fd:
+            for i, cfg in enumerate(cfg_list):
+                fd.write('##### Def-use chain for CFG {} #####{}'
+                         .format(i, os.linesep))
+                def_use = build_def_use_chain(cfg.nodes)
+                for k, v in def_use.items():
+                    fd.write('Def: {} -> Use: [{}]{}'
+                             .format(k.label,
+                                     ', '.join([n.label for n in v]),
+                                     os.linesep))
