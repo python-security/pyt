@@ -10,6 +10,7 @@ from framework_adaptor import TaintedNode
 from vulnerability_log import Vulnerability, VulnerabilityLog,\
     SanitisedVulnerability
 from lattice import Lattice
+from vars_visitor import VarsVisitor
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +264,6 @@ def get_sink_args(cfg_node):
             return cfg_node.label
         return get_sink_args(cfg_node.ast_node)
     elif isinstance(cfg_node, ast.ListComp):
-        from vars_visitor import VarsVisitor
         vv = VarsVisitor()
         vv.visit(cfg_node)
         return vv.result
@@ -288,7 +288,11 @@ def get_sink_args(cfg_node):
                 import ast_helper
                 args.append(ast_helper.get_call_names_as_string(arg))
             else:
-                raise Exception('Unexpected argument type:', type(arg))
+                vv = VarsVisitor()
+                vv.visit(arg)
+                args.extend(vv.result)
+                print('Double check if this did catch the sink' +
+                      ' as it is not tested')
         return args
     elif isinstance(cfg_node, ast.Str):
         return None
