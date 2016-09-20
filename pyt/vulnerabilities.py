@@ -283,8 +283,8 @@ def get_sink_args(cfg_node):
                 args.append(arg.value)
             elif isinstance(arg, ast.NameConstant):
                 args.append(arg.value)
-            elif isinstance(arg, ast.Attribute) or isinstance(arg,
-                                                              ast.Subscript):
+            elif isinstance(arg, ast.Attribute) or\
+                    isinstance(arg, ast.Subscript):
                 import ast_helper
                 args.append(ast_helper.get_call_names_as_string(arg))
             else:
