@@ -157,6 +157,24 @@ class InterproceduralVisitor(Visitor):
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
+    def visit_Yield(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        this_function_name = self.function_return_stack[-1]
+
+        try:
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(node.value)
+        except AttributeError:
+            rhs_visitor.result = 'EmptyYield'
+
+        LHS = 'yield_' + this_function_name
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result,
+                                           LHS, rhs_visitor.result,
+                                           node, line_number=node.lineno,
+                                           path=self.filenames[-1]))
+
     def save_local_scope(self, line_number):
         """Save the local scope before entering a function call."""
         saved_variables = list()
