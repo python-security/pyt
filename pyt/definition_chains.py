@@ -4,6 +4,7 @@ from constraint_table import constraint_table
 from lattice import Lattice
 from reaching_definitions import ReachingDefinitionsAnalysis
 from vars_visitor import VarsVisitor
+from base_cfg import AssignmentNode
 
 
 def get_vars(node):
@@ -77,16 +78,14 @@ def varse(node):
 
 def build_def_use_chain(cfg_nodes):
     def_use = dict()
-    for node in cfg_nodes:
-        from base_cfg import AssignmentNode
-
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
 
     for node in cfg_nodes:
         if isinstance(node, AssignmentNode):
             def_use[node] = list()
 
-        for var in get_vars(node):
+    for node in cfg_nodes:
+        for var in varse(node):
             for cnode in get_constraint_nodes(node, lattice):
                 if var in cnode.left_hand_side:
                     def_use[cnode].append(node)
