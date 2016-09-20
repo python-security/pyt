@@ -12,6 +12,9 @@ def get_vars(node):
     if isinstance(node.ast_node, ast.While)\
        or isinstance(node.ast_node, ast.If):
         vv.visit(node.ast_node.test)
+    elif isinstance(node.ast_node, ast.FunctionDef) or\
+         isinstance(node.ast_node, ast.ClassDef):
+        return list()
     else:
         try:
             vv.visit(node.ast_node)
@@ -55,7 +58,8 @@ def build_use_def_chain(cfg_nodes):
 
 def varse(node):
     vv = VarsVisitor()
-    if isinstance(node.ast_node, ast.FunctionDef):
+    if isinstance(node.ast_node, ast.FunctionDef) or\
+       isinstance(node.ast_node, ast.ClassDef):
         return list()
     elif isinstance(node.ast_node, ast.While)\
             or isinstance(node.ast_node, ast.If):
