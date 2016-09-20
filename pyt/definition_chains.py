@@ -52,6 +52,29 @@ def build_use_def_chain(cfg_nodes):
     return use_def
 
 
+def varse(node):
+    vv = VarsVisitor()
+    if isinstance(node.ast_node, ast.FunctionDef):
+        return list()
+    elif isinstance(node.ast_node, ast.While)\
+            or isinstance(node.ast_node, ast.If):
+        vv.visit(node.ast_node.test)
+    else:
+        try:
+            vv.visit(node.ast_node)
+        except AttributeError:
+            return list()
+
+    if isinstance(node, AssignmentNode):
+        result = list()
+        for var in vv.result:
+            if var not in node.left_hand_side:
+                result.append(var)
+        return result
+    else:
+        return vv.result
+
+
 def build_def_use_chain(cfg_nodes):
     def_use = dict()
     for node in cfg_nodes:
