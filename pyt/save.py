@@ -69,3 +69,19 @@ def def_use_chain_to_file(cfg_list):
                              .format(k.label,
                                      ', '.join([n.label for n in v]),
                                      os.linesep))
+
+
+def use_def_chain_to_file(cfg_list):
+    from definition_chains import build_use_def_chain
+    import os
+    with open('use-def_chain.pyt', 'w') as fd:
+            for i, cfg in enumerate(cfg_list):
+                fd.write('##### Use-def chain for CFG {} #####{}'
+                         .format(i, os.linesep))
+                def_use = build_use_def_chain(cfg.nodes)
+                for k, v in def_use.items():
+                    print(type(v))
+                    fd.write('Use: {} -> Def: [{}]{}'
+                             .format(k.label,
+                                     ', '.join([n[1].label for n in v]),
+                                     os.linesep))

@@ -14,7 +14,7 @@ from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
-from save import create_database, def_use_chain_to_file
+from save import create_database, def_use_chain_to_file, use_def_chain_to_file
 from constraint_table import initialize_constraint_table
 
 
@@ -155,3 +155,5 @@ if __name__ == '__main__':
 
     if args.def_use_chain:
         def_use_chain_to_file(cfg_list)
+    if args.use_def_chain:
+        use_def_chain_to_file(cfg_list)
