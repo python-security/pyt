@@ -94,6 +94,22 @@ class IntraproceduralVisitor(Visitor):
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
+    def visit_Yield(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        try:
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(node.value)
+        except AttributeError:
+            rhs_visitor.result = 'EmptyYield'
+
+        LHS = 'yield_' + 'MAYBE_FUNCTION_NAME'
+        return self.append_node(ReturnNode(LHS + ' = ' + label.result,
+                                           LHS, rhs_visitor.result,
+                                           node, line_number=node.lineno,
+                                           path=self.filenames[-1]))
+
     def visit_Call(self, node):
         return self.add_builtin(node)
 
