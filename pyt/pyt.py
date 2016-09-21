@@ -85,6 +85,9 @@ save_parser.add_argument('-ud', '--use-def-chain',
 save_parser.add_argument('-cfg', '--control-flow-graph',
                          help='Output the CFGs to file.',
                          action='store_true')
+save_parser.add_argument('-vcfg', '--verbose-control-flow-graph',
+                         help='Output the verbose CFGs to file.',
+                         action='store_true')
 save_parser.add_argument('-an', '--analysis',
                          help='Output analysis results to file'
                          + ' in form of a constraint table.',
