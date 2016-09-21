@@ -119,3 +119,19 @@ def verbose_cfg_to_file(cfg_list):
             fd.write('##### CFG {} #####{}'.format(i, os.linesep))
             for i, node in enumerate(cfg.nodes):
                 fd.write('Node {}: {}{}'.format(i, repr(node), os.linesep))
+
+
+def lattice_to_file(cfg_list, analysis_type):
+    with Output('lattice.pyt') as fd:
+        for i, cfg in enumerate(cfg_list):
+            fd.write('##### Lattice for CFG {} #####{}'.format(i, os.linesep))
+            from lattice import Lattice
+            l = Lattice(cfg.nodes, analysis_type)
+
+            fd.write('# Elements to bitvector #{}'.format(os.linesep))
+            for k, v in l.el2bv.items():
+                fd.write('{} -> {}{}'.format(str(k), bin(v), os.linesep))
+
+            fd.write('# Bitvector to elements #{}'.format(os.linesep))
+            for k, v in l.el2bv.items():
+                fd.write('{} -> {}{}'.format(bin(v), str(k), os.linesep))
