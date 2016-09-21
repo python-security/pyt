@@ -74,7 +74,7 @@ parser.add_argument('-ppm', '--print-project-modules',
                     help='Print project modules.', action='store_true')
 
 
-subparsers = parser.add_subparsers()
+subparsers = parser.add_subparsers(dest='save')
 save_parser = subparsers.add_parser('save', help='Save menu.')
 save_parser.add_argument('-fp', '--filename-prefix',
                          help='Filename prefix fx file_lattice.pyt',
@@ -183,26 +183,27 @@ if __name__ == '__main__':
         draw_lattices(cfg_list)
 
     # Output to file
-    if args.filename_prefix:
-        from save import Output
-        Output.filename_prefix = args.filename_prefix
-    if args.save_all:
-        def_use_chain_to_file(cfg_list)
-        use_def_chain_to_file(cfg_list)
-        cfg_to_file(cfg_list)
-        verbose_cfg_to_file(cfg_list)
-        lattice_to_file(cfg_list, analysis)
-        vulnerabilities_to_file(vulnerability_log)
-    else:
-        if args.def_use_chain:
+    if args.save:
+        if args.filename_prefix:
+            from save import Output
+            Output.filename_prefix = args.filename_prefix
+        if args.save_all:
             def_use_chain_to_file(cfg_list)
-        if args.use_def_chain:
             use_def_chain_to_file(cfg_list)
-        if args.control_flow_graph:
             cfg_to_file(cfg_list)
-        if args.verbose_control_flow_graph:
             verbose_cfg_to_file(cfg_list)
-        if args.lattice:
             lattice_to_file(cfg_list, analysis)
-        if args.vulnerabilities:
             vulnerabilities_to_file(vulnerability_log)
+        else:
+            if args.def_use_chain:
+                def_use_chain_to_file(cfg_list)
+            if args.use_def_chain:
+                use_def_chain_to_file(cfg_list)
+            if args.control_flow_graph:
+                cfg_to_file(cfg_list)
+            if args.verbose_control_flow_graph:
+                verbose_cfg_to_file(cfg_list)
+            if args.lattice:
+                lattice_to_file(cfg_list, analysis)
+            if args.vulnerabilities:
+                vulnerabilities_to_file(vulnerability_log)
