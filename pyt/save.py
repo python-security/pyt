@@ -103,3 +103,11 @@ def use_def_chain_to_file(cfg_list):
                              .format(k.label,
                                      ', '.join([n[1].label for n in v]),
                                      os.linesep))
+
+
+def cfg_to_file(cfg_list):
+    with Output('control_flow_graph.pyt') as fd:
+        for i, cfg in enumerate(cfg_list):
+            fd.write('##### CFG {} #####{}'.format(i, os.linesep))
+            for i, node in enumerate(cfg.nodes):
+                fd.write('Node {}: {}{}'.format(i, node.label, os.linesep))
