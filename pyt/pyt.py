@@ -74,7 +74,7 @@ parser.add_argument('-ppm', '--print-project-modules',
 
 subparsers = parser.add_subparsers()
 save_parser = subparsers.add_parser('save', help='Save menu.')
-save_parser.add_argument('-f', '--filename',
+save_parser.add_argument('-fp', '--filename-prefix',
                          help='Filename prefix fx file_lattice.pyt',
                          type=str)
 save_parser.add_argument('-du', '--def-use-chain',
