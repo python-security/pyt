@@ -78,8 +78,7 @@ class Output():
 
 def def_use_chain_to_file(cfg_list):
     from definition_chains import build_def_use_chain
-    import os
-    with open('def-use_chain.pyt', 'w') as fd:
+    with Output('def-use_chain.pyt') as fd:
             for i, cfg in enumerate(cfg_list):
                 fd.write('##### Def-use chain for CFG {} #####{}'
                          .format(i, os.linesep))
@@ -93,8 +92,7 @@ def def_use_chain_to_file(cfg_list):
 
 def use_def_chain_to_file(cfg_list):
     from definition_chains import build_use_def_chain
-    import os
-    with open('use-def_chain.pyt', 'w') as fd:
+    with Output('use-def_chain.pyt') as fd:
             for i, cfg in enumerate(cfg_list):
                 fd.write('##### Use-def chain for CFG {} #####{}'
                          .format(i, os.linesep))
