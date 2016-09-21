@@ -14,7 +14,9 @@ from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
 from vulnerabilities import find_vulnerabilities
 from project_handler import get_python_modules, get_directory_modules
-from save import create_database, def_use_chain_to_file, use_def_chain_to_file
+from save import create_database, def_use_chain_to_file,\
+    use_def_chain_to_file, cfg_to_file, verbose_cfg_to_file,\
+    lattice_to_file, vulnerabilities_to_file
 from constraint_table import initialize_constraint_table
 
 
@@ -177,7 +179,19 @@ if __name__ == '__main__':
     if args.draw_lattice:
         draw_lattices(cfg_list)
 
+    # Output to file
+    if args.filename_prefix:
+        from save import Output
+        Output.filename_prefix = args.filename_prefix
     if args.def_use_chain:
         def_use_chain_to_file(cfg_list)
     if args.use_def_chain:
         use_def_chain_to_file(cfg_list)
+    if args.control_flow_graph:
+        cfg_to_file(cfg_list)
+    if args.verbose_control_flow_graph:
+        verbose_cfg_to_file(cfg_list)
+    if args.lattice:
+        lattice_to_file(cfg_list, analysis)
+    if args.vulnerabilities:
+        vulnerabilities_to_file(vulnerability_log)
