@@ -1,4 +1,7 @@
+import os
+
 from base_cfg import Node
+
 
 database_file_name = 'db.sql'
 nodes_table_name = 'nodes'
