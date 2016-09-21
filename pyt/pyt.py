@@ -74,14 +74,15 @@ parser.add_argument('-ppm', '--print-project-modules',
 
 subparsers = parser.add_subparsers()
 save_parser = subparsers.add_parser('save', help='Save menu.')
-
+save_parser.add_argument('-f', '--filename',
+                         help='Filename prefix fx file_lattice.pyt',
+                         type=str)
 save_parser.add_argument('-du', '--def-use-chain',
                          help='Output the def-use chain(s) to file.',
                          action='store_true')
 save_parser.add_argument('-ud', '--use-def-chain',
                          help='Output the use-def chain(s) to file',
                          action='store_true')
-
 save_parser.add_argument('-cfg', '--control-flow-graph',
                          help='Output the CFGs to file.',
                          action='store_true')
