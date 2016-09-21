@@ -135,3 +135,19 @@ def lattice_to_file(cfg_list, analysis_type):
             fd.write('# Bitvector to elements #{}'.format(os.linesep))
             for k, v in l.el2bv.items():
                 fd.write('{} -> {}{}'.format(bin(v), str(k), os.linesep))
+
+
+def vulnerabilities_to_file(vulnerability_log):
+    with Output('vulnerabilities.pyt') as fd:
+        number_of_vulnerabilities = len(vulnerability_log.vulnerabilities)
+        if number_of_vulnerabilities == 1:
+            fd.write('{} vulnerability found:{}'
+                     .format(number_of_vulnerabilities, os.linesep))
+        else:
+            fd.write('{} vulnerabilities found:{}'
+                     .format(number_of_vulnerabilities, os.linesep))
+
+        for i, vulnerability in enumerate(vulnerability_log.vulnerabilities,
+                                          start=1):
+            fd.write('Vulnerability {}:\n{}{}{}'
+                     .format(i, vulnerability, os.linesep, os.linesep))
