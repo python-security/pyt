@@ -100,6 +100,9 @@ save_parser.add_argument('-la', '--lattice', help='Output lattice(s) to file.',
 save_parser.add_argument('-vu', '--vulnerabilities',
                          help='Output vulnerabilities to file.',
                          action='store_true')
+save_parser.add_argument('-all', '--save-all',
+                         help='Output everything to file.',
+                         action='store_true')
 
 
 if __name__ == '__main__':
@@ -183,15 +186,23 @@ if __name__ == '__main__':
     if args.filename_prefix:
         from save import Output
         Output.filename_prefix = args.filename_prefix
-    if args.def_use_chain:
+    if args.save_all:
         def_use_chain_to_file(cfg_list)
-    if args.use_def_chain:
         use_def_chain_to_file(cfg_list)
-    if args.control_flow_graph:
         cfg_to_file(cfg_list)
-    if args.verbose_control_flow_graph:
         verbose_cfg_to_file(cfg_list)
-    if args.lattice:
         lattice_to_file(cfg_list, analysis)
-    if args.vulnerabilities:
         vulnerabilities_to_file(vulnerability_log)
+    else:
+        if args.def_use_chain:
+            def_use_chain_to_file(cfg_list)
+        if args.use_def_chain:
+            use_def_chain_to_file(cfg_list)
+        if args.control_flow_graph:
+            cfg_to_file(cfg_list)
+        if args.verbose_control_flow_graph:
+            verbose_cfg_to_file(cfg_list)
+        if args.lattice:
+            lattice_to_file(cfg_list, analysis)
+        if args.vulnerabilities:
+            vulnerabilities_to_file(vulnerability_log)
