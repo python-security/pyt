@@ -71,11 +71,30 @@ parser.add_argument('-intra', '--intraprocedural-analysis',
 parser.add_argument('-ppm', '--print-project-modules',
                     help='Print project modules.', action='store_true')
 
-chains_group = parser.add_mutually_exclusive_group()
-chains_group.add_argument('-du', '--def-use-chain',
-                          help='Output a def-use chain.', action='store_true')
-chains_group.add_argument('-ud', '--use-def-chain',
-                          help='Output a use-def chain', action='store_true')
+
+subparsers = parser.add_subparsers()
+save_parser = subparsers.add_parser('save', help='Save menu.')
+
+save_parser.add_argument('-du', '--def-use-chain',
+                         help='Output the def-use chain(s) to file.',
+                         action='store_true')
+save_parser.add_argument('-ud', '--use-def-chain',
+                         help='Output the use-def chain(s) to file',
+                         action='store_true')
+
+save_parser.add_argument('-cfg', '--control-flow-graph',
+                         help='Output the CFGs to file.',
+                         action='store_true')
+save_parser.add_argument('-an', '--analysis',
+                         help='Output analysis results to file'
+                         + ' in form of a constraint table.',
+                         action='store_true')
+save_parser.add_argument('-la', '--lattice', help='Output lattice(s) to file.',
+                         action='store_true')
+save_parser.add_argument('-vu', '--vulnerabilities',
+                         help='Output vulnerabilities to file.',
+                         action='store_true')
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -104,6 +123,7 @@ if __name__ == '__main__':
 
     cfg_list = list()
 
+    # project_modules = [p for p in project_modules if 'sqli.py' in p[1]]
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
