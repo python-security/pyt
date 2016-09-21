@@ -111,3 +111,11 @@ def cfg_to_file(cfg_list):
             fd.write('##### CFG {} #####{}'.format(i, os.linesep))
             for i, node in enumerate(cfg.nodes):
                 fd.write('Node {}: {}{}'.format(i, node.label, os.linesep))
+
+
+def verbose_cfg_to_file(cfg_list):
+    with Output('verbose_control_flow_graph.pyt') as fd:
+        for i, cfg in enumerate(cfg_list):
+            fd.write('##### CFG {} #####{}'.format(i, os.linesep))
+            for i, node in enumerate(cfg.nodes):
+                fd.write('Node {}: {}{}'.format(i, repr(node), os.linesep))
