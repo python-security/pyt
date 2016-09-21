@@ -56,6 +56,23 @@ def create_database(cfg_list, vulnerability_log):
         insert_vulnerability(vulnerability)
 
 
+class Output():
+    filename_prefix = None
+
+    def __init__(self, title):
+        if Output.filename_prefix:
+            self.title = Output.filename_prefix + '_' + title
+        else:
+            self.title = title
+
+    def __enter__(self):
+        self.fd = open(self.title, 'w')
+        return self.fd
+
+    def __exit__(self, type, value, traceback):
+        self.fd.close()
+
+
 def def_use_chain_to_file(cfg_list):
     from definition_chains import build_def_use_chain
     import os
