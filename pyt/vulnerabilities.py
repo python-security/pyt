@@ -257,6 +257,9 @@ def is_sanitized(sink, sanitiser_dict, lattice):
 def get_sink_args(cfg_node):
     if type(cfg_node) == AssignmentNode:
         return get_sink_args(cfg_node.ast_node.value)
+    elif isinstance(cfg_node, ast.Tuple):
+        for e in cfg_node.elts:
+            return get_sink_args(e)
     elif type(cfg_node) == ReturnNode:
         return get_sink_args(cfg_node.ast_node.value)
     elif isinstance(cfg_node, Node):

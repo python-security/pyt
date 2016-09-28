@@ -542,6 +542,19 @@ class CFGAssignmentMultiTest(BaseTestCase):
 
         self.assertInCfg(list(l))
 
+    def test_assignment_tuple_value(self):
+        self.cfg_create_from_file('../example/example_inputs/assignment_tuple_value.py')
+        
+        self.assert_length(self.cfg.nodes, expected_length=3)
+        start_node = 0
+        node = 1
+        exit_node = 2
+        print(self.cfg)
+
+        self.assertInCfg([(node, start_node), (exit_node, node)])
+
+        self.assertEqual(self.cfg.nodes[node].label, 'a = (x, y)')
+
 
 class CFGComprehensionTest(BaseTestCase):
     def test_nodes(self):
