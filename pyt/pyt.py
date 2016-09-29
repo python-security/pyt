@@ -22,8 +22,13 @@ from constraint_table import initialize_constraint_table
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('filepath',
-                    help='Path to the file that should be analysed.', type=str)
+entry_group = parser.add_mutually_exclusive_group()
+entry_group.add_argument('-f', '--filepath',
+                         help='Path to the file that should be analysed.',
+                         type=str)
+entry_group.add_argument('-gr', '--git-repos',
+                         help='Takes a CSV file of git_url, path per entry.',
+                         type=str)
 parser.add_argument('-pr', '--project-root',
                     help='Add project root, this is important when the entry' +
                     ' file is not at the root of the project.', type=str)
@@ -117,6 +122,22 @@ if __name__ == '__main__':
         analysis = ReachingDefinitionsTaintAnalysis
     else:
         analysis = ReachingDefinitionsTaintAnalysis
+
+    cfg_list = list()
+    from repo_runner import get_repos
+    if args.git_repos:
+        repos = get_repos(args.git_repos)
+        for repo in repos:
+            repo.clone()
+            project_modules = get_directory_modules(os.path.dirname(repo.path))
+            intraprocedural(project_modules, cfg_list)
+            initialize_constraint_table(cfg_list)
+            analyse(cfg_list, analysis_type=analysis)
+            vulnerability_log = find_vulnerabilities(cfg_list, analysis)
+            vulnerability_log.print_report()
+            if not vulnerability_log.vulnerabilities:
+                repo.clean_up()
+        exit()
 
     path = os.path.normpath(args.filepath)
 
