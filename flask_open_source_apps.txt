@@ -1,4 +1,4 @@
-https://github.com/mattmakai/choose-your-own-adventure-presentations
+https://github.com/mattmakai/choose-your-own-adventure-presentations.git, /cyoa/views.py
 https://github.com/skylines-project/skylines.git
 https://github.com/miguelgrinberg/microblog.git
 https://github.com/mjhea0/flaskr-tdd.git
@@ -22,4 +22,3 @@ https://github.com/reddit/reddit.git
 https://github.com/nylas/sync-engine.git
 https://github.com/hasgeek/hasjob.git
 https://github.com/docker/docker-registry.git
-
