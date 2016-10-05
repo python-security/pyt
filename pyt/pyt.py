@@ -128,6 +128,7 @@ if __name__ == '__main__':
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
+            cfg_list = list()
             repo.clone()
             project_modules = get_directory_modules(os.path.dirname(repo.path))
             intraprocedural(project_modules, cfg_list)
