@@ -1,5 +1,5 @@
-https://github.com/mattmakai/choose-your-own-adventure-presentations.git, /cyoa/views.py
-https://github.com/skylines-project/skylines.git
+https://github.com/mattmakai/choose-your-own-adventure-presentations.git
+https://github.com/skylines-project/skylines.git, 
 https://github.com/miguelgrinberg/microblog.git
 https://github.com/mjhea0/flaskr-tdd.git
 https://gist.github.com/coleifer/632d3c9aa6b2ea519384
