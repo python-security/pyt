@@ -15,7 +15,11 @@ class Repo:
     def clone(self):
         """Clone repo and update path to match the current one"""
 
-        self.directory = self.URL.split('/')[-1].split('.')[0]
+        r = self.URL.split('/')[-1].split('.')
+        if len(r) > 1:
+            self.directory = '.'.join(r[0:-1])
+        else:
+            self.directory = r[0]
 
         if self.path[0] == '/':
             self.path = self.path[1:]
