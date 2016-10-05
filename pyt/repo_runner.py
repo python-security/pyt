@@ -14,7 +14,6 @@ class Repo:
 
     def clone(self):
         """Clone repo and update path to match the current one"""
-        git.Git().clone(self.URL)
 
         self.directory = self.URL.split('/')[-1].split('.')[0]
 
@@ -22,6 +21,8 @@ class Repo:
             self.path = self.path[1:]
 
         self.path = os.path.join(self.directory, self.path)
+        if self.directory not in os.listdir():
+            git.Git().clone(self.URL)
 
     def clean_up(self):
         """Deletes the repo"""
