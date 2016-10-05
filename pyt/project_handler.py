@@ -12,22 +12,23 @@ def is_python_module(path):
     return False
 
 local_modules = list()
-def get_directory_modules(directory):
-    
+def get_directory_modules(directory, flush_local_modules=False):
+    if local_modules and os.path.dirname(local_modules[0][1]) == directory:
+        return local_modules
+
+    if flush_local_modules:
+        del local_modules[:]
+
     if not os.path.isdir(directory):
         directory = os.path.dirname(directory)
 
     if directory == '':
         return local_modules
-    
-        
-    if local_modules and os.path.dirname(local_modules[0][1]) == directory:
-        return local_modules
 
     for path in os.listdir(directory):
         if is_python_module(path):
             module_name = os.path.splitext(path)[0]
-            local_modules.append((module_name, os.path.join(directory,path)))
+            local_modules.append((module_name, os.path.join(directory, path)))
 
     return local_modules
 
