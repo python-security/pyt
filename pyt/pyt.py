@@ -130,7 +130,7 @@ if __name__ == '__main__':
         for repo in repos:
             cfg_list = list()
             repo.clone()
-            project_modules = get_directory_modules(os.path.dirname(repo.path))
+            project_modules = get_python_modules(os.path.dirname(repo.path))
             intraprocedural(project_modules, cfg_list)
             initialize_constraint_table(cfg_list)
             analyse(cfg_list, analysis_type=analysis)
