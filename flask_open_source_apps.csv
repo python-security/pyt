@@ -1,5 +1,4 @@
 https://github.com/mattmakai/choose-your-own-adventure-presentations.git, /cyoa/views.py
-https://github.com/skylines-project/skylines.git, skylines/app.py
 https://github.com/miguelgrinberg/microblog.git, app/views.py
 https://github.com/mjhea0/flaskr-tdd.git, app.py
 https://gist.github.com/coleifer/632d3c9aa6b2ea519384, views.py
@@ -10,6 +9,3 @@ https://github.com/j4mie/brightonpy.org.git, brighton.py
 https://github.com/sopython/sopython-site.git, sopy/canon/views.py
 https://github.com/sharms/HomePage.git, homepage.py
 https://github.com/dcolish/Cockerel.git, cockerel/webapp/frontend.py
-https://github.com/lincolnloop/emailed-me.git, application.py
-https://github.com/nylas/sync-engine.git, inbox/mailsync/frontend.py
-https://github.com/docker/docker-registry.git, docker_registry/index.py
