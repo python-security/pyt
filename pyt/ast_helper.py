@@ -2,16 +2,32 @@
 Useful when working with the ast module."""
 import ast
 import os
+import subprocess
 
 
 BLACK_LISTED_CALL_NAMES = ['self']
+
+
+def convert_to_3(path):
+    """Convert python 2 file to python 3."""
+    try:
+        print('##### Trying to convert file to Python 3. #####')
+        subprocess.call(['2to3', '-w', path])
+    except:
+        print('Check if 2to3 is installed. '
+              'https://docs.python.org/2/library/2to3.html')
+        exit(1)
 
 
 def generate_ast(path):
     """Generate an Abstract Syntax Tree using the ast module."""
     if os.path.isfile(path):
         with open(path, 'r') as f:
-            return ast.parse(f.read())
+            try:
+                return ast.parse(f.read())
+            except SyntaxError:
+                convert_to_3(path)
+                return generate_ast(path)
     raise IOError('Input needs to be a file. Path: ' + path)
 
 
