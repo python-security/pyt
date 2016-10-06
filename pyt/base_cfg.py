@@ -662,3 +662,9 @@ class Visitor(ast.NodeVisitor):
         label_visitor.visit(node)
 
         return self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
+
+    def visit_Subscript(self, node):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node)
+
+        return self.append_node(Node(label_visitor.result, node, line_number = node.lineno, path=self.filenames[-1]))
