@@ -12,3 +12,4 @@ https://github.com/dcolish/Cockerel.git, cockerel/webapp/frontend.py
 https://github.com/rafaelmartins/blohg.git, blohg/views.py
 https://github.com/docker/docker-registry.git, docker_registry/index.py
 https://github.com/baijum/getpython3.git, py3k/main.py
+https://github.com/peterhend/schools.git, schools.py
