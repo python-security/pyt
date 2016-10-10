@@ -1,4 +1,6 @@
 from abc import abstractmethod, ABCMeta
+import re
+
 import requests
 
 GITHUB_API_URL = 'https://api.github.com'
@@ -14,9 +16,14 @@ class Languages:
 
 
 class Query:
-    def __init__(self, base_url, query_string, language=None, repo=None):
+    def __init__(self, base_url, query_string,
+                 language=None, repo=None, time_interval=None):
         repo = self._repo_parameter(repo)
-        parameters = self._construct_parameters([query_string, language, repo])
+        time_interval = self._time_interval_parameter(time_interval)
+        parameters = self._construct_parameters([query_string,
+                                                 language,
+                                                 repo,
+                                                 time_interval])
         self.query_string = self._construct_query(base_url, parameters)
 
     def _construct_query(self, base_url, parameters):
@@ -37,6 +44,18 @@ class Query:
             return 'repo:' + repo.name
         else:
             return None
+
+    def _time_interval_parameter(self, created):
+        if created:
+            p = re.compile('\d\d\d\d-\d\d-\d\d \.\. \d\d\d\d-\d\d-\d\d')
+            m = p.match(created)
+            if m.group():
+                return 'created:"' + m.group() + '"'
+            else:
+                print('The time interval parameter should be '
+                      'of the form: "YYYY-MM-DD .. YYYY-MM-DD"')
+                exit(1)
+        return None
 
 
 class Search(metaclass=ABCMeta):
@@ -86,7 +105,8 @@ class Repo:
 
 
 if __name__ == '__main__':
-    q = Query(SEARCH_REPO_URL, 'flask')
+    q = Query(SEARCH_REPO_URL, 'flask', time_interval='2010-05-01 .. 2011-01-01')
+    print(q.query_string)
     s = SearchRepo(q)
     print(s.total_count)
     print(s.incomplete_results)
