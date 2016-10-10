@@ -66,7 +66,7 @@ class Search(metaclass=ABCMeta):
     def __init__(self, query):
         self.total_count = None
         self.incomplete_results = None
-        self.items = list()
+        self.results = list()
         self._request(query.query_string)
 
     def _request(self, query_string):
@@ -77,23 +77,23 @@ class Search(metaclass=ABCMeta):
         #pprint.pprint(json)
         self.total_count = json['total_count']
         self.incomplete_results = json['incomplete_results']
-        self.parse_items(json['items'])
+        self.parse_results(json['items'])
 
     @abstractmethod
-    def parse_items(self, json_items):
+    def parse_results(self, json_results):
         pass
 
 
 class SearchRepo(Search):
-    def parse_items(self, json_items):
-        for item in json_items:
-            self.items.append(Repo(item))
+    def parse_results(self, json_results):
+        for item in json_results:
+            self.results.append(Repo(item))
 
 
 class SearchCode(Search):
-    def parse_items(self, json_items):
-        for item in json_items:
-            self.items.append(File(item))
+    def parse_results(self, json_results):
+        for item in json_results:
+            self.results.append(File(item))
 
 
 class File:
@@ -115,14 +115,23 @@ def get_dates(start_date, end_date=date.today()):
 
 
 if __name__ == '__main__':
-    q = Query(SEARCH_REPO_URL, 'flask', time_interval='2010-05-01 .. 2011-01-01')
-    print(q.query_string)
+    q = Query(SEARCH_REPO_URL, 'flask')
+    s = SearchRepo(q)
+    for repo in s.results:
+        print(repo.name)
+    exit()
+    dates = get_dates(date(2010, 1, 1))
+    for date in dates:
+        q = Query(SEARCH_REPO_URL, 'flask',
+                  time_interval=str(date) + ' .. ' + str(date))
+        print(q.query_string)
+    exit()
     s = SearchRepo(q)
     print(s.total_count)
     print(s.incomplete_results)
-    print([r.URL for r in s.items])
-    q = Query(SEARCH_CODE_URL, 'import flask', Languages.python, s.items[0])
+    print([r.URL for r in s.results])
+    q = Query(SEARCH_CODE_URL, 'import flask', Languages.python, s.results[0])
     s = SearchCode(q)
-    print(s.total_count)
-    print(s.incomplete_results)
-    print([f.name for f in s.items])
+    #print(s.total_count)
+    #print(s.incomplete_results)
+    #print([f.name for f in s.results])
