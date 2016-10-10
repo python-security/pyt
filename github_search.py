@@ -62,6 +62,10 @@ class Query:
         return None
 
 
+class IncompleteResultsError(Exception):
+    pass
+
+
 class Search(metaclass=ABCMeta):
     def __init__(self, query):
         self.total_count = None
@@ -77,6 +81,8 @@ class Search(metaclass=ABCMeta):
         #pprint.pprint(json)
         self.total_count = json['total_count']
         self.incomplete_results = json['incomplete_results']
+        if self.incomplete_results:
+            raise IncompleteResultsError()
         self.parse_results(json['items'])
 
     @abstractmethod
