@@ -11,7 +11,7 @@ SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 class Languages:
     _prefix = 'language:'
     python = _prefix + 'python'
-    javascript = 'javascript'
+    javascript = _prefix + 'javascript'
     # add others here
 
 
