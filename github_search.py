@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABCMeta
 import re
+from datetime import date, timedelta
 
 import requests
 
@@ -102,6 +103,12 @@ class Repo:
     def __init__(self, json):
         self.URL = json['html_url']
         self.name = json['full_name']
+
+
+def get_dates(start_date, end_date=date.today()):
+    delta = end_date - start_date
+    for i in range(delta.days + 1):
+        yield start_date + timedelta(days=i)
 
 
 if __name__ == '__main__':
