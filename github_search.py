@@ -17,11 +17,12 @@ class Languages:
 
 
 class Query:
-    def __init__(self, base_url, query_string,
+    def __init__(self, base_url, search_string,
                  language=None, repo=None, time_interval=None):
         repo = self._repo_parameter(repo)
         time_interval = self._time_interval_parameter(time_interval)
-        parameters = self._construct_parameters([query_string,
+        search_string = self._search_parameter(search_string)
+        parameters = self._construct_parameters([search_string,
                                                  language,
                                                  repo,
                                                  time_interval])
@@ -29,7 +30,6 @@ class Query:
 
     def _construct_query(self, base_url, parameters):
         query = base_url
-        query += '?q='
         query += '+'.join(parameters)
         return query
 
@@ -39,6 +39,9 @@ class Query:
             if p:
                 r.append(p)
         return r
+
+    def _search_parameter(self, search_string):
+        return '?q="' + search_string + '"'
 
     def _repo_parameter(self, repo):
         if repo:
