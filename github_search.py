@@ -68,9 +68,9 @@ class Search(metaclass=ABCMeta):
     def _request(self, query_string):
         r = requests.get(query_string)
         json = r.json()
-        print(query_string)
-        import pprint
-        pprint.pprint(json)
+        #print(query_string)
+        #import pprint
+        #pprint.pprint(json)
         self.total_count = json['total_count']
         self.incomplete_results = json['incomplete_results']
         self.parse_items(json['items'])
