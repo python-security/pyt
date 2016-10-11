@@ -123,6 +123,7 @@ class Search(metaclass=ABCMeta):
         #import pprint
         #pprint.pprint(json)
         self.total_count = json['total_count']
+        print('Number of results: {}.'.format(self.total_count))
         self.incomplete_results = json['incomplete_results']
         if self.incomplete_results:
             raise IncompleteResultsError()
