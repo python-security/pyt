@@ -38,7 +38,6 @@ class Repo:
             self.path = os.path.join(self.directory, self.path)
         else:
             self.path = os.path.join(self.directory, self.path)
-        print(self.path)
 
     def _find_entry_path(self):
         for root, dirs, files in os.walk(self.directory):
