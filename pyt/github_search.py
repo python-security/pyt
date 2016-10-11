@@ -12,6 +12,7 @@ from repo_runner import NoEntryPathError
 GITHUB_API_URL = 'https://api.github.com'
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
+NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 10  # Can be changed to 30 with auth
 
 
 class Languages:
@@ -85,7 +86,7 @@ class RequestCounter:
         self.counter = list()
 
     def append(self, request_time):
-        if len(self.counter) < 10:
+        if len(self.counter) < NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE:
             self.counter.append(request_time)
         else:
             delta = request_time - self.counter[0]
