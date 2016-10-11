@@ -254,6 +254,10 @@ def is_sanitized(sink, sanitiser_dict, lattice):
     return False
 
 
+class SinkArgsError(Exception):
+    pass
+
+
 def get_sink_args(cfg_node):
     if type(cfg_node) == AssignmentNode:
         return get_sink_args(cfg_node.ast_node.value)
@@ -300,7 +304,7 @@ def get_sink_args(cfg_node):
     elif isinstance(cfg_node, ast.Str):
         return None
     else:
-        raise Exception('Unexpected node type:', type(cfg_node))
+        raise SinkArgsError('Unexpected node type:', type(cfg_node))
 
 
 def get_vulnerability(source, sink, triggers, lattice):
