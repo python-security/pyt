@@ -18,7 +18,7 @@ from save import create_database, def_use_chain_to_file,\
     use_def_chain_to_file, cfg_to_file, verbose_cfg_to_file,\
     lattice_to_file, vulnerabilities_to_file
 from constraint_table import initialize_constraint_table
-
+from github_search import scan_github
 
 parser = argparse.ArgumentParser()
 
@@ -28,6 +28,10 @@ entry_group.add_argument('-f', '--filepath',
                          type=str)
 entry_group.add_argument('-gr', '--git-repos',
                          help='Takes a CSV file of git_url, path per entry.',
+                         type=str)
+entry_group.add_argument('-gs', '--github-scan',
+                         help='Searches through github and runs PyT'
+                         ' on found repositories. This can take some time.',
                          type=str)
 parser.add_argument('-pr', '--project-root',
                     help='Add project root, this is important when the entry' +
@@ -133,8 +137,8 @@ if __name__ == '__main__':
         analysis = ReachingDefinitionsTaintAnalysis
 
     cfg_list = list()
-    from repo_runner import get_repos
     if args.git_repos:
+        from repo_runner import get_repos
         repos = get_repos(args.git_repos)
         for repo in repos:
             repo.clone()
@@ -142,6 +146,10 @@ if __name__ == '__main__':
             vulnerability_log.print_report()
             if not vulnerability_log.vulnerabilities:
                 repo.clean_up()
+        exit()
+
+    if args.github_scan:
+        scan_github(args.github_scan, analysis, analyse_repo)
         exit()
 
     path = os.path.normpath(args.filepath)

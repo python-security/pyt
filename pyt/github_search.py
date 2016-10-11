@@ -6,6 +6,7 @@ from datetime import date, timedelta, datetime
 import requests
 import repo_runner
 from save import save_repo_scan
+from vulnerabilities import SinkArgsError
 
 GITHUB_API_URL = 'https://api.github.com'
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
@@ -149,26 +150,26 @@ def get_dates(start_date, end_date=date.today()):
         yield start_date + timedelta(days=i)
 
 
-from pyt import analyse_repo
-from vulnerabilities import SinkArgsError
-def scan_github(search_string, analysis_type):
+def scan_github(search_string, analysis_type, analyse_repo_func):
+    analyse_repo = analyse_repo_func
     q = Query(SEARCH_REPO_URL, search_string)
     s = SearchRepo(q)
     for repo in s.results[:3]:
-        q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
+        q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
+                  Languages.python, repo)
         s = SearchCode(q)
         r = repo_runner.Repo(repo.url)
         r.clone()
         try:
             vulnerability_log = analyse_repo(r, analysis_type)
             if vulnerability_log.vulnerabilities:
-                save_repo_scan(repo, vulnerability_log)
+                save_repo_scan(repo, r.path, vulnerability_log)
             else:
-                save_repo_scan(repo, vulnerability_log=None)
+                save_repo_scan(repo, r.path, vulnerability_log=None)
         except SinkArgsError as err:
-            save_repo_scan(repo, vulnerability_log=None, error=err)
+            save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
         except SyntaxError as err:
-            save_repo_scan(repo, vulnerability_log=None, error=err)
+            save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
         r.clean_up()
 
 if __name__ == '__main__':
