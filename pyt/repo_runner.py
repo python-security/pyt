@@ -4,6 +4,10 @@ import git
 import shutil
 
 
+class NoEntryPathError(Exception):
+    pass
+
+
 class Repo:
     """Holder for a repo with git URL and
     a path to where the analysis should start"""
@@ -34,6 +38,7 @@ class Repo:
             self.path = os.path.join(self.directory, self.path)
         else:
             self.path = os.path.join(self.directory, self.path)
+        print(self.path)
 
     def _find_entry_path(self):
         for root, dirs, files in os.walk(self.directory):
@@ -43,6 +48,9 @@ class Repo:
                         if 'app = Flask(__name__)' in fd.read():
                             self.path = os.path.join(root, f)
                             return
+        print('wat')
+        raise NoEntryPathError('No entry path found in repo {}.'
+                               .format(self.URL))
 
     def clean_up(self):
         """Deletes the repo"""

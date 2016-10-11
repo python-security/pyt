@@ -7,6 +7,7 @@ import requests
 import repo_runner
 from save import save_repo_scan
 from vulnerabilities import SinkArgsError
+from repo_runner import NoEntryPathError
 
 GITHUB_API_URL = 'https://api.github.com'
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
