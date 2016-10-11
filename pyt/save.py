@@ -155,9 +155,16 @@ def vulnerabilities_to_file(vulnerability_log):
         write_vlog_to_file(fd, vulnerability_log)
 
 
-def save_repo_scan(repo, vulnerability_log):
+def save_repo_scan(repo, vulnerability_log, error=None):
     with open('scan.pyt', 'a') as fd:
-        fd.write('{}{}', repo.name, os.linesep)
-        fd.write('{}{}', repo.url, os.linesep)
-        write_vlog_to_file(fd, vulnerability_log)
+        fd.write('{}{}'.format(repo.name, os.linesep))
+        fd.write('{}{}'.format(repo.url, os.linesep))
+        if vulnerability_log:
+            write_vlog_to_file(fd, vulnerability_log)
+        else:
+            fd.write('No vulnerabilities found.{}'.format(os.linesep))
+        if error:
+            fd.write('An Error occurred while scanning the repo: {}'
+                     .format(str(error)))
+        fd.write(os.linesep)
         fd.write(os.linesep)
