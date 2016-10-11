@@ -23,14 +23,16 @@ class Languages:
 
 class Query:
     def __init__(self, base_url, search_string,
-                 language=None, repo=None, time_interval=None):
+                 language=None, repo=None, time_interval=None, per_page=100):
         repo = self._repo_parameter(repo)
         time_interval = self._time_interval_parameter(time_interval)
         search_string = self._search_parameter(search_string)
+        per_page = self._per_page_parameter(per_page)
         parameters = self._construct_parameters([search_string,
                                                  language,
                                                  repo,
-                                                 time_interval])
+                                                 time_interval,
+                                                 per_page])
         self.query_string = self._construct_query(base_url, parameters)
 
     def _construct_query(self, base_url, parameters):
@@ -65,6 +67,12 @@ class Query:
                       'of the form: "YYYY-MM-DD .. YYYY-MM-DD"')
                 exit(1)
         return None
+
+    def _per_page_parameter(self, per_page):
+        if per_page > 100:
+            print('The GitHub api does not allow pages with over 100 results.')
+            exit(1)
+        return '&per_page={}'.format(per_page)
 
 
 class IncompleteResultsError(Exception):
