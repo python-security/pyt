@@ -6,6 +6,7 @@ import subprocess
 
 
 BLACK_LISTED_CALL_NAMES = ['self']
+recursive = False
 
 
 def convert_to_3(path):
@@ -26,8 +27,15 @@ def generate_ast(path):
             try:
                 return ast.parse(f.read())
             except SyntaxError:
-                convert_to_3(path)
-                return generate_ast(path)
+                global recursive
+                if not recursive:
+                    convert_to_3(path)
+                    recursive = True
+                    return generate_ast(path)
+                else:
+                    raise SyntaxError('The ast module can not parse the file'
+                                      ' and the python 2 to 3 conversion'
+                                      ' also failed.')
     raise IOError('Input needs to be a file. Path: ' + path)
 
 
