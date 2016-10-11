@@ -4,6 +4,7 @@ import time
 from datetime import date, timedelta, datetime
 
 import requests
+import repo_runner
 
 GITHUB_API_URL = 'https://api.github.com'
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
@@ -153,6 +154,9 @@ if __name__ == '__main__':
     for repo in s.results[:3]:
         q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
         s = SearchCode(q)
+        r = repo_runner.Repo(repo.url)
+        r.clone()
+        r.clean_up()
         print(repo.name)
         print(len(s.results))
         print([f.name for f in s.results])
