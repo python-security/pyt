@@ -153,25 +153,32 @@ def get_dates(start_date, end_date=date.today()):
 
 def scan_github(search_string, analysis_type, analyse_repo_func):
     analyse_repo = analyse_repo_func
-    q = Query(SEARCH_REPO_URL, search_string)
-    s = SearchRepo(q)
-    for repo in s.results[:3]:
-        q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
-                  Languages.python, repo)
-        s = SearchCode(q)
-        r = repo_runner.Repo(repo.url)
-        r.clone()
-        try:
-            vulnerability_log = analyse_repo(r, analysis_type)
-            if vulnerability_log.vulnerabilities:
-                save_repo_scan(repo, r.path, vulnerability_log)
-            else:
-                save_repo_scan(repo, r.path, vulnerability_log=None)
-        except SinkArgsError as err:
-            save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-        except SyntaxError as err:
-            save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-        r.clean_up()
+    for d in get_dates(date(2010, 1, 1)):
+        q = Query(SEARCH_REPO_URL, search_string,
+                  language=Languages.python,
+                  time_interval=str(d) + ' .. ' + str(d))
+        s = SearchRepo(q)
+        for repo in s.results:
+            q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
+                      Languages.python, repo)
+            s = SearchCode(q)
+            r = repo_runner.Repo(repo.url)
+            try:
+                r.clone()
+            except NoEntryPathError as err:
+                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                continue
+            try:
+                vulnerability_log = analyse_repo(r, analysis_type)
+                if vulnerability_log.vulnerabilities:
+                    save_repo_scan(repo, r.path, vulnerability_log)
+                else:
+                    save_repo_scan(repo, r.path, vulnerability_log=None)
+            except SinkArgsError as err:
+                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+            except SyntaxError as err:
+                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+            r.clean_up()
 
 if __name__ == '__main__':
     from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis

@@ -48,7 +48,6 @@ class Repo:
                         if 'app = Flask(__name__)' in fd.read():
                             self.path = os.path.join(root, f)
                             return
-        print('wat')
         raise NoEntryPathError('No entry path found in repo {}.'
                                .format(self.URL))
 
