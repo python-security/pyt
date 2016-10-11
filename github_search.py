@@ -98,10 +98,10 @@ class Search(metaclass=ABCMeta):
     def _request(self, query_string):
         Search.request_counter.append(datetime.now())
         r = requests.get(query_string)
-        print(r.headers)
-        print(type(r.headers))
-        print(r.headers['Link'])
-        exit()
+        #print(r.headers)
+        #print(type(r.headers))
+        #print(r.headers['Link'])
+        #exit()
         json = r.json()
         #print(query_string)
         #import pprint
@@ -150,9 +150,19 @@ def get_dates(start_date, end_date=date.today()):
 if __name__ == '__main__':
     q = Query(SEARCH_REPO_URL, 'flask')
     s = SearchRepo(q)
-    for repo in s.results:
+    for repo in s.results[:3]:
+        q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
+        s = SearchCode(q)
         print(repo.name)
+        print(len(s.results))
+        print([f.name for f in s.results])
     exit()
+
+    r = RequestCounter('test', timeout=2)
+    for x in range(15):
+        r.append(datetime.now())
+    exit()
+
     dates = get_dates(date(2010, 1, 1))
     for date in dates:
         q = Query(SEARCH_REPO_URL, 'flask',
