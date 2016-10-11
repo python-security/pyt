@@ -7,9 +7,12 @@ import shutil
 class Repo:
     """Holder for a repo with git URL and
     a path to where the analysis should start"""
-    def __init__(self, URL, path):
+    def __init__(self, URL, path=None):
         self.URL = URL.strip()
-        self.path = path.strip()
+        if path:
+            self.path = path.strip()
+        else:
+            self.path = None
         self.directory = None
 
     def clone(self):
@@ -21,12 +24,25 @@ class Repo:
         else:
             self.directory = r[0]
 
-        if self.path[0] == '/':
-            self.path = self.path[1:]
-
-        self.path = os.path.join(self.directory, self.path)
         if self.directory not in os.listdir():
             git.Git().clone(self.URL)
+
+        if self.path is None:
+            self._find_entry_path()
+        elif self.path[0] == '/':
+            self.path = self.path[1:]
+            self.path = os.path.join(self.directory, self.path)
+        else:
+            self.path = os.path.join(self.directory, self.path)
+
+    def _find_entry_path(self):
+        for root, dirs, files in os.walk(self.directory):
+            for f in files:
+                if f.endswith('.py'):
+                    with open(os.path.join(root, f), 'r') as fd:
+                        if 'app = Flask(__name__)' in fd.read():
+                            self.path = os.path.join(root, f)
+                            return
 
     def clean_up(self):
         """Deletes the repo"""
