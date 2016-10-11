@@ -149,10 +149,10 @@ class Repo:
         self.name = json['full_name']
 
 
-def get_dates(start_date, end_date=date.today()):
+def get_dates(start_date, end_date=date.today(), interval=90):
     delta = end_date - start_date
-    for i in range(delta.days + 1):
-        yield start_date + timedelta(days=i)
+    for i in range(delta.days // interval):
+        yield start_date + timedelta(days=i*interval)
 
 
 def scan_github(search_string, analysis_type, analyse_repo_func):
@@ -185,6 +185,9 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
             r.clean_up()
 
 if __name__ == '__main__':
+    for x in get_dates(date(2010, 1, 1)):
+        print(x)
+    exit()
     from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
     scan_github('flask', ReachingDefinitionsTaintAnalysis)
     exit()
