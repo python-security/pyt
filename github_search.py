@@ -137,7 +137,7 @@ class File:
 
 class Repo:
     def __init__(self, json):
-        self.URL = json['html_url']
+        self.url = json['html_url']
         self.name = json['full_name']
 
 
