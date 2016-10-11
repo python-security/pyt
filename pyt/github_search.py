@@ -189,6 +189,7 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                 r.clone()
             except NoEntryPathError as err:
                 save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                r.clean_up()
                 continue
             try:
                 vulnerability_log = analyse_repo(r, analysis_type)
