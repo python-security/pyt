@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from base_cfg import Node
 
@@ -155,10 +156,12 @@ def vulnerabilities_to_file(vulnerability_log):
         write_vlog_to_file(fd, vulnerability_log)
 
 
-def save_repo_scan(repo, vulnerability_log, error=None):
+def save_repo_scan(repo, entry_path, vulnerability_log, error=None):
     with open('scan.pyt', 'a') as fd:
         fd.write('{}{}'.format(repo.name, os.linesep))
         fd.write('{}{}'.format(repo.url, os.linesep))
+        fd.write('Entry file: {}{}'.format(entry_path, os.linesep))
+        fd.write('Scanned: {}{}'.format(datetime.now(), os.linesep))
         if vulnerability_log:
             write_vlog_to_file(fd, vulnerability_log)
         else:
