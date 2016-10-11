@@ -110,6 +110,15 @@ save_parser.add_argument('-all', '--save-all',
                          action='store_true')
 
 
+def analyse_repo(github_repo, analysis_type):
+    cfg_list = list()
+    project_modules = get_python_modules(os.path.dirname(github_repo.path))
+    intraprocedural(project_modules, cfg_list)
+    initialize_constraint_table(cfg_list)
+    analyse(cfg_list, analysis_type=analysis_type)
+    vulnerability_log = find_vulnerabilities(cfg_list, analysis_type)
+    return vulnerability_log
+
 if __name__ == '__main__':
     args = parser.parse_args()
 
@@ -128,13 +137,8 @@ if __name__ == '__main__':
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
-            cfg_list = list()
             repo.clone()
-            project_modules = get_python_modules(os.path.dirname(repo.path))
-            intraprocedural(project_modules, cfg_list)
-            initialize_constraint_table(cfg_list)
-            analyse(cfg_list, analysis_type=analysis)
-            vulnerability_log = find_vulnerabilities(cfg_list, analysis)
+            vulnerability_log = analyse_repo(repo, analysis)
             vulnerability_log.print_report()
             if not vulnerability_log.vulnerabilities:
                 repo.clean_up()
