@@ -82,6 +82,9 @@ class RequestCounter:
         else:
             delta = request_time - self.counter[0]
             if delta.seconds < self.timeout:
+                print('Maximum requests "{}" reached'
+                      ' timing out for {} seconds.'
+                      .format(len(self.counter), self.timeout - delta.seconds))
                 time.sleep(self.timeout - delta.seconds)
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(datetime.now())
@@ -101,6 +104,7 @@ class Search(metaclass=ABCMeta):
 
     def _request(self, query_string):
         Search.request_counter.append(datetime.now())
+        print('Making request: {}'.format(query_string))
         r = requests.get(query_string)
         #print(r.headers)
         #print(type(r.headers))
