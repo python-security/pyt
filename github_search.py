@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABCMeta
 import re
-from datetime import date, timedelta
+import time
+from datetime import date, timedelta, datetime
 
 import requests
 
@@ -66,7 +67,28 @@ class IncompleteResultsError(Exception):
     pass
 
 
+class RequestCounter:
+    def __init__(self, timeout=60):
+        self.timeout = timeout  # timeout in seconds
+        self.counter = list()
+
+    def append(self, request_time):
+        if len(self.counter) < 10:
+            self.counter.append(request_time)
+        else:
+            delta = request_time - self.counter[0]
+            if delta.seconds < self.timeout:
+                time.sleep(self.timeout - delta.seconds)
+                self.counter.pop(0)  # pop index 0
+                self.counter.append(datetime.now())
+            else:
+                self.counter.pop(0)  # pop index 0
+                self.counter.append(request_time)
+
+
 class Search(metaclass=ABCMeta):
+    request_counter = RequestCounter()
+
     def __init__(self, query):
         self.total_count = None
         self.incomplete_results = None
@@ -74,6 +96,7 @@ class Search(metaclass=ABCMeta):
         self._request(query.query_string)
 
     def _request(self, query_string):
+        Search.request_counter.append(datetime.now())
         r = requests.get(query_string)
         print(r.headers)
         print(type(r.headers))
