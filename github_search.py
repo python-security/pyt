@@ -75,6 +75,10 @@ class Search(metaclass=ABCMeta):
 
     def _request(self, query_string):
         r = requests.get(query_string)
+        print(r.headers)
+        print(type(r.headers))
+        print(r.headers['Link'])
+        exit()
         json = r.json()
         #print(query_string)
         #import pprint
