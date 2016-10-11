@@ -157,18 +157,26 @@ class Repo:
         self.name = json['full_name']
 
 
-def get_dates(start_date, end_date=date.today(), interval=90):
+def get_dates(start_date, end_date=date.today(), interval=7):
     delta = end_date - start_date
     for i in range(delta.days // interval):
-        yield start_date + timedelta(days=i*interval)
+        yield (start_date + timedelta(days=(i*interval) - interval),
+               start_date + timedelta(days=i*interval))
+    else:
+        # Take care of the remainder of days
+        yield (start_date + timedelta(days=i*interval),
+               start_date + timedelta(days=i*interval
+                                      + interval
+                                      + delta.days % interval))
 
 
 def scan_github(search_string, analysis_type, analyse_repo_func):
     analyse_repo = analyse_repo_func
-    for d in get_dates(date(2010, 1, 1)):
+    for d in get_dates(date(2010, 1, 1), interval=365):
         q = Query(SEARCH_REPO_URL, search_string,
                   language=Languages.python,
-                  time_interval=str(d) + ' .. ' + str(d))
+                  time_interval=str(d[0]) + ' .. ' + str(d[1]),
+                  per_page=1)
         s = SearchRepo(q)
         for repo in s.results:
             q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
@@ -193,7 +201,7 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
             r.clean_up()
 
 if __name__ == '__main__':
-    for x in get_dates(date(2010, 1, 1)):
+    for x in get_dates(date(2010, 1, 1), interval=93):
         print(x)
     exit()
     from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
