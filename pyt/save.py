@@ -136,6 +136,13 @@ def lattice_to_file(cfg_list, analysis_type):
                 fd.write('{} -> {}{}'.format(bin(v), str(k), os.linesep))
 
 
+def write_vlog_to_file(fd, vulnerability_log):
+    for i, vulnerability in enumerate(vulnerability_log.vulnerabilities,
+                                      start=1):
+        fd.write('Vulnerability {}:\n{}{}{}'
+                 .format(i, vulnerability, os.linesep, os.linesep))
+
+
 def vulnerabilities_to_file(vulnerability_log):
     with Output('vulnerabilities.pyt') as fd:
         number_of_vulnerabilities = len(vulnerability_log.vulnerabilities)
@@ -145,8 +152,12 @@ def vulnerabilities_to_file(vulnerability_log):
         else:
             fd.write('{} vulnerabilities found:{}'
                      .format(number_of_vulnerabilities, os.linesep))
+        write_vlog_to_file(fd, vulnerability_log)
 
-        for i, vulnerability in enumerate(vulnerability_log.vulnerabilities,
-                                          start=1):
-            fd.write('Vulnerability {}:\n{}{}{}'
-                     .format(i, vulnerability, os.linesep, os.linesep))
+
+def save_repo_scan(repo, vulnerability_log):
+    with open('scan.pyt', 'a') as fd:
+        fd.write('{}{}', repo.name, os.linesep)
+        fd.write('{}{}', repo.url, os.linesep)
+        write_vlog_to_file(fd, vulnerability_log)
+        fd.write(os.linesep)
