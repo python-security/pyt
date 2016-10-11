@@ -174,34 +174,39 @@ def get_dates(start_date, end_date=date.today(), interval=7):
 
 def scan_github(search_string, analysis_type, analyse_repo_func):
     analyse_repo = analyse_repo_func
-    for d in get_dates(date(2010, 1, 1), interval=365):
+    for d in get_dates(date(2010, 1, 1), interval=30):
         q = Query(SEARCH_REPO_URL, search_string,
                   language=Languages.python,
                   time_interval=str(d[0]) + ' .. ' + str(d[1]),
-                  per_page=1)
+                  per_page=100)
         s = SearchRepo(q)
         for repo in s.results:
             q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
                       Languages.python, repo)
             s = SearchCode(q)
-            r = repo_runner.Repo(repo.url)
-            try:
-                r.clone()
-            except NoEntryPathError as err:
-                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+            if s.results:
+                r = repo_runner.Repo(repo.url)
+                try:
+                    r.clone()
+                except NoEntryPathError as err:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                    r.clean_up()
+                    continue
+                try:
+                    vulnerability_log = analyse_repo(r, analysis_type)
+                    if vulnerability_log.vulnerabilities:
+                        save_repo_scan(repo, r.path, vulnerability_log)
+                    else:
+                        save_repo_scan(repo, r.path, vulnerability_log=None)
+                except SinkArgsError as err:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                except SyntaxError as err:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                except IOError as err:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
+                except AttributeError as err:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 r.clean_up()
-                continue
-            try:
-                vulnerability_log = analyse_repo(r, analysis_type)
-                if vulnerability_log.vulnerabilities:
-                    save_repo_scan(repo, r.path, vulnerability_log)
-                else:
-                    save_repo_scan(repo, r.path, vulnerability_log=None)
-            except SinkArgsError as err:
-                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-            except SyntaxError as err:
-                save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-            r.clean_up()
 
 if __name__ == '__main__':
     for x in get_dates(date(2010, 1, 1), interval=93):
