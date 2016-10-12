@@ -2,7 +2,6 @@
 
 from collections import namedtuple
 import ast
-import logging
 
 from base_cfg import Node, AssignmentNode, ReturnNode
 from framework_adaptor import TaintedNode
@@ -12,7 +11,6 @@ from lattice import Lattice
 from vars_visitor import VarsVisitor
 from trigger_definitions_parser import parse, default_trigger_word_file
 
-logger = logging.getLogger(__name__)
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
@@ -285,10 +283,6 @@ def get_vulnerability(source, sink, triggers, lattice):
                                         if sink_args else None
     lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
 
-    logger.debug('Checking for vuln:')
-    logger.debug('source ' + str(source.cfg_node.label))
-    logger.debug('sink ' + str(sink.cfg_node.label))
-                 
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
