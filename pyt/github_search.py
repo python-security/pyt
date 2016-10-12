@@ -190,7 +190,9 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                     r.clone()
                 except NoEntryPathError as err:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-                    r.clean_up()
+                    continue
+                except:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error='Other Error Unknown while cloning :-(')
                     continue
                 try:
                     vulnerability_log = analyse_repo(r, analysis_type)
@@ -198,6 +200,7 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                         save_repo_scan(repo, r.path, vulnerability_log)
                     else:
                         save_repo_scan(repo, r.path, vulnerability_log=None)
+                    r.clean_up()
                 except SinkArgsError as err:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except SyntaxError as err:
@@ -206,7 +209,8 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except AttributeError as err:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
-                r.clean_up()
+                except:
+                    save_repo_scan(repo, r.path, vulnerability_log=None, error='Other Error Unknown :-(')
 
 if __name__ == '__main__':
     for x in get_dates(date(2010, 1, 1), interval=93):
