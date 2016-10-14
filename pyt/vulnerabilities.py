@@ -1,9 +1,7 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
-import os
 from collections import namedtuple
 import ast
-import logging
 
 from base_cfg import Node, AssignmentNode, ReturnNode
 from framework_adaptor import TaintedNode
@@ -11,20 +9,11 @@ from vulnerability_log import Vulnerability, VulnerabilityLog,\
     SanitisedVulnerability
 from lattice import Lattice
 from vars_visitor import VarsVisitor
+from trigger_definitions_parser import parse, default_trigger_word_file
 
-logger = logging.getLogger(__name__)
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
-Definitions = namedtuple('Definitions', 'sources sinks')
-
-default_trigger_word_file = os.path.join(os.path.dirname(__file__),
-                                         'trigger_definitions',
-                                         'flask_trigger_words.pyt')
-
-SANITISER_SEPARATOR = '->'
-SOURCES_KEYWORD = 'sources:'
-SINKS_KEYWORD = 'sinks:'
 
 
 class TriggerNode():
@@ -41,49 +30,6 @@ class TriggerNode():
                 self.secondary_nodes.append(cfg_node)
             elif not self.secondary_nodes:
                 self.secondary_nodes = [cfg_node]
-
-
-def parse_section(iterator):
-    """Parse a section of a file. Stops at empty line.
-
-    Args:
-        iterator(File): file descriptor pointing at a definition file.
-
-    Returns:
-         Iterator of all definitions in the section.
-    """
-    try:
-        line = next(iterator).rstrip()
-        while line:
-            if line.rstrip():
-                if SANITISER_SEPARATOR in line:
-                    line = line.split(SANITISER_SEPARATOR)
-                    sink = line[0].rstrip()
-                    sanitisers = list(map(str.strip, line[1].split(',')))
-                    yield (sink, sanitisers)
-                else:
-                    yield (line, list())
-            line = next(iterator).rstrip()
-    except StopIteration:
-        return
-
-
-def parse(trigger_word_file=default_trigger_word_file):
-    """Parse the file for source and sink definitions.
-
-    Returns:
-       A definitions tuple with sources and sinks.
-    """
-    sources = list()
-    sinks = list()
-    with open(trigger_word_file, 'r') as fd:
-        for line in fd:
-            line = line.rstrip()
-            if line == SOURCES_KEYWORD:
-                sources = list(parse_section(fd))
-            elif line == SINKS_KEYWORD:
-                sinks = list(parse_section(fd))
-    return Definitions(sources, sinks)
 
 
 def identify_triggers(cfg, sources, sinks):
@@ -337,10 +283,6 @@ def get_vulnerability(source, sink, triggers, lattice):
                                         if sink_args else None
     lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
 
-    logger.debug('Checking for vuln:')
-    logger.debug('source ' + str(source.cfg_node.label))
-    logger.debug('sink ' + str(sink.cfg_node.label))
-                 
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
