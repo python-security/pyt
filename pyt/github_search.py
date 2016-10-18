@@ -119,17 +119,19 @@ class Search(metaclass=ABCMeta):
 
     def _request(self, query_string):
         Search.request_counter.append(datetime.now())
+
         print('Making request: {}'.format(query_string))
+
         headers = {'Authorization': 'token ' + GITHUB_OAUTH_TOKEN}
         r = requests.get(query_string, headers=headers)
-        #print(r.headers)
-        #print(type(r.headers))
-        #print(r.headers['Link'])
-        #exit()
+
         json = r.json()
-        #print(query_string)
-        #import pprint
-        #pprint.pprint(json)
+
+        if r.status_code != 200:
+            print('Bad request:')
+            print(json)
+            exit(1)
+
         self.total_count = json['total_count']
         print('Number of results: {}.'.format(self.total_count))
         self.incomplete_results = json['incomplete_results']
