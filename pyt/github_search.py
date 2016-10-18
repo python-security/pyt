@@ -10,9 +10,15 @@ from vulnerabilities import SinkArgsError
 from repo_runner import NoEntryPathError
 
 GITHUB_API_URL = 'https://api.github.com'
+try:
+    GITHUB_OAUTH_TOKEN = open('github_access_token.pyt', 'r').read().strip()
+except:
+    print('Insert your GitHub access token'
+          ' in the github_access_token.pyt file')
+    exit(1)
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
-NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 10  # Can be changed to 30 with auth
+NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
 
 
 class Languages:
@@ -114,7 +120,8 @@ class Search(metaclass=ABCMeta):
     def _request(self, query_string):
         Search.request_counter.append(datetime.now())
         print('Making request: {}'.format(query_string))
-        r = requests.get(query_string)
+        headers = {'Authorization': 'token ' + GITHUB_OAUTH_TOKEN}
+        r = requests.get(query_string, headers=headers)
         #print(r.headers)
         #print(type(r.headers))
         #print(r.headers['Link'])
