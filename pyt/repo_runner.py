@@ -63,3 +63,9 @@ def get_repos(csv_path):
             url, path = line.split(',')
             repos.append(Repo(url, path))
     return repos
+
+
+def add_repo_to_csv(csv_path, repo):
+    with open(csv_path, 'a') as fd:
+        fd.write('{}{}, {}'
+                 .format(os.linesep, repo.URL, repo.path))
