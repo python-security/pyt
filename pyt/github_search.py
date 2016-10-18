@@ -7,7 +7,7 @@ import requests
 import repo_runner
 from save import save_repo_scan
 from vulnerabilities import SinkArgsError
-from repo_runner import NoEntryPathError
+from repo_runner import NoEntryPathError, add_repo_to_csv
 
 GITHUB_API_URL = 'https://api.github.com'
 try:
@@ -181,7 +181,7 @@ def get_dates(start_date, end_date=date.today(), interval=7):
                                       + delta.days % interval))
 
 
-def scan_github(search_string, analysis_type, analyse_repo_func):
+def scan_github(search_string, analysis_type, analyse_repo_func, csv_path):
     analyse_repo = analyse_repo_func
     for d in get_dates(date(2010, 1, 1), interval=30):
         q = Query(SEARCH_REPO_URL, search_string,
@@ -207,6 +207,7 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                     vulnerability_log = analyse_repo(r, analysis_type)
                     if vulnerability_log.vulnerabilities:
                         save_repo_scan(repo, r.path, vulnerability_log)
+                        add_repo_to_csv(csv_path, r)
                     else:
                         save_repo_scan(repo, r.path, vulnerability_log=None)
                     r.clean_up()
