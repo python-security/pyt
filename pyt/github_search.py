@@ -87,7 +87,7 @@ class IncompleteResultsError(Exception):
 
 
 class RequestCounter:
-    def __init__(self, timeout=60):
+    def __init__(self, timeout=61):
         self.timeout = timeout  # timeout in seconds
         self.counter = list()
 
