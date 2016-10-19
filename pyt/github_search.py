@@ -14,8 +14,8 @@ try:
     GITHUB_OAUTH_TOKEN = open('github_access_token.pyt', 'r').read().strip()
 except:
     print('Insert your GitHub access token'
-          ' in the github_access_token.pyt file')
-    exit(1)
+          ' in the github_access_token.pyt file'
+          ' if you want to use GitHub search.')
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
