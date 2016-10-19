@@ -205,52 +205,9 @@ class SinkArgsError(Exception):
 
 
 def get_sink_args(cfg_node):
-    if type(cfg_node) == AssignmentNode:
-        return get_sink_args(cfg_node.ast_node.value)
-    elif isinstance(cfg_node, ast.Tuple):
-        for e in cfg_node.elts:
-            return get_sink_args(e)
-    elif type(cfg_node) == ReturnNode:
-        return get_sink_args(cfg_node.ast_node.value)
-    elif isinstance(cfg_node, Node):
-        if isinstance(cfg_node.ast_node, ast.For):
-            return cfg_node.label
-        return get_sink_args(cfg_node.ast_node)
-    elif isinstance(cfg_node, ast.ListComp):
-        vv = VarsVisitor()
-        vv.visit(cfg_node)
-        return vv.result
-    elif isinstance(cfg_node, ast.Call):
-        args = list()
-
-        for arg in cfg_node.args + cfg_node.keywords:
-            if isinstance(arg, ast.Name):
-                args.append(arg.id)
-            elif isinstance(arg, ast.Str):
-                args.append(arg.s)
-            elif isinstance(arg, ast.Num):
-                args.append(arg.n)
-            elif isinstance(arg, ast.Call):
-                args.extend(get_sink_args(arg))
-            elif isinstance(arg, ast.keyword):
-                args.append(arg.value)
-            elif isinstance(arg, ast.NameConstant):
-                args.append(arg.value)
-            elif isinstance(arg, ast.Attribute) or\
-                    isinstance(arg, ast.Subscript):
-                import ast_helper
-                args.append(ast_helper.get_call_names_as_string(arg))
-            else:
-                vv = VarsVisitor()
-                vv.visit(arg)
-                args.extend(vv.result)
-                print('Double check if this did catch the sink' +
-                      ' as it is not tested')
-        return args
-    elif isinstance(cfg_node, ast.Str):
-        return None
-    else:
-        raise SinkArgsError('Unexpected node type:', type(cfg_node))
+    vv = VarsVisitor()
+    vv.visit(cfg_node.ast_node)
+    return vv.result
 
 
 def get_vulnerability(source, sink, triggers, lattice):
