@@ -24,7 +24,11 @@ files = ['XSS.py', 'command_injection.py', 'path_traversal.py',
 files = [example_file_path + filename for filename in files]
 
 
-def check_files(python):
+def run_pyt(file_input, stdout=PIPE):
+    return run([python_name, pyt_path, '-f', file_input], stdout=stdout)
+
+
+def check_files():
     try:
         with open(results_file, 'r', encoding=encoding) as fd:
             results = fd.read().split(delimiter)
@@ -47,7 +51,7 @@ def check_files(python):
 
     for i, f in enumerate(files):
         print('################# ' + f + ' #################')
-        process = run([python, pyt_path, f], stdout=PIPE)
+        process = run_pyt(file_input=f)
         stdout = str(process.stdout)
         if results[i] == stdout:
             print('Test passed.')
@@ -57,30 +61,31 @@ def check_files(python):
     return passed
 
 
-def save_results(python):
+def save_results():
     with open(results_file, 'w', encoding=encoding) as fd:
         for f in files:
             print('################# ' + f + ' #################')
-            process = run([python, pyt_path, f], stdout=PIPE)
+            process = run_pyt(file_input=f)
             fd.write(str(process.stdout))
             fd.write(delimiter)
             print('Saved result to file: "' + results_file + '".')
 
 
-def print_pyt_output(python):
+def print_pyt_output():
     for f in files:
         print('################# ' + f + ' #################')
-        run([python, pyt_path, f])
+        run_pyt(f, stdout=None)
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.python:
-        python_name = args.python
+        print('Set python name in ""python_name.txt".')
 
     if args.save_results:
-        save_results(python_name)
+        save_results()
     elif args.pyt_output:
-        print_pyt_output(python_name)
+        print_pyt_output()
     else:
-        check_files(python_name)
+        check_files()
