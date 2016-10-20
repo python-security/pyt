@@ -1,6 +1,5 @@
 from unittest import TextTestRunner
 from unittest import TestSuite
-from unittest import makeSuite
 from unittest import TestLoader
 from run import check_files
 
