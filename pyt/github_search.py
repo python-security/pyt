@@ -97,11 +97,12 @@ class RequestCounter:
             self.counter.append(request_time)
         else:
             delta = request_time - self.counter[0]
-            if delta.seconds < self.timeout:
+            if delta.seconds < self.timeout_in_seconds:
                 print('Maximum requests "{}" reached'
                       ' timing out for {} seconds.'
-                      .format(len(self.counter), self.timeout - delta.seconds))
-                self.timeout(self.timeout - delta.seconds)
+                      .format(len(self.counter),
+                              self.timeout_in_seconds - delta.seconds))
+                self.timeout(self.timeout_in_seconds - delta.seconds)
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(datetime.now())
             else:
@@ -137,6 +138,7 @@ class Search(metaclass=ABCMeta):
             print(json)
             Search.request_counter.timeout()
             self._request(query_string)
+            return
 
         self.total_count = json['total_count']
         print('Number of results: {}.'.format(self.total_count))
