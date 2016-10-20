@@ -19,6 +19,7 @@ except:
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
+DEFAULT_TIMEOUT_IN_SECONDS = 60
 
 
 class Languages:
@@ -87,8 +88,8 @@ class IncompleteResultsError(Exception):
 
 
 class RequestCounter:
-    def __init__(self, timeout=61):
-        self.timeout = timeout  # timeout in seconds
+    def __init__(self, timeout=DEFAULT_TIMEOUT_IN_SECONDS):
+        self.timeout_in_seconds = timeout  # timeout in seconds
         self.counter = list()
 
     def append(self, request_time):
@@ -100,12 +101,15 @@ class RequestCounter:
                 print('Maximum requests "{}" reached'
                       ' timing out for {} seconds.'
                       .format(len(self.counter), self.timeout - delta.seconds))
-                time.sleep(self.timeout - delta.seconds)
+                self.timeout(self.timeout - delta.seconds)
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(datetime.now())
             else:
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(request_time)
+
+    def timeout(self, time_in_seconds=DEFAULT_TIMEOUT_IN_SECONDS):
+        time.sleep(time_in_seconds)
 
 
 class Search(metaclass=ABCMeta):
@@ -129,8 +133,10 @@ class Search(metaclass=ABCMeta):
 
         if r.status_code != 200:
             print('Bad request:')
+            print(r.status_code)
             print(json)
-            exit(1)
+            Search.request_counter.timeout()
+            self._request(query_string)
 
         self.total_count = json['total_count']
         print('Number of results: {}.'.format(self.total_count))
