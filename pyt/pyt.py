@@ -18,7 +18,7 @@ from save import create_database, def_use_chain_to_file,\
     use_def_chain_to_file, cfg_to_file, verbose_cfg_to_file,\
     lattice_to_file, vulnerabilities_to_file
 from constraint_table import initialize_constraint_table
-from github_search import scan_github
+from github_search import scan_github, set_github_api_token
 
 parser = argparse.ArgumentParser()
 
@@ -152,6 +152,7 @@ if __name__ == '__main__':
         exit()
 
     if args.github_scan:
+        set_github_api_token()
         scan_github(args.github_scan, analysis, analyse_repo, args.csv_path)
         exit()
 

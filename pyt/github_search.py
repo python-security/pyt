@@ -10,16 +10,22 @@ from vulnerabilities import SinkArgsError
 from repo_runner import NoEntryPathError, add_repo_to_csv
 
 GITHUB_API_URL = 'https://api.github.com'
-try:
-    GITHUB_OAUTH_TOKEN = open('github_access_token.pyt', 'r').read().strip()
-except:
-    print('Insert your GitHub access token'
-          ' in the github_access_token.pyt file'
-          ' if you want to use GitHub search.')
+GITHUB_OAUTH_TOKEN = None
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
 DEFAULT_TIMEOUT_IN_SECONDS = 60
+
+
+def set_github_api_token():
+    global GITHUB_OAUTH_TOKEN
+    try:
+        GITHUB_OAUTH_TOKEN = open('github_access_token.pyt',
+                                  'r').read().strip()
+    except:
+        print('Insert your GitHub access token'
+              ' in the github_access_token.pyt file'
+              ' if you want to use GitHub search.')
 
 
 class Languages:
