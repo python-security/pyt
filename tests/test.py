@@ -7,7 +7,7 @@ python = open('python_name.txt', 'r').read().rstrip()
 
 test_suite = TestSuite()
 loader = TestLoader()
-suite = loader.discover('.',pattern='*_test.py')
+suite = loader.discover('.', pattern='*_test.py')
 
 runner = TextTestRunner(verbosity=2)
 result = runner.run(suite)
