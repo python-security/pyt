@@ -7,12 +7,25 @@ import requests
 import repo_runner
 from save import save_repo_scan
 from vulnerabilities import SinkArgsError
-from repo_runner import NoEntryPathError
+from repo_runner import NoEntryPathError, add_repo_to_csv
 
 GITHUB_API_URL = 'https://api.github.com'
+GITHUB_OAUTH_TOKEN = None
 SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
-NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 10  # Can be changed to 30 with auth
+NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
+DEFAULT_TIMEOUT_IN_SECONDS = 60
+
+
+def set_github_api_token():
+    global GITHUB_OAUTH_TOKEN
+    try:
+        GITHUB_OAUTH_TOKEN = open('github_access_token.pyt',
+                                  'r').read().strip()
+    except:
+        print('Insert your GitHub access token'
+              ' in the github_access_token.pyt file'
+              ' if you want to use GitHub search.')
 
 
 class Languages:
@@ -81,8 +94,8 @@ class IncompleteResultsError(Exception):
 
 
 class RequestCounter:
-    def __init__(self, timeout=60):
-        self.timeout = timeout  # timeout in seconds
+    def __init__(self, timeout=DEFAULT_TIMEOUT_IN_SECONDS):
+        self.timeout_in_seconds = timeout  # timeout in seconds
         self.counter = list()
 
     def append(self, request_time):
@@ -90,16 +103,20 @@ class RequestCounter:
             self.counter.append(request_time)
         else:
             delta = request_time - self.counter[0]
-            if delta.seconds < self.timeout:
+            if delta.seconds < self.timeout_in_seconds:
                 print('Maximum requests "{}" reached'
                       ' timing out for {} seconds.'
-                      .format(len(self.counter), self.timeout - delta.seconds))
-                time.sleep(self.timeout - delta.seconds)
+                      .format(len(self.counter),
+                              self.timeout_in_seconds - delta.seconds))
+                self.timeout(self.timeout_in_seconds - delta.seconds)
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(datetime.now())
             else:
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(request_time)
+
+    def timeout(self, time_in_seconds=DEFAULT_TIMEOUT_IN_SECONDS):
+        time.sleep(time_in_seconds)
 
 
 class Search(metaclass=ABCMeta):
@@ -113,16 +130,22 @@ class Search(metaclass=ABCMeta):
 
     def _request(self, query_string):
         Search.request_counter.append(datetime.now())
+
         print('Making request: {}'.format(query_string))
-        r = requests.get(query_string)
-        #print(r.headers)
-        #print(type(r.headers))
-        #print(r.headers['Link'])
-        #exit()
+
+        headers = {'Authorization': 'token ' + GITHUB_OAUTH_TOKEN}
+        r = requests.get(query_string, headers=headers)
+
         json = r.json()
-        #print(query_string)
-        #import pprint
-        #pprint.pprint(json)
+
+        if r.status_code != 200:
+            print('Bad request:')
+            print(r.status_code)
+            print(json)
+            Search.request_counter.timeout()
+            self._request(query_string)
+            return
+
         self.total_count = json['total_count']
         print('Number of results: {}.'.format(self.total_count))
         self.incomplete_results = json['incomplete_results']
@@ -172,7 +195,7 @@ def get_dates(start_date, end_date=date.today(), interval=7):
                                       + delta.days % interval))
 
 
-def scan_github(search_string, analysis_type, analyse_repo_func):
+def scan_github(search_string, analysis_type, analyse_repo_func, csv_path):
     analyse_repo = analyse_repo_func
     for d in get_dates(date(2010, 1, 1), interval=30):
         q = Query(SEARCH_REPO_URL, search_string,
@@ -198,6 +221,7 @@ def scan_github(search_string, analysis_type, analyse_repo_func):
                     vulnerability_log = analyse_repo(r, analysis_type)
                     if vulnerability_log.vulnerabilities:
                         save_repo_scan(repo, r.path, vulnerability_log)
+                        add_repo_to_csv(csv_path, r)
                     else:
                         save_repo_scan(repo, r.path, vulnerability_log=None)
                     r.clean_up()

@@ -4,6 +4,9 @@ import git
 import shutil
 
 
+DEFAULT_CSV_PATH = 'flask_open_source_apps.csv'
+
+
 class NoEntryPathError(Exception):
     pass
 
@@ -63,3 +66,23 @@ def get_repos(csv_path):
             url, path = line.split(',')
             repos.append(Repo(url, path))
     return repos
+
+
+def add_repo_to_file(path, repo):
+    try:
+        with open(path, 'a') as fd:
+            fd.write('{}{}, {}'
+                     .format(os.linesep, repo.URL, repo.path))
+    except FileNotFoundError:
+        print('-csv handle not used and fallback path not found: {}'
+              .format(DEFAULT_CSV_PATH))
+        print('You need to specify the csv_path'
+              ' by using the "-csv" handle.')
+        exit(1)
+
+
+def add_repo_to_csv(csv_path, repo):
+    if csv_path is None:
+        add_repo_to_file(DEFAULT_CSV_PATH, repo)
+    else:
+        add_repo_to_file(csv_path, repo)

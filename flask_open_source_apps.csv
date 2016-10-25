@@ -13,3 +13,12 @@ https://github.com/rafaelmartins/blohg.git, blohg/views.py
 https://github.com/docker/docker-registry.git, docker_registry/index.py
 https://github.com/baijum/getpython3.git, py3k/main.py
 https://github.com/peterhend/schools.git, schools.py
+https://github.com/mitsuhiko/flask-pastebin.git, pastebin.py
+https://github.com/Runscope/httpbin.git, httpbin/core.py
+https://github.com/Thalmann/sync-engine, inbox/mailsync/frontend.py
+https://github.com/mitsuhiko/bf3-aggregator.git, bf3.py
+https://github.com/sfermigier/Planet-GTLL.git, ring/server.py
+https://github.com/hasgeek/hasjob.git, hasjob/views/helper.py
+https://github.com/reddit/reddit.git, scripts/tracker.py
+https://github.com/lincolnloop/emailed-me.git, application.py
+https://github.com/skylines-project/skylines.git, skylines/app.py

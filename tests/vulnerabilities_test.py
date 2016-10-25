@@ -3,6 +3,7 @@ import sys
 
 sys.path.insert(1, os.path.abspath('../pyt'))
 import vulnerabilities
+import trigger_definitions_parser
 from base_test_case import BaseTestCase
 from base_cfg import Node
 from fixed_point import analyse
@@ -10,6 +11,7 @@ from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from flask_adaptor import FlaskAdaptor
 from lattice import Lattice
 from constraint_table import constraint_table, initialize_constraint_table
+
 
 class EngineTest(BaseTestCase):
     def run_empty(self):
@@ -28,12 +30,12 @@ class EngineTest(BaseTestCase):
         self.assert_length(definitions.sinks[1][1], expected_length=3)
 
     def test_parse_section(self):
-        l = list(vulnerabilities.parse_section(iter(['get'])))
+        l = list(trigger_definitions_parser.parse_section(iter(['get'])))
         self.assert_length(l, expected_length=1)
         self.assertEqual(l[0][0], 'get')
         self.assertEqual(l[0][1], list())
 
-        l = list(vulnerabilities.parse_section(iter(['get', 'get -> a, b, c d s aq     a'])))
+        l = list(trigger_definitions_parser.parse_section(iter(['get', 'get -> a, b, c d s aq     a'])))
         self.assert_length(l, expected_length=2)
         self.assertEqual(l[0][0], 'get')
         self.assertEqual(l[1][0], 'get')
