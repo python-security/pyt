@@ -1,49 +1,61 @@
-class Block:
-    def __init__(self, url, vulnerabilities):
+class Repo:
+    def __init__(self, url=None, vulnerabilities=None):
         self.url = url
         self.vulnerabilities = vulnerabilities
 
 
-def contains_block(blocks, block):
-    for b in blocks:
-        try:
-            if block[1].strip() in b:
-                return True
-        except:
-            return False
-    return False
+class Vulnerability:
+    def __init__(self):
+        self.filename = None
+        self.source = None
+        self.sink = None
+        self.source_line = None
+        self.sink_source = None
 
 
-def get_blocks(filename):
-    blocks = list()
-    block = list()
-    with open(filename, 'r') as fd:
-        for line in fd:
-            if not line.strip():
-                blocks.append(block)
-                block = list()
-            else:
-                block.append(line)
-    return blocks
-
-ha = set()
-def has_vulnerability(block):
-    ha.add(tuple(block))
-    for entry in block:
-        if 'vulnera' in entry:
-            return True
-    return False
-
-
-def count_vulnerable_repos(blocks):
-    counter = 0
-    for block in blocks:
-        if has_vulnerability(block):
-            counter += 1
-    return counter
+def parse_vulnerabilities(file_descriptor):
+    vulnerabilities = list()
+    vulnerability = Vulnerability()
+    for line in file_descriptor:
+        next_line = next(file_descriptor)
+        if line.strip() == '' and 'Vulnerability:' not in next_line:
+            return vulnerabilities
+        elif line.strip() == '':
+            vulnerabilities.append(vulnerability)
+            vulnerability = Vulnerability()
+        else:
+            if 'File:' in line:
+                vulnerability.filename = line.split(':')[1].strip()
+            elif ' > User input at line' in line:
+                vulnerability.source = line.split('"')[-2]
+                vulnerability.source_line = next_line
+            elif ' > reaches line' in line:
+                vulnerability.source = line.split('"')[-2]
+                vulnerability.source_line = next_line
 
 
 def get_repos(filename):
+    repos = list()
+    repo = Repo()
+    previous_line = None
+    with open(filename, 'r') as fd:
+        for line in fd:
+            next_line = next(fd)
+            if not line.strip() == '' or 'Vulnera' in next_line:
+                if 'https://' in line:
+                    repo.url = line.strip()
+                elif 'Vulnera' in next_line:
+                    repo.vulnerabilities = parse_vulnerabilities(fd)
+            elif next_line.strip() == '':
+                    continue
+            else:
+                repos.append(repo)
+                repo = Repo()
+            previous_line = line
+    return repos
+
+
+def get_urls(filename):
     repos = set()
     with open(filename, 'r') as fd:
         for line in fd:
@@ -53,9 +65,8 @@ def get_repos(filename):
 
 
 if __name__ == '__main__':
-    filename = 'scan.pyt'
-    print(get_repos(filename))
-    print(len(get_repos(filename)))
-    blocks = get_blocks(filename)
-    print(count_vulnerable_repos(blocks))
-    print(len(ha))
+    filename = 'scan_results/archived_26_10_scan.pyt'
+    filename = 'scan_results/test.pyt'
+    repos = get_repos(filename)
+    print([b.url for b in repos])
+    print(len(repos))
