@@ -1,4 +1,5 @@
 language: python
 python:
   - "3.5"
+script: pip3 install requests
 script: cd tests && python test.py
