@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath('../pyt'))
 from liveness import LivenessAnalysis
 from constraint_table import constraint_table
 
+
 class LivenessTest(AnalysisBaseTestCase):
     def test_example(self):
         lattice = self.run_analysis('../example/example_inputs/example.py', LivenessAnalysis)
