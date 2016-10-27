@@ -197,7 +197,7 @@ def get_dates(start_date, end_date=date.today(), interval=7):
 
 def scan_github(search_string, analysis_type, analyse_repo_func, csv_path):
     analyse_repo = analyse_repo_func
-    for d in get_dates(date(2016, 1, 1), interval=7):
+    for d in get_dates(date(2010, 1, 1), interval=7):
         q = Query(SEARCH_REPO_URL, search_string,
                   language=Languages.python,
                   time_interval=str(d[0]) + ' .. ' + str(d[1]),
