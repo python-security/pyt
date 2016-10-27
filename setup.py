@@ -1,8 +1,6 @@
 from setuptools import setup, find_packages
 
-long_description = """
-
-"""
+long_description = """"""
 
 setup(
         name='pyt',
@@ -10,8 +8,8 @@ setup(
         description='Find security vulnerabilities in Python web applications'
         ' using static analysis.',
         long_description=long_description,
-        url='github url',
-        author='PyT',
+        url='https://github.com/python-security/pyt',
+        author='python-security',
         author_email='mr.thalmann@gmail.com',
         license='GPLv2',
         classifiers=[
