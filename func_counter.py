@@ -1,3 +1,6 @@
+"""Module used for counting number of functions
+ to get an estimate og how big the CFG should be"""
+
 import ast
 import sys
 import os
@@ -10,12 +13,13 @@ function_calls = list()
 functions = dict()
 classes = dict()
 
+
 class Counter(ast.NodeVisitor):
     def visit_Call(self, node):
         n = get_call_names_as_string(node.func)
         function_calls.append(n)
         self.generic_visit(node)
-        #Husk return, save vars overhead
+        # Husk return, save vars overhead
 
     def visit_FunctionDef(self, node):
         if node.name in functions:
@@ -34,7 +38,7 @@ class Counter(ast.NodeVisitor):
 
 if __name__ == '__main__':
     module_paths = (m[1] for m in get_python_modules('../flaskbb/flaskbb'))
-    for p in module_paths:        
+    for p in module_paths:
         print(p)
         t = generate_ast(p)
         c = Counter()
@@ -42,9 +46,7 @@ if __name__ == '__main__':
 
     max_func_len = max(functions.values())
     max_class_len = max(classes.values())
-    restore_stuff = 6 #varies
+    restore_stuff = 6  # varies
     print(len(function_calls))
     print('estimate stuff: ', max_func_len*len(function_calls))
     print('estimate stuff: ', max_class_len*len(function_calls))
-
-        
