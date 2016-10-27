@@ -4,7 +4,7 @@ long_description = """"""
 
 setup(
         name='pyt',
-        version='1.0.0al',
+        version='1.0.0a1',
         description='Find security vulnerabilities in Python web applications'
         ' using static analysis.',
         long_description=long_description,
