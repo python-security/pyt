@@ -1,3 +1,4 @@
 #When creating this pip requirement file look at: https://pip.readthedocs.org/en/1.1/requirements.html
 
 graphviz==0.4.10
+requests==2.10.0
