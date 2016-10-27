@@ -4,7 +4,7 @@ long_description = """"""
 
 setup(
         name='pyt',
-        version='1.0.0a1',
+        version='1.0.0a6',
         description='Find security vulnerabilities in Python web applications'
         ' using static analysis.',
         long_description=long_description,
@@ -27,5 +27,10 @@ setup(
         packages=find_packages(exclude=['example',
                                         'profiling',
                                         'scan_results',
-                                        'tests'])
+                                        'tests']),
+        entry_points={
+            'console_scripts': [
+                'pyt = pyt.pyt:main'
+            ]
+        }
 )

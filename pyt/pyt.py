@@ -126,6 +126,11 @@ def analyse_repo(github_repo, analysis_type):
     vulnerability_log = find_vulnerabilities(cfg_list, analysis_type)
     return vulnerability_log
 
+
+def main():
+    print('success')
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
 
