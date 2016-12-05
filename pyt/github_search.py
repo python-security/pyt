@@ -185,14 +185,14 @@ class Repo:
 def get_dates(start_date, end_date=date.today(), interval=7):
     delta = end_date - start_date
     for i in range(delta.days // interval):
-        yield (start_date + timedelta(days=(i*interval) - interval),
-               start_date + timedelta(days=i*interval))
+        yield (start_date + timedelta(days=(i * interval) - interval),
+               start_date + timedelta(days=i * interval))
     else:
         # Take care of the remainder of days
-        yield (start_date + timedelta(days=i*interval),
-               start_date + timedelta(days=i*interval
-                                      + interval
-                                      + delta.days % interval))
+        yield (start_date + timedelta(days=i * interval),
+               start_date + timedelta(days=i * interval +
+                                      interval +
+                                      delta.days % interval))
 
 
 def scan_github(search_string, analysis_type, analyse_repo_func, csv_path):
