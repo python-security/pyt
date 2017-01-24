@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from datetime import date
 
 from ast_helper import generate_ast
 from interprocedural_cfg import interprocedural
@@ -19,8 +20,10 @@ from save import create_database, def_use_chain_to_file,\
     lattice_to_file, vulnerabilities_to_file
 from constraint_table import initialize_constraint_table
 from github_search import scan_github, set_github_api_token
+from argument_helpers import valid_date
 
 parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
 
 entry_group = parser.add_mutually_exclusive_group()
 entry_group.add_argument('-f', '--filepath',
@@ -29,10 +32,7 @@ entry_group.add_argument('-f', '--filepath',
 entry_group.add_argument('-gr', '--git-repos',
                          help='Takes a CSV file of git_url, path per entry.',
                          type=str)
-entry_group.add_argument('-gs', '--github-scan',
-                         help='Searches through github and runs PyT'
-                         ' on found repositories. This can take some time.',
-                         type=str)
+
 parser.add_argument('-pr', '--project-root',
                     help='Add project root, this is important when the entry' +
                     ' file is not at the root of the project.', type=str)
@@ -86,8 +86,8 @@ parser.add_argument('-ppm', '--print-project-modules',
                     help='Print project modules.', action='store_true')
 
 
-subparsers = parser.add_subparsers(dest='save')
 save_parser = subparsers.add_parser('save', help='Save menu.')
+save_parser.set_defaults(which='save')
 save_parser.add_argument('-fp', '--filename-prefix',
                          help='Filename prefix fx file_lattice.pyt',
                          type=str)
@@ -116,6 +116,17 @@ save_parser.add_argument('-all', '--save-all',
                          help='Output everything to file.',
                          action='store_true')
 
+search_parser = subparsers.add_parser('github_search', 
+                                     help='Searches through github and runs PyT'
+                                     ' on found repositories. This can take some time.')
+search_parser.set_defaults(which='search')
+
+search_parser.add_argument('-ss', '--search-string',
+                           help='String for searching for repos on github', type=str)
+
+search_parser.add_argument('-sd', '--start-date',
+                           help='Start date for repo search.'
+                           'Criteria used is Created Date', type=valid_date)
 
 def analyse_repo(github_repo, analysis_type):
     cfg_list = list()
@@ -156,7 +167,7 @@ if __name__ == '__main__':
                 repo.clean_up()
         exit()
 
-    if args.github_scan:
+    if args.which == 'search':
         set_github_api_token()
         if args.start_date:        
             scan_github(args.search_string, args.start_date,
@@ -231,7 +242,7 @@ if __name__ == '__main__':
         draw_lattices(cfg_list)
 
     # Output to file
-    if args.save:
+    if args.which == 'save':
         if args.filename_prefix:
             from save import Output
             Output.filename_prefix = args.filename_prefix
