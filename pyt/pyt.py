@@ -158,7 +158,12 @@ if __name__ == '__main__':
 
     if args.github_scan:
         set_github_api_token()
-        scan_github(args.github_scan, analysis, analyse_repo, args.csv_path)
+        if args.start_date:        
+            scan_github(args.search_string, args.start_date,
+                        analysis, analyse_repo, args.csv_path)
+        else:
+            scan_github(args.search_string, date(2010,1,1),
+                        analysis, analyse_repo, args.csv_path)
         exit()
 
     path = os.path.normpath(args.filepath)
