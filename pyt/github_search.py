@@ -25,7 +25,7 @@ def set_github_api_token():
                                   'r').read().strip()
     except:
         print('Insert your GitHub access token'
-              ' in the github_access_token.pyt file'
+              ' in the github_access_token.pyt file in the pyt package'
               ' if you want to use GitHub search.')
 
 
