@@ -121,7 +121,7 @@ search_parser = subparsers.add_parser('github_search',
                                      ' on found repositories. This can take some time.')
 search_parser.set_defaults(which='search')
 
-search_parser.add_argument('-ss', '--search-string',
+search_parser.add_argument('-ss', '--search-string', required=True,
                            help='String for searching for repos on github', type=str)
 
 search_parser.add_argument('-sd', '--start-date',
