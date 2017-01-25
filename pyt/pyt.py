@@ -23,6 +23,8 @@ from github_search import scan_github, set_github_api_token
 from argument_helpers import valid_date
 
 parser = argparse.ArgumentParser()
+parser.set_defaults(which='')
+
 subparsers = parser.add_subparsers()
 
 entry_group = parser.add_mutually_exclusive_group()
