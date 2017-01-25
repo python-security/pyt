@@ -10,4 +10,4 @@ Features planned:
 
 Work in progress
 
-[![Build Status](https://travis-ci.org/SW10IoT/pyt.svg?branch=master)](https://travis-ci.org/SW10IoT/pyt)
+[![Build Status](https://travis-ci.org/python-security/pyt.svg?branch=master)](https://travis-ci.org/python-security/pyt)
