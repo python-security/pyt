@@ -22,10 +22,11 @@ def set_github_api_token():
     try:
         GITHUB_OAUTH_TOKEN = open('github_access_token.pyt',
                                   'r').read().strip()
-    except:
+    except FileNotFoundError:
         print('Insert your GitHub access token'
               ' in the github_access_token.pyt file in the pyt package'
               ' if you want to use GitHub search.')
+        exit(0)
 
 
 class Languages:
