@@ -18,7 +18,6 @@ DEFAULT_TIMEOUT_IN_SECONDS = 60
 
 
 def set_github_api_token():
-    print('jeg fatter det ikke')
     global GITHUB_OAUTH_TOKEN
     try:
         GITHUB_OAUTH_TOKEN = open('github_access_token.pyt',
