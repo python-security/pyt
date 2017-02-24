@@ -1,9 +1,11 @@
 """Draws CFG."""
+import argparse
 from graphviz import Digraph
-from base_cfg import AssignmentNode
 from itertools import permutations
 from subprocess import run
-import argparse
+
+from base_cfg import AssignmentNode
+
 
 IGNORED_LABEL_NAME_CHARACHTERS = ':'
 
@@ -78,17 +80,17 @@ def apply_styles(graph, styles):
 def draw_cfg(cfg, output_filename = 'output'):
     """Draw CFG and output as pdf."""
     graph = Digraph(format='pdf')
-    
+
     for node in cfg.nodes:
         stripped_label = node.label.replace(IGNORED_LABEL_NAME_CHARACHTERS, '')
-        
+
         if 'Exit' in stripped_label:
             graph.node(stripped_label, 'Exit', shape='none')
         elif 'Entry' in stripped_label:
             graph.node(stripped_label, 'Entry', shape='none')
         else:
             graph.node(stripped_label, stripped_label)
-            
+
         for ingoing_node in node.ingoing:
             graph.edge(ingoing_node.label.replace(IGNORED_LABEL_NAME_CHARACHTERS, ''), stripped_label)
 
@@ -196,10 +198,10 @@ def draw_lattice_from_labels(labels, output_filename):
 
     add_anchor(output_filename)
     run_dot(output_filename)
-    
+
 def draw_lattices(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):
-        draw_lattice(cfg, output_prefix + '_' + str(i))    
+        draw_lattice(cfg, output_prefix + '_' + str(i))
 
 def draw_cfgs(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):

@@ -1,6 +1,6 @@
 """This modules runs PyT on a CSV file of git repos."""
-import os
 import git
+import os
 import shutil
 
 

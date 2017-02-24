@@ -2,6 +2,8 @@ import os
 from datetime import datetime
 
 from base_cfg import Node
+from definition_chains import build_def_use_chain, build_use_def_chain
+from lattice import Lattice
 
 
 database_file_name = 'db.sql'
@@ -78,7 +80,6 @@ class Output():
 
 
 def def_use_chain_to_file(cfg_list):
-    from definition_chains import build_def_use_chain
     with Output('def-use_chain.pyt') as fd:
             for i, cfg in enumerate(cfg_list):
                 fd.write('##### Def-use chain for CFG {} #####{}'
@@ -92,7 +93,6 @@ def def_use_chain_to_file(cfg_list):
 
 
 def use_def_chain_to_file(cfg_list):
-    from definition_chains import build_use_def_chain
     with Output('use-def_chain.pyt') as fd:
             for i, cfg in enumerate(cfg_list):
                 fd.write('##### Use-def chain for CFG {} #####{}'
@@ -125,7 +125,6 @@ def lattice_to_file(cfg_list, analysis_type):
     with Output('lattice.pyt') as fd:
         for i, cfg in enumerate(cfg_list):
             fd.write('##### Lattice for CFG {} #####{}'.format(i, os.linesep))
-            from lattice import Lattice
             l = Lattice(cfg.nodes, analysis_type)
 
             fd.write('# Elements to bitvector #{}'.format(os.linesep))

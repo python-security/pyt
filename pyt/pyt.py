@@ -3,24 +3,35 @@
 import argparse
 import os
 from datetime import date
+from pprint import pprint
 
+from argument_helpers import valid_date
 from ast_helper import generate_ast
-from interprocedural_cfg import interprocedural
-from intraprocedural_cfg import intraprocedural
 from draw import draw_cfgs, draw_lattices
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from liveness import LivenessAnalysis
-from reaching_definitions import ReachingDefinitionsAnalysis
+from constraint_table import initialize_constraint_table, print_table
 from fixed_point import analyse
 from flask_adaptor import FlaskAdaptor
-from vulnerabilities import find_vulnerabilities
-from project_handler import get_python_modules, get_directory_modules
-from save import create_database, def_use_chain_to_file,\
-    use_def_chain_to_file, cfg_to_file, verbose_cfg_to_file,\
-    lattice_to_file, vulnerabilities_to_file
-from constraint_table import initialize_constraint_table
 from github_search import scan_github, set_github_api_token
-from argument_helpers import valid_date
+from interprocedural_cfg import interprocedural
+from intraprocedural_cfg import intraprocedural
+from lattice import print_lattice
+from liveness import LivenessAnalysis
+from project_handler import get_directory_modules, get_python_modules
+from reaching_definitions import ReachingDefinitionsAnalysis
+from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from repo_runner import get_repos
+from save import (
+    cfg_to_file,
+    create_database,
+    def_use_chain_to_file,
+    lattice_to_file,
+    Output,
+    use_def_chain_to_file,
+    verbose_cfg_to_file,
+    vulnerabilities_to_file
+)
+from vulnerabilities import find_vulnerabilities
+
 
 parser = argparse.ArgumentParser()
 parser.set_defaults(which='')
@@ -118,7 +129,7 @@ save_parser.add_argument('-all', '--save-all',
                          help='Output everything to file.',
                          action='store_true')
 
-search_parser = subparsers.add_parser('github_search', 
+search_parser = subparsers.add_parser('github_search',
                                      help='Searches through github and runs PyT'
                                      ' on found repositories. This can take some time.')
 search_parser.set_defaults(which='search')
@@ -159,7 +170,6 @@ if __name__ == '__main__':
 
     cfg_list = list()
     if args.git_repos:
-        from repo_runner import get_repos
         repos = get_repos(args.git_repos)
         for repo in repos:
             repo.clone()
@@ -171,7 +181,7 @@ if __name__ == '__main__':
 
     if args.which == 'search':
         set_github_api_token()
-        if args.start_date:        
+        if args.start_date:
             scan_github(args.search_string, args.start_date,
                         analysis, analyse_repo, args.csv_path)
         else:
@@ -220,10 +230,8 @@ if __name__ == '__main__':
         else:
             draw_cfgs(cfg_list)
     if args.print:
-        from lattice import print_lattice
         l = print_lattice(cfg_list, analysis)
 
-        from constraint_table import print_table
         print_table(l)
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
@@ -234,7 +242,6 @@ if __name__ == '__main__':
             print(repr(e))
 
     if args.print_project_modules:
-        from pprint import pprint
         print('############## PROJECT MODULES ##############')
         pprint(project_modules)
 
@@ -246,7 +253,6 @@ if __name__ == '__main__':
     # Output to file
     if args.which == 'save':
         if args.filename_prefix:
-            from save import Output
             Output.filename_prefix = args.filename_prefix
         if args.save_all:
             def_use_chain_to_file(cfg_list)

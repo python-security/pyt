@@ -1,6 +1,6 @@
-from base_cfg import AssignmentNode
 from analysis_base import AnalysisBase
-from constraint_table import constraint_table, constraint_join
+from base_cfg import AssignmentNode
+from constraint_table import constraint_join, constraint_table
 from lattice import Lattice
 
 

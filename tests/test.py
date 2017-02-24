@@ -1,7 +1,5 @@
-from unittest import TextTestRunner
-from unittest import TestSuite
-from unittest import TestLoader
 from run import check_files
+from unittest import TestLoader, TestSuite, TextTestRunner
 
 
 test_suite = TestSuite()

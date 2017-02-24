@@ -2,6 +2,7 @@ import argparse
 
 import fine_timer
 
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('project_file', help='Path to the file where PyT should start to analyse.', type=str)

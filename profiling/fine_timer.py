@@ -1,13 +1,15 @@
-import pstats
 import os
-from subprocess import run as sub_run, PIPE
+import pstats
+from subprocess import PIPE, run as sub_run
 
-PYTHON = 'python3'
-PYT_PATH = '../pyt/pyt.py'
-STATS_FILENAME = 'stats.prof'
-SNAKEVIZ = 'snakeviz'
+
 KERNPROF = 'kernprof-3.5'
 LINE_PROFILER_FILE = 'pyt.py.lprof'
+PYTHON = 'python3'
+PYT_PATH = '../pyt/pyt.py'
+SNAKEVIZ = 'snakeviz'
+STATS_FILENAME = 'stats.prof'
+
 
 def clean_up():
     if os.path.isfile(STATS_FILENAME):

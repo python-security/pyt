@@ -1,20 +1,21 @@
-from abc import abstractmethod, ABCMeta
 import re
-import time
-from datetime import date, timedelta, datetime
-
 import requests
-import repo_runner
+import time
+from abc import ABCMeta, abstractmethod
+from datetime import date, datetime, timedelta
+
+from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from repo_runner import add_repo_to_csv, NoEntryPathError, Repo
 from save import save_repo_scan
 from vulnerabilities import SinkArgsError
-from repo_runner import NoEntryPathError, add_repo_to_csv
 
+
+DEFAULT_TIMEOUT_IN_SECONDS = 60
 GITHUB_API_URL = 'https://api.github.com'
 GITHUB_OAUTH_TOKEN = None
-SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
-SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
-DEFAULT_TIMEOUT_IN_SECONDS = 60
+SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
+SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 
 
 def set_github_api_token():
@@ -209,7 +210,7 @@ def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv
                       Languages.python, repo)
             s = SearchCode(q)
             if s.results:
-                r = repo_runner.Repo(repo.url)
+                r = Repo(repo.url)
                 try:
                     r.clone()
                 except NoEntryPathError as err:
@@ -241,7 +242,6 @@ if __name__ == '__main__':
     for x in get_dates(date(2010, 1, 1), interval=93):
         print(x)
     exit()
-    from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
     scan_github('flask', ReachingDefinitionsTaintAnalysis)
     exit()
     q = Query(SEARCH_REPO_URL, 'flask')
@@ -249,7 +249,7 @@ if __name__ == '__main__':
     for repo in s.results[:3]:
         q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
         s = SearchCode(q)
-        r = repo_runner.Repo(repo.url)
+        r = Repo(repo.url)
         r.clone()
         print(r.path)
         r.clean_up()

@@ -1,7 +1,7 @@
-from base_cfg import AssignmentNode
 from analysis_base import AnalysisBase
+from base_cfg import AssignmentNode
+from constraint_table import constraint_join, constraint_table
 from lattice import Lattice
-from constraint_table import constraint_table, constraint_join
 
 
 class ReachingDefinitionsAnalysis(AnalysisBase):

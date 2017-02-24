@@ -1,10 +1,11 @@
 """Generates a list of CFGs from a path.
 
 The module finds all python modules and generates an ast for them.
-Then 
+Then
 """
 import ast
 import os
+
 
 def is_python_module(path):
     if os.path.splitext(path)[1] == '.py':

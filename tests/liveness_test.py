@@ -1,10 +1,10 @@
-import sys
 import os
+import sys
 
 from analysis_base_test_case import AnalysisBaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
-from liveness import LivenessAnalysis
 from constraint_table import constraint_table
+from liveness import LivenessAnalysis
 
 
 class LivenessTest(AnalysisBaseTestCase):

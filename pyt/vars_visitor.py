@@ -1,4 +1,5 @@
 import ast
+
 from ast_helper import get_call_names
 
 
@@ -48,7 +49,7 @@ class VarsVisitor(ast.NodeVisitor):
         self.visit(node.elt)
         for gen in node.generators:
             self.comprehension(gen)
-            
+
     def visit_SetComp(self, node):
         self.visit(node.elt)
         for gen in node.generators:

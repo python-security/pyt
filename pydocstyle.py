@@ -1,5 +1,5 @@
-import subprocess
 import re
+import subprocess
 import sys
 import os
 

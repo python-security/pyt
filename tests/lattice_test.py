@@ -1,11 +1,12 @@
-import sys
 import os
+import sys
 
 from base_test_case import BaseTestCase
 sys.path.insert(0, os.path.abspath('../pyt'))
+from constraint_table import constraint_table
 from lattice import Lattice
 from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from constraint_table import constraint_table
+
 
 class LatticeTest(BaseTestCase):
 
@@ -24,7 +25,7 @@ class LatticeTest(BaseTestCase):
             self.lattice_element = lattice_element
         def __str__(self):
             return str(self.value)
-            
+
     def test_generate_integer_elements(self):
         one = self.Node(1, True)
         two = self.Node(2, True)
@@ -51,7 +52,7 @@ class LatticeTest(BaseTestCase):
         b = self.Node('print(x)', False)
         c = self.Node('x = 3', True)
         d = self.Node('y = x', True)
-        
+
         lattice = Lattice([a, c, d], self.AnalysisType)
 
         # Constraint results after fixpoint:
@@ -83,7 +84,7 @@ class LatticeTest(BaseTestCase):
         b = self.Node('print(x)', False)
         c = self.Node('x = 3', True)
         d = self.Node('y = x', True)
-        
+
         lattice = Lattice([a, c, d], self.AnalysisType)
 
         # Constraint results after fixpoint:
@@ -110,7 +111,7 @@ class LatticeTest(BaseTestCase):
         b = self.Node('print(x)', False)
         c = self.Node('x = 3', True)
         d = self.Node('y = x', True)
-        
+
         lattice = Lattice([a, c, d], self.AnalysisType)
 
         constraint_table[a] = 0b001
@@ -133,7 +134,7 @@ class LatticeTest(BaseTestCase):
         b = self.Node('print(x)', False)
         c = self.Node('x = 3', True)
         d = self.Node('y = x', True)
-        
+
         lattice = Lattice([a, c, d], self.AnalysisType)
 
         self.assertEqual(set(lattice.get_elements(0b111)), {a,c,d})

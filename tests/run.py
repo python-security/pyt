@@ -1,5 +1,6 @@
-from subprocess import run, PIPE
 import argparse
+from subprocess import PIPE, run
+
 
 delimiter = '#¤%&/()=?'
 results_file = 'results'

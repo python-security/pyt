@@ -1,15 +1,28 @@
 import ast
 from collections import namedtuple
 
+from ast_helper import Arguments, generate_ast, get_call_names_as_string
+from base_cfg import (
+    AssignmentNode,
+    CALL_IDENTIFIER,
+    CFG,
+    ConnectToExitNode,
+    EntryExitNode,
+    IgnoredNode,
+    Node,
+    RestoreNode,
+    ReturnNode,
+    Visitor
+)
 from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
-from module_definitions import ModuleDefinition, ModuleDefinitions,\
-    LocalModuleDefinition
+from module_definitions import (
+    LocalModuleDefinition,
+    ModuleDefinition,
+    ModuleDefinitions
+)
 from project_handler import get_directory_modules
-from ast_helper import generate_ast, get_call_names_as_string, Arguments
-from base_cfg import Visitor, EntryExitNode, Node, IgnoredNode,\
-    ConnectToExitNode, ReturnNode, AssignmentNode, RestoreNode,\
-    CFG, CALL_IDENTIFIER
+from right_hand_side_visitor import RHSVisitor
+
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 

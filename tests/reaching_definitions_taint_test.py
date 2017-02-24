@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from collections import namedtuple, OrderedDict
 
 from analysis_base_test_case import AnalysisBaseTestCase

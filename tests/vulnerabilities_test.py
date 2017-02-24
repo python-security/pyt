@@ -1,16 +1,16 @@
 import os
 import sys
 
-sys.path.insert(1, os.path.abspath('../pyt'))
-import vulnerabilities
-import trigger_definitions_parser
 from base_test_case import BaseTestCase
+sys.path.insert(1, os.path.abspath('../pyt'))
+import trigger_definitions_parser
+import vulnerabilities
 from base_cfg import Node
+from constraint_table import constraint_table, initialize_constraint_table
 from fixed_point import analyse
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from flask_adaptor import FlaskAdaptor
 from lattice import Lattice
-from constraint_table import constraint_table, initialize_constraint_table
+from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class EngineTest(BaseTestCase):
@@ -59,7 +59,7 @@ class EngineTest(BaseTestCase):
         self.assertEqual(trigger_node_1.cfg_node, cfg_node)
         self.assertEqual(trigger_node_2.trigger_word, 'request')
         self.assertEqual(trigger_node_2.cfg_node, cfg_node)
-        
+
         cfg_node = Node('request.get("stefan")', None, line_number=None, path=None)
         trigger_words = [('get', []), ('get', [])]
         l = list(vulnerabilities.label_contains(cfg_node, trigger_words))
@@ -70,14 +70,14 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list, [], [])        
+        FlaskAdaptor(cfg_list, [], [])
 
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
         l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
         self.assert_length(l, expected_length=1)
-        
+
 
     def test_find_sanitiser_nodes(self):
         cfg_node = Node(None, None, line_number=None, path=None)
@@ -87,16 +87,16 @@ class EngineTest(BaseTestCase):
         result = list(vulnerabilities.find_sanitiser_nodes(sanitiser, [sanitiser_tuple]))
         self.assert_length(result, expected_length=1)
         self.assertEqual(result[0], cfg_node)
-        
-        
+
+
     def test_build_sanitiser_node_dict(self):
         self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list, [], [])       
+        FlaskAdaptor(cfg_list, [], [])
 
         cfg = cfg_list[1]
-        
+
         cfg_node = Node(None, None,  line_number=None, path=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
 
@@ -119,7 +119,7 @@ class EngineTest(BaseTestCase):
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, False)
-        
+
     def test_is_sanitized_true(self):
         cfg_node_1 = Node('Awesome sanitiser', None,  line_number=None, path=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
@@ -132,7 +132,7 @@ class EngineTest(BaseTestCase):
 
         result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, True)
-        
+
     def test_find_vulnerabilities_no_vuln(self):
         vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_no_vuln.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
@@ -161,7 +161,7 @@ class EngineTest(BaseTestCase):
 
         FlaskAdaptor(cfg_list, [], [])
 
-        initialize_constraint_table(cfg_list)        
+        initialize_constraint_table(cfg_list)
 
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
@@ -172,7 +172,7 @@ class EngineTest(BaseTestCase):
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_multiple_assign(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_multiple_assign.py')        
+        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_multiple_assign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign_no_vuln(self):

@@ -1,15 +1,18 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
-from collections import namedtuple
 import ast
+from collections import namedtuple
 
 from base_cfg import Node, AssignmentNode, ReturnNode
 from framework_adaptor import TaintedNode
-from vulnerability_log import Vulnerability, VulnerabilityLog,\
+from vulnerability_log import (
+    Vulnerability,
+    VulnerabilityLog,
     SanitisedVulnerability
+)
 from lattice import Lattice
 from vars_visitor import VarsVisitor
-from trigger_definitions_parser import parse, default_trigger_word_file
+from trigger_definitions_parser import default_trigger_word_file, parse
 
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
@@ -231,7 +234,7 @@ def get_vulnerability(source, sink, triggers, lattice):
                              if lattice.in_constraint(secondary,
                                                       sink.cfg_node)]
     trigger_node_in_sink = source_in_sink or secondary_in_sink
-    
+
     sink_args = get_sink_args(sink.cfg_node)
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
