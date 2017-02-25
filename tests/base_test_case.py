@@ -1,12 +1,9 @@
 """A module that contains a base class that has helper methods for testing PyT."""
-import sys
-import os
 import unittest
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from ast_helper import generate_ast
-from interprocedural_cfg import interprocedural
-from module_definitions import project_definitions
+from pyt.ast_helper import generate_ast
+from pyt.interprocedural_cfg import interprocedural
+from pyt.module_definitions import project_definitions
 
 
 class BaseTestCase(unittest.TestCase):

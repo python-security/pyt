@@ -1,9 +1,9 @@
 import os
 from datetime import datetime
 
-from base_cfg import Node
-from definition_chains import build_def_use_chain, build_use_def_chain
-from lattice import Lattice
+from .base_cfg import Node
+from .definition_chains import build_def_use_chain, build_use_def_chain
+from .lattice import Lattice
 
 
 database_file_name = 'db.sql'

@@ -1,29 +1,25 @@
-import os
-import sys
-
-from base_test_case import BaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from base_cfg import Node, EntryExitNode
-from project_handler import get_python_modules
+from .base_test_case import BaseTestCase
+from pyt.base_cfg import Node, EntryExitNode
+from pyt.project_handler import get_python_modules
 
 
 class CFGGeneralTest(BaseTestCase):
     def test_repr_cfg(self):
-        self.cfg_create_from_file('../example/example_inputs/for_complete.py')
+        self.cfg_create_from_file('example/example_inputs/for_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         #print(repr(self.cfg))
 
     def test_str_cfg(self):
-        self.cfg_create_from_file('../example/example_inputs/for_complete.py')
+        self.cfg_create_from_file('example/example_inputs/for_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
         #print(self.cfg)
 
     def test_no_tuples(self):
-        self.cfg_create_from_file('../example/example_inputs/for_complete.py')
+        self.cfg_create_from_file('example/example_inputs/for_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -32,7 +28,7 @@ class CFGGeneralTest(BaseTestCase):
                 self.assertIsInstance(edge, Node)
 
     def test_start_and_exit_nodes(self):
-        self.cfg_create_from_file('../example/example_inputs/simple.py')
+        self.cfg_create_from_file('example/example_inputs/simple.py')
 
         self.assert_length(self.cfg.nodes, expected_length=3)
 
@@ -46,14 +42,14 @@ class CFGGeneralTest(BaseTestCase):
         self.assertEqual(type(self.cfg.nodes[exit_node]), EntryExitNode)
 
     def test_start_and_exit_nodes_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/simple.py')
+        self.cfg_create_from_file('example/example_inputs/simple.py')
 
         self.assertLineNumber(self.cfg.nodes[0], None)
         self.assertLineNumber(self.cfg.nodes[1], 1)
         self.assertLineNumber(self.cfg.nodes[2], None)
 
     def test_str_ignored(self):
-        self.cfg_create_from_file('../example/example_inputs/str_ignored.py')
+        self.cfg_create_from_file('example/example_inputs/str_ignored.py')
 
         self.assert_length(self.cfg.nodes, expected_length=3)
 
@@ -64,7 +60,7 @@ class CFGGeneralTest(BaseTestCase):
 
 class CFGForTest(BaseTestCase):
     def test_for_complete(self):
-        self.cfg_create_from_file('../example/example_inputs/for_complete.py')
+        self.cfg_create_from_file('example/example_inputs/for_complete.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -87,7 +83,7 @@ class CFGForTest(BaseTestCase):
         self.assertInCfg([(for_node, entry), (body_1, for_node), (else_body_1, for_node), (body_2, body_1), (for_node, body_2), (else_body_2, else_body_1), (next_node, else_body_2), (exit_node, next_node)])
 
     def test_for_no_orelse(self):
-        self.cfg_create_from_file('../example/example_inputs/for_no_orelse.py')
+        self.cfg_create_from_file('example/example_inputs/for_no_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -103,7 +99,7 @@ class CFGForTest(BaseTestCase):
         self.assertInCfg([(for_node, entry), (body_1, for_node), (body_2, body_1), (for_node, body_2), (next_node, for_node), (exit_node, next_node)])
 
     def test_for_tuple_target(self):
-        self.cfg_create_from_file('../example/example_inputs/for_tuple_target.py')
+        self.cfg_create_from_file('example/example_inputs/for_tuple_target.py')
 
         self.assert_length(self.cfg.nodes, expected_length = 4)
 
@@ -116,7 +112,7 @@ class CFGForTest(BaseTestCase):
         self.assertEqual(self.cfg.nodes[for_node].label, "for (x, y) in [(1, 2), (3, 4)]:")
 
     def test_for_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/for_complete.py')
+        self.cfg_create_from_file('example/example_inputs/for_complete.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -136,7 +132,7 @@ class CFGForTest(BaseTestCase):
         self.assertLineNumber(next_node, 7)
 
     def test_for_func_iterator(self):
-        self.cfg_create_from_file('../example/example_inputs/for_func_iterator.py')
+        self.cfg_create_from_file('example/example_inputs/for_func_iterator.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -156,7 +152,7 @@ class CFGTryTest(BaseTestCase):
         return (successor, node)
 
     def test_simple_try(self):
-        self.cfg_create_from_file('../example/example_inputs/try.py')
+        self.cfg_create_from_file('example/example_inputs/try.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -177,7 +173,7 @@ class CFGTryTest(BaseTestCase):
                           self.connected(try_body, _exit)])
 
     def test_orelse(self):
-        self.cfg_create_from_file('../example/example_inputs/try_orelse.py')
+        self.cfg_create_from_file('example/example_inputs/try_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -201,7 +197,7 @@ class CFGTryTest(BaseTestCase):
                           self.connected(print_else, _exit)])
 
     def test_final(self):
-        self.cfg_create_from_file('../example/example_inputs/try_final.py')
+        self.cfg_create_from_file('example/example_inputs/try_final.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -228,7 +224,7 @@ class CFGTryTest(BaseTestCase):
 
 class CFGIfTest(BaseTestCase):
     def test_if_complete(self):
-        self.cfg_create_from_file('../example/example_inputs/if_complete.py')
+        self.cfg_create_from_file('example/example_inputs/if_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
@@ -256,7 +252,7 @@ class CFGIfTest(BaseTestCase):
         self.assertInCfg([(test, entry), (eliftest, test), (body_1, test), (body_2, body_1), (next_node, body_2), (else_body, eliftest), (elif_body, eliftest), (next_node, elif_body), (next_node, else_body), (exit_node, next_node)])
 
     def test_single_if(self):
-        self.cfg_create_from_file('../example/example_inputs/if.py')
+        self.cfg_create_from_file('example/example_inputs/if.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
 
@@ -267,7 +263,7 @@ class CFGIfTest(BaseTestCase):
         self.assertInCfg([(test_node,start_node), (body_node,test_node), (exit_node,test_node), (exit_node,body_node)])
 
     def test_single_if_else(self):
-        self.cfg_create_from_file('../example/example_inputs/if_else.py')
+        self.cfg_create_from_file('example/example_inputs/if_else.py')
 
         self.assert_length(self.cfg.nodes, expected_length=5)
 
@@ -279,7 +275,7 @@ class CFGIfTest(BaseTestCase):
         self.assertInCfg([(test_node,start_node), (body_node,test_node), (else_body,test_node), (exit_node,else_body), (exit_node,body_node)])
 
     def test_multiple_if_else(self):
-        self.cfg_create_from_file('../example/example_inputs/multiple_if_else.py')
+        self.cfg_create_from_file('example/example_inputs/multiple_if_else.py')
 
         self.assert_length(self.cfg.nodes, expected_length=9)
 
@@ -307,7 +303,7 @@ class CFGIfTest(BaseTestCase):
         ])
 
     def test_if_else_elif(self):
-        self.cfg_create_from_file('../example/example_inputs/if_else_elif.py')
+        self.cfg_create_from_file('example/example_inputs/if_else_elif.py')
 
         self.assert_length(self.cfg.nodes, expected_length=7)
 
@@ -330,7 +326,7 @@ class CFGIfTest(BaseTestCase):
         ])
 
     def test_nested_if_else_elif(self):
-        self.cfg_create_from_file('../example/example_inputs/nested_if_else_elif.py')
+        self.cfg_create_from_file('example/example_inputs/nested_if_else_elif.py')
 
         self.assert_length(self.cfg.nodes, expected_length=12)
 
@@ -366,7 +362,7 @@ class CFGIfTest(BaseTestCase):
 
 
     def test_if_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/if_complete.py')
+        self.cfg_create_from_file('example/example_inputs/if_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=9)
@@ -389,7 +385,7 @@ class CFGIfTest(BaseTestCase):
         self.assertLineNumber(next_stmt, 8)
 
     def test_if_not(self):
-        self.cfg_create_from_file('../example/example_inputs/if_not.py')
+        self.cfg_create_from_file('example/example_inputs/if_not.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
 
@@ -404,7 +400,7 @@ class CFGIfTest(BaseTestCase):
 class CFGWhileTest(BaseTestCase):
 
     def test_while_complete(self):
-        self.cfg_create_from_file('../example/example_inputs/while_complete.py')
+        self.cfg_create_from_file('example/example_inputs/while_complete.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -422,7 +418,7 @@ class CFGWhileTest(BaseTestCase):
         self.assertInCfg([(test, entry), (body_1, test), (else_body_1, test), ( body_2, body_1), (test, body_2), (else_body_2, else_body_1), (next_node, else_body_2), (exit_node, next_node)])
 
     def test_while_no_orelse(self):
-        self.cfg_create_from_file('../example/example_inputs/while_no_orelse.py')
+        self.cfg_create_from_file('example/example_inputs/while_no_orelse.py')
 
         self.assert_length(self.cfg.nodes, expected_length=6)
 
@@ -436,7 +432,7 @@ class CFGWhileTest(BaseTestCase):
         self.assertInCfg([(test, entry), (body_1, test), ( next_node, test), (body_2, body_1), (test, body_2), (exit_node, next_node)])
 
     def test_while_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/while_complete.py')
+        self.cfg_create_from_file('example/example_inputs/while_complete.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=8)
@@ -458,7 +454,7 @@ class CFGWhileTest(BaseTestCase):
 
 class CFGAssignmentMultiTest(BaseTestCase):
     def test_assignment_multi_target(self):
-        self.cfg_create_from_file('../example/example_inputs/assignment_two_targets.py')
+        self.cfg_create_from_file('example/example_inputs/assignment_two_targets.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         start_node = 0
@@ -472,7 +468,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertEqual(self.cfg.nodes[node_2].label, 'y = 2')
 
     def test_assignment_multi_target_call(self):
-        self.cfg_create_from_file('../example/example_inputs/assignment_multiple_assign_call.py')
+        self.cfg_create_from_file('example/example_inputs/assignment_multiple_assign_call.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         start_node = self.cfg.nodes[0]
@@ -486,7 +482,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertEqual(node_2.label, 'y = int(4)')
 
     def test_assignment_multi_target_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/assignment_two_targets.py')
+        self.cfg_create_from_file('example/example_inputs/assignment_two_targets.py')
 
         node = self.cfg.nodes[1]
         node_2 = self.cfg.nodes[2]
@@ -495,7 +491,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertLineNumber(node_2, 1)
 
     def test_assignment_and_builtin(self):
-        self.cfg_create_from_file('../example/example_inputs/assignmentandbuiltin.py')
+        self.cfg_create_from_file('example/example_inputs/assignmentandbuiltin.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
 
@@ -507,7 +503,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertInCfg([(assign, entry), (builtin, assign), (exit_node, builtin)])
 
     def test_assignment_and_builtin_line_numbers(self):
-        self.cfg_create_from_file('../example/example_inputs/assignmentandbuiltin.py')
+        self.cfg_create_from_file('example/example_inputs/assignmentandbuiltin.py')
 
         assign = self.cfg.nodes[1]
         builtin = self.cfg.nodes[2]
@@ -516,7 +512,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertLineNumber(builtin, 2)
 
     def test_multiple_assignment(self):
-        self.cfg_create_from_file('../example/example_inputs/assignment_multiple_assign.py')
+        self.cfg_create_from_file('example/example_inputs/assignment_multiple_assign.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
 
@@ -529,7 +525,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertEqual(assign_y.label, 'y = 5')
 
     def test_assign_list_comprehension(self):
-        self.cfg_create_from_file('../example/example_inputs/generator_expression_assign.py')
+        self.cfg_create_from_file('example/example_inputs/generator_expression_assign.py')
 
         length = 3
         self.assert_length(self.cfg.nodes, expected_length = length)
@@ -542,7 +538,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertInCfg(list(l))
 
     def test_assignment_tuple_value(self):
-        self.cfg_create_from_file('../example/example_inputs/assignment_tuple_value.py')
+        self.cfg_create_from_file('example/example_inputs/assignment_tuple_value.py')
 
         self.assert_length(self.cfg.nodes, expected_length=3)
         start_node = 0
@@ -557,47 +553,47 @@ class CFGAssignmentMultiTest(BaseTestCase):
 
 class CFGComprehensionTest(BaseTestCase):
     def test_nodes(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
     def test_list_comprehension(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         listcomp = self.cfg.nodes[1]
 
         self.assertEqual(listcomp.label, 'l = [x for x in [1, 2, 3]]')
 
     def test_list_comprehension_multi(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         listcomp = self.cfg.nodes[2]
 
         self.assertEqual(listcomp.label, 'll = [(x, y) for x in [1, 2, 3] for y in [4, 5, 6]]')
 
     def test_dict_comprehension(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         dictcomp = self.cfg.nodes[3]
 
         self.assertEqual(dictcomp.label, 'd = {i : x for (i, x) in enumerate([1, 2, 3])}')
 
     def test_set_comprehension(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         setcomp = self.cfg.nodes[4]
 
         self.assertEqual(setcomp.label, 's = {x for x in [1, 2, 3, 2, 2, 1, 2]}')
 
     def test_generator_expression(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
 
         listcomp = self.cfg.nodes[5]
 
         self.assertEqual(listcomp.label, 'g = (x for x in [1, 2, 3])')
 
     def test_dict_comprehension_multi(self):
-        self.cfg_create_from_file('../example/example_inputs/comprehensions.py')
+        self.cfg_create_from_file('example/example_inputs/comprehensions.py')
         listcomp = self.cfg.nodes[6]
 
         self.assertEqual(listcomp.label, 'dd = {x + y : y for x in [1, 2, 3] for y in [4, 5, 6]}')
@@ -607,7 +603,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         return (successor, node)
 
     def test_simple_function(self):
-        path = '../example/example_inputs/simple_function.py'
+        path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
 
 
@@ -631,7 +627,7 @@ class CFGFunctionNodeTest(BaseTestCase):
                           self.connected(y_load, exit_)])
 
     def test_function_line_numbers(self):
-        path = '../example/example_inputs/simple_function.py'
+        path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
 
         y_assignment = self.cfg.nodes[1]
@@ -647,7 +643,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertLineNumber(body_foo, 2)
 
     def test_function_parameters(self):
-        path = '../example/example_inputs/parameters_function.py'
+        path = 'example/example_inputs/parameters_function.py'
         self.cfg_create_from_file(path)
 
         self.assert_length(self.cfg.nodes, expected_length=12)
@@ -673,7 +669,7 @@ class CFGFunctionNodeTest(BaseTestCase):
                           self.connected(restore_actual_y, exit_)])
 
     def test_function_with_return(self):
-        path = '../example/example_inputs/simple_function_with_return.py'
+        path = 'example/example_inputs/simple_function_with_return.py'
         self.cfg_create_from_file(path)
 
         self.assert_length(self.cfg.nodes, expected_length=18)
@@ -682,7 +678,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertInCfg(list(l))
 
     def test_function_multiple_return(self):
-        path = '../example/example_inputs/function_with_multiple_return.py'
+        path = 'example/example_inputs/function_with_multiple_return.py'
         self.cfg_create_from_file(path)
 
         self.assert_length(self.cfg.nodes, expected_length=9)
@@ -709,7 +705,7 @@ class CFGFunctionNodeTest(BaseTestCase):
 
 
     def test_function_line_numbers_2(self):
-        path = '../example/example_inputs/simple_function_with_return.py'
+        path = 'example/example_inputs/simple_function_with_return.py'
         self.cfg_create_from_file(path)
 #        self.cfg = CFG(get_python_modules(path))
  #       tree = generate_ast(path)
@@ -720,7 +716,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertLineNumber(assignment_with_function, 9)
 
     def test_multiple_parameters(self):
-        path = '../example/example_inputs/multiple_parameters_function.py'
+        path = 'example/example_inputs/multiple_parameters_function.py'
 
         self.cfg_create_from_file(path)
 
@@ -732,7 +728,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.assertInCfg(list(l))
 
     def test_call_on_call(self):
-        path = '../example/example_inputs/call_on_call.py'
+        path = 'example/example_inputs/call_on_call.py'
         self.cfg_create_from_file(path)
 
 
@@ -740,7 +736,7 @@ class CFGFunctionNodeTest(BaseTestCase):
 
 class CFGCallWithAttributeTest(BaseTestCase):
     def setUp(self):
-        self.cfg_create_from_file('../example/example_inputs/call_with_attribute.py')
+        self.cfg_create_from_file('example/example_inputs/call_with_attribute.py')
 
     def test_call_with_attribute(self):
         length = 14
@@ -760,7 +756,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
 class CFGBreak(BaseTestCase):
     """Break in while and for and other places"""
     def test_break(self):
-        self.cfg_create_from_file('../example/example_inputs/while_break.py')
+        self.cfg_create_from_file('example/example_inputs/while_break.py')
 
         self.assert_length(self.cfg.nodes, expected_length=8)
 
@@ -778,7 +774,7 @@ class CFGBreak(BaseTestCase):
 
 class CFGNameConstant(BaseTestCase):
     def setUp(self):
-        self.cfg_create_from_file('../example/example_inputs/name_constant.py')
+        self.cfg_create_from_file('example/example_inputs/name_constant.py')
 
     def test_name_constant_in_assign(self):
         self.assert_length(self.cfg.nodes, expected_length=6)
@@ -798,14 +794,14 @@ class CFGName(BaseTestCase):
     """Test is Name nodes are properly handled in different contexts"""
 
     def test_name_if(self):
-        self.cfg_create_from_file('../example/example_inputs/name_if.py')
+        self.cfg_create_from_file('example/example_inputs/name_if.py')
 
 
         self.assert_length(self.cfg.nodes, expected_length=5)
         self.assertEqual(self.cfg.nodes[2].label, 'if x:')
 
     def test_name_for(self):
-        self.cfg_create_from_file('../example/example_inputs/name_for.py')
+        self.cfg_create_from_file('example/example_inputs/name_for.py')
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')

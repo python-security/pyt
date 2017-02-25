@@ -1,9 +1,9 @@
 import ast
-
-from ast_helper import Arguments, get_call_names_as_string
 from collections import namedtuple
-from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
+
+from .ast_helper import Arguments, get_call_names_as_string
+from .label_visitor import LabelVisitor
+from .right_hand_side_visitor import RHSVisitor
 
 
 ControlFlowNode = namedtuple('ControlFlowNode',

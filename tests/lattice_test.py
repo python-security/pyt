@@ -1,11 +1,7 @@
-import os
-import sys
-
-from base_test_case import BaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from constraint_table import constraint_table
-from lattice import Lattice
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .base_test_case import BaseTestCase
+from pyt.constraint_table import constraint_table
+from pyt.lattice import Lattice
+from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class LatticeTest(BaseTestCase):

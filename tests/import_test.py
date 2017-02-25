@@ -1,16 +1,14 @@
 import ast
 import os
-import sys
 
-from base_test_case import BaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from base_cfg import get_call_names_as_string
-from project_handler import get_directory_modules, get_python_modules
+from .base_test_case import BaseTestCase
+from pyt.base_cfg import get_call_names_as_string
+from pyt.project_handler import get_directory_modules, get_python_modules
 
 
 class ImportTest(BaseTestCase):
     def test_import(self):
-        path = os.path.normpath('../example/import_test_project/main.py')
+        path = os.path.normpath('example/import_test_project/main.py')
 
         project_modules = get_python_modules(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))

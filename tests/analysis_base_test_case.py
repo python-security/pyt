@@ -1,13 +1,10 @@
-import os
-import sys
 import unittest
 from collections import namedtuple
 
-from base_test_case import BaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from constraint_table import initialize_constraint_table
-from fixed_point import FixedPointAnalysis
-from lattice import Lattice
+from .base_test_case import BaseTestCase
+from pyt.constraint_table import initialize_constraint_table
+from pyt.fixed_point import FixedPointAnalysis
+from pyt.lattice import Lattice
 
 
 class AnalysisBaseTestCase(BaseTestCase):

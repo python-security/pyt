@@ -5,22 +5,22 @@ import os
 from datetime import date
 from pprint import pprint
 
-from argument_helpers import valid_date
-from ast_helper import generate_ast
-from draw import draw_cfgs, draw_lattices
-from constraint_table import initialize_constraint_table, print_table
-from fixed_point import analyse
-from flask_adaptor import FlaskAdaptor
-from github_search import scan_github, set_github_api_token
-from interprocedural_cfg import interprocedural
-from intraprocedural_cfg import intraprocedural
-from lattice import print_lattice
-from liveness import LivenessAnalysis
-from project_handler import get_directory_modules, get_python_modules
-from reaching_definitions import ReachingDefinitionsAnalysis
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from repo_runner import get_repos
-from save import (
+from .argument_helpers import valid_date
+from .ast_helper import generate_ast
+from .draw import draw_cfgs, draw_lattices
+from .constraint_table import initialize_constraint_table, print_table
+from .fixed_point import analyse
+from .flask_adaptor import FlaskAdaptor
+from .github_search import scan_github, set_github_api_token
+from .interprocedural_cfg import interprocedural
+from .intraprocedural_cfg import intraprocedural
+from .lattice import print_lattice
+from .liveness import LivenessAnalysis
+from .project_handler import get_directory_modules, get_python_modules
+from .reaching_definitions import ReachingDefinitionsAnalysis
+from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .repo_runner import get_repos
+from .save import (
     cfg_to_file,
     create_database,
     def_use_chain_to_file,
@@ -30,7 +30,7 @@ from save import (
     verbose_cfg_to_file,
     vulnerabilities_to_file
 )
-from vulnerabilities import find_vulnerabilities
+from .vulnerabilities import find_vulnerabilities
 
 
 parser = argparse.ArgumentParser()

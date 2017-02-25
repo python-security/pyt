@@ -3,16 +3,16 @@
 import ast
 from collections import namedtuple
 
-from base_cfg import Node, AssignmentNode, ReturnNode
-from framework_adaptor import TaintedNode
-from vulnerability_log import (
+from .base_cfg import Node, AssignmentNode, ReturnNode
+from .framework_adaptor import TaintedNode
+from .vulnerability_log import (
     Vulnerability,
     VulnerabilityLog,
     SanitisedVulnerability
 )
-from lattice import Lattice
-from vars_visitor import VarsVisitor
-from trigger_definitions_parser import default_trigger_word_file, parse
+from .lattice import Lattice
+from .vars_visitor import VarsVisitor
+from .trigger_definitions_parser import default_trigger_word_file, parse
 
 
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')

@@ -1,10 +1,10 @@
 """Adaptor for Flask web applications."""
 import ast
 
-from ast_helper import Arguments, get_call_names
-from framework_adaptor import FrameworkAdaptor, TaintedNode
-from interprocedural_cfg import interprocedural
-from module_definitions import project_definitions
+from .ast_helper import Arguments, get_call_names
+from .framework_adaptor import FrameworkAdaptor, TaintedNode
+from .interprocedural_cfg import interprocedural
+from .module_definitions import project_definitions
 
 
 class FlaskAdaptor(FrameworkAdaptor):

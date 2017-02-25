@@ -1,15 +1,12 @@
-import os
-import sys
 from collections import namedtuple, OrderedDict
 
-from analysis_base_test_case import AnalysisBaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .analysis_base_test_case import AnalysisBaseTestCase
+from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
     def test_linear_program(self):
-        lattice = self.run_analysis('../example/example_inputs/linear.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('example/example_inputs/linear.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -18,7 +15,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
 
 
     def test_if_program(self):
-        lattice = self.run_analysis('../example/example_inputs/if_program.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('example/example_inputs/if_program.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2),
@@ -27,7 +24,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
                           (1,5), (3,5)], lattice)
 
     def test_example(self):
-        lattice = self.run_analysis('../example/example_inputs/example.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('example/example_inputs/example.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -43,7 +40,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
                           *self.constraints([1,2,4,6,7,9,10], 12)], lattice)
 
     def test_func_with_params(self):
-        lattice = self.run_analysis('../example/example_inputs/function_with_params.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('example/example_inputs/function_with_params.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -57,7 +54,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
                           *self.constraints([2,3,4,6,9], 10)], lattice)
 
     def test_while(self):
-        lattice = self.run_analysis('../example/example_inputs/while.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('example/example_inputs/while.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (3,2),

@@ -1,10 +1,8 @@
 import os
-import sys
 import unittest
 from pprint import pprint
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from project_handler import get_python_modules, is_python_module
+from pyt.project_handler import get_python_modules, is_python_module
 
 
 class ProjectHandlerTest(unittest.TestCase):
@@ -18,7 +16,7 @@ class ProjectHandlerTest(unittest.TestCase):
         self.assertEqual(is_python_module(not_python_module), False)
 
     def test_get_python_modules(self):
-        project_folder = os.path.normpath(os.path.join('..', 'example', 'test_project'))
+        project_folder = os.path.normpath(os.path.join('example', 'test_project'))
 
         project_namespace = 'test_project'
         folder = 'folder'

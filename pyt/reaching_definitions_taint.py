@@ -1,7 +1,7 @@
-from analysis_base import AnalysisBase
-from base_cfg import AssignmentNode
-from constraint_table import constraint_join, constraint_table
-from lattice import Lattice
+from .analysis_base import AnalysisBase
+from .base_cfg import AssignmentNode
+from .constraint_table import constraint_join, constraint_table
+from .lattice import Lattice
 
 
 class ReachingDefinitionsTaintAnalysis(AnalysisBase):

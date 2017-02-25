@@ -4,7 +4,7 @@ from graphviz import Digraph
 from itertools import permutations
 from subprocess import run
 
-from base_cfg import AssignmentNode
+from .base_cfg import AssignmentNode
 
 
 IGNORED_LABEL_NAME_CHARACHTERS = ':'

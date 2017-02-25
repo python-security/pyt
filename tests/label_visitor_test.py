@@ -1,10 +1,7 @@
 import ast
-import os
-import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from label_visitor import LabelVisitor
+from pyt.label_visitor import LabelVisitor
 
 
 class LabelVisitorTestCase(unittest.TestCase):

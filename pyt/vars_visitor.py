@@ -1,6 +1,6 @@
 import ast
 
-from ast_helper import get_call_names
+from .ast_helper import get_call_names
 
 
 class VarsVisitor(ast.NodeVisitor):

@@ -1,4 +1,4 @@
-from constraint_table import constraint_table
+from .constraint_table import constraint_table
 
 
 class Lattice:

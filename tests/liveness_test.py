@@ -1,15 +1,11 @@
-import os
-import sys
-
-from analysis_base_test_case import AnalysisBaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from constraint_table import constraint_table
-from liveness import LivenessAnalysis
+from .analysis_base_test_case import AnalysisBaseTestCase
+from pyt.constraint_table import constraint_table
+from pyt.liveness import LivenessAnalysis
 
 
 class LivenessTest(AnalysisBaseTestCase):
     def test_example(self):
-        lattice = self.run_analysis('../example/example_inputs/example.py', LivenessAnalysis)
+        lattice = self.run_analysis('example/example_inputs/example.py', LivenessAnalysis)
 
         x = 0b1
         y = 0b10

@@ -2,7 +2,7 @@
 the source code to a specific framework."""
 from abc import ABCMeta, abstractmethod
 
-from base_cfg import AssignmentNode
+from .base_cfg import AssignmentNode
 
 
 class FrameworkAdaptor(metaclass=ABCMeta):

@@ -10,15 +10,15 @@ import ast
 import logging
 from collections import namedtuple
 
-from ast_helper import Arguments, generate_ast, get_call_names_as_string
-from label_visitor import LabelVisitor
-from module_definitions import (
+from .ast_helper import Arguments, generate_ast, get_call_names_as_string
+from .label_visitor import LabelVisitor
+from .module_definitions import (
     LocalModuleDefinition,
     ModuleDefinition,
     ModuleDefinitions
 )
-from project_handler import get_directory_modules
-from right_hand_side_visitor import RHSVisitor
+from .project_handler import get_directory_modules
+from .right_hand_side_visitor import RHSVisitor
 
 
 CALL_IDENTIFIER = '¤'

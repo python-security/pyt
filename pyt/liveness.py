@@ -1,11 +1,11 @@
 import ast
 
-from base_cfg import AssignmentNode, EntryExitNode
-from analysis_base import AnalysisBase
-from lattice import Lattice
-from constraint_table import constraint_table, constraint_join
-from ast_helper import get_call_names_as_string
-from vars_visitor import VarsVisitor
+from .base_cfg import AssignmentNode, EntryExitNode
+from .analysis_base import AnalysisBase
+from .lattice import Lattice
+from .constraint_table import constraint_table, constraint_join
+from .ast_helper import get_call_names_as_string
+from .vars_visitor import VarsVisitor
 
 
 class LivenessAnalysis(AnalysisBase):

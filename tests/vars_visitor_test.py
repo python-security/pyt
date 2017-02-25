@@ -1,10 +1,7 @@
 import ast
-import os
-import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from vars_visitor import VarsVisitor
+from pyt.vars_visitor import VarsVisitor
 
 
 class VarsVisitorTestCase(unittest.TestCase):

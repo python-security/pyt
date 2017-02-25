@@ -1,16 +1,13 @@
 import os
-import sys
 
-from base_test_case import BaseTestCase
-sys.path.insert(1, os.path.abspath('../pyt'))
-import trigger_definitions_parser
-import vulnerabilities
-from base_cfg import Node
-from constraint_table import constraint_table, initialize_constraint_table
-from fixed_point import analyse
-from flask_adaptor import FlaskAdaptor
-from lattice import Lattice
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .base_test_case import BaseTestCase
+from pyt import trigger_definitions_parser, vulnerabilities
+from pyt.base_cfg import Node
+from pyt.constraint_table import constraint_table, initialize_constraint_table
+from pyt.fixed_point import analyse
+from pyt.flask_adaptor import FlaskAdaptor
+from pyt.lattice import Lattice
+from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class EngineTest(BaseTestCase):
@@ -22,7 +19,7 @@ class EngineTest(BaseTestCase):
         return cfg_nodes
 
     def test_parse(self):
-        definitions = vulnerabilities.parse(trigger_word_file=os.path.join(os.getcwd().replace('tests','pyt'), 'trigger_definitions', 'test_triggers.pyt'))
+        definitions = vulnerabilities.parse(trigger_word_file=os.path.join(os.getcwd(), 'pyt', 'trigger_definitions', 'test_triggers.pyt'))
 
         self.assert_length(definitions.sources, expected_length=1)
         self.assert_length(definitions.sinks, expected_length=3)
@@ -66,7 +63,7 @@ class EngineTest(BaseTestCase):
         self.assert_length(l, expected_length=2)
 
     def test_find_triggers(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS.py')
+        self.cfg_create_from_file('example/vulnerable_code/XSS.py')
 
         cfg_list = [self.cfg]
 
@@ -90,7 +87,7 @@ class EngineTest(BaseTestCase):
 
 
     def test_build_sanitiser_node_dict(self):
-        self.cfg_create_from_file('../example/vulnerable_code/XSS_sanitised.py')
+        self.cfg_create_from_file('example/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
 
         FlaskAdaptor(cfg_list, [], [])
@@ -134,24 +131,24 @@ class EngineTest(BaseTestCase):
         self.assertEqual(result, True)
 
     def test_find_vulnerabilities_no_vuln(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_no_vuln.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_no_vuln.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_sanitised(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_sanitised.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_sanitised.py')
 
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_vulnerable(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_reassign(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_reassign.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_reassign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_assign.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_variable_assign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def run_analysis(self, path):
@@ -168,17 +165,17 @@ class EngineTest(BaseTestCase):
         return vulnerabilities.find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis)
 
     def test_find_vulnerabilities_assign_other_var(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_assign_to_other_var.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_assign_to_other_var.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_multiple_assign(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_multiple_assign.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_variable_multiple_assign.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_variable_assign_no_vuln(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/XSS_variable_assign_no_vuln.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_variable_assign_no_vuln.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_command_injection(self):
-        vulnerability_log = self.run_analysis('../example/vulnerable_code/command_injection.py')
+        vulnerability_log = self.run_analysis('example/vulnerable_code/command_injection.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)

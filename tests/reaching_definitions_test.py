@@ -1,14 +1,10 @@
-import sys
-import os
-
-from analysis_base_test_case import AnalysisBaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from reaching_definitions import ReachingDefinitionsAnalysis
+from .analysis_base_test_case import AnalysisBaseTestCase
+from pyt.reaching_definitions import ReachingDefinitionsAnalysis
 
 
 class ReachingDefinitionsTest(AnalysisBaseTestCase):
     def test_linear_program(self):
-        lattice = self.run_analysis('../example/example_inputs/linear.py', ReachingDefinitionsAnalysis)
+        lattice = self.run_analysis('example/example_inputs/linear.py', ReachingDefinitionsAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -16,7 +12,7 @@ class ReachingDefinitionsTest(AnalysisBaseTestCase):
                           (1,4), (2,4)], lattice)
 
     def test_example(self):
-        lattice = self.run_analysis('../example/example_inputs/example.py', ReachingDefinitionsAnalysis)
+        lattice = self.run_analysis('example/example_inputs/example.py', ReachingDefinitionsAnalysis)
 
         self.assertInCfg([(1,1),
                           (2,2),
@@ -31,4 +27,4 @@ class ReachingDefinitionsTest(AnalysisBaseTestCase):
                           *self.constraints([2,4,6,9,10], 11),
                           *self.constraints([2,4,6,9,10], 12)], lattice)
 
-                    
+

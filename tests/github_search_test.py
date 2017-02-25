@@ -1,10 +1,7 @@
-import os
-import sys
 import unittest
 from datetime import date
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from github_search import get_dates
+from pyt.github_search import get_dates
 
 
 class GetDatesTest(unittest.TestCase):

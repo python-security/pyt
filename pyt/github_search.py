@@ -4,10 +4,10 @@ import time
 from abc import ABCMeta, abstractmethod
 from datetime import date, datetime, timedelta
 
-from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from repo_runner import add_repo_to_csv, NoEntryPathError, Repo
-from save import save_repo_scan
-from vulnerabilities import SinkArgsError
+from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .repo_runner import add_repo_to_csv, NoEntryPathError, Repo
+from .save import save_repo_scan
+from .vulnerabilities import SinkArgsError
 
 
 DEFAULT_TIMEOUT_IN_SECONDS = 60

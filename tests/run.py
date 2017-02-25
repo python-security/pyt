@@ -3,10 +3,9 @@ from subprocess import PIPE, run
 
 
 delimiter = '#¤%&/()=?'
-results_file = 'results'
-pyt_path = '../pyt/pyt.py'
-example_file_path = '../example/vulnerable_code/'
-python_name = open('python_name.txt', 'r').read().rstrip()
+results_file = 'tests/results'
+example_file_path = 'example/vulnerable_code/'
+python_name = open('tests/python_name.txt', 'r').read().rstrip()
 encoding = 'utf-8'
 
 parser = argparse.ArgumentParser()
@@ -26,7 +25,7 @@ files = [example_file_path + filename for filename in files]
 
 
 def run_pyt(file_input, stdout=PIPE):
-    return run([python_name, pyt_path, '-f', file_input], stdout=stdout)
+    return run([python_name, '-m', 'pyt', '-f', file_input], stdout=stdout)
 
 
 def check_files():

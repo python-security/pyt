@@ -1,7 +1,7 @@
 import ast
 
-from ast_helper import Arguments, generate_ast
-from base_cfg import (
+from .ast_helper import Arguments, generate_ast
+from .base_cfg import (
     CALL_IDENTIFIER,
     CFG,
     EntryExitNode,
@@ -10,8 +10,8 @@ from base_cfg import (
     ReturnNode,
     Visitor
 )
-from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
+from .label_visitor import LabelVisitor
+from .right_hand_side_visitor import RHSVisitor
 
 
 class IntraproceduralVisitor(Visitor):
