@@ -10,4 +10,8 @@ Features planned:
 
 Work in progress
 
+# Contributions
+Join our slack group: https://pyt-dev.slack.com/
+[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
+
 [![Build Status](https://travis-ci.org/python-security/pyt.svg?branch=master)](https://travis-ci.org/python-security/pyt)
