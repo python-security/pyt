@@ -4,8 +4,9 @@ import time
 from abc import ABCMeta, abstractmethod
 from datetime import date, datetime, timedelta
 
+from . import repo_runner
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from .repo_runner import add_repo_to_csv, NoEntryPathError, Repo
+from .repo_runner import add_repo_to_csv, NoEntryPathError
 from .save import save_repo_scan
 from .vulnerabilities import SinkArgsError
 
@@ -210,7 +211,7 @@ def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv
                       Languages.python, repo)
             s = SearchCode(q)
             if s.results:
-                r = Repo(repo.url)
+                r = repo_runner.Repo(repo.url)
                 try:
                     r.clone()
                 except NoEntryPathError as err:
@@ -249,7 +250,7 @@ if __name__ == '__main__':
     for repo in s.results[:3]:
         q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
         s = SearchCode(q)
-        r = Repo(repo.url)
+        r = repo_runner.Repo(repo.url)
         r.clone()
         print(r.path)
         r.clean_up()
