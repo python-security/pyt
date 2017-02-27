@@ -15,7 +15,16 @@ Using it like a user:
 
 Running the tests: `python -m tests`
 
+Running an individual test file: `python -m unittest tests.import_test`
+
+Running an individual test: `python -m unittest tests.import_test.ImportTest.test_import`
+
 Work in progress
+
+# Contributions
+Join our slack group: https://pyt-dev.slack.com/
+
+[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
 
 ## Virtual env setup guide
 
