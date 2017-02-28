@@ -15,7 +15,16 @@ Using it like a user:
 
 Running the tests: `python -m tests`
 
+Running an individual test file: `python -m unittest tests.import_test`
+
+Running an individual test: `python -m unittest tests.import_test.ImportTest.test_import`
+
 Work in progress
+
+# Contributions
+Join our slack group: https://pyt-dev.slack.com/
+
+[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
 
 ## Virtual env setup guide
 
@@ -48,19 +57,14 @@ Install dependencies
 `pip install -r requirements.txt`
 
 `pip list` sample output
+
 ```
 gitdb (0.6.4)
-
 GitPython (2.0.8)
-
 graphviz (0.4.10)
-
 pip (9.0.1)
-
 requests (2.10.0)
-
 setuptools (28.8.0)
-
 smmap (0.9.0)
 ```
 

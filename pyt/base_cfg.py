@@ -92,7 +92,7 @@ class FunctionNode(Node):
 
         This node is a dummy node representing a function definition
         """
-        super(FunctionNode, self).__init__(self.__class__.__name__, ast_node)
+        super().__init__(self.__class__.__name__, ast_node)
 
 
 class RaiseNode(Node, ConnectToExitNode):
@@ -100,21 +100,21 @@ class RaiseNode(Node, ConnectToExitNode):
 
     def __init__(self, label, ast_node, *, line_number, path):
         """Create a Raise node."""
-        super(RaiseNode, self).__init__(label, ast_node, line_number=line_number, path=path)
+        super().__init__(label, ast_node, line_number=line_number, path=path)
 
 
 class BreakNode(Node):
     """CFG Node that represents a Break node."""
 
     def __init__(self, ast_node, *, line_number, path):
-        super(BreakNode, self).__init__(self.__class__.__name__, ast_node, line_number=line_number, path=path)
+        super().__init__(self.__class__.__name__, ast_node, line_number=line_number, path=path)
 
 
 class EntryExitNode(Node):
     """CFG Node that represents a Exit or an Entry node."""
 
     def __init__(self, label):
-        super(EntryExitNode, self).__init__(label, None, line_number=None, path=None)
+        super().__init__(label, None, line_number=None, path=None)
 
 
 class AssignmentNode(Node):
@@ -129,12 +129,12 @@ class AssignmentNode(Node):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(AssignmentNode, self).__init__(label, ast_node, line_number=line_number, path=path)
+        super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
 
     def __repr__(self):
-        output_string = super(AssignmentNode, self).__repr__()
+        output_string = super().__repr__()
         output_string += '\n'
         return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side), '\n', 'right_hand_side_variables:\t', str(self.right_hand_side_variables)))
 
@@ -151,7 +151,7 @@ class RestoreNode(AssignmentNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(RestoreNode, self).__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
 
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
@@ -166,7 +166,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super(ReturnNode, self).__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
 
 
 class Function(object):

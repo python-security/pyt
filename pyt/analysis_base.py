@@ -1,4 +1,4 @@
-"""Thos module contains a base class for the analysis component used in PyT."""
+"""This module contains a base class for the analysis component used in PyT."""
 from abc import ABCMeta, abstractmethod
 
 
