@@ -1,5 +1,5 @@
 from .base_test_case import BaseTestCase
-from pyt.base_cfg import Node, EntryExitNode
+from pyt.base_cfg import EntryOrExitNode, Node
 from pyt.project_handler import get_python_modules
 
 
@@ -38,8 +38,8 @@ class CFGGeneralTest(BaseTestCase):
 
         self.assertInCfg([(1,0),(2,1)])
 
-        self.assertEqual(type(self.cfg.nodes[start_node]), EntryExitNode)
-        self.assertEqual(type(self.cfg.nodes[exit_node]), EntryExitNode)
+        self.assertEqual(type(self.cfg.nodes[start_node]), EntryOrExitNode)
+        self.assertEqual(type(self.cfg.nodes[exit_node]), EntryOrExitNode)
 
     def test_start_and_exit_nodes_line_numbers(self):
         self.cfg_create_from_file('example/example_inputs/simple.py')

@@ -30,9 +30,9 @@ Join our slack group: https://pyt-dev.slack.com/
 
 Create a directory to hold the virtual env and project
 
-`mkdir ~/pyt`
+`mkdir ~/a_folder`
 
-`cd ~/pyt`
+`cd ~/a_folder`
 
 Clone the project into the directory
 
@@ -40,13 +40,13 @@ Clone the project into the directory
 
 Create the virtual environment
 
-`python3 -m venv ~/pyt/`
+`python3 -m venv ~/a_folder/`
 
 Check that you have the right versions
 
 `python --version` sample output `Python 3.6.0`
 
-`pip --version` sample output `pip 9.0.1 from /Users/kevinhock/pyt/lib/python3.6/site-packages (python 3.6)`
+`pip --version` sample output `pip 9.0.1 from /Users/kevinhock/a_folder/lib/python3.6/site-packages (python 3.6)`
 
 Change to project directory
 

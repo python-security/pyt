@@ -1,6 +1,6 @@
 import ast
 
-from .base_cfg import AssignmentNode, EntryExitNode
+from .base_cfg import AssignmentNode, EntryOrExitNode
 from .analysis_base import AnalysisBase
 from .lattice import Lattice
 from .constraint_table import constraint_table, constraint_join
@@ -84,7 +84,7 @@ class LivenessAnalysis(AnalysisBase):
 
     def fixpointmethod(self, cfg_node):
 
-        if isinstance(cfg_node, EntryExitNode) and 'Exit' in cfg_node.label:
+        if isinstance(cfg_node, EntryOrExitNode) and 'Exit' in cfg_node.label:
             constraint_table[cfg_node] = 0
         elif isinstance(cfg_node, AssignmentNode):
             JOIN = self.join(cfg_node)
