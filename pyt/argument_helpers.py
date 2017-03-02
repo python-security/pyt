@@ -1,5 +1,6 @@
-from datetime import datetime
 from argparse import ArgumentTypeError
+from datetime import datetime
+
 
 def valid_date(s):
     date_format = "%Y-%m-%d"

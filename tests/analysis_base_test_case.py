@@ -1,13 +1,11 @@
 import unittest
-import sys
-import os
 from collections import namedtuple
 
-from base_test_case import BaseTestCase
-sys.path.insert(0, os.path.abspath('../pyt'))
-from constraint_table import initialize_constraint_table
-from fixed_point import FixedPointAnalysis
-from lattice import Lattice
+from .base_test_case import BaseTestCase
+from pyt.constraint_table import initialize_constraint_table
+from pyt.fixed_point import FixedPointAnalysis
+from pyt.lattice import Lattice
+
 
 class AnalysisBaseTestCase(BaseTestCase):
     connection = namedtuple('connection', 'constraintset element')
@@ -22,7 +20,7 @@ class AnalysisBaseTestCase(BaseTestCase):
         for connection in connections:
             self.assertEqual(lattice.in_constraint(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]]), True, str(connection) + " expected to be connected")
         nodes = len(self.cfg.nodes)
-        
+
         for element in range(nodes):
             for sets in range(nodes):
                 if (element, sets) not in connections:

@@ -1,6 +1,6 @@
 import os
-
 from collections import namedtuple
+
 
 SANITISER_SEPARATOR = '->'
 SOURCES_KEYWORD = 'sources:'

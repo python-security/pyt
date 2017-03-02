@@ -1,10 +1,17 @@
 import ast
 
-from base_cfg import Visitor, Node, CFG, EntryExitNode, IgnoredNode,\
-    CALL_IDENTIFIER, ReturnNode
-from right_hand_side_visitor import RHSVisitor
-from label_visitor import LabelVisitor
-from ast_helper import generate_ast, Arguments
+from .ast_helper import Arguments, generate_ast
+from .base_cfg import (
+    CALL_IDENTIFIER,
+    CFG,
+    EntryOrExitNode,
+    IgnoredNode,
+    Node,
+    ReturnNode,
+    Visitor
+)
+from .label_visitor import LabelVisitor
+from .right_hand_side_visitor import RHSVisitor
 
 
 class IntraproceduralVisitor(Visitor):
@@ -25,7 +32,7 @@ class IntraproceduralVisitor(Visitor):
             self.init_module_cfg(node)
 
     def init_module_cfg(self, node):
-        entry_node = self.append_node(EntryExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode("Entry module"))
 
         module_statements = self.visit(node)
 
@@ -39,21 +46,21 @@ class IntraproceduralVisitor(Visitor):
             if CALL_IDENTIFIER not in first_node.label:
                 entry_node.connect(first_node)
 
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
 
             last_nodes = module_statements.last_statements
             exit_node.connect_predecessors(last_nodes)
         else:
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node):
 
-        entry_node = self.append_node(EntryExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode("Entry module"))
 
         module_statements = self.stmt_star_handler(node.body)
         if isinstance(module_statements, IgnoredNode):
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
             entry_node.connect(exit_node)
             return
 
@@ -61,7 +68,7 @@ class IntraproceduralVisitor(Visitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode("Exit module"))
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)

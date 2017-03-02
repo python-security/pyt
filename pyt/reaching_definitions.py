@@ -1,14 +1,14 @@
-from base_cfg import AssignmentNode
-from analysis_base import AnalysisBase
-from lattice import Lattice
-from constraint_table import constraint_table, constraint_join
+from .analysis_base import AnalysisBase
+from .base_cfg import AssignmentNode
+from .constraint_table import constraint_join, constraint_table
+from .lattice import Lattice
 
 
 class ReachingDefinitionsAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
     def __init__(self, cfg):
-        super(ReachingDefinitionsAnalysis, self).__init__(cfg, None)
+        super().__init__(cfg, None)
 
     def join(self, cfg_node):
         """Joins all constraints of the ingoing nodes and returns them.

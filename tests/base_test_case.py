@@ -1,12 +1,9 @@
 """A module that contains a base class that has helper methods for testing PyT."""
 import unittest
-import sys
-import os
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from interprocedural_cfg import interprocedural
-from ast_helper import generate_ast
-from module_definitions import project_definitions
+from pyt.ast_helper import generate_ast
+from pyt.interprocedural_cfg import interprocedural
+from pyt.module_definitions import project_definitions
 
 
 class BaseTestCase(unittest.TestCase):
@@ -36,7 +33,7 @@ class BaseTestCase(unittest.TestCase):
 
         self.assertIn(successor, node.outgoing,
                        '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
-        
+
         self.assertIn(node, successor.ingoing,
                        '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
 
@@ -47,7 +44,7 @@ class BaseTestCase(unittest.TestCase):
 
         self.assertNotIn(successor, node.outgoing,
                        '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
-        
+
         self.assertNotIn(node, successor.ingoing,
                          '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
 

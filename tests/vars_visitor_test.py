@@ -1,17 +1,14 @@
-import os
-import sys
+import ast
 import unittest
-from ast import parse
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from vars_visitor import VarsVisitor
+from pyt.vars_visitor import VarsVisitor
 
 
 class VarsVisitorTestCase(unittest.TestCase):
     '''Baseclass for VarsVisitor tests'''
 
     def perform_vars_on_expression(self, expr):
-        obj = parse(expr)
+        obj = ast.parse(expr)
         vars = VarsVisitor()
         vars.visit(obj)
 

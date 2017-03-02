@@ -1,8 +1,7 @@
-from constraint_table import constraint_table
+from .constraint_table import constraint_table
 
 
 class Lattice:
-
     def __init__(self, cfg_nodes, analysis_type):
         self.el2bv = dict()  # Element to bitvector dictionary
         self.bv2el = list()  # Bitvector to element list

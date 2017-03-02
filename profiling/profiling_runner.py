@@ -2,19 +2,21 @@
 
 Saves the result for future reference.
 """
-from subprocess import Popen
 from datetime import datetime
 from shutil import which
+from subprocess import Popen
 
-TRAVIS_PYTHON = 'python'
+
+FIXED_POINT_FLAG = '-fp'
+KERNPROF = 'kernprof-3.5'
 PROFILER = 'profiler.py'
+PROFILING_DB = 'db.txt'
 TEST_PROJECT_1 = 'test_projects/flaskbb_lite_1/flaskbb/app.py'
 TEST_PROJECT_2 = 'test_projects/flaskbb_lite_2/flaskbb/app.py'
 TEST_PROJECT_3 = 'test_projects/flaskbb_lite_3/flaskbb/app.py'
 TEST_PROJECTS = [TEST_PROJECT_1, TEST_PROJECT_2, TEST_PROJECT_3]
-FIXED_POINT_FLAG = '-fp'
-PROFILING_DB = 'db.txt'
-KERNPROF = 'kernprof-3.5'
+TRAVIS_PYTHON = 'python'
+
 
 if which(KERNPROF) is None:
     print('You need "kernprof" to run this script. Install: "pip3 install line_profiler".')

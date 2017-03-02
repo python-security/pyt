@@ -1,18 +1,18 @@
-from ast import NodeVisitor
 import ast
 
-class LabelVisitor(NodeVisitor):
+
+class LabelVisitor(ast.NodeVisitor):
     def __init__(self):
         self.result = ''
-    
+
     def handle_comma_separated(self, comma_separated_list):
         if comma_separated_list:
             for element in range(len(comma_separated_list)-1):
                 self.visit(comma_separated_list[element])
                 self.result += ', '
-            
+
             self.visit(comma_separated_list[-1])
-    
+
     def visit_Tuple(self, node):
         self.result += '('
 
@@ -24,7 +24,7 @@ class LabelVisitor(NodeVisitor):
         self.result += '['
 
         self.handle_comma_separated(node.elts)
-        
+
         self.result += ']'
 
     def visit_Raise(self, node):
@@ -42,17 +42,17 @@ class LabelVisitor(NodeVisitor):
         if node.optional_vars:
             self.result += ' as '
             self.visit(node.optional_vars)
-    
+
     def visit_Return(self, node):
         if node.value:
             self.visit(node.value)
-        
+
     def visit_Assign(self, node):
         for target in node.targets:
             self.visit(target)
         self.result = ' '.join((self.result,'='))
         self.insert_space()
-        
+
         self.visit(node.value)
 
     def visit_AugAssign(self, node):
@@ -67,7 +67,7 @@ class LabelVisitor(NodeVisitor):
     def visit_Compare(self,node):
         self.visit(node.left)
         self.insert_space()
-        
+
         for op,com in zip(node.ops,node.comparators):
             self.visit(op)
             self.insert_space()
@@ -82,7 +82,7 @@ class LabelVisitor(NodeVisitor):
         self.insert_space()
         self.visit(node.op)
         self.insert_space()
-        
+
         self.visit(node.right)
 
     def visit_UnaryOp(self, node):
@@ -96,7 +96,7 @@ class LabelVisitor(NodeVisitor):
             else:
                 self.visit(value)
                 self.visit(node.op)
-    
+
     def comprehensions(self, node):
         self.visit(node.elt)
 
@@ -105,12 +105,12 @@ class LabelVisitor(NodeVisitor):
             self.visit(expression.target)
             self.result += ' in '
             self.visit(expression.iter)
-        
+
     def visit_GeneratorExp(self, node):
         self.result += '('
         self.comprehensions(node)
         self.result += ')'
-        
+
     def visit_ListComp(self, node):
         self.result += '['
         self.comprehensions(node)
@@ -124,23 +124,23 @@ class LabelVisitor(NodeVisitor):
 
     def visit_DictComp(self, node):
         self.result += '{'
-        
+
         self.visit(node.key)
         self.result += ' : '
         self.visit(node.value)
-        
+
         for expression in node.generators:
             self.result += ' for '
             self.visit(expression.target)
             self.result += ' in '
             self.visit(expression.iter)
-            
+
         self.result += '}'
     def visit_Attribute(self, node):
         self.visit(node.value)
         self.result += '.'
         self.result += node.attr
-        
+
     def visit_Call(self, node):
         self.visit(node.func)
         self.result += '('
@@ -171,7 +171,7 @@ class LabelVisitor(NodeVisitor):
         self.result += '['
 
         self.slicev(node.slice)
-        
+
         self.result += ']'
 
     def slicev(self, node):
@@ -188,7 +188,7 @@ class LabelVisitor(NodeVisitor):
                     self.visit(d)
         else:
             self.visit(node.value)
-        
+
     #  operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift | RShift | BitOr | BitXor | BitAnd | FloorDiv
     def visit_Add(self, node):
         self.result += '+'

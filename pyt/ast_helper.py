@@ -73,9 +73,9 @@ def get_call_names(node):
     return reversed(get_call_names_helper(node, result))
 
 
-class Arguments(object):
+class Arguments():
     """Represents arguments of a function."""
-    
+
     def __init__(self, args):
         """Create an Argument container class.
 

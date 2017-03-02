@@ -1,11 +1,11 @@
 """Adaptor for Flask web applications."""
 import ast
 
-from framework_adaptor import FrameworkAdaptor
-from ast_helper import get_call_names, Arguments
-from interprocedural_cfg import interprocedural
-from module_definitions import project_definitions
-from framework_adaptor import TaintedNode
+from .ast_helper import Arguments, get_call_names
+from .framework_adaptor import FrameworkAdaptor, TaintedNode
+from .interprocedural_cfg import interprocedural
+from .module_definitions import project_definitions
+
 
 class FlaskAdaptor(FrameworkAdaptor):
     """The flask adaptor class manipulates the CFG to adapt to flask applications."""
@@ -36,9 +36,9 @@ class FlaskAdaptor(FrameworkAdaptor):
         if args:
             definition_lineno = definition.node.lineno
 
-            cfg.nodes[0].outgoing = [] 
+            cfg.nodes[0].outgoing = []
             cfg.nodes[1].ingoing = []
-            
+
             for i, argument in enumerate(args, 1):
                 taint = TaintedNode(argument, argument, None, [], line_number=definition_lineno, path=definition.path)
                 previous_node = cfg.nodes[0]
@@ -47,7 +47,7 @@ class FlaskAdaptor(FrameworkAdaptor):
 
             last_inserted = cfg.nodes[i]
             after_last = cfg.nodes[i+1]
-            last_inserted.connect(after_last)            
+            last_inserted.connect(after_last)
 
         return cfg
 

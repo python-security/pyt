@@ -1,6 +1,7 @@
 import argparse
 
-import fine_timer
+from . import fine_timer
+
 
 parser = argparse.ArgumentParser()
 

@@ -1,20 +1,22 @@
-from abc import abstractmethod, ABCMeta
 import re
-import time
-from datetime import date, timedelta, datetime
-
 import requests
-import repo_runner
-from save import save_repo_scan
-from vulnerabilities import SinkArgsError
-from repo_runner import NoEntryPathError, add_repo_to_csv
+import time
+from abc import ABCMeta, abstractmethod
+from datetime import date, datetime, timedelta
 
+from . import repo_runner
+from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from .repo_runner import add_repo_to_csv, NoEntryPathError
+from .save import save_repo_scan
+from .vulnerabilities import SinkArgsError
+
+
+DEFAULT_TIMEOUT_IN_SECONDS = 60
 GITHUB_API_URL = 'https://api.github.com'
 GITHUB_OAUTH_TOKEN = None
-SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
-SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
 NUMBER_OF_REQUESTS_ALLOWED_PER_MINUTE = 30  # Rate limit is 10 and 30 with auth
-DEFAULT_TIMEOUT_IN_SECONDS = 60
+SEARCH_CODE_URL = GITHUB_API_URL + '/search/code'
+SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 
 
 def set_github_api_token():
@@ -241,7 +243,6 @@ if __name__ == '__main__':
     for x in get_dates(date(2010, 1, 1), interval=93):
         print(x)
     exit()
-    from reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
     scan_github('flask', ReachingDefinitionsTaintAnalysis)
     exit()
     q = Query(SEARCH_REPO_URL, 'flask')

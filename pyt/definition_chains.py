@@ -1,10 +1,10 @@
 import ast
 
-from constraint_table import constraint_table
-from lattice import Lattice
-from reaching_definitions import ReachingDefinitionsAnalysis
-from vars_visitor import VarsVisitor
-from base_cfg import AssignmentNode
+from .base_cfg import AssignmentNode
+from .constraint_table import constraint_table
+from .lattice import Lattice
+from .reaching_definitions import ReachingDefinitionsAnalysis
+from .vars_visitor import VarsVisitor
 
 
 def get_vars(node):

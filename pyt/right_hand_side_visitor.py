@@ -2,9 +2,10 @@
 
 Used to find all variables on a right hand side(RHS) of assignment.
 """
-from ast import NodeVisitor
+import ast
 
-class RHSVisitor(NodeVisitor):
+
+class RHSVisitor(ast.NodeVisitor):
     """Visitor collecting all names."""
 
     def __init__(self):

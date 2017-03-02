@@ -1,15 +1,28 @@
 import ast
 from collections import namedtuple
 
-from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
-from module_definitions import ModuleDefinition, ModuleDefinitions,\
-    LocalModuleDefinition
-from project_handler import get_directory_modules
-from ast_helper import generate_ast, get_call_names_as_string, Arguments
-from base_cfg import Visitor, EntryExitNode, Node, IgnoredNode,\
-    ConnectToExitNode, ReturnNode, AssignmentNode, RestoreNode,\
-    CFG, CALL_IDENTIFIER
+from .ast_helper import Arguments, generate_ast, get_call_names_as_string
+from .base_cfg import (
+    AssignmentNode,
+    CALL_IDENTIFIER,
+    CFG,
+    ConnectToExitNode,
+    EntryOrExitNode,
+    IgnoredNode,
+    Node,
+    RestoreNode,
+    ReturnNode,
+    Visitor
+)
+from .label_visitor import LabelVisitor
+from .module_definitions import (
+    LocalModuleDefinition,
+    ModuleDefinition,
+    ModuleDefinitions
+)
+from .project_handler import get_directory_modules
+from .right_hand_side_visitor import RHSVisitor
+
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 
@@ -18,15 +31,15 @@ class InterproceduralVisitor(Visitor):
     def __init__(self, node, project_modules, local_modules,
                  filename, module_definitions=None):
         """Create an empty CFG."""
+        self.project_modules = project_modules
+        self.local_modules = local_modules
+        self.filenames = [filename]
         self.nodes = list()
         self.function_index = 0
         self.undecided = False
-        self.project_modules = project_modules
-        self.local_modules = local_modules
         self.function_names = list()
         self.function_return_stack = list()
         self.module_definitions_stack = list()
-        self.filenames = [filename]
 
         if module_definitions:
             self.init_function_cfg(node, module_definitions)
@@ -36,7 +49,7 @@ class InterproceduralVisitor(Visitor):
     def init_cfg(self, node):
         self.module_definitions_stack.append(ModuleDefinitions())
 
-        entry_node = self.append_node(EntryExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode("Entry module"))
 
         module_statements = self.visit(node)
 
@@ -50,12 +63,12 @@ class InterproceduralVisitor(Visitor):
             if CALL_IDENTIFIER not in first_node.label:
                 entry_node.connect(first_node)
 
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
 
             last_nodes = module_statements.last_statements
             exit_node.connect_predecessors(last_nodes)
         else:
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node, module_definitions):
@@ -64,7 +77,7 @@ class InterproceduralVisitor(Visitor):
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
 
-        entry_node = self.append_node(EntryExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode("Entry module"))
 
         module_statements = self.stmt_star_handler(node.body)
 
@@ -73,7 +86,7 @@ class InterproceduralVisitor(Visitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode("Exit module"))
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
@@ -313,14 +326,14 @@ class InterproceduralVisitor(Visitor):
     def get_function_nodes(self, definition):
         length = len(self.nodes)
         previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryExitNode("Entry " +
+        entry_node = self.append_node(EntryOrExitNode("Entry " +
                                                     definition.name))
         previous_node.connect(entry_node)
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = self.append_node(EntryExitNode("Exit " + definition.name))
+        exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         self.return_connection_handler(self.nodes[length:], exit_node)
@@ -351,7 +364,7 @@ class InterproceduralVisitor(Visitor):
 
         previous_node = self.nodes[-1]
 
-        entry_node = self.append_node(EntryExitNode("Entry " + def_node.name))
+        entry_node = self.append_node(EntryOrExitNode("Entry " + def_node.name))
 
         previous_node.connect(entry_node)
 
@@ -359,7 +372,7 @@ class InterproceduralVisitor(Visitor):
 
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = self.append_node(EntryExitNode("Exit " + def_node.name))
+        exit_node = self.append_node(EntryOrExitNode("Exit " + def_node.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         return Node(label_visitor.result, call_node,
@@ -378,9 +391,9 @@ class InterproceduralVisitor(Visitor):
         module_definitions = ModuleDefinitions(local_names, module_name)
         self.module_definitions_stack.append(module_definitions)
 
-        self.append_node(EntryExitNode('Entry ' + module[0]))
+        self.append_node(EntryOrExitNode('Entry ' + module[0]))
         self.visit(tree)
-        exit_node = self.append_node(EntryExitNode('Exit ' + module[0]))
+        exit_node = self.append_node(EntryOrExitNode('Exit ' + module[0]))
 
         self.module_definitions_stack.pop()
         self.filenames.pop()

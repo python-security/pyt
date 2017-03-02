@@ -1,17 +1,14 @@
-import os
-import sys
+import ast
 import unittest
-from ast import parse
 
-sys.path.insert(0, os.path.abspath('../pyt'))
-from label_visitor import LabelVisitor
+from pyt.label_visitor import LabelVisitor
 
 
 class LabelVisitorTestCase(unittest.TestCase):
     '''Baseclass for LabelVisitor tests'''
 
     def perform_labeling_on_expression(self, expr):
-        obj = parse(expr)
+        obj = ast.parse(expr)
         label = LabelVisitor()
         label.visit(obj)
 
@@ -33,7 +30,7 @@ class LabelVisitorTest(LabelVisitorTestCase):
     def test_compare_multi(self):
         label = self.perform_labeling_on_expression('a > b > c')
         self.assertEqual(label.result,'a > b > c')
-        
+
     def test_binop(self):
         label = self.perform_labeling_on_expression('a / b')
         self.assertEqual(label.result,'a / b')
@@ -42,7 +39,7 @@ class LabelVisitorTest(LabelVisitorTestCase):
         label = self.perform_labeling_on_expression('range()')
         self.assertEqual(label.result,'range()')
 
-        
+
     def test_call_single_arg(self):
         label = self.perform_labeling_on_expression('range(5)')
         self.assertEqual(label.result,'range(5)')
@@ -77,4 +74,4 @@ class LabelVisitorTest(LabelVisitorTestCase):
 
 
 
-        
+

@@ -1,13 +1,10 @@
 """Module used for counting number of functions
  to get an estimate og how big the CFG should be"""
-
 import ast
-import sys
-import os
 
-sys.path.insert(0, os.path.abspath('pyt'))
-from cfg import get_call_names_as_string, generate_ast
-from project_handler import get_python_modules
+from pyt.cfg import get_call_names_as_string, generate_ast
+from pyt.project_handler import get_python_modules
+
 
 function_calls = list()
 functions = dict()

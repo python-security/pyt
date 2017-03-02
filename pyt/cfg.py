@@ -8,14 +8,16 @@ standard library.
 
 import ast
 from collections import namedtuple
-import logging
 
-from label_visitor import LabelVisitor
-from right_hand_side_visitor import RHSVisitor
-from module_definitions import ModuleDefinition, ModuleDefinitions,\
-    LocalModuleDefinition
-from project_handler import get_directory_modules
-from ast_helper import generate_ast, get_call_names_as_string, Arguments
+from .ast_helper import Arguments, generate_ast, get_call_names_as_string
+from .label_visitor import LabelVisitor
+from .module_definitions import (
+    LocalModuleDefinition,
+    ModuleDefinition,
+    ModuleDefinitions
+)
+from .project_handler import get_directory_modules
+from .right_hand_side_visitor import RHSVisitor
 
 
 CALL_IDENTIFIER = '¤'
@@ -25,7 +27,7 @@ SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 
 class Visitor(ast.NodeVisitor):
     """A Control Flow Graph containing a list of nodes."""
-    
+
     def __init__(self, node, project_modules, local_modules, filename, module_definitions=None, intraprocedural=False):
         """Create an empty CFG."""
         self.nodes = list()
@@ -47,15 +49,15 @@ class Visitor(ast.NodeVisitor):
             self.init_cfg(node)
 
     def init_intra_function_cfg(self, node):
-        self.module_definitions_stack.append(ModuleDefinitions())        
+        self.module_definitions_stack.append(ModuleDefinitions())
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
-        
-        entry_node = self.append_node(EntryExitNode("Entry module"))
+
+        entry_node = self.append_node(EntryOrExitNode("Entry module"))
 
         module_statements = self.stmt_star_handler(node.body)
         if isinstance(module_statements, IgnoredNode):
-            exit_node = self.append_node(EntryExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode("Exit module"))
             entry_node.connect(exit_node)
             return
 
@@ -63,8 +65,8 @@ class Visitor(ast.NodeVisitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryExitNode("Exit module"))
-        
+        exit_node = self.append_node(EntryOrExitNode("Exit module"))
+
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
