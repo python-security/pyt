@@ -187,14 +187,18 @@ class Repo:
 
 def get_dates(start_date, end_date=date.today(), interval=7):
     delta = end_date - start_date
-    i = 0  # necessary for days < interval
+
+    i = -1  # necessary for days < interval.
+    # Gets incremented to 0 in the else clause.
+
     for i in range(delta.days // interval):
         yield (start_date + timedelta(days=(i * interval)),
-               start_date + timedelta(days=i * interval + interval - 1))
+               start_date + timedelta(days=(i + 1) * interval - 1))
     else:
         # Take care of the remainder of days
-        yield (start_date + timedelta(days=i * interval + interval),
-               start_date + timedelta(days=i * interval + interval +
+        i = i + 1
+        yield (start_date + timedelta(days=i * interval),
+               start_date + timedelta(days=i * interval +
                                       delta.days % interval))
 
 
