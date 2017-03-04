@@ -7,10 +7,6 @@ from pyt.github_search import get_dates
 
 class TestGetDates(unittest.TestCase):
     def assertDateTuple(self, dateInterval, expectedStart, expectedEnd):
-        print(dateInterval)
-        print(expectedStart)
-        print(expectedEnd)
-
         assert(dateInterval[0] == expectedStart)
         assert(dateInterval[1] == expectedEnd)
 
@@ -18,7 +14,6 @@ class TestGetDates(unittest.TestCase):
         date_range = get_dates(date(2016, 12, 12), date(2016, 12, 13), 7)
         date_range = list(date_range)
 
-        print(date_range)
         self.assertDateTuple(date_range[0],
                              date(2016, 12, 12),
                              date(2016, 12, 13))
@@ -27,7 +22,6 @@ class TestGetDates(unittest.TestCase):
         date_range = get_dates(date(2016, 12, 12), date(2016, 12, 16), 2)
         date_range = list(date_range)
 
-        print(date_range)
         self.assertDateTuple(date_range[0],
                              date(2016, 12, 12),
                              date(2016, 12, 13))
