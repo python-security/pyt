@@ -3,6 +3,7 @@ import unittest
 from datetime import date
 
 from pyt.github_search import get_dates
+from pyt.repo_runner import Repo
 
 
 class TestGetDates(unittest.TestCase):
@@ -33,3 +34,13 @@ class TestGetDates(unittest.TestCase):
         self.assertDateTuple(date_range[2],
                              date(2016, 12, 16),
                              date(2016, 12, 16))
+
+
+class TestScanGithub(unittest.TestCase):
+    def test_scan_simple_repo(self):
+        repo = Repo('https://github.com/mitsuhiko/flask-pastebin')
+        scan_github(search_string,
+                    start_date,
+                    analysis_type,
+                    analyse_repo_func,
+                    csv_path)
