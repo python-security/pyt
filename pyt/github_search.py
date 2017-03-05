@@ -186,6 +186,8 @@ class Repo:
 
 
 def get_dates(start_date, end_date=date.today(), interval=7):
+    """Returns a generator generating tuples of dates from the start_date
+    to the end_date with the given interval."""
     delta = end_date - start_date
 
     i = -1  # necessary for days < interval.

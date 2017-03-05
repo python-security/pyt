@@ -7,8 +7,8 @@ from pyt.github_search import get_dates
 
 class TestGetDates(unittest.TestCase):
     def assertDateTuple(self, dateInterval, expectedStart, expectedEnd):
-        assert(dateInterval[0] == expectedStart)
-        assert(dateInterval[1] == expectedEnd)
+        self.assertEqual(dateInterval[0], expectedStart)
+        self.assertEqual(dateInterval[1], expectedEnd)
 
     def test_range_shorter_than_interval(self):
         date_range = get_dates(date(2016, 12, 12), date(2016, 12, 13), 7)
