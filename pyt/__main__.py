@@ -38,7 +38,7 @@ parser.set_defaults(which='')
 
 subparsers = parser.add_subparsers()
 
-entry_group = parser.add_mutually_exclusive_group()
+entry_group = parser.add_mutually_exclusive_group(required=True)
 entry_group.add_argument('-f', '--filepath',
                          help='Path to the file that should be analysed.',
                          type=str)

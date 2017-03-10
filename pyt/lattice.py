@@ -16,6 +16,7 @@ class Lattice:
         if number == 0:
             return r
 
+        # Turn number into a binary string of length len(self.bv2el)
         for i, x in enumerate(format(number,
                                      '0' + str(len(self.bv2el)) + 'b')):
             if x == '1':
@@ -24,7 +25,7 @@ class Lattice:
 
     def in_constraint(self, node1, node2):
         """Checks if node1 is in node2's constraints
-        For instance node1 = 010 and node2 = 110:
+        For instance, if node1 = 010 and node2 = 110:
         010 & 110 = 010 -> has the element."""
         constraint = constraint_table[node2]
 

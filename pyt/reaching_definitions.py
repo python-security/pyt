@@ -44,8 +44,7 @@ class ReachingDefinitionsAnalysis(AnalysisBase):
     def get_lattice_elements(cfg_nodes):
         """Returns all assignment nodes as they are the only lattice elements
         in the reaching definitions analysis.
-        This is a static method which is overwritten from the base class.
-        """
+        This is a static method which is overwritten from the base class."""
         for node in cfg_nodes:
             if isinstance(node, AssignmentNode):
                 yield node

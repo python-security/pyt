@@ -1,10 +1,10 @@
 import ast
 
-from .base_cfg import AssignmentNode, EntryOrExitNode
 from .analysis_base import AnalysisBase
-from .lattice import Lattice
-from .constraint_table import constraint_table, constraint_join
 from .ast_helper import get_call_names_as_string
+from .base_cfg import AssignmentNode, EntryOrExitNode
+from .constraint_table import constraint_join, constraint_table
+from .lattice import Lattice
 from .vars_visitor import VarsVisitor
 
 
@@ -27,11 +27,9 @@ class LivenessAnalysis(AnalysisBase):
         return False
 
     def is_condition(self, cfg_node):
-        if isinstance(cfg_node.ast_node, ast.While):
+        if isinstance(cfg_node.ast_node, (ast.If, ast.While)):
             return True
         elif self.is_output(cfg_node):
-            return True
-        elif isinstance(cfg_node.ast_node, ast.If):
             return True
         return False
 
@@ -48,7 +46,8 @@ class LivenessAnalysis(AnalysisBase):
             lvars.extend(vv.result)
 
         for var in lvars:
-            if var in self.lattice.get_elements(JOIN):  # Check if var in JOIN
+            if var in self.lattice.get_elements(JOIN):
+                # Remove var from JOIN
                 JOIN = JOIN ^ self.lattice.el2bv[var]
         return JOIN
 
@@ -59,6 +58,7 @@ class LivenessAnalysis(AnalysisBase):
         rvars.extend(vv.result)
 
         for var in rvars:
+            # Add var to JOIN
             JOIN = JOIN | self.lattice.el2bv[var]
         return JOIN
 
@@ -83,7 +83,6 @@ class LivenessAnalysis(AnalysisBase):
         return JOIN
 
     def fixpointmethod(self, cfg_node):
-
         if isinstance(cfg_node, EntryOrExitNode) and 'Exit' in cfg_node.label:
             constraint_table[cfg_node] = 0
         elif isinstance(cfg_node, AssignmentNode):
@@ -104,10 +103,9 @@ class LivenessAnalysis(AnalysisBase):
             yield node
 
     def get_lattice_elements(cfg_nodes):
-        """Returns all assignment nodes as they are the only lattice elements
-        in the reaching definitions analysis.
-        This is a static method which is overwritten from the base class.
-        """
+        """Returns all variables as they are the only lattice elements
+        in the liveness analysis.
+        This is a static method which is overwritten from the base class."""
         lattice_elements = set()  # set() to avoid duplicates
         for node in (node for node in cfg_nodes if node.ast_node):
             vv = VarsVisitor()
