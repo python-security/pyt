@@ -5,7 +5,7 @@ from pyt.vars_visitor import VarsVisitor
 
 
 class VarsVisitorTestCase(unittest.TestCase):
-    '''Baseclass for VarsVisitor tests'''
+    """Baseclass for VarsVisitor tests"""
 
     def perform_vars_on_expression(self, expr):
         obj = ast.parse(expr)

@@ -5,7 +5,7 @@ from pyt.label_visitor import LabelVisitor
 
 
 class LabelVisitorTestCase(unittest.TestCase):
-    '''Baseclass for LabelVisitor tests'''
+    """Baseclass for LabelVisitor tests"""
 
     def perform_labeling_on_expression(self, expr):
         obj = ast.parse(expr)

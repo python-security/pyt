@@ -32,7 +32,6 @@ class ModuleDefinition():
 
 class LocalModuleDefinition(ModuleDefinition):
     """A local definition."""
-
     pass
 
 
@@ -77,8 +76,8 @@ class ModuleDefinitions():
         for definition in self.definitions:
             if definition.name == name:
                 return definition
-            
-    def set_defintion_node(self, node, name):
+
+    def set_definition_node(self, node, name):
         """Set definition by name."""
         definition = self.get_definition(name)
         if definition:
@@ -88,7 +87,7 @@ class ModuleDefinitions():
         module = 'NoModuleName'
         if self.module_name:
             module = self.module_name
-            
+
         return 'Definitions: ' + ' '.join([str(definition) for definition in self.definitions]) + '\nmodule_name: ' + module + '\n'
 
-            
+

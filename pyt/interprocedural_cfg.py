@@ -1,4 +1,5 @@
 import ast
+import os.path
 from collections import namedtuple
 
 from .ast_helper import Arguments, generate_ast, get_call_names_as_string
@@ -326,7 +327,7 @@ class InterproceduralVisitor(Visitor):
     def get_function_nodes(self, definition):
         length = len(self.nodes)
         previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryOrExitNode("Entry " +
+        entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                     definition.name))
         previous_node.connect(entry_node)
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
@@ -364,7 +365,7 @@ class InterproceduralVisitor(Visitor):
 
         previous_node = self.nodes[-1]
 
-        entry_node = self.append_node(EntryOrExitNode("Entry " + def_node.name))
+        entry_node = self.append_node(EntryOrExitNode("Class Entry " + def_node.name))
 
         previous_node.connect(entry_node)
 
@@ -391,9 +392,9 @@ class InterproceduralVisitor(Visitor):
         module_definitions = ModuleDefinitions(local_names, module_name)
         self.module_definitions_stack.append(module_definitions)
 
-        self.append_node(EntryOrExitNode('Entry ' + module[0]))
+        self.append_node(EntryOrExitNode('Module Entry ' + module[0]))
         self.visit(tree)
-        exit_node = self.append_node(EntryOrExitNode('Exit ' + module[0]))
+        exit_node = self.append_node(EntryOrExitNode('Module Exit ' + module[0]))
 
         self.module_definitions_stack.pop()
         self.filenames.pop()
@@ -419,13 +420,40 @@ class InterproceduralVisitor(Visitor):
                 l.append(alias.name)
         return l
 
+    def handle_relative_import(self, node):
+        """
+            from A means node.level == 0
+            from .A means node.level == 1
+        """
+        no_file = os.path.abspath(os.path.join(self.filenames[-1], os.pardir))
+
+        if node.level == 1:
+            # Same directory as current file
+            filename_with_dir = no_file+'/'+node.module.replace('.','/')+'.py'
+        else:
+            parent = os.path.abspath(os.path.join(no_file, os.pardir))
+
+            if node.level > 2:
+                level = node.level
+                while level > 2:
+                    parent = os.path.abspath(os.path.join(parent, os.pardir))
+                    level = level - 1
+            filename_with_dir = parent+'/'+node.module.replace('.','/')+'.py'
+
+        return self.add_module((node.module, filename_with_dir), None,
+                               self.alias_handler(node.names))
+
     def visit_ImportFrom(self, node):
-        for module in self.local_modules:
-            if node.module == module[0]:
-                return self.add_module(module, None,
-                                       self.alias_handler(node.names))
-        for module in self.project_modules:
-            if node.module == module[0]:
+        # Is it relative?
+        if node.level > 0:
+            return self.handle_relative_import(node)
+        else:
+            for module in self.local_modules:
+                if node.module == module[0]:
+                    return self.add_module(module, None,
+                                           self.alias_handler(node.names))
+            for module in self.project_modules:
+                if node.module == module[0]:
                     return self.add_module(module, None,
                                            self.alias_handler(node.names))
         return IgnoredNode()
