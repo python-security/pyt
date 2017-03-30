@@ -2,8 +2,9 @@ import unittest
 
 from datetime import date
 
-from pyt.github_search import get_dates
-from pyt.repo_runner import Repo
+from pyt.github_search import get_dates, scan_github, set_github_api_token
+from pyt.__main__ import analyse_repo
+from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class TestGetDates(unittest.TestCase):
@@ -38,9 +39,9 @@ class TestGetDates(unittest.TestCase):
 
 class TestScanGithub(unittest.TestCase):
     def test_scan_simple_repo(self):
-        repo = Repo('https://github.com/mitsuhiko/flask-pastebin')
-        scan_github(search_string,
-                    start_date,
-                    analysis_type,
-                    analyse_repo_func,
-                    csv_path)
+        set_github_api_token()
+        scan_github('flask',
+                    date(2017, 1, 1),
+                    ReachingDefinitionsTaintAnalysis,
+                    analyse_repo,
+                    '')

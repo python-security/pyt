@@ -249,6 +249,7 @@ def scan_github(search_string,
                 except:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error='Other Error Unknown :-(')
 
+                    
 if __name__ == '__main__':
     for x in get_dates(date(2010, 1, 1), interval=93):
         print(x)

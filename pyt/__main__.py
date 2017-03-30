@@ -141,6 +141,7 @@ search_parser.add_argument('-sd', '--start-date',
                            help='Start date for repo search.'
                            'Criteria used is Created Date', type=valid_date)
 
+
 def analyse_repo(github_repo, analysis_type):
     cfg_list = list()
     project_modules = get_python_modules(os.path.dirname(github_repo.path))
@@ -185,7 +186,7 @@ if __name__ == '__main__':
             scan_github(args.search_string, args.start_date,
                         analysis, analyse_repo, args.csv_path)
         else:
-            scan_github(args.search_string, date(2010,1,1),
+            scan_github(args.search_string, date(2010, 1, 1),
                         analysis, analyse_repo, args.csv_path)
         exit()
 
