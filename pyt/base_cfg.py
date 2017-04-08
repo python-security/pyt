@@ -31,13 +31,12 @@ class Node():
             label (str): The label of the node, describing its expression.
             line_number(Optional[int]): The line of the expression of the Node.
         """
-        self.ingoing = list()
-        self.outgoing = list()
-
         self.label = label
         self.ast_node = ast_node
         self.line_number = line_number
         self.path = path
+        self.ingoing = list()
+        self.outgoing = list()
 
     def connect(self, successor):
         """Connect this node to its successor node by
@@ -56,7 +55,8 @@ class Node():
 
     def __str__(self):
         """Print the label of the node."""
-        return ' '.join(('Label: ', self.label))
+        return ''.join((' Label: ', self.label))
+
 
     def __repr__(self):
         """Print a representation of the node."""
@@ -90,7 +90,7 @@ class FunctionNode(Node):
     def __init__(self, ast_node):
         """Create a function node.
 
-        This node is a dummy node representing a function definition
+        This node is a dummy node representing a function definition.
         """
         super().__init__(self.__class__.__name__, ast_node)
 
@@ -162,7 +162,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
 
         Args:
             label (str): The label of the node, describing the expression it represents.
-            restore_nodes(list[Node]): List of nodes that where restored in the function call.
+            restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
@@ -252,6 +252,7 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
+
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
@@ -273,7 +274,7 @@ class Visitor(ast.NodeVisitor):
     def stmt_star_handler(self, stmts):
         """Handle stmt* expressions in an AST node.
 
-        Links all statements together in a list of statements, accounting for statements with multiple last nodes
+        Links all statements together in a list of statements, accounting for statements with multiple last nodes.
         """
         cfg_statements = list()
         break_nodes = list()
@@ -286,7 +287,7 @@ class Visitor(ast.NodeVisitor):
             elif isinstance(node, BreakNode):
                 break_nodes.append(node)
 
-            if self.node_to_connect(node):
+            if self.node_to_connect(node) and node:
                 cfg_statements.append(node)
 
         self.connect_nodes(cfg_statements)
@@ -495,7 +496,6 @@ class Visitor(ast.NodeVisitor):
             return self.assign_multi_target(node, rhs_visitor.result)
         else:
             if isinstance(node.value, ast.Call):   #  x = call()
-
                 label = LabelVisitor()
                 label.visit(node.targets[0])
                 return self.assignment_call_node(label.result, node)
@@ -603,7 +603,6 @@ class Visitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
         builtin_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-
         if not self.undecided:
             self.nodes.append(builtin_call)
         self.undecided = False

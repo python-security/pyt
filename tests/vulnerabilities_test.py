@@ -179,3 +179,11 @@ class EngineTest(BaseTestCase):
     def test_find_vulnerabilities_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code/command_injection.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+
+    def test_find_vulnerabilities_inter_command_injection(self):
+        vulnerability_log = self.run_analysis('example/vulnerable_code/inter_command_injection.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+
+    def test_find_vulnerabilities_inter_command_injection_2(self):
+        vulnerability_log = self.run_analysis('example/vulnerable_code/inter_command_injection_2.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)

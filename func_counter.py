@@ -2,8 +2,8 @@
  to get an estimate og how big the CFG should be"""
 import ast
 
-from pyt.cfg import get_call_names_as_string, generate_ast
-from pyt.project_handler import get_python_modules
+from pyt.cfg import generate_ast, get_call_names_as_string
+from pyt.project_handler import get_modules
 
 
 function_calls = list()
@@ -34,7 +34,7 @@ class Counter(ast.NodeVisitor):
 
 
 if __name__ == '__main__':
-    module_paths = (m[1] for m in get_python_modules('../flaskbb/flaskbb'))
+    module_paths = (m[1] for m in get_modules('../flaskbb/flaskbb'))
     for p in module_paths:
         print(p)
         t = generate_ast(p)

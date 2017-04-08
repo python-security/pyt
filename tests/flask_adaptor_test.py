@@ -10,7 +10,12 @@ class FlaskEngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         flask = FlaskAdaptor(cfg_list, list(), list())
+        funcs = flask.get_func_nodes()
 
-        #self.assertEqual(len(flask_functions), 1)
-
-        #self.assertEqual(flask_functions[0], 'flask_function')
+        i = 0
+        for func in funcs:
+            if flask.is_flask_route_function(func.node):
+                self.assertEqual(func.node.name, 'flask_function')
+                i = i + 1
+        # So it is supposed to be 1, because foo is not an app.route
+        self.assertEqual(i, 1)

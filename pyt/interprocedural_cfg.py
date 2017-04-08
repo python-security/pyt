@@ -78,7 +78,7 @@ class InterproceduralVisitor(Visitor):
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
 
-        entry_node = self.append_node(EntryOrExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode("Entry function"))
 
         module_statements = self.stmt_star_handler(node.body)
 
@@ -87,7 +87,7 @@ class InterproceduralVisitor(Visitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryOrExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode("Exit function"))
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
@@ -133,7 +133,7 @@ class InterproceduralVisitor(Visitor):
                                                  local_definitions.module_name,
                                                  self.filenames[-1])
             parent_definition.node = node
-            parent_definitions.append(parent_definition)
+            parent_definitions.append_if_local_or_in_imports(parent_definition)
 
         local_qualified_name = '.'.join(local_definitions.classes +
                                         [node.name])
@@ -142,7 +142,7 @@ class InterproceduralVisitor(Visitor):
                                                  None,
                                                  self.filenames[-1])
         local_definition.node = node
-        local_definitions.append(local_definition)
+        local_definitions.append_if_local_or_in_imports(local_definition)
 
         self.function_names.append(node.name)
 
@@ -219,9 +219,12 @@ class InterproceduralVisitor(Visitor):
 
             label_visitor = LabelVisitor()
             label_visitor.visit(parameter)
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(parameter)
+
             n = RestoreNode(temp_name + ' = ' + label_visitor.result,
                             temp_name,
-                            [label_visitor.result],
+                            rhs_visitor.result,
                             line_number=line_number,
                             path=self.filenames[-1])
 
@@ -346,7 +349,15 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
-        definition = local_definitions.get_definition(_id)
+
+        real_id = _id
+        for k in local_definitions.import_alias_mapping.keys():
+            if _id.startswith(k):
+                real_id = _id.replace(k, local_definitions.import_alias_mapping[k])
+                definition = local_definitions.get_definition(real_id)
+                break
+        if real_id == _id:
+            definition = local_definitions.get_definition(_id)
 
         if definition:
             if isinstance(definition.node, ast.ClassDef):
@@ -380,13 +391,24 @@ class InterproceduralVisitor(Visitor):
                     line_number=call_node.lineno,
                     path=self.filenames[-1])
 
-    def add_module(self, module, module_name, local_names):
+    def retrieve_import_alias_mapping(self, names_list):
+        """Creates a dictionary mapping aliases to their respective name.
+        import_alias_names is used in module_definitions.py and visit_Call"""
+        import_alias_names = {}
+
+        for alias in names_list:
+            if alias.asname:
+                import_alias_names[alias.asname] = alias.name
+        return import_alias_names
+
+    def add_file_module(self, module, module_name, local_names, import_alias_mapping):
         module_path = module[1]
         self.filenames.append(module_path)
         self.local_modules = get_directory_modules(module_path)
         tree = generate_ast(module_path)
 
         parent_definitions = self.module_definitions_stack[-1]
+        parent_definitions.import_alias_mapping = import_alias_mapping
         parent_definitions.import_names = local_names
 
         module_definitions = ModuleDefinitions(local_names, module_name)
@@ -401,17 +423,47 @@ class InterproceduralVisitor(Visitor):
 
         return exit_node
 
+    def add_directory_module(self, module, real_names, local_names, import_alias_mapping):
+        module_path = module[1]
+
+        for real_name in real_names:
+            file_module = (real_name, os.path.join(module_path, real_name + '.py'))
+            self.add_file_module(file_module, real_name, local_names, import_alias_mapping)
+
+    def import_directory_module(self, module, import_alias_mapping):
+        module_path = module[1]
+        init_file_location = os.path.join(module_path, '__init__.py')
+        file_exists = os.path.isfile(init_file_location)
+        if file_exists:
+            raise Exception("TODO: Handle __init__ files")
+        else:
+            raise Exception("import directory needs an __init__.py file")
+
     def visit_Import(self, node):
         for name in node.names:
             for module in self.local_modules:
                 if name.name == module[0]:
-                    return self.add_module(module, name.name, name.asname)
+                    if os.path.isdir(module[1]):
+                        return self.import_directory_module(module,
+                                                            self.retrieve_import_alias_mapping(node.names))
+                    else:
+                        return self.add_file_module(module,
+                                                    name.name,
+                                                    name.asname,
+                                                    self.retrieve_import_alias_mapping(node.names))
             for module in self.project_modules:
                 if name.name == module[0]:
-                    return self.add_module(module, name.name, name.asname)
+                    if os.path.isdir(module[1]):
+                        return self.import_directory_module(module,
+                                                            self.retrieve_import_alias_mapping(node.names))
+                    else:
+                        return self.add_file_module(module,
+                                                    name.name,
+                                                    name.asname,
+                                                    self.retrieve_import_alias_mapping(node.names))
         return IgnoredNode()
 
-    def alias_handler(self, alias_list):
+    def as_alias_handler(self, alias_list):
         l = list()
         for alias in alias_list:
             if alias.asname:
@@ -420,16 +472,32 @@ class InterproceduralVisitor(Visitor):
                 l.append(alias.name)
         return l
 
+    def not_as_alias_handler(self, names_list):
+        l = list()
+        for alias in names_list:
+            l.append(alias.name)
+        return l
+
     def handle_relative_import(self, node):
         """
             from A means node.level == 0
+            from . import B means node.level == 1
             from .A means node.level == 1
         """
+        is_file = False
+
         no_file = os.path.abspath(os.path.join(self.filenames[-1], os.pardir))
 
         if node.level == 1:
             # Same directory as current file
-            filename_with_dir = no_file+'/'+node.module.replace('.','/')+'.py'
+            if node.module:
+                name_with_dir = os.path.join(no_file, node.module.replace('.', '/'))
+                if not os.path.isdir(name_with_dir):
+                    name_with_dir = name_with_dir + '.py'
+                    is_file = True
+            # e.g. from . import X
+            else:
+                name_with_dir = no_file
         else:
             parent = os.path.abspath(os.path.join(no_file, os.pardir))
 
@@ -438,10 +506,24 @@ class InterproceduralVisitor(Visitor):
                 while level > 2:
                     parent = os.path.abspath(os.path.join(parent, os.pardir))
                     level = level - 1
-            filename_with_dir = parent+'/'+node.module.replace('.','/')+'.py'
+            if node.module:
+                name_with_dir = os.path.join(parent, node.module.replace('.', '/'))
+                if not os.path.isdir(name_with_dir):
+                    name_with_dir = name_with_dir + '.py'
+                    is_file = True
+            # e.g. from .. import X
+            else:
+                name_with_dir = parent
 
-        return self.add_module((node.module, filename_with_dir), None,
-                               self.alias_handler(node.names))
+        if is_file:
+            return self.add_file_module((node.module, name_with_dir), None,
+                                   self.as_alias_handler(node.names),
+                                   self.retrieve_import_alias_mapping(node.names))
+        else:
+            return self.add_directory_module((node.module, name_with_dir),
+                               self.not_as_alias_handler(node.names),
+                               self.as_alias_handler(node.names),
+                               self.retrieve_import_alias_mapping(node.names))
 
     def visit_ImportFrom(self, node):
         # Is it relative?
@@ -450,12 +532,26 @@ class InterproceduralVisitor(Visitor):
         else:
             for module in self.local_modules:
                 if node.module == module[0]:
-                    return self.add_module(module, None,
-                                           self.alias_handler(node.names))
+                    if os.path.isdir(module[1]):
+                        return self.add_directory_module(module,
+                                                         self.not_as_alias_handler(node.names),
+                                                         self.as_alias_handler(node.names))
+                    else:
+                        return self.add_file_module(module, None,
+                                                    self.as_alias_handler(node.names),
+                                                    self.retrieve_import_alias_mapping(node.names))
             for module in self.project_modules:
-                if node.module == module[0]:
-                    return self.add_module(module, None,
-                                           self.alias_handler(node.names))
+                name = module[0]
+                if node.module == name:
+                    if os.path.isdir(module[1]):
+                        return self.add_directory_module(module,
+                                                         self.not_as_alias_handler(node.names),
+                                                         self.as_alias_handler(node.names),
+                                                         self.retrieve_import_alias_mapping(node.names))
+                    else:
+                        return self.add_file_module(module, None,
+                                                    self.as_alias_handler(node.names),
+                                                    self.retrieve_import_alias_mapping(node.names))
         return IgnoredNode()
 
 

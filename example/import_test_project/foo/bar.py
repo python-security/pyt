@@ -1,2 +1,2 @@
 def H(s):
-    return s
+    return s + "end"

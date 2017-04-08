@@ -2,7 +2,6 @@
 
 project_definitions = dict()  # Contains all project definitions for a program run
 
-
 class ModuleDefinition():
     """Handling of a definition."""
 
@@ -12,13 +11,14 @@ class ModuleDefinition():
     module_definitions = None
 
     def __init__(self, local_module_definitions, name, parent_module_name, path):
+        self.module_definitions = local_module_definitions
+        self.parent_module_name = parent_module_name
+        self.path = path
+
         if parent_module_name:
             self.name = parent_module_name + '.' + name
         else:
             self.name = name
-        self.path = path
-
-        self.module_definitions = local_module_definitions
 
     def __str__(self):
         name = 'NoName'
@@ -46,23 +46,31 @@ class ModuleDefinitions():
 
         Module name should only be set when it is a normal import statement.
         """
-        self.definitions = list()
-        self.module_name = module_name
-        self.classes = list()
         self.import_names = import_names
+        self.module_name = module_name
+        self.definitions = list()
+        self.classes = list()
+        self.import_alias_mapping = {}
 
-    def append(self, definition):
+
+    def append_if_local_or_in_imports(self, definition):
         """Add definition to list.
 
-        Handles localdefinitions and adds to project_definitions.
+        Handles local definitions and adds to project_definitions.
         """
         if isinstance(definition, LocalModuleDefinition):
             self.definitions.append(definition)
         elif self.import_names and definition.name in self.import_names:
             self.definitions.append(definition)
+        elif self.import_alias_mapping and definition.name in self.import_alias_mapping.values():
+            self.definitions.append(definition)
 
-        if not definition.node in project_definitions:
+        if definition.parent_module_name:
+            self.definitions.append(definition)
+
+        if definition.node not in project_definitions:
             project_definitions[definition.node] = definition
+
 
     def is_import(self):
         """Return whether it is a normal import statement and not a from import.
@@ -88,6 +96,7 @@ class ModuleDefinitions():
         if self.module_name:
             module = self.module_name
 
-        return 'Definitions: ' + ' '.join([str(definition) for definition in self.definitions]) + '\nmodule_name: ' + module + '\n'
-
-
+        if self.definitions:
+            return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module + '\n'
+        else:
+            return 'No Definitions, module_name: ' + module + '\n'
