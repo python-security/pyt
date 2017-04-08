@@ -419,7 +419,7 @@ class Visitor(ast.NodeVisitor):
             return self.get_names(node.value, result + '.' + node.attr)
 
     def extract_left_hand_side(self, target):
-        """Extract the left hand side varialbe from a target.
+        """Extract the left hand side variable from a target.
 
         Removes list indexes, stars and other left hand side elements.
         """

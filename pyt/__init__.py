@@ -1,5 +1,5 @@
-import pyt
+from .__main__ import main
 
 
-def main():
-    pyt.main()
+if __name__ == '__main__':
+    main()
