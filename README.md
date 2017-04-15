@@ -4,12 +4,23 @@
 
 Static analysis of Python web applications based on theoretical foundations (Control flow graphs, fixed point, dataflow analysis)
 
-Features planned:
+Features:
 - Detect Command injection
 - Detect SQL injection
 - Detect XSS
 - Detect directory traversal
+- Get a control flow graph
+- Get a def-use and/or a use-def chain
+- Search GitHub and analyse hits with PyT
+- Scan intraprocedural or interprocedural
+- A lot of customisation possible
 
+# Install
+1. git clone https://github.com/python-security/pyt.git
+2. python setup.py install
+3. pyt -h
+
+# Usage from source
 Using it like a user:
 `python -m pyt -f example/vulnerable_code/XSS_call.py save -du`
 
@@ -19,7 +30,6 @@ Running an individual test file: `python -m unittest tests.import_test`
 
 Running an individual test: `python -m unittest tests.import_test.ImportTest.test_import`
 
-Work in progress
 
 # Contributions
 Join our slack group: https://pyt-dev.slack.com/

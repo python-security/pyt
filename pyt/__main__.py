@@ -152,10 +152,6 @@ def analyse_repo(github_repo, analysis_type):
 
 
 def main():
-    print('success')
-
-
-if __name__ == '__main__':
     args = parser.parse_args()
 
     analysis = None
@@ -274,3 +270,7 @@ if __name__ == '__main__':
                 lattice_to_file(cfg_list, analysis)
             if args.vulnerabilities:
                 vulnerabilities_to_file(vulnerability_log)
+
+
+if __name__ == '__main__':
+    main()
