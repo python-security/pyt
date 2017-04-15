@@ -252,7 +252,6 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
-
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
@@ -602,10 +601,12 @@ class Visitor(ast.NodeVisitor):
     def add_builtin(self, node):
         label = LabelVisitor()
         label.visit(node)
+
         builtin_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
         if not self.undecided:
             self.nodes.append(builtin_call)
         self.undecided = False
+
         return builtin_call
 
     def visit_Name(self, node):
