@@ -18,21 +18,15 @@ class FixedPointAnalysis():
         q = self.cfg.nodes
 
         while q != []:
-            x_i = constraint_table[q[0]]
-
-            # y = F_i(x_1, ..., x_n):
-            self.analysis.fixpointmethod(q[0])
-            # y = q[0].new_constraint
-            y = constraint_table[q[0]]
-            # x_i = q[0].old_constraint
+            x_i = constraint_table[q[0]]  # x_i = q[0].old_constraint
+            self.analysis.fixpointmethod(q[0])  # y = F_i(x_1, ..., x_n);
+            y = constraint_table[q[0]]  # y = q[0].new_constraint
 
             if not self.analysis.equal(y, x_i):
-                # for (v in dep(v_i)) q.append(v):
-                for node in self.analysis.dep(q[0]):
-                    q.append(node)
-                # q[0].old_constraint = q[0].new_constraint # x_1 = y
-                constraint_table[q[0]] = y
-            q = q[1:]  # q = q.tail()
+                for node in self.analysis.dep(q[0]):  # for (v in dep(v_i))
+                    q.append(node)  # q.append(v):
+                constraint_table[q[0]] = y  # q[0].old_constraint = q[0].new_constraint # x_i = y
+            q = q[1:]  # q = q.tail() # The list minus the head
 
 
 def analyse(cfg_list, *, analysis_type):

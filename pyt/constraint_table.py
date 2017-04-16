@@ -1,6 +1,6 @@
 """Global lookup table for constraints.
 
-Uses cfg node as key and operates on bitvectors in form of ints."""
+Uses cfg node as key and operates on bitvectors in the form of ints."""
 
 constraint_table = dict()
 
@@ -12,7 +12,7 @@ def initialize_constraint_table(cfg_list):
 
 
 def constraint_join(cfg_nodes):
-    """Looks up all cfg_nodes and joines the bitvectors by using logical or."""
+    """Looks up all cfg_nodes and joins the bitvectors by using logical or."""
     r = 0
     for e in cfg_nodes:
         r = r | constraint_table[e]
