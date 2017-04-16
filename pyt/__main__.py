@@ -16,7 +16,7 @@ from .interprocedural_cfg import interprocedural
 from .intraprocedural_cfg import intraprocedural
 from .lattice import print_lattice
 from .liveness import LivenessAnalysis
-from .project_handler import get_directory_modules, get_python_modules
+from .project_handler import get_directory_modules, get_modules
 from .reaching_definitions import ReachingDefinitionsAnalysis
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .repo_runner import get_repos
@@ -143,7 +143,7 @@ search_parser.add_argument('-sd', '--start-date',
 
 def analyse_repo(github_repo, analysis_type):
     cfg_list = list()
-    project_modules = get_python_modules(os.path.dirname(github_repo.path))
+    project_modules = get_modules(os.path.dirname(github_repo.path))
     intraprocedural(project_modules, cfg_list)
     initialize_constraint_table(cfg_list)
     analyse(cfg_list, analysis_type=analysis_type)
@@ -192,7 +192,7 @@ def main():
         directory = os.path.normpath(args.project_root)
     else:
         directory = os.path.dirname(path)
-    project_modules = get_python_modules(directory)
+    project_modules = get_modules(directory)
     local_modules = get_directory_modules(directory)
 
     tree = generate_ast(path)

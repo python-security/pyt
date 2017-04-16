@@ -3,20 +3,20 @@
 import ast
 from collections import namedtuple
 
-from .base_cfg import Node, AssignmentNode, ReturnNode
+from .base_cfg import AssignmentNode, Node, ReturnNode
 from .framework_adaptor import TaintedNode
-from .vulnerability_log import (
-    Vulnerability,
-    VulnerabilityLog,
-    SanitisedVulnerability
-)
 from .lattice import Lattice
-from .vars_visitor import VarsVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
+from .vars_visitor import VarsVisitor
+from .vulnerability_log import (
+    SanitisedVulnerability,
+    Vulnerability,
+    VulnerabilityLog
+)
 
 
-Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
+Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 
 
 class TriggerNode():
@@ -51,7 +51,6 @@ def identify_triggers(cfg, sources, sinks):
     tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
     tainted_trigger_nodes = [TriggerNode('Flask function URL parameter', None,
                                          node) for node in tainted_nodes]
-
     sources_in_file = find_triggers(assignment_nodes, sources)
     sources_in_file.extend(tainted_trigger_nodes)
 
@@ -69,8 +68,6 @@ def filter_cfg_nodes(cfg, cfg_node_type):
 
 
 def find_secondary_sources(assignment_nodes, sources):
-    assignments = dict()
-
     for source in sources:
         source.secondary_nodes = find_assignments(assignment_nodes, source)
 
@@ -78,7 +75,7 @@ def find_secondary_sources(assignment_nodes, sources):
 def find_assignments(assignment_nodes, source):
     old = list()
 
-    # added in order to propagate reassignments of the source node:
+    # added in order to propagate reassignments of the source node
     new = [source.cfg_node]
 
     update_assignments(new, assignment_nodes, source.cfg_node)
@@ -194,7 +191,7 @@ def is_sanitized(sink, sanitiser_dict, lattice):
         sanitiser_dict(dict): dictionary of sink sanitiser pairs.
 
     Returns:
-        True of False
+        True or False
     """
     for sanitiser in sink.sanitisers:
         for cfg_node in sanitiser_dict[sanitiser]:
@@ -233,14 +230,16 @@ def get_vulnerability(source, sink, triggers, lattice):
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
                                                       sink.cfg_node)]
+
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
+
     secondary_nodes_in_sink_args = any(True for node in secondary_in_sink
                                        if node.left_hand_side in sink_args)\
-                                        if sink_args else None
+                                       if sink_args else None
     lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
 
     if trigger_node_in_sink and lhs_in_sink_args:
@@ -249,15 +248,15 @@ def get_vulnerability(source, sink, triggers, lattice):
         sink_is_sanitised = is_sanitized(sink, triggers.sanitiser_dict,
                                          lattice)
 
-        if not sink_is_sanitised:
-            return Vulnerability(source.cfg_node, source_trigger_word,
-                                 sink.cfg_node, sink_trigger_word,
-                                 source.secondary_nodes)
-        elif sink_is_sanitised:
+        if sink_is_sanitised:
             return SanitisedVulnerability(source.cfg_node, source_trigger_word,
                                           sink.cfg_node, sink_trigger_word,
                                           sink.sanitisers,
                                           source.secondary_nodes)
+        else:
+            return Vulnerability(source.cfg_node, source_trigger_word,
+                                 sink.cfg_node, sink_trigger_word,
+                                 source.secondary_nodes)
     return None
 
 

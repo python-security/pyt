@@ -1,0 +1,1 @@
+abc = print(foo('bar'))
