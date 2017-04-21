@@ -27,7 +27,7 @@ setup(
     packages=[
         'pyt'
     ],
-    install_requres=[
+    install_requires=[
         'graphviz==0.4.10',
         'requests==2.10.0',
         'GitPython==2.0.8'
