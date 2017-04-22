@@ -6,5 +6,5 @@ Procedure for adding new features
   - Remember to write unit tests for your code
 - Announce finished feature as pull request
 - Pull request reviewed by at least 1
-- Merge to development brench when ready
+- Merge to development branch when ready
 - Merge into master when we all agree
