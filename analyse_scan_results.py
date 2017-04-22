@@ -56,12 +56,8 @@ def get_repos(filename):
 
 
 def get_urls(filename):
-    repos = set()
     with open(filename, 'r') as fd:
-        for line in fd:
-            if 'https' in line:
-                repos.add(line)
-    return repos
+        return sorted({line for line in fd if 'https' in line})
 
 
 if __name__ == '__main__':
