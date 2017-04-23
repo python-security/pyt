@@ -137,11 +137,11 @@ search_parser.set_defaults(which='search')
 
 search_parser.add_argument(
     '-ss', '--search-string', required=True,
-    help='String for searching for repos on github', type=str)
+    help='String for searching for repos on github.', type=str)
 
 search_parser.add_argument('-sd', '--start-date',
-                           help='Start date for repo search.'
-                           'Criteria used is Created Date', type=valid_date)
+                           help='Start date for repo search. '
+                           'Criteria used is Created Date.', type=valid_date)
 
 
 def analyse_repo(github_repo, analysis_type):
