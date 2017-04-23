@@ -129,17 +129,20 @@ save_parser.add_argument('-all', '--save-all',
                          help='Output everything to file.',
                          action='store_true')
 
-search_parser = subparsers.add_parser('github_search',
-                                     help='Searches through github and runs PyT'
-                                     ' on found repositories. This can take some time.')
+search_parser = subparsers.add_parser(
+    'github_search',
+    help='Searches through github and runs PyT'
+    ' on found repositories. This can take some time.')
 search_parser.set_defaults(which='search')
 
-search_parser.add_argument('-ss', '--search-string', required=True,
-                           help='String for searching for repos on github', type=str)
+search_parser.add_argument(
+    '-ss', '--search-string', required=True,
+    help='String for searching for repos on github', type=str)
 
 search_parser.add_argument('-sd', '--start-date',
                            help='Start date for repo search.'
                            'Criteria used is Created Date', type=valid_date)
+
 
 def analyse_repo(github_repo, analysis_type):
     cfg_list = list()
@@ -181,7 +184,7 @@ def main():
             scan_github(args.search_string, args.start_date,
                         analysis, analyse_repo, args.csv_path)
         else:
-            scan_github(args.search_string, date(2010,1,1),
+            scan_github(args.search_string, date(2010, 1, 1),
                         analysis, analyse_repo, args.csv_path)
         exit()
 
