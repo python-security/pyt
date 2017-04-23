@@ -15,6 +15,10 @@ Features:
 - Scan intraprocedural or interprocedural
 - A lot of customisation possible
 
+Example usage and output:
+
+![Alt text](/readme_static_files/pyt_example.png?raw=true "Optional Title")
+
 # Install
 1. git clone https://github.com/python-security/pyt.git
 2. python setup.py install
