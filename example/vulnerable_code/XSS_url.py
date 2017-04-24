@@ -1,4 +1,4 @@
-from flask import Flask, request, make_response
+from flask import Flask, make_response
 app = Flask(__name__)
 
 @app.route('/XSS_param/<path:url>', methods =['GET'])
