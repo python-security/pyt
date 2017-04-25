@@ -1,9 +1,8 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
-import ast
 from collections import namedtuple
 
-from .base_cfg import AssignmentNode, Node, ReturnNode
+from .base_cfg import AssignmentNode
 from .framework_adaptor import TaintedNode
 from .lattice import Lattice
 from .trigger_definitions_parser import default_trigger_word_file, parse

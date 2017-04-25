@@ -2,7 +2,6 @@
 
 The module finds all python modules and generates an ast for them.
 """
-import ast
 import os
 
 
