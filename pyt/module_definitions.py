@@ -1,4 +1,6 @@
 """This module handles module definitions which basically is a list of module definition."""
+import ast
+
 
 project_definitions = dict()  # Contains all project definitions for a program run
 
@@ -16,7 +18,10 @@ class ModuleDefinition():
         self.path = path
 
         if parent_module_name:
-            self.name = parent_module_name + '.' + name
+            if isinstance(parent_module_name, ast.alias):
+                self.name = parent_module_name.name + '.' + name
+            else:
+                self.name = parent_module_name + '.' + name
         else:
             self.name = name
 
@@ -27,7 +32,7 @@ class ModuleDefinition():
             name = self.name
         if self.node:
             node = str(self.node)
-        return self.__class__.__name__ + ': ' + ';'.join((name, node))
+        return "Path:" + self.path + " " + self.__class__.__name__ + ': ' + ';'.join((name, node))
 
 
 class LocalModuleDefinition(ModuleDefinition):
@@ -41,13 +46,15 @@ class ModuleDefinitions():
     Adds to the project definitions list.
     """
 
-    def __init__(self, import_names=None, module_name=None):
+    def __init__(self, import_names=None, module_name=None, is_init=False):
         """Optionally set import names and module name.
 
         Module name should only be set when it is a normal import statement.
         """
         self.import_names = import_names
+        # module_name is sometimes ast.alias or a string
         self.module_name = module_name
+        self.is_init = is_init
         self.definitions = list()
         self.classes = list()
         self.import_alias_mapping = {}
@@ -97,6 +104,10 @@ class ModuleDefinitions():
             module = self.module_name
 
         if self.definitions:
+            if isinstance(module, ast.alias):
+                return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module.name + '\n'
             return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module + '\n'
         else:
-            return 'No Definitions, module_name: ' + module + '\n'
+            if isinstance(module, ast.alias):
+                return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module.name) + '\n'
+            return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module) + '\n'
