@@ -30,7 +30,7 @@ Features
 
 Example usage and output:
 
-``.. image:: pyt_example.png``
+``pyt_example.png``
 
 
 Install
