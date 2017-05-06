@@ -1,4 +1,4 @@
-============
+
 Python Taint
 ============
 
@@ -34,7 +34,7 @@ Example usage and output:
 
 
 Install
-
+=======
        
        1. git clone https://github.com/python-security/pyt.git
        2. python setup.py install
@@ -42,7 +42,7 @@ Install
        
        
 Usage from Source
-
+=================
 
 Using it like a user ``python -m pyt -f example/vulnerable_code/XSS_call.py save -du``
 
@@ -54,7 +54,7 @@ Running an individual test ``python -m unittest tests.import_test.ImportTest.tes
 
 
 Contributions
-
+=============
 
 Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@gmail.com
 
@@ -62,7 +62,7 @@ Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@g
 
 
 Virtual env setup guide
-
+=======================
 
 Create a directory to hold the virtual env and project 
 
