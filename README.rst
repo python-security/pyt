@@ -1,3 +1,5 @@
+.. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
+    :target: https://travis-ci.org/python-security/pyt
 
 Python Taint
 ============
@@ -28,8 +30,7 @@ Features
 
 Example usage and output:
 
-``pyt_example.png``
-
+.. image:: https://raw.githubusercontent.com/python-security/pyt/master/readme_static_files/pyt_example.png
 
 Install
 =======
@@ -78,9 +79,9 @@ Create the virtual environment
 
 Check that you have the right versions 
 
- ``python --version`` sample output ``Python 3.6.0``
+``python --version`` sample output ``Python 3.6.0``
 
- ``pip --version`` sample output ``pip 9.0.1 from /Users/kevinhock/a_folder/lib/python3.6/site-packages (python 3.6)``
+``pip --version`` sample output ``pip 9.0.1 from /Users/kevinhock/a_folder/lib/python3.6/site-packages (python 3.6)``
 
 Change to project directory
 
