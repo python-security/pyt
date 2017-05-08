@@ -8,8 +8,6 @@ Static analysis of Python web applications based on theoretical foundations (Con
 Features
 -------
 
-* Install `Python 2.7 <http://www.python.org/ftp/python/2.7/python-2.7.msi>`_
-
 * Detect Command injection
 
 * Detect SQL injection
