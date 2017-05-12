@@ -4,6 +4,8 @@ import os
 from .base_test_case import BaseTestCase
 from pyt.ast_helper import get_call_names_as_string
 from pyt.project_handler import get_directory_modules, get_modules_and_packages
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class ImportTest(BaseTestCase):
@@ -371,6 +373,9 @@ class ImportTest(BaseTestCase):
                     "Exit init_file_folder_1.StarbucksVisitor",
                     "Exit module"]
 
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -442,19 +447,59 @@ class ImportTest(BaseTestCase):
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
-    # def test_init_3_with_alias(self):
-    #     file_path = os.path.normpath('example/import_test_project/init_3_with_alias.py')
-    #     project_path = os.path.normpath('example/import_test_project')
+    def test_init_3(self):
+        file_path = os.path.normpath('example/import_test_project/init_3.py')
+        project_path = os.path.normpath('example/import_test_project')
 
-    #     project_modules = get_modules_and_packages(project_path)
-    #     local_modules = get_directory_modules(project_path)
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
 
-    #     self.cfg_create_from_file(file_path, project_modules, local_modules)
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
 
-    #     EXPECTED = ['Not Yet']
+        EXPECTED = ["Entry module",
+                    "Module Entry init_file_folder_3",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry moose",
+                    "Module Exit moose",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit init_file_folder_3",
+                    "Function Entry init_file_folder_3.nested_folder_with_init.moose.fast",
+                    "print('real fast')",
+                    "Exit init_file_folder_3.nested_folder_with_init.moose.fast",
+                    "Exit module"]
 
-    #     for node, expected_label in zip(self.cfg.nodes, EXPECTED):
-    #         self.assertEqual(node.label, expected_label)
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_init_3_with_alias(self):
+        file_path = os.path.normpath('example/import_test_project/init_3_with_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry init_file_folder_3_with_alias",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry moose",
+                    "Module Exit moose",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit init_file_folder_3_with_alias",
+                    "Function Entry init_file_folder_3_with_alias.heyo.moose.fast",
+                    "print('real fast')",
+                    "Exit init_file_folder_3_with_alias.heyo.moose.fast",
+                    "Exit module"]
+
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
 
     def test_from_init_1(self):
         file_path = os.path.normpath('example/import_test_project/from_init_1.py')
@@ -476,6 +521,9 @@ class ImportTest(BaseTestCase):
                     "print('Iced Mocha')",
                     "Exit StarbucksVisitor",
                     "Exit module"]
+
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
@@ -501,6 +549,9 @@ class ImportTest(BaseTestCase):
                     "Exit EatalyVisitor",
                     "Exit module"]
 
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -522,6 +573,9 @@ class ImportTest(BaseTestCase):
                     "print('Teavana Green')",
                     "Exit Starbucks.Tea",
                     "Exit module"]
+
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)

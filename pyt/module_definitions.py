@@ -46,7 +46,7 @@ class ModuleDefinitions():
     Adds to the project definitions list.
     """
 
-    def __init__(self, import_names=None, module_name=None, is_init=False):
+    def __init__(self, import_names=None, module_name=None, is_init=False, filename=None):
         """Optionally set import names and module name.
 
         Module name should only be set when it is a normal import statement.
@@ -55,6 +55,7 @@ class ModuleDefinitions():
         # module_name is sometimes ast.alias or a string
         self.module_name = module_name
         self.is_init = is_init
+        self.filename = filename
         self.definitions = list()
         self.classes = list()
         self.import_alias_mapping = {}
@@ -105,9 +106,9 @@ class ModuleDefinitions():
 
         if self.definitions:
             if isinstance(module, ast.alias):
-                return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module.name + '\n'
-            return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module + '\n'
+                return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module.name + ' and filename: ' + str(self.filename)  + ' and is_init: ' + str(self.is_init) + '\n'
+            return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module + ' and filename: ' + str(self.filename)  + ' and is_init: ' + str(self.is_init) + '\n'
         else:
             if isinstance(module, ast.alias):
-                return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module.name) + '\n'
-            return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module) + '\n'
+                return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module.name) + ' and filename: ' + str(self.filename)  + ' and is_init: ' + str(self.is_init) + '\n'
+            return 'import_names is '+ str(self.import_names) + ' No Definitions, module_name: ' + str(module) + ' and filename: ' + str(self.filename)  + ' and is_init: ' + str(self.is_init) + '\n'
