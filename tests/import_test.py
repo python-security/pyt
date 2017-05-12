@@ -4,8 +4,6 @@ import os
 from .base_test_case import BaseTestCase
 from pyt.ast_helper import get_call_names_as_string
 from pyt.project_handler import get_directory_modules, get_modules_and_packages
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class ImportTest(BaseTestCase):
@@ -108,9 +106,6 @@ class ImportTest(BaseTestCase):
                     "¤call_3 = ret_D",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -144,9 +139,6 @@ class ImportTest(BaseTestCase):
                     "Exit folder.C.pastor",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -179,8 +171,6 @@ class ImportTest(BaseTestCase):
                     "print('C')",
                     "Exit corn.mousse.pastor",
                     "Exit module"]
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
@@ -481,9 +471,6 @@ class ImportTest(BaseTestCase):
                     "Exit init_file_folder_1.StarbucksVisitor",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -576,9 +563,6 @@ class ImportTest(BaseTestCase):
                     "Exit init_file_folder_3.nested_folder_with_init.moose.fast",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -602,9 +586,6 @@ class ImportTest(BaseTestCase):
                     "print('real fast')",
                     "Exit init_file_folder_3_with_alias.heyo.moose.fast",
                     "Exit module"]
-
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
@@ -630,9 +611,6 @@ class ImportTest(BaseTestCase):
                     "Exit StarbucksVisitor",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -657,9 +635,6 @@ class ImportTest(BaseTestCase):
                     "Exit EatalyVisitor",
                     "Exit module"]
 
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -681,9 +656,6 @@ class ImportTest(BaseTestCase):
                     "print('Teavana Green')",
                     "Exit Starbucks.Tea",
                     "Exit module"]
-
-        for node in self.cfg.nodes:
-            logger.debug("node is %s", node)
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
