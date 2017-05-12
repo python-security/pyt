@@ -68,6 +68,8 @@ class ModuleDefinitions():
         """
         if isinstance(definition, LocalModuleDefinition):
             self.definitions.append(definition)
+        elif self.import_names == ["*"]:
+            self.definitions.append(definition)
         elif self.import_names and definition.name in self.import_names:
             self.definitions.append(definition)
         elif self.import_alias_mapping and definition.name in self.import_alias_mapping.values():

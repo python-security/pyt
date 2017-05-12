@@ -1,0 +1,2 @@
+def al():
+    print ("B")

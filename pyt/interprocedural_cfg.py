@@ -31,8 +31,6 @@ from .module_definitions import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
@@ -357,8 +355,6 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
-        logger.debug("local_definitions is %s", local_definitions)
-
 
         alias = handle_aliases_in_calls(_id, local_definitions.import_alias_mapping)
         if alias:
@@ -398,25 +394,19 @@ class InterproceduralVisitor(Visitor):
                     line_number=call_node.lineno,
                     path=self.filenames[-1])
 
-    def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdi=False):
+    def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
         """
-        Args:
-            module_or_package_name: We are using module_or_package_name for 2 different things and it is bad.
-
         Returns:
             The ExitNode that gets attached to the CFG of the class.
 
-        Open Questions:
+        Open Question:
             Are there times when the return value doesn't matter?
-            When are the 2 types of definitions set?
-                new_module_definitions
-                parent_definitions
         """
         module_path = module[1]
 
         parent_definitions = self.module_definitions_stack[-1]
-        # The only place the import_alias_mapping is set
-        parent_definitions.import_alias_mapping = import_alias_mapping
+        # The only place the import_alias_mapping is updated
+        parent_definitions.import_alias_mapping.update(import_alias_mapping)
         parent_definitions.import_names = local_names
 
         new_module_definitions = ModuleDefinitions(local_names, module_or_package_name)
@@ -438,7 +428,6 @@ class InterproceduralVisitor(Visitor):
         self.filenames.pop()
 
         if new_module_definitions.is_init:
-            logger.debug("WE ARE ANALYZING AN INIT FILE")
             for def_ in new_module_definitions.definitions:
                 module_def_alias = handle_aliases_in_init_files(def_.name,
                                                                 new_module_definitions.import_alias_mapping)
@@ -463,7 +452,7 @@ class InterproceduralVisitor(Visitor):
                     if from_from:
                         qualified_name = def_name
 
-                        if from_fdi:
+                        if from_fdid:
                             alias = handle_fdi_aliases(module_or_package_name, import_alias_mapping)
                             if alias:
                                 module_or_package_name = alias
@@ -471,9 +460,6 @@ class InterproceduralVisitor(Visitor):
                                                                  qualified_name,
                                                                  module_or_package_name,
                                                                  self.filenames[-1])
-                            logger.debug("[from_fdi] import_alias_mapping are %s", import_alias_mapping)
-                            logger.debug("[from_fdi] local_names are %s", local_names)
-                            logger.debug("[from_fdi] module_or_package_name is %s", module_or_package_name)
                         else:
                             parent_definition = ModuleDefinition(parent_definitions,
                                                                  qualified_name,
@@ -488,12 +474,6 @@ class InterproceduralVisitor(Visitor):
                                                              self.filenames[-1])
                     parent_definition.node = def_.node
                     parent_definitions.definitions.append(parent_definition)
-
-                    logger.debug("CRITICAL qualified_name is %s", qualified_name)
-                    logger.debug("CRITICAL from_from is %s", from_from)
-                    logger.debug("CRITICAL module_or_package_name is %s", module_or_package_name)
-                    logger.debug("CRITICAL parent_definitions.module_name is %s", parent_definitions.module_name)
-                    logger.debug("CRITICAL parent_definition is %s", parent_definition)
                 else:
                     parent_definition = ModuleDefinition(parent_definitions,
                                                          def_name,
@@ -512,14 +492,9 @@ class InterproceduralVisitor(Visitor):
 
         init_file_location = os.path.join(module_path, '__init__.py')
         init_exists = os.path.isfile(init_file_location)
-        logger.debug("module_path is %s", module_path)
-        logger.debug("init_exists is %s", init_exists)
-        logger.debug("skip_init is %s", skip_init)
 
         if init_exists and not skip_init:
             package_name = os.path.split(module_path)[1]
-            logger.debug("package_name is %s", package_name)
-
             return self.add_module((module[0], init_file_location),
                                    package_name,
                                    local_names,
@@ -537,7 +512,7 @@ class InterproceduralVisitor(Visitor):
                                     import_alias_mapping,
                                     is_init=True,
                                     from_from=True,
-                                    from_fdi=True)
+                                    from_fdid=True)
                 else:
                     raise Exception("from anything import directory needs an __init__.py file in directory")
             else:

@@ -77,6 +77,114 @@ class ImportTest(BaseTestCase):
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
+    def test_from_file_import_star(self):
+        path = os.path.normpath('example/import_test_project/from_file_import_star.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "temp_1_s = '60'",
+                    "s = temp_1_s",
+                    "Function Entry B",
+                    "ret_B = s",
+                    "Exit B",
+                    "¤call_1 = ret_B",
+                    "temp_2_s = 'minute'",
+                    "s = temp_2_s",
+                    "Function Entry C",
+                    "ret_C = s + 'see'",
+                    "Exit C",
+                    "¤call_2 = ret_C",
+                    "temp_3_s = 'IPA'",
+                    "s = temp_3_s",
+                    "Function Entry D",
+                    "ret_D = s + 'dee'",
+                    "Exit D",
+                    "¤call_3 = ret_D",
+                    "Exit module"]
+
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_directory_import_star(self):
+        path = os.path.normpath('example/import_test_project/from_directory_import_star.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry import_star_folder_1",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "Module Entry B",
+                    "Module Exit B",
+                    "Module Entry folder",
+                    "Module Entry C",
+                    "Module Exit C",
+                    "Module Exit folder",
+                    "Module Exit import_star_folder_1",
+                    "Function Entry A.cobia",
+                    "print('A')",
+                    "Exit A.cobia",
+                    "Function Entry B.al",
+                    "print('B')",
+                    "Exit B.al",
+                    "Function Entry folder.C.pastor",
+                    "print('C')",
+                    "Exit folder.C.pastor",
+                    "Exit module"]
+
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_directory_import_star_with_alias(self):
+        path = os.path.normpath('example/import_test_project/from_directory_import_star_with_alias.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry import_star_folder_1_with_alias",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "Module Entry B",
+                    "Module Exit B",
+                    "Module Entry folder",
+                    "Module Entry C",
+                    "Module Exit C",
+                    "Module Exit folder",
+                    "Module Exit import_star_folder_1_with_alias",
+                    "Function Entry husk.cobia",
+                    "print('A')",
+                    "Exit husk.cobia",
+                    "Function Entry meringue.al",
+                    "print('B')",
+                    "Exit meringue.al",
+                    "Function Entry corn.mousse.pastor",
+                    "print('C')",
+                    "Exit corn.mousse.pastor",
+                    "Exit module"]
+        for node in self.cfg.nodes:
+            logger.debug("node is %s", node)
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
     def test_from_directory(self):
         file_path = os.path.normpath('example/import_test_project/from_directory.py')
         project_path = os.path.normpath('example/import_test_project')
