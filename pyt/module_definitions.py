@@ -1,6 +1,9 @@
-"""This module handles module definitions which basically is a list of module definition."""
+"""This module handles module definitions
+ which basically is a list of module definition."""
 
-project_definitions = dict()  # Contains all project definitions for a program run
+# Contains all project definitions for a program run:
+project_definitions = dict()
+
 
 class ModuleDefinition():
     """Handling of a definition."""
@@ -10,7 +13,8 @@ class ModuleDefinition():
     path = None
     module_definitions = None
 
-    def __init__(self, local_module_definitions, name, parent_module_name, path):
+    def __init__(self, local_module_definitions,
+                 name, parent_module_name, path):
         self.module_definitions = local_module_definitions
         self.parent_module_name = parent_module_name
         self.path = path
@@ -52,7 +56,6 @@ class ModuleDefinitions():
         self.classes = list()
         self.import_alias_mapping = {}
 
-
     def append_if_local_or_in_imports(self, definition):
         """Add definition to list.
 
@@ -62,7 +65,8 @@ class ModuleDefinitions():
             self.definitions.append(definition)
         elif self.import_names and definition.name in self.import_names:
             self.definitions.append(definition)
-        elif self.import_alias_mapping and definition.name in self.import_alias_mapping.values():
+        elif (self.import_alias_mapping and definition.name in
+              self.import_alias_mapping.values()):
             self.definitions.append(definition)
 
         if definition.parent_module_name:
@@ -71,11 +75,11 @@ class ModuleDefinitions():
         if definition.node not in project_definitions:
             project_definitions[definition.node] = definition
 
-
     def is_import(self):
         """Return whether it is a normal import statement and not a from import.
 
-        This can be checked by checking the module name as it is only set when it is a normal import.
+        This can be checked by checking the module name as it is only set
+        when it is a normal import.
         """
         return self.module_name
 
@@ -97,6 +101,9 @@ class ModuleDefinitions():
             module = self.module_name
 
         if self.definitions:
-            return 'Definitions: "' + '", "'.join([str(definition) for definition in self.definitions]) + '" and module_name: ' + module + '\n'
+            return (
+                'Definitions: "' + '", "'
+                .join([str(definition) for definition in self.definitions]) +
+                '" and module_name: ' + module + '\n')
         else:
             return 'No Definitions, module_name: ' + module + '\n'
