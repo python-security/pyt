@@ -1,0 +1,23 @@
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python
+  fixme:
+    enabled: true
+  radon:
+    enabled: true
+  pep8:
+    enabled: true
+    checks:
+      E501:
+        enabled: false
+ratings:
+  paths:
+  - "pyt/**"
+  - "**.py"
+exclude_paths:
+- "**/tests/*"
+- "**/trigger_definitions/*"
+- "**.pyt"

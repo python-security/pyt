@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/python-security/pyt.svg?branch=master)](https://travis-ci.org/python-security/pyt)
+[![Test Coverage](https://codeclimate.com/github/python-security/pyt/badges/coverage.svg)](https://codeclimate.com/github/python-security/pyt/coverage)
 
 # PyT - Python Taint
 
@@ -82,4 +83,4 @@ setuptools (28.8.0)
 smmap (0.9.0)
 ```
 
-In the future, just type `source ~/pyt/bin/activate` to start developing.
+In the future, just type `source ~/a_folder/bin/activate` to start developing.
