@@ -1,4 +1,0 @@
-import init_file_folder_1_with_alias
-
-
-init_file_folder_1_with_alias.EatalyVisitor()

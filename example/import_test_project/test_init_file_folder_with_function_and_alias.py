@@ -1,0 +1,4 @@
+import init_file_folder_with_function_and_alias
+
+
+init_file_folder_with_function_and_alias.EatalyVisitor()
