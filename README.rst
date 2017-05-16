@@ -1,8 +1,8 @@
-.. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
-    :target: https://travis-ci.org/python-security/pyt
+.. image:: https://travis-ci.org/KevinHock/pyt.svg?branch=master
+    :target: https://travis-ci.org/KevinHock/pyt
 
-.. image:: https://codeclimate.com/github/python-security/pyt/badges/coverage.svg
-    :target: https://codeclimate.com/github/python-security/pyt/coverage
+.. image:: https://codeclimate.com/github/KevinHock/pyt/badges/coverage.svg
+    :target: https://codeclimate.com/github/KevinHock/pyt/coverage
 
 Python Taint
 ============
@@ -33,12 +33,12 @@ Features
 
 Example usage and output:
 
-.. image:: https://raw.githubusercontent.com/python-security/pyt/master/readme_static_files/pyt_example.png
+.. image:: https://raw.githubusercontent.com/KevinHock/pyt/master/readme_static_files/pyt_example.png
 
 Install
 =======
 
-       1. git clone https://github.com/python-security/pyt.git
+       1. git clone https://github.com/KevinHock/pyt.git
        2. python setup.py install
        3. pyt -h
 
@@ -60,7 +60,7 @@ Contributions
 
 Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@gmail.com
 
-[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
+[Guidelines](https://github.com/KevinHock/pyt/blob/master/CONTRIBUTIONS.md)
 
 
 Virtual env setup guide
@@ -74,7 +74,7 @@ Create a directory to hold the virtual env and project
 
 Clone the project into the directory
 
-``git clone https://github.com/python-security/pyt.git``
+``git clone https://github.com/KevinHock/pyt.git``
 
 Create the virtual environment
 
