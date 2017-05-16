@@ -1,4 +1,4 @@
-from import_star_folder_1 import *
+from package_star import *
 
 
 A.cobia()

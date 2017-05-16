@@ -1,4 +1,4 @@
-from import_star_folder_1_with_alias import *
+from package_star_with_alias import *
 
 
 husk.cobia()
