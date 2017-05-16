@@ -6,7 +6,7 @@ from .alias_helper import (
     as_alias_handler,
     handle_aliases_in_calls,
     handle_aliases_in_init_files,
-    handle_fdi_aliases,
+    handle_fdid_aliases,
     not_as_alias_handler,
     retrieve_import_alias_mapping
 )
@@ -453,7 +453,7 @@ class InterproceduralVisitor(Visitor):
                         qualified_name = def_name
 
                         if from_fdid:
-                            alias = handle_fdi_aliases(module_or_package_name, import_alias_mapping)
+                            alias = handle_fdid_aliases(module_or_package_name, import_alias_mapping)
                             if alias:
                                 module_or_package_name = alias
                             parent_definition = ModuleDefinition(parent_definitions,

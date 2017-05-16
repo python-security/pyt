@@ -13,7 +13,6 @@ def as_alias_handler(alias_list):
 def handle_aliases_in_calls(name, import_alias_mapping):
     """Returns either None or the handled alias.
     Used in add_module.
-
     """
     for key, val in import_alias_mapping.items():
         # e.g. Foo == Foo
@@ -30,7 +29,6 @@ def handle_aliases_in_calls(name, import_alias_mapping):
 def handle_aliases_in_init_files(name, import_alias_mapping):
     """Returns either None or the handled alias.
     Used in add_module.
-
     """
     for key, val in import_alias_mapping.items():
         # e.g. Foo == Foo
@@ -44,10 +42,10 @@ def handle_aliases_in_init_files(name, import_alias_mapping):
             return name.replace(val, key)
     return None
 
-def handle_fdi_aliases(module_or_package_name, import_alias_mapping):
+def handle_fdid_aliases(module_or_package_name, import_alias_mapping):
     """Returns either None or the handled alias.
     Used in add_module.
-
+    fdid means from directory import directory.
     """
     for key, val in import_alias_mapping.items():
         if module_or_package_name == val:
