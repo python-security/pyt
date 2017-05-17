@@ -1,0 +1,2 @@
+def pastor():
+    print ("C")

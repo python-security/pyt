@@ -8,7 +8,7 @@ from pyt.project_handler import get_directory_modules, get_modules_and_packages
 
 class ImportTest(BaseTestCase):
     def test_import(self):
-        path = os.path.normpath('example/import_test_project/import.py')
+        path = os.path.normpath('example/import_test_project/test_import.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -42,7 +42,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_import_as(self):
-        path = os.path.normpath('example/import_test_project/import_as.py')
+        path = os.path.normpath('example/import_test_project/test_import_as.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -75,8 +75,108 @@ class ImportTest(BaseTestCase):
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
+    def test_from_file_import_star(self):
+        path = os.path.normpath('example/import_test_project/test_from_file_import_star.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "temp_1_s = '60'",
+                    "s = temp_1_s",
+                    "Function Entry B",
+                    "ret_B = s",
+                    "Exit B",
+                    "¤call_1 = ret_B",
+                    "temp_2_s = 'minute'",
+                    "s = temp_2_s",
+                    "Function Entry C",
+                    "ret_C = s + 'see'",
+                    "Exit C",
+                    "¤call_2 = ret_C",
+                    "temp_3_s = 'IPA'",
+                    "s = temp_3_s",
+                    "Function Entry D",
+                    "ret_D = s + 'dee'",
+                    "Exit D",
+                    "¤call_3 = ret_D",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_import_star(self):
+        path = os.path.normpath('example/import_test_project/test_from_package_import_star.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_star",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "Module Entry B",
+                    "Module Exit B",
+                    "Module Entry folder",
+                    "Module Entry C",
+                    "Module Exit C",
+                    "Module Exit folder",
+                    "Module Exit package_star",
+                    "Function Entry A.cobia",
+                    "print('A')",
+                    "Exit A.cobia",
+                    "Function Entry B.al",
+                    "print('B')",
+                    "Exit B.al",
+                    "Function Entry folder.C.pastor",
+                    "print('C')",
+                    "Exit folder.C.pastor",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_import_star_with_alias(self):
+        path = os.path.normpath('example/import_test_project/test_from_package_import_star_with_alias.py')
+
+        project_modules = get_modules_and_packages(os.path.dirname(path))
+        local_modules = get_directory_modules(os.path.dirname(path))
+
+        self.cfg_create_from_file(path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_star_with_alias",
+                    "Module Entry A",
+                    "Module Exit A",
+                    "Module Entry B",
+                    "Module Exit B",
+                    "Module Entry folder",
+                    "Module Entry C",
+                    "Module Exit C",
+                    "Module Exit folder",
+                    "Module Exit package_star_with_alias",
+                    "Function Entry husk.cobia",
+                    "print('A')",
+                    "Exit husk.cobia",
+                    "Function Entry meringue.al",
+                    "print('B')",
+                    "Exit meringue.al",
+                    "Function Entry corn.mousse.pastor",
+                    "print('C')",
+                    "Exit corn.mousse.pastor",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
     def test_from_directory(self):
-        file_path = os.path.normpath('example/import_test_project/from_directory.py')
+        file_path = os.path.normpath('example/import_test_project/test_from_directory.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -100,7 +200,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_level_1(self):
-        path = os.path.normpath('example/import_test_project/relative_level_1.py')
+        path = os.path.normpath('example/import_test_project/test_relative_level_1.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -134,7 +234,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_level_2(self):
-        path = os.path.normpath('example/import_test_project/relative_level_2.py')
+        path = os.path.normpath('example/import_test_project/test_relative_level_2.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -146,7 +246,7 @@ class ImportTest(BaseTestCase):
             self.assertTrue("example/A.py" in repr(e))
 
     def test_relative_between_folders(self):
-        file_path = os.path.normpath('example/import_test_project/other_dir/relative_between_folders.py')
+        file_path = os.path.normpath('example/import_test_project/other_dir/test_relative_between_folders.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -170,7 +270,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_from_directory(self):
-        file_path = os.path.normpath('example/import_test_project/relative_from_directory.py')
+        file_path = os.path.normpath('example/import_test_project/test_relative_from_directory.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -193,7 +293,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_dot(self):
-        file_path = os.path.normpath('example/import_test_project/from_dot.py')
+        file_path = os.path.normpath('example/import_test_project/test_from_dot.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -218,7 +318,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_dot_dot(self):
-        file_path = os.path.normpath('example/import_test_project/other_dir/from_dot_dot.py')
+        file_path = os.path.normpath('example/import_test_project/other_dir/test_from_dot_dot.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -243,7 +343,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_multiple_files_with_aliases(self):
-        file_path = os.path.normpath('example/import_test_project/multiple_files_with_aliases.py')
+        file_path = os.path.normpath('example/import_test_project/test_multiple_files_with_aliases.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -306,7 +406,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_multiple_functions_with_aliases(self):
-        file_path = os.path.normpath('example/import_test_project/multiple_functions_with_aliases.py')
+        file_path = os.path.normpath('example/import_test_project/test_multiple_functions_with_aliases.py')
         project_path = os.path.normpath('example/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
@@ -350,22 +450,240 @@ class ImportTest(BaseTestCase):
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
-    # def test_init(self):
-    #     file_path = os.path.normpath('example/import_test_project/init.py')
-    #     project_path = os.path.normpath('example/import_test_project')
+    def test_package_with_function(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_function.py')
+        project_path = os.path.normpath('example/import_test_project')
 
-    #     project_modules = get_modules_and_packages(project_path)
-    #     local_modules = get_directory_modules(project_path)
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
 
-    #     self.cfg_create_from_file(file_path, project_modules, local_modules)
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
 
-    #     EXPECTED = ['Not Yet']
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_function",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry starbucks",
+                    "Module Exit starbucks",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_function",
+                    "Function Entry package_with_function.StarbucksVisitor",
+                    "print('Iced Mocha')",
+                    "Exit package_with_function.StarbucksVisitor",
+                    "Exit module"]
 
-    #     for node, expected_label in zip(self.cfg.nodes, EXPECTED):
-    #         self.assertEqual(node.label, expected_label)
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_package_with_function_and_alias(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_function_and_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_function_and_alias",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry starbucks",
+                    "Module Exit starbucks",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_function_and_alias",
+                    "Function Entry package_with_function_and_alias.EatalyVisitor",
+                    "print('Iced Mocha')",
+                    "Exit package_with_function_and_alias.EatalyVisitor",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_package_with_file(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_file.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_file",
+                    "Module Entry Starbucks",
+                    "Module Exit Starbucks",
+                    "Module Exit package_with_file",
+                    "Function Entry package_with_file.Starbucks.Tea",
+                    "print('Teavana Green')",
+                    "Exit package_with_file.Starbucks.Tea",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_package_with_file_and_alias(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_file_and_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_file_and_alias",
+                    "Module Entry Starbucks",
+                    "Module Exit Starbucks",
+                    "Module Exit package_with_file_and_alias",
+                    "Function Entry package_with_file_and_alias.Eataly.Tea",
+                    "print('Teavana Green')",
+                    "Exit package_with_file_and_alias.Eataly.Tea",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_package_with_folder(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_folder.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_folder",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry moose",
+                    "Module Exit moose",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_folder",
+                    "Function Entry package_with_folder.nested_folder_with_init.moose.fast",
+                    "print('real fast')",
+                    "Exit package_with_folder.nested_folder_with_init.moose.fast",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_package_with_folder_and_alias(self):
+        file_path = os.path.normpath('example/import_test_project/test_package_with_folder_and_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_folder_and_alias",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry moose",
+                    "Module Exit moose",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_folder_and_alias",
+                    "Function Entry package_with_folder_and_alias.heyo.moose.fast",
+                    "print('real fast')",
+                    "Exit package_with_folder_and_alias.heyo.moose.fast",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_with_function(self):
+        file_path = os.path.normpath('example/import_test_project/test_from_package_with_function.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_function",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry starbucks",
+                    "Module Exit starbucks",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_function",
+                    "Function Entry StarbucksVisitor",
+                    "print('Iced Mocha')",
+                    "Exit StarbucksVisitor",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_with_function_and_alias(self):
+        file_path = os.path.normpath('example/import_test_project/test_from_package_with_function_and_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_function_and_alias",
+                    "Module Entry nested_folder_with_init",
+                    "Module Entry starbucks",
+                    "Module Exit starbucks",
+                    "Module Exit nested_folder_with_init",
+                    "Module Exit package_with_function_and_alias",
+                    "Function Entry EatalyVisitor",
+                    "print('Iced Mocha')",
+                    "Exit EatalyVisitor",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_with_file(self):
+        file_path = os.path.normpath('example/import_test_project/test_from_package_with_file.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_file",
+                    "Module Entry Starbucks",
+                    "Module Exit Starbucks",
+                    "Module Exit package_with_file",
+                    "Function Entry Starbucks.Tea",
+                    "print('Teavana Green')",
+                    "Exit Starbucks.Tea",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
+    def test_from_package_with_file_and_alias(self):
+        file_path = os.path.normpath('example/import_test_project/test_from_package_with_file_and_alias.py')
+        project_path = os.path.normpath('example/import_test_project')
+
+        project_modules = get_modules_and_packages(project_path)
+        local_modules = get_directory_modules(project_path)
+
+        self.cfg_create_from_file(file_path, project_modules, local_modules)
+
+        EXPECTED = ["Entry module",
+                    "Module Entry package_with_file_and_alias",
+                    "Module Entry Starbucks",
+                    "Module Exit Starbucks",
+                    "Module Exit package_with_file_and_alias",
+                    "Function Entry Eataly.Tea",
+                    "print('Teavana Green')",
+                    "Exit Eataly.Tea",
+                    "Exit module"]
+
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
 
     # def test_all(self):
-    #     file_path = os.path.normpath('example/import_test_project/all.py')
+    #     file_path = os.path.normpath('example/import_test_project/test_all.py')
     #     project_path = os.path.normpath('example/import_test_project')
 
     #     project_modules = get_modules_and_packages(project_path)
@@ -379,7 +697,7 @@ class ImportTest(BaseTestCase):
     #         self.assertEqual(node.label, expected_label)
 
     # def test_no_all(self):
-    #     file_path = os.path.normpath('example/import_test_project/no_all.py')
+    #     file_path = os.path.normpath('example/import_test_project/test_no_all.py')
     #     project_path = os.path.normpath('example/import_test_project')
 
     #     project_modules = get_modules_and_packages(project_path)
