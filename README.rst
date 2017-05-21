@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
     :target: https://travis-ci.org/python-security/pyt
 
+.. image:: https://codeclimate.com/github/python-security/pyt/badges/coverage.svg
+    :target: https://codeclimate.com/github/python-security/pyt/coverage
+
 Python Taint
 ============
 
@@ -34,12 +37,12 @@ Example usage and output:
 
 Install
 =======
-       
+
        1. git clone https://github.com/python-security/pyt.git
        2. python setup.py install
        3. pyt -h
-       
-       
+
+
 Usage from Source
 =================
 
@@ -63,7 +66,7 @@ Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@g
 Virtual env setup guide
 =======================
 
-Create a directory to hold the virtual env and project 
+Create a directory to hold the virtual env and project
 
 ``mkdir ~/a_folder``
 
@@ -73,11 +76,11 @@ Clone the project into the directory
 
 ``git clone https://github.com/python-security/pyt.git``
 
-Create the virtual environment 
+Create the virtual environment
 
 ``python3 -m venv ~/a_folder/``
 
-Check that you have the right versions 
+Check that you have the right versions
 
 ``python --version`` sample output ``Python 3.6.0``
 
@@ -101,4 +104,4 @@ Install dependencies
     setuptools (28.8.0)
     smmap (0.9.0)
 
-In the future, just type ``source ~/pyt/bin/activate`` to start developing.
+In the future, just type ``source ~/a_folder/bin/activate`` to start developing.
