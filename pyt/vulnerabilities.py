@@ -46,6 +46,7 @@ class TriggerNode():
             'cfg_node is ' + str(self.cfg_node) + ')\n'
         )
 
+
 def identify_triggers(cfg, sources, sinks):
     """Identify sources, sinks and sanitisers in a CFG.
 
