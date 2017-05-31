@@ -6,10 +6,10 @@ class FixedPointAnalysis():
     """Run the fix point analysis."""
 
     def __init__(self, cfg, analysis):
-        """Fixed point analysis
+        """Fixed point analysis.
 
-        analysis must be a dataflow analysis containing a 'fixpointmethod'
-        method that analyzes one CFG node"""
+        Analysis must be a dataflow analysis containing a 'fixpointmethod'
+        method that analyzes one CFG node."""
         self.analysis = analysis(cfg)
         self.cfg = cfg
 
