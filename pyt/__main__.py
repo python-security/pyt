@@ -64,6 +64,9 @@ print_group.add_argument('-p', '--print',
                          action='store_true')
 print_group.add_argument('-vp', '--verbose-print',
                          help='Verbose printing of -p.', action='store_true')
+print_group.add_argument('-trim', '--trim-reassigned-in',
+                         help='Trims the reassigned list to the vulnerability chain.', action='store_true')
+
 
 parser.add_argument('-t', '--trigger-word-file',
                     help='Input trigger word file.', type=str)
@@ -217,9 +220,11 @@ def main():
     vulnerability_log = None
     if args.trigger_word_file:
         vulnerability_log = find_vulnerabilities(cfg_list, analysis,
+                                                 args.trim_reassigned_in,
                                                  args.trigger_word_file)
     else:
-        vulnerability_log = find_vulnerabilities(cfg_list, analysis)
+        vulnerability_log = find_vulnerabilities(cfg_list, analysis,
+                                                 args.trim_reassigned_in)
 
     vulnerability_log.print_report()
 
