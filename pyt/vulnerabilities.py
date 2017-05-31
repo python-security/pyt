@@ -12,8 +12,7 @@ from .vulnerability_log import (
     Vulnerability,
     VulnerabilityLog
 )
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
+
 
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
@@ -317,7 +316,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
     Returns:
         A VulnerabilityLog with found vulnerabilities.
     """
-    logger.debug("trim_reassigned_in is %s", trim_reassigned_in)
     definitions = parse(trigger_word_file)
 
     vulnerability_log = VulnerabilityLog()
