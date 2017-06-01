@@ -1,17 +1,21 @@
 import subprocess
 from flask import Flask, render_template, request
 
-from other_file import does_not_exist
+# This is a lib we can't possibly see inside of
+import scrypt
 
 
 app = Flask(__name__)
 
-@app.route('/menu', methods=['POST'])
+@app.route('/menu', methods=['GET'])
 def menu():
-    param = request.form['suggestion']
+    param = request.args.get('suggestion')
 
-    command = does_not_exist('echo ' + param + ' >> ' + 'menu.txt')
-    subprocess.call(command, shell=True)
+    # This is a function we can't possibly see inside of
+    foobar = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+    command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+    hey = command
+    subprocess.call(hey, shell=True)
 
     with open('menu.txt','r') as f:
         menu = f.read()

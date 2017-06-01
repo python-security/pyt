@@ -46,9 +46,9 @@ class EngineTest(BaseTestCase):
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     # This fails due to a false positive in get_vulnerability
-    # def test_absolute_from_file_does_not_exist(self):
-    #     vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py')
-    #     self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
+    def test_absolute_from_file_does_not_exist(self):
+        vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
     def test_find_vulnerabilities_import_file_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/import_file_command_injection.py')

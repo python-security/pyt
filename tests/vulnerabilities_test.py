@@ -103,7 +103,7 @@ class EngineTest(BaseTestCase):
 
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
 
-    def test_is_sanitized_false(self):
+    def test_is_sanitised_false(self):
         cfg_node_1 = Node('Not sanitising at all', None, line_number=None, path=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
@@ -114,10 +114,10 @@ class EngineTest(BaseTestCase):
         constraint_table[cfg_node_1] = 0
         constraint_table[cfg_node_2] = 0
 
-        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
+        result = vulnerabilities.is_sanitised(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, False)
 
-    def test_is_sanitized_true(self):
+    def test_is_sanitised_true(self):
         cfg_node_1 = Node('Awesome sanitiser', None,  line_number=None, path=None)
         cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
@@ -127,7 +127,7 @@ class EngineTest(BaseTestCase):
         lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
         constraint_table[cfg_node_2] = 0b1
 
-        result = vulnerabilities.is_sanitized(sinks_in_file[0], sanitiser_dict, lattice)
+        result = vulnerabilities.is_sanitised(sinks_in_file[0], sanitiser_dict, lattice)
         self.assertEqual(result, True)
 
     def test_find_vulnerabilities_no_vuln(self):

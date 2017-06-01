@@ -31,6 +31,8 @@ from .module_definitions import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
@@ -43,6 +45,8 @@ class InterproceduralVisitor(Visitor):
         self.project_modules = project_modules
         self.local_modules = local_modules
         self.filenames = [filename]
+        self.blackbox_assignments = set()
+        self.blackbox_calls = set()
         self.nodes = list()
         self.function_index = 0
         self.undecided = False
@@ -50,6 +54,7 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack = list()
         self.module_definitions_stack = list()
 
+        # Are we already in a module?
         if module_definitions:
             self.init_function_cfg(node, module_definitions)
         else:
@@ -371,6 +376,10 @@ class InterproceduralVisitor(Visitor):
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
+        else:
+            # Mark it as a blackbox if we don't have the definition
+            return self.add_blackbox_call(node)
+
         return self.add_builtin(node)
 
     def add_class(self, call_node, def_node):
@@ -641,4 +650,4 @@ def interprocedural(node, project_modules, local_modules, filename,
                                      project_modules,
                                      local_modules, filename,
                                      module_definitions)
-    return CFG(visitor.nodes)
+    return CFG(visitor.nodes, visitor.blackbox_assignments)
