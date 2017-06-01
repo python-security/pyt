@@ -9,7 +9,7 @@ class FixedPointAnalysis():
         """Fixed point analysis.
 
         Analysis must be a dataflow analysis containing a 'fixpointmethod'
-        method that analyzes one CFG node."""
+        method that analyses one CFG node."""
         self.analysis = analysis(cfg)
         self.cfg = cfg
 

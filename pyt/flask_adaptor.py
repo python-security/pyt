@@ -36,8 +36,8 @@ class FlaskAdaptor(FrameworkAdaptor):
         if args:
             definition_lineno = definition.node.lineno
 
-            cfg.nodes[0].outgoing = []
-            cfg.nodes[1].ingoing = []
+            cfg.nodes[0].outgoing = list()
+            cfg.nodes[1].ingoing = list()
 
             for i, argument in enumerate(args, 1):
                 taint = TaintedNode(argument, argument, None, [], line_number=definition_lineno, path=definition.path)
