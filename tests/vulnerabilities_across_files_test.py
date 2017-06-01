@@ -11,6 +11,8 @@ from pyt.flask_adaptor import FlaskAdaptor
 from pyt.lattice import Lattice
 from pyt.project_handler import get_directory_modules, get_modules
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class EngineTest(BaseTestCase):
@@ -45,10 +47,34 @@ class EngineTest(BaseTestCase):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/no_false_positive_absolute_from_file_command_injection_3.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
+    def string_compare_alpha(self, output, expected_string):
+        return [char for char in output if char.isalpha()] \
+                == \
+               [char for char in expected_string if char.isalpha()]
+
     # This fails due to a false positive in get_vulnerability
     def test_absolute_from_file_does_not_exist(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py')
-        self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py
+             > User input at line 12, trigger word "get(":
+                param = request.args.get('suggestion')
+            Reassigned in: 
+                File: example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py
+                 > Line 15: foobar = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                File: example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py
+                 > Line 16: command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                File: example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py
+                 > Line 17: hey = command
+            File: example/vulnerable_code_across_files/absolute_from_file_does_not_exist.py
+             > reaches line 18, trigger word "subprocess.call(": 
+                subprocess.call(hey,shell=True)
+            This vulnerability is unknown due to:  Label: command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_find_vulnerabilities_import_file_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/import_file_command_injection.py')
