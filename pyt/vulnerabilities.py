@@ -246,25 +246,27 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
-    evil_node = None
+    secondary_node_in_sink_args = None
     if sink_args:
         for node in secondary_in_sink:
             if sink_args and node.left_hand_side in sink_args:
-                evil_node = node
+                secondary_node_in_sink_args = node
 
     trimmed_nodes = list()
-    if evil_node and trim_reassigned_in:
-        trimmed_nodes.append(evil_node)
+    if secondary_node_in_sink_args and trim_reassigned_in:
+        trimmed_nodes.append(secondary_node_in_sink_args)
+        node_in_the_vulnerability_chain = secondary_node_in_sink_args
+        # Here is where we do backwards slicing to traceback which nodes led to the vulnerability
         for secondary in reversed(source.secondary_nodes):
             if lattice.in_constraint(secondary, sink.cfg_node):
-                if secondary.left_hand_side in evil_node.right_hand_side_variables:
-                    evil_node = secondary
-                    trimmed_nodes.insert(0, evil_node)
+                if secondary.left_hand_side in node_in_the_vulnerability_chain.right_hand_side_variables:
+                    node_in_the_vulnerability_chain = secondary
+                    trimmed_nodes.insert(0, node_in_the_vulnerability_chain)
 
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
 
-    lhs_in_sink_args = source_lhs_in_sink_args or evil_node
+    lhs_in_sink_args = source_lhs_in_sink_args or secondary_node_in_sink_args
 
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
