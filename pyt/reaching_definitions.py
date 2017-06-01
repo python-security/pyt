@@ -13,7 +13,6 @@ class ReachingDefinitionsAnalysis(ReachingDefinitionsAnalysisBase):
             arrow_result = JOIN
             # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
             arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
-            
             arrow_result = arrow_result | self.lattice.el2bv[cfg_node]
             constraint_table[cfg_node] = arrow_result
         # Default case
