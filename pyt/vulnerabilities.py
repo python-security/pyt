@@ -350,7 +350,8 @@ def find_vulnerabilities(cfg_list, analysis_type,
         A VulnerabilityLog with found vulnerabilities.
     """
     definitions = parse(trigger_word_file)
-
+    logger.debug("definitions.sources is %s", definitions.sources)
+    logger.debug("definitions.sinks is %s", definitions.sinks)
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:
