@@ -390,7 +390,6 @@ class InterproceduralVisitor(Visitor):
         logger.debug("_id is %s", _id)
         # "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
-        
         if definition:
             if isinstance(definition.node, ast.ClassDef):
                 self.add_builtin(node)
@@ -400,7 +399,6 @@ class InterproceduralVisitor(Visitor):
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
-        
         elif last_attribute not in NOT_A_BLACKBOX:
             return self.add_blackbox_call(node)
 
