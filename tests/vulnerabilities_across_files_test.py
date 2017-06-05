@@ -47,12 +47,6 @@ class EngineTest(BaseTestCase):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/no_false_positive_absolute_from_file_command_injection_3.py')
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=0)
 
-    def string_compare_alpha(self, output, expected_string):
-        return [char for char in output if char.isalpha()] \
-                == \
-               [char for char in expected_string if char.isalpha()]
-
-    # This fails due to a false positive in get_vulnerability
     def test_blackbox_library_call(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/blackbox_library_call.py')
         logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
