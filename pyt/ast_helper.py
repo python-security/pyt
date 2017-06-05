@@ -33,7 +33,6 @@ def generate_ast(path, python_2=False):
     global python_2_mode
     if python_2:
         python_2_mode = True
-    
     logger.debug("So python_2_mode is %s", python_2_mode)
     if os.path.isfile(path):
         with open(path, 'r') as f:
