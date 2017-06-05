@@ -71,8 +71,8 @@ print_group.add_argument('-trim', '--trim-reassigned-in',
 parser.add_argument('-t', '--trigger-word-file',
                     help='Input trigger word file.', type=str)
 parser.add_argument('-py2', '--python-2',
-                    help='Turns on Python 2 mode,' +
-                    ' needed when target file(s) are written in Python 2.', type=str)
+                    help='[WARNING, EXPERIMENTAL] Turns on Python 2 mode,' +
+                    ' needed when target file(s) are written in Python 2.', action='store_true')
 parser.add_argument('-l', '--log-level',
                     help='Choose logging level: CRITICAL, ERROR,' +
                     ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
