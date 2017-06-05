@@ -33,7 +33,7 @@ from .save import (
 from .vulnerabilities import find_vulnerabilities
 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(prog='python -m pyt')
 parser.set_defaults(which='')
 
 subparsers = parser.add_subparsers()
