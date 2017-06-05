@@ -70,6 +70,9 @@ print_group.add_argument('-trim', '--trim-reassigned-in',
 
 parser.add_argument('-t', '--trigger-word-file',
                     help='Input trigger word file.', type=str)
+parser.add_argument('-py2', '--python-2',
+                    help='Turns on Python 2 mode,' +
+                    ' needed when target file(s) are written in Python 2.', type=str)
 parser.add_argument('-l', '--log-level',
                     help='Choose logging level: CRITICAL, ERROR,' +
                     ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
@@ -201,7 +204,7 @@ def main():
     project_modules = get_modules(directory)
     local_modules = get_directory_modules(directory)
 
-    tree = generate_ast(path)
+    tree = generate_ast(path, python_2=args.python_2)
 
     cfg_list = list()
 
