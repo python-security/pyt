@@ -1,5 +1,9 @@
 from .base_test_case import BaseTestCase
-from pyt.flask_adaptor import FlaskAdaptor
+from pyt.flask_adaptor import (
+    FlaskAdaptor,
+    get_func_nodes,
+    is_flask_route_function
+)
 
 
 class FlaskEngineTest(BaseTestCase):
@@ -10,11 +14,11 @@ class FlaskEngineTest(BaseTestCase):
         cfg_list = [self.cfg]
 
         flask = FlaskAdaptor(cfg_list, list(), list())
-        funcs = flask.get_func_nodes()
+        funcs = get_func_nodes()
 
         i = 0
         for func in funcs:
-            if flask.is_flask_route_function(func.node):
+            if is_flask_route_function(func.node):
                 self.assertEqual(func.node.name, 'flask_function')
                 i = i + 1
         # So it is supposed to be 1, because foo is not an app.route

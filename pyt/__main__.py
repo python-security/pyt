@@ -205,13 +205,16 @@ def main():
 
     cfg_list = list()
 
-    # project_modules = [p for p in project_modules if 'sqli.py' in p[1]]
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
-        cfg_list.append(interprocedural(tree, project_modules, local_modules,
-                                        path))
-        adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
+        interprocedural_cfg = interprocedural(tree,
+                                              project_modules,
+                                              local_modules,
+                                              path)
+        cfg_list.append(interprocedural_cfg)
+        # Add all the route functions to the cfg_list
+        FlaskAdaptor(cfg_list, project_modules, local_modules)
 
     initialize_constraint_table(cfg_list)
 
