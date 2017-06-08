@@ -11,7 +11,11 @@ from .draw import draw_cfgs, draw_lattices
 from .constraint_table import initialize_constraint_table, print_table
 from .fixed_point import analyse
 from .framework_adaptor import FrameworkAdaptor
-from .framework_helper import is_flask_route_function, is_function
+from .framework_helper import (
+    is_flask_route_function,
+    is_function,
+    is_function_without_leading_
+)
 from .github_search import scan_github, set_github_api_token
 from .interprocedural_cfg import interprocedural
 from .intraprocedural_cfg import intraprocedural
@@ -216,8 +220,8 @@ def main():
         cfg_list.append(interprocedural_cfg)
         if args.adaptor and args.adaptor.startswith('E'):
             framework_route_criteria = is_function
-        # elif args.adaptor and arg.adaptor.startswith('P'):
-        #     framework_route_criteria = function_without_leading_
+        elif args.adaptor and args.adaptor.startswith('P'):
+            framework_route_criteria = is_function_without_leading_
         else:
             framework_route_criteria = is_flask_route_function
         # Add all the route functions to the cfg_list
