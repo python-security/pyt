@@ -3,6 +3,8 @@
 Used to find all variables on a right hand side(RHS) of assignment.
 """
 import ast
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class RHSVisitor(ast.NodeVisitor):
@@ -16,6 +18,7 @@ class RHSVisitor(ast.NodeVisitor):
         self.result.append(node.id)
 
     def visit_Call(self, node):
+        logger.debug("hey i am here after all")
         if node.args:
             for arg in node.args:
                 self.visit(arg)

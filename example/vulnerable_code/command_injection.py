@@ -13,9 +13,9 @@ def index():
 @app.route('/menu', methods=['POST'])
 def menu():
     param = request.form['suggestion']
-    command = 'echo ' + param + ' >> ' + 'menu.txt'
+    # command = 'echo ' + param + ' >> ' + 'menu.txt'
 
-    subprocess.call(command, shell=True)
+    subprocess.call("echo %s >> menu.txt" % (param), shell=True)
 
     with open('menu.txt','r') as f:
         menu = f.read()

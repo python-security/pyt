@@ -1,1 +1,4 @@
-abc = print(foo('bar'))
+def foo():
+	return 'hey'
+
+abc = print(foo())

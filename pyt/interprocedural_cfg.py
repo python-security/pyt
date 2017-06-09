@@ -388,6 +388,28 @@ class InterproceduralVisitor(Visitor):
             definition = local_definitions.get_definition(_id)
 
         logger.debug("_id is %s", _id)
+        logger.debug("node is %s", node)
+        logger.debug("dir(node) is %s", dir(node))
+        logger.debug("node.func is %s", node.func)
+        logger.debug("dir(node.func) is %s", dir(node.func))
+        logger.debug("node.args is %s", node.args)
+        logger.debug("dir(node.args) is %s", dir(node.args))
+
+        # # We can maybe just visit the whole list, let's try each arg first
+        # for arg in node.args:
+        #     logger.debug("arg is %s", arg)
+        #     # logger.debug("arg.s is %s", arg.s)
+        #     logger.debug("type(arg) is %s", type(arg))
+        #     logger.debug("dir(arg) is %s", dir(arg))
+        #     # logger.debug("arg.func is %s", arg.func)
+        #     self.visit(arg)
+        #     # logger.debug("Result of RHS visitor is %s", rhs_visitor.result)
+
+        for arg in node.args:
+            self.visit(arg)
+        for keyword in node.keywords:
+            self.visit(keyword)
+
         # "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
         if definition:
@@ -400,6 +422,7 @@ class InterproceduralVisitor(Visitor):
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
         elif last_attribute not in NOT_A_BLACKBOX:
+            # Mark the call as a blackbox because we don't have the definition
             return self.add_blackbox_call(node)
 
         return self.add_builtin(node)
