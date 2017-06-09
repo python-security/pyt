@@ -66,9 +66,10 @@ class FrameworkAdaptor():
             function_cfgs.extend(self.find_route_functions_taint_args())
         self.cfg_list.extend(function_cfgs)
 
+
 def _get_func_nodes():
     """Get all function nodes."""
-    return [definition for definition in project_definitions.values() \
+    return [definition for definition in project_definitions.values()
             if isinstance(definition.node, ast.FunctionDef)]
 
 
