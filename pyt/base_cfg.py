@@ -363,12 +363,12 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        logger.debug("label_visitor.result is %s", label_visitor.result)
-        logger.debug("node.__class__.__name__ is %s", node.__class__.__name__)
-        logger.debug("node is %s", node)
-        logger.debug("node.lineno is %s", node.lineno)
-        logger.debug("self.filenames[-1] is %s", self.filenames[-1])
-        # def __init__(self, label, ast_node, *, line_number, path):
+        # logger.debug("label_visitor.result is %s", label_visitor.result)
+        # logger.debug("node.__class__.__name__ is %s", node.__class__.__name__)
+        # logger.debug("node is %s", node)
+        # logger.debug("node.lineno is %s", node.lineno)
+        # logger.debug("self.filenames[-1] is %s", self.filenames[-1])
+        # # def __init__(self, label, ast_node, *, line_number, path):
 
         return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
 

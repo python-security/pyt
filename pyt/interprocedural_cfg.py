@@ -106,6 +106,7 @@ class InterproceduralVisitor(Visitor):
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node, module_definitions):
+        logger.debug("Create the CFG for a function")
         self.module_definitions_stack.append(module_definitions)
 
         self.function_names.append(node.name)
@@ -223,32 +224,52 @@ class InterproceduralVisitor(Visitor):
                                            path=self.filenames[-1]))
 
     def save_local_scope(self, line_number):
-        """Save the local scope before entering a function call."""
-        saved_variables = list()
-        for assignment in [node for node in self.nodes
-                           if type(node) == AssignmentNode]:
-            if isinstance(assignment, RestoreNode):
-                continue
+        """Save the local scope before entering a function call.
 
-        # above can be optimized with the assignments dict
+        Args:
+            line_number(int): Of the def of the function call about to be entered into.
+
+        Returns:
+            list of SavedVariable's.
+        """
+        saved_variables = list()
+        previous_node = self.nodes[-1]
+
+        # Loop through all assignment nodes and save their LHS's
+        for assignment in [node for node in self.nodes
+                           if type(node) == AssignmentNode]: # type() is used on purpose here
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
-            previous_node = self.nodes[-1]
-            r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
-                            save_name, [assignment.left_hand_side],
-                            line_number=line_number, path=self.filenames[-1])
-            saved_scope_node = self.append_node(r)
-
+            # Save LHS
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
+            saved_scope_node = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
+                                           save_name,
+                                           [assignment.left_hand_side],
+                                           line_number=line_number, path=self.filenames[-1])
+            foo = self.append_node(saved_scope_node)
+            assert foo == saved_scope_node
             previous_node.connect(saved_scope_node)
+
+        logger.debug("len(saved_variables) is %s", len(saved_variables))
+        logger.debug("saved_variables are %s", saved_variables)
+        logger.debug("line_number is %s", line_number)
         return saved_variables
 
-    def save_actual_parameters_in_temp(self, args, arguments, line_number):
-        """Save the actual parameters of a function call."""
+    def save_actual_parameters_in_temp(self, call_args, def_args, line_number):
+        """Save the actual parameters of a function call.
+
+        Args:
+            call_args: Of the call being made.
+            def_args: Of the definition being called.
+            line_number(int): Of the call being made.
+
+        Returns:
+            parameters(dict): a mapping of parameter to argument???
+        """
         parameters = dict()
-        for i, parameter in enumerate(args):
-            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
+        for i, parameter in enumerate(call_args):
+            temp_name = 'temp_' + str(self.function_index) + '_' + def_args[i]
 
             label_visitor = LabelVisitor()
             label_visitor.visit(parameter)
@@ -264,43 +285,62 @@ class InterproceduralVisitor(Visitor):
             self.nodes[-1].connect(node)
             self.nodes.append(node)
 
-            parameters[label_visitor.result] = arguments[i]
+            parameters[label_visitor.result] = def_args[i]
         return parameters
 
-    def create_local_scope_from_actual_parameters(self, args, arguments,
+    def create_local_scope_from_actual_parameters(self,
+                                                  call_args,
+                                                  def_args,
                                                   line_number):
         """Create the local scope before entering
-        the body of a function call."""
+        the body of a function call.
 
-        for i in range(len(args)):
-            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
-            local_name = arguments[i]
+        Arguments:
+            call_args: Of the call being made.
+            def_args: Of the definition being called.
+            line_number(int): Of the def of the function call about to be entered into.
+        """
+
+        for i in range(len(call_args)):
+            temp_name = 'temp_' + str(self.function_index) + '_' + def_args[i]
+            local_name = def_args[i]
+            local_scope_node = RestoreNode(local_name + ' = ' + temp_name,
+                                           local_name, 
+                                           [temp_name],
+                                           line_number=line_number,
+                                           path=self.filenames[-1])
+            # Chain the args together, is this intentional?
             previous_node = self.nodes[-1]
-            r = RestoreNode(local_name + ' = ' + temp_name,
-                            local_name, [temp_name],
-                            line_number=line_number,
-                            path=self.filenames[-1])
-            local_scope_node = self.append_node(r)
+            foo = self.append_node(local_scope_node)
+            assert foo == local_scope_node
             previous_node.connect(local_scope_node)
 
-    def restore_saved_local_scope(self, saved_variables, parameters,
+    def restore_saved_local_scope(self,
+                                  saved_variables,
+                                  parameters,
                                   line_number):
         """Restore the previously saved variables to their original values.
 
         Args:
-           saved_variables(list[SavedVariable]).
+           saved_variables(list[SavedVariable])
+           parameters(dict): a mapping of parameter to argument???
+           line_number(int): Of the def of the function call about to be entered into.
+
+        Returns:
+            restore_nodes(list[RestoreNode]): A list of the nodes that were restored???
         """
         restore_nodes = list()
         for var in saved_variables:
             if var.RHS in parameters:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' +
-                                                 parameters[var.RHS],
-                                                 var.RHS, [var.LHS],
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + parameters[var.RHS],
+                                                 var.RHS,
+                                                 [var.LHS],
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
             else:
                 restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS,
-                                                 var.RHS, [var.LHS],
+                                                 var.RHS,
+                                                 [var.LHS],
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
 
@@ -315,26 +355,45 @@ class InterproceduralVisitor(Visitor):
 
     def return_handler(self, node, function_nodes):
         """Handle the return from a function during a function call."""
+        
+        logger.debug("IMPORTANT, in return_handler")
         call_node = None
         for n in function_nodes:
+            # Only Return's and Raise's can be of type ConnectToExitNode
             if isinstance(n, ConnectToExitNode):
+                # logger.debug("PROCESS node being processed in return_handler is %s", node)
+                # logger.debug("PROCESS dir(node) being processed in return_handler is %s", dir(node))
+                # logger.debug("PROCESS dir(node.func) being processed in return_handler is %s", dir(node.func))
+                # logger.debug("PROCESS node being processed in return_handler is %s", node.func.id)
+
                 LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
                 previous_node = self.nodes[-1]
                 if not call_node:
                     RHS = 'ret_' + get_call_names_as_string(node.func)
-                    r = RestoreNode(LHS + ' = ' + RHS, LHS, [RHS],
+                    r = RestoreNode(LHS + ' = ' + RHS,
+                                    LHS,
+                                    [RHS],
                                     line_number=node.lineno,
                                     path=self.filenames[-1])
                     call_node = self.append_node(r)
                     previous_node.connect(call_node)
-            else:
-                # lave rigtig kobling
-                pass
 
     def add_function(self, call_node, definition):
+        """Processes and adds a user defined function
+
+        Args:
+            call_node(ast.Call) : The node that calls the definition.
+            definition(LocalModuleDefinition): Definition of the function being called.
+
+        """
+
+        logger.debug("call_node is %s", call_node)
+        logger.debug("type(call_node) is %s", type(call_node))
         try:
             self.function_index += 1
             def_node = definition.node
+
+            # FIGURE OUT EVERY LINE OF THIS FUNCTION ESPECIALLY HOW RETURN VALUES WORK
             saved_variables = self.save_local_scope(def_node.lineno)
 
             parameters = self.save_actual_parameters_in_temp(call_node.args,
@@ -359,7 +418,9 @@ class InterproceduralVisitor(Visitor):
         return self.nodes[-1]
 
     def get_function_nodes(self, definition):
-        length = len(self.nodes)
+        """WTF DO I DO?"""
+
+        length_before_visiting_func = len(self.nodes)
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
@@ -371,9 +432,10 @@ class InterproceduralVisitor(Visitor):
         exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
-        self.return_connection_handler(self.nodes[length:], exit_node)
+        self.return_connection_handler(self.nodes[length_before_visiting_func:], exit_node)
 
-        return self.nodes[length:]
+        # Return the new nodes
+        return self.nodes[length_before_visiting_func:]
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
@@ -389,11 +451,11 @@ class InterproceduralVisitor(Visitor):
 
         logger.debug("_id is %s", _id)
         logger.debug("node is %s", node)
-        logger.debug("dir(node) is %s", dir(node))
+        # logger.debug("dir(node) is %s", dir(node))
         logger.debug("node.func is %s", node.func)
-        logger.debug("dir(node.func) is %s", dir(node.func))
+        # logger.debug("dir(node.func) is %s", dir(node.func))
         logger.debug("node.args is %s", node.args)
-        logger.debug("dir(node.args) is %s", dir(node.args))
+        # logger.debug("dir(node.args) is %s", dir(node.args))
 
         # # We can maybe just visit the whole list, let's try each arg first
         # for arg in node.args:
@@ -405,10 +467,21 @@ class InterproceduralVisitor(Visitor):
         #     self.visit(arg)
         #     # logger.debug("Result of RHS visitor is %s", rhs_visitor.result)
 
-        for arg in node.args:
-            self.visit(arg)
-        for keyword in node.keywords:
-            self.visit(keyword)
+
+
+        # # maybe if "return_of.." is a restore node we do something special!
+        # for arg in node.args:
+        #     return_of_visit_arg = self.visit(arg)
+        #     if isinstance(return_of_visit_arg, RestoreNode):
+        #         logger.debug("return_of_visit_arg is %s", return_of_visit_arg)
+        #         logger.debug("return_of_visit_arg.right_hand_side_variables is %s", return_of_visit_arg.right_hand_side_variables)
+        #         logger.debug("type(return_of_visit_arg) is %s", type(return_of_visit_arg))
+        #         logger.debug("dir(return_of_visit_arg) is %s", dir(return_of_visit_arg))
+
+        # for keyword in node.keywords:
+        #     return_of_visit_keyword = self.visit(keyword)
+        #     logger.debug("return_of_visit_keyword is %s", return_of_visit_keyword)
+        #     logger.debug("type(return_of_visit_keyword) is %s", type(return_of_visit_keyword))
 
         # "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
@@ -428,6 +501,7 @@ class InterproceduralVisitor(Visitor):
         return self.add_builtin(node)
 
     def add_class(self, call_node, def_node):
+        """Is this code dead? How is it different from visit_classdef"""
         label_visitor = LabelVisitor()
         label_visitor.visit(call_node)
 
