@@ -3,8 +3,7 @@ Useful when working with the ast module."""
 import ast
 import os
 import subprocess
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
+
 
 BLACK_LISTED_CALL_NAMES = ['self']
 recursive = False
@@ -33,7 +32,6 @@ def generate_ast(path, python_2=False):
     global python_2_mode
     if python_2:
         python_2_mode = True
-    logger.debug("So python_2_mode is %s", python_2_mode)
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:
