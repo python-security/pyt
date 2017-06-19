@@ -16,7 +16,7 @@ class ReachingDefinitionsAnalysisBase(AnalysisBase):
         return constraint_join(cfg_node.ingoing)
 
     def arrow(self, JOIN, _id):
-        """Removes all previous assignments from JOIN that have the same the left hand side.
+        """Removes all previous assignments from JOIN that have the same left hand side.
         This represents the arrow id definition from Schwartzbach."""
         r = JOIN
         for node in self.lattice.get_elements(JOIN):
