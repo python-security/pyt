@@ -8,8 +8,9 @@ from .module_definitions import project_definitions
 
 
 class FrameworkAdaptor():
-    """An engine that should be uses the template pattern
-    to specify how to find all sources and sinks in a framework."""
+    """An engine that uses the template pattern to find all
+    entry points in a framework and then taints their arguments.
+    """
 
     def __init__(self, cfg_list, project_modules, local_modules, is_route_function):
         self.cfg_list = cfg_list
@@ -41,7 +42,7 @@ class FrameworkAdaptor():
                                            line_number=definition_lineno,
                                            path=definition.path)
                 function_entry_node.connect(tainted_node)
-                # 1 and not 0 for Entry Node to remain first in the list
+                # 1 and not 0 so that Entry Node remains first in the list
                 func_cfg.nodes.insert(1, tainted_node)
 
             first_arg = func_cfg.nodes[len(args)]
