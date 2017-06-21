@@ -269,9 +269,9 @@ class InterproceduralVisitor(Visitor):
             args_mapping(dict): A mapping of call argument to definition argument.
         """
         args_mapping = dict()
-        logger.debug("[FOR COMMENTS] TYPE OF call_args[0] is %s", type(call_args[0]))
-        logger.debug("[FOR COMMENTS] TYPE OF def_args is %s", type(def_args))
-        logger.debug("[FOR COMMENTS] def_args is %s", def_args)
+        # logger.debug("[FOR COMMENTS] TYPE OF call_args[0] is %s", type(call_args[0]))
+        # logger.debug("[FOR COMMENTS] TYPE OF def_args is %s", type(def_args))
+        # logger.debug("[FOR COMMENTS] def_args is %s", def_args)
 
         # Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument
         for i, call_arg in enumerate(call_args):
