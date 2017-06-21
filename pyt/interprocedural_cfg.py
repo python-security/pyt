@@ -318,9 +318,8 @@ class InterproceduralVisitor(Visitor):
                                            line_number=line_number,
                                            path=self.filenames[-1])
             # Chain the local scope nodes together
-            previous_node = self.nodes[-1]
+            self.nodes[-1].connect(local_scope_node)
             self.nodes.append(local_scope_node)
-            previous_node.connect(local_scope_node)
 
     def restore_saved_local_scope(self,
                                   saved_variables,
@@ -365,6 +364,7 @@ class InterproceduralVisitor(Visitor):
         if restore_nodes:
             # Connect the last node to the first restore node
             self.nodes[-1].connect(restore_nodes[0])
+            # Why extend instead of append???
             self.nodes.extend(restore_nodes)
         logger.debug("[FOR COMMENTS] restore_nodes in restore_saved_local_scope is %s", restore_nodes)
         return restore_nodes
@@ -398,9 +398,8 @@ class InterproceduralVisitor(Visitor):
                                           [RHS],
                                           line_number=call_node.lineno,
                                           path=self.filenames[-1])
-                previous_node = self.nodes[-1]
+                self.nodes[-1].connect(return_node)
                 self.nodes.append(return_node)
-                previous_node.connect(return_node)
                 break
 
     def process_function(self, call_node, definition):
