@@ -397,20 +397,23 @@ class InterproceduralVisitor(Visitor):
 
     def process_function(self, call_node, definition):
         """Processes a user defined function when it is called.
+
         Increments self.function_call_index each time it is called, we can refer to as N.
         Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode. (save_local_scope)
         Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. (save_def_args_in_temp)
         Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
         Visit and get function nodes. (visit_and_get_function_nodes)
         Loop through each save_N_LHS node and create an e.g. foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
-        Create e.g. ¤call_1 = ret_func_foo RestoreNode (return_handler)
+        Create e.g. ¤call_1 = ret_func_foo RestoreNode. (return_handler)
+
+        Page 31 in the original thesis, but changed a little.
 
         Args:
             call_node(ast.Call) : The node that calls the definition.
             definition(LocalModuleDefinition): Definition of the function being called.
 
         Returns:
-            Last node in self.nodes, probably the return of the function.
+            Last node in self.nodes, probably the return of the function appended to self.nodes in return_handler.
         """
 
         logger.debug("call_node is %s", call_node)
