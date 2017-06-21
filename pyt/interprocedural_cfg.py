@@ -331,9 +331,6 @@ class InterproceduralVisitor(Visitor):
            saved_variables(list[SavedVariable])
            args_mapping(dict): A mapping of call argument to definition argument.
            line_number(int): Of the def of the function call about to be entered into.
-
-        Returns:
-            restore_nodes(list[RestoreNode]): A list of the nodes that were restored.
         """
         logger.debug("[FOR COMMENTS] args_mapping in restore_saved_local_scope is %s", args_mapping)
         restore_nodes = list()
@@ -367,7 +364,6 @@ class InterproceduralVisitor(Visitor):
             # Why extend instead of append???
             self.nodes.extend(restore_nodes)
         logger.debug("[FOR COMMENTS] restore_nodes in restore_saved_local_scope is %s", restore_nodes)
-        return restore_nodes
 
     def return_handler(self, call_node, function_nodes):
         """Handle the return from a function during a function call.
@@ -376,9 +372,6 @@ class InterproceduralVisitor(Visitor):
         Args:
             call_node(ast.Call) : The node that calls the definition.
             function_nodes(list[Node]): List of nodes of the function being called.
-
-        Returns:
-            Last node in self.nodes, probably the return of the function.
         """
 
         logger.debug("IMPORTANT, in return_handler")
@@ -426,7 +419,6 @@ class InterproceduralVisitor(Visitor):
             self.function_call_index += 1
             def_node = definition.node
 
-            # FIGURE OUT EVERY LINE OF THIS FUNCTION ESPECIALLY HOW RETURN VALUES WORK
             saved_variables = self.save_local_scope(def_node.lineno)
 
             args_mapping = self.save_def_args_in_temp(call_node.args,
