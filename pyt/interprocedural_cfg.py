@@ -282,11 +282,29 @@ class InterproceduralVisitor(Visitor):
             call_arg_rhs_visitor = RHSVisitor()
             call_arg_rhs_visitor.visit(call_arg)
 
-            node = RestoreNode(def_arg_temp_name + ' = ' + call_arg_label_visitor.result,
-                               def_arg_temp_name,
-                               call_arg_rhs_visitor.result,
-                               line_number=line_number,
-                               path=self.filenames[-1])
+            if isinstance(call_arg, ast.Call):
+                return_value_of_nested_call = self.visit(call_arg)
+                logger.debug("[QQ LUV NESTED]return_value_of_nested_call is %s", return_value_of_nested_call)
+                logger.debug("[QQ LUV NESTED]type(return_value_of_nested_call) is %s", type(return_value_of_nested_call))
+
+                logger.debug("[QQ LUV NESTED]call_arg_rhs_visitor.result is %s", call_arg_rhs_visitor.result)
+                logger.debug("[QQ LUV NESTED]type(call_arg_rhs_visitor.result) is %s", type(call_arg_rhs_visitor.result))
+                node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
+                                   def_arg_temp_name,
+                                   return_value_of_nested_call.left_hand_side,
+                                   line_number=line_number,
+                                   path=self.filenames[-1])
+                logger.debug("[QQ LUV NESTED]RestoreNode is %s", node)
+
+            else:                
+                logger.debug("[LUV NESTED]call_arg is %s", call_arg)
+                logger.debug("[LUV NESTED]call_arg_label_visitor.result is %s", call_arg_label_visitor.result)
+
+                node = RestoreNode(def_arg_temp_name + ' = ' + call_arg_label_visitor.result,
+                                   def_arg_temp_name,
+                                   call_arg_rhs_visitor.result,
+                                   line_number=line_number,
+                                   path=self.filenames[-1])
 
             self.nodes[-1].connect(node)
             self.nodes.append(node)
@@ -361,9 +379,7 @@ class InterproceduralVisitor(Visitor):
         if restore_nodes:
             # Connect the last node to the first restore node
             self.nodes[-1].connect(restore_nodes[0])
-            # Why extend instead of append???
             self.nodes.extend(restore_nodes)
-        logger.debug("[FOR COMMENTS] restore_nodes in restore_saved_local_scope is %s", restore_nodes)
 
     def return_handler(self, call_node, function_nodes):
         """Handle the return from a function during a function call.
@@ -378,6 +394,7 @@ class InterproceduralVisitor(Visitor):
         for node in function_nodes:
             # Only Return's and Raise's can be of type ConnectToExitNode
             if isinstance(node, ConnectToExitNode):
+                logger.debug("ConnectToExitNode is %s", node)
                 # logger.debug("PROCESS call_node being processed in return_handler is %s", call_node)
                 # logger.debug("PROCESS dir(call_node) being processed in return_handler is %s", dir(call_node))
                 # logger.debug("PROCESS dir(call_node.func) being processed in return_handler is %s", dir(call_node.func))
@@ -445,8 +462,7 @@ class InterproceduralVisitor(Visitor):
             print('Error: Possible nameclash in "{}".' +
                   ' Call omitted!\n'.format(error_call))
 
-        # logger.debug("[FOR COMMENTS] last node is %s", self.nodes[-1])
-        # logger.debug("[FOR COMMENTS] type of last node is %s", type(self.nodes[-1]))
+        logger.debug("[LUVTEA] nodes are %s", self.nodes[-1])
 
         return self.nodes[-1]
 
@@ -460,10 +476,10 @@ class InterproceduralVisitor(Visitor):
             the_new_nodes(list[Node]): The nodes added while visiting the function.
         """
         len_before_visiting_func = len(self.nodes)
-        previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryOrExitNode("Function Entry " +
-                                                      definition.name))
-        previous_node.connect(entry_node)
+        entry_node = EntryOrExitNode("Function Entry " +
+                                     definition.name)
+        self.nodes[-1].connect(entry_node)
+        self.nodes.append(entry_node)
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)
@@ -536,7 +552,7 @@ class InterproceduralVisitor(Visitor):
         elif last_attribute not in NOT_A_BLACKBOX:
             # Mark the call as a blackbox because we don't have the definition
             return self.add_blackbox_call(node)
-
+        logger.debug("[LUVTEA] nodes are %s", self.nodes[-1])
         return self.add_builtin(node)
 
     def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
