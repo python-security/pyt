@@ -248,7 +248,7 @@ class InterproceduralVisitor(Visitor):
                                            [assignment.left_hand_side],
                                            line_number=line_number,
                                            path=self.filenames[-1])
-            self.append_node(saved_scope_node)
+            self.nodes.append(saved_scope_node)
             # Connect them all to the same Node and not chain them???
             previous_node.connect(saved_scope_node)
 
@@ -319,7 +319,7 @@ class InterproceduralVisitor(Visitor):
                                            path=self.filenames[-1])
             # Chain the local scope nodes together
             previous_node = self.nodes[-1]
-            self.append_node(local_scope_node)
+            self.nodes.append(local_scope_node)
             previous_node.connect(local_scope_node)
 
     def restore_saved_local_scope(self,
@@ -399,7 +399,7 @@ class InterproceduralVisitor(Visitor):
                                           line_number=call_node.lineno,
                                           path=self.filenames[-1])
                 previous_node = self.nodes[-1]
-                self.append_node(return_node)
+                self.nodes.append(return_node)
                 previous_node.connect(return_node)
                 break
 
@@ -560,7 +560,7 @@ class InterproceduralVisitor(Visitor):
         tree = generate_ast(module_path)
 
         # Remember, module[0] is None during e.g. "from . import foo", so we must str()
-        self.append_node(EntryOrExitNode('Module Entry ' + str(module[0])))
+        self.nodes.append(EntryOrExitNode('Module Entry ' + str(module[0])))
         self.visit(tree)
         exit_node = self.append_node(EntryOrExitNode('Module Exit ' + str(module[0])))
 
