@@ -223,11 +223,12 @@ class InterproceduralVisitor(Visitor):
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
-    def save_local_scope(self, line_number):
+    def save_local_scope(self, line_number, saved_function_call_index):
         """Save the local scope before entering a function call by saving all the LHS's of assignments.
 
         Args:
             line_number(int): Of the def of the function call about to be entered into.
+            saved_function_call_index(int): Unique number for each call.
 
         Returns:
             saved_variables(list[SavedVariable])
@@ -238,7 +239,7 @@ class InterproceduralVisitor(Visitor):
         # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
                            if type(node) == AssignmentNode]: # type() is used on purpose here
-            save_name = 'save_' + str(self.function_call_index) + '_' +\
+            save_name = 'save_' + str(saved_function_call_index) + '_' +\
                         assignment.left_hand_side
             # Save LHS
             saved_variables.append(SavedVariable(LHS=save_name,
@@ -257,13 +258,14 @@ class InterproceduralVisitor(Visitor):
         logger.debug("line_number is %s", line_number)
         return saved_variables
 
-    def save_def_args_in_temp(self, call_args, def_args, line_number):
+    def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index):
         """Save the arguments of the definition being called.
 
         Args:
             call_args(list[ast.Name]): Of the call being made.
             def_args(ast_helper.Arguments): Of the definition being called.
             line_number(int): Of the call being made.
+            saved_function_call_index(int): Unique number for each call.
 
         Returns:
             args_mapping(dict): A mapping of call argument to definition argument.
@@ -275,7 +277,7 @@ class InterproceduralVisitor(Visitor):
 
         # Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument
         for i, call_arg in enumerate(call_args):
-            def_arg_temp_name = 'temp_' + str(self.function_call_index) + '_' + def_args[i]
+            def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
 
             call_arg_label_visitor = LabelVisitor()
             call_arg_label_visitor.visit(call_arg)
@@ -317,19 +319,21 @@ class InterproceduralVisitor(Visitor):
     def create_local_scope_from_def_args(self,
                                          call_args,
                                          def_args,
-                                         line_number):
+                                         line_number,
+                                         saved_function_call_index):
         """Create the local scope before entering the body of a function call.
 
         Args:
             call_args(list[ast.Name]): Of the call being made.
             def_args(ast_helper.Arguments): Of the definition being called.
             line_number(int): Of the def of the function call about to be entered into.
+            saved_function_call_index(int): Unique number for each call.
         """
 
         # Create e.g. def_arg1 = temp_N_def_arg1 for each argument
         for i in range(len(call_args)):
             def_arg_local_name = def_args[i]
-            def_arg_temp_name = 'temp_' + str(self.function_call_index) + '_' + def_args[i]
+            def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
             local_scope_node = RestoreNode(def_arg_local_name + ' = ' + def_arg_temp_name,
                                            def_arg_local_name,
                                            [def_arg_temp_name],
@@ -357,14 +361,14 @@ class InterproceduralVisitor(Visitor):
             if var.RHS in args_mapping:
                 logger.debug("var.RHS inside of args_mapping is %s", var.RHS)
                 # If so, use the corresponding definition argument for the RHS of the label.
-                logger.debug("[BIRCH] making a '%s = %s' RestoreNode", var.RHS, args_mapping[var.RHS])
+                logger.debug("[SILK ROAD] making a '%s = %s' RestoreNode, instead of a '%s = %s' RestoreNode", var.RHS, args_mapping[var.RHS], var.RHS, var.LHS)
                 restore_nodes.append(RestoreNode(var.RHS + ' = ' + args_mapping[var.RHS],
                                                  var.RHS,
                                                  [var.LHS],
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
             else:
-                logger.debug("[2ND BIRCH] making a '%s = %s' RestoreNode", var.RHS, var.LHS)                
+                logger.debug("[2ND SILK ROAD] making a '%s = %s' RestoreNode", var.RHS, var.LHS)                
                 # Create a node for e.g. foo = save_1_foo
                 restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS,
                                                  var.RHS,
@@ -381,13 +385,13 @@ class InterproceduralVisitor(Visitor):
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
 
-    def return_handler(self, call_node, function_nodes):
+    def return_handler(self, call_node, function_nodes, saved_function_call_index):
         """Handle the return from a function during a function call.
-        It doesn't handle multiple returns, at the moment.
 
         Args:
             call_node(ast.Call) : The node that calls the definition.
             function_nodes(list[Node]): List of nodes of the function being called.
+            saved_function_call_index(int): Unique number for each call.
         """
 
         logger.debug("IMPORTANT, in return_handler")
@@ -401,7 +405,7 @@ class InterproceduralVisitor(Visitor):
                 # logger.debug("PROCESS call_node being processed in return_handler is %s", call_node.func.id)
                 
                 # Create e.g. ¤call_1 = ret_func_foo RestoreNode
-                LHS = CALL_IDENTIFIER + 'call_' + str(self.function_call_index)
+                LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
                 RHS = 'ret_' + get_call_names_as_string(call_node.func)
                 return_node = RestoreNode(LHS + ' = ' + RHS,
                                           LHS,
@@ -415,7 +419,7 @@ class InterproceduralVisitor(Visitor):
     def process_function(self, call_node, definition):
         """Processes a user defined function when it is called.
 
-        Increments self.function_call_index each time it is called, we can refer to as N.
+        Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
         Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode. (save_local_scope)
         Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. (save_def_args_in_temp)
         Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
@@ -437,22 +441,27 @@ class InterproceduralVisitor(Visitor):
         logger.debug("type(call_node) is %s", type(call_node))
         try:
             self.function_call_index += 1
+            saved_function_call_index = self.function_call_index
+
             def_node = definition.node
 
-            saved_variables = self.save_local_scope(def_node.lineno)
+            saved_variables = self.save_local_scope(def_node.lineno,
+                                                    saved_function_call_index)
 
             args_mapping = self.save_def_args_in_temp(call_node.args,
                                                       Arguments(def_node.args),
-                                                      call_node.lineno)
+                                                      call_node.lineno,
+                                                      saved_function_call_index)
 
             self.filenames.append(definition.path)
             self.create_local_scope_from_def_args(call_node.args,
                                                   Arguments(def_node.args),
-                                                  def_node.lineno)
+                                                  def_node.lineno,
+                                                  saved_function_call_index)
             function_nodes = self.visit_and_get_function_nodes(definition)
             self.filenames.pop()  # Maybe move after restore nodes
             self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
-            self.return_handler(call_node, function_nodes)
+            self.return_handler(call_node, function_nodes, saved_function_call_index)
             self.function_return_stack.pop()
             logger.debug("[FOR COMMENTS] last node is %s", self.nodes[-1])
             logger.debug("[FOR COMMENTS] type of last node is %s", type(self.nodes[-1]))
