@@ -613,28 +613,29 @@ class Visitor(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    def add_blackbox_call(self, node):
+    def add_builtin_or_blackbox_call(self, node, blackbox=False):
         label = LabelVisitor()
         label.visit(node)
 
-        blackbox_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
+        if not isinstance(node, ast.Call):
+            raise
+
+        for arg in node.args:
+            if isinstance(arg, ast.Call):
+                return_value_of_nested_call = self.visit(arg)
+
+            logger.debug("[Juicy Spot] arg is %s", arg)
+
+        call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
         if not self.undecided:
-            self.nodes.append(blackbox_call)
-        self.blackbox_calls.add(blackbox_call)
+            self.nodes.append(call_node)
+
+        if blackbox:
+            self.blackbox_calls.add(call_node)
+
         self.undecided = False
 
-        return blackbox_call
-
-    def add_builtin(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
-        builtin_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-        if not self.undecided:
-            self.nodes.append(builtin_call)
-        self.undecided = False
-
-        return builtin_call
+        return call_node
 
     def visit_Name(self, node):
         label = LabelVisitor()

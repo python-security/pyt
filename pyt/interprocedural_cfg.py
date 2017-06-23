@@ -259,7 +259,7 @@ class InterproceduralVisitor(Visitor):
         return saved_variables
 
     def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index):
-        """Save the arguments of the definition being called.
+        """Save the arguments of the definition being called. Visit the arguments if they're calls.
 
         Args:
             call_args(list[ast.Name]): Of the call being made.
@@ -297,7 +297,6 @@ class InterproceduralVisitor(Visitor):
                                    line_number=line_number,
                                    path=self.filenames[-1])
                 logger.debug("[QQ LUV NESTED]RestoreNode is %s", node)
-
             else:                
                 logger.debug("[LUV NESTED]call_arg is %s", call_arg)
                 logger.debug("[LUV NESTED]call_arg_label_visitor.result is %s", call_arg_label_visitor.result)
@@ -421,13 +420,15 @@ class InterproceduralVisitor(Visitor):
 
         Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
         Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode. (save_local_scope)
-        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. (save_def_args_in_temp)
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. Visit the arguments if they're calls. (save_def_args_in_temp)
         Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
         Visit and get function nodes. (visit_and_get_function_nodes)
         Loop through each save_N_LHS node and create an e.g. foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
         Create e.g. ¤call_1 = ret_func_foo RestoreNode. (return_handler)
 
-        Page 31 in the original thesis, but changed a little.
+        Notes:
+            Page 31 in the original thesis, but changed a little.
+            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler, because it's the last node anyways, that we return in this function.
 
         Args:
             call_node(ast.Call) : The node that calls the definition.
@@ -551,7 +552,7 @@ class InterproceduralVisitor(Visitor):
         last_attribute = _id.rpartition('.')[-1]
         if definition:
             if isinstance(definition.node, ast.ClassDef):
-                self.add_builtin(node)
+                self.add_builtin_or_blackbox_call(node)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
                 return self.process_function(node, definition)
@@ -560,9 +561,9 @@ class InterproceduralVisitor(Visitor):
                                 'ClassDef, cannot add the function ')
         elif last_attribute not in NOT_A_BLACKBOX:
             # Mark the call as a blackbox because we don't have the definition
-            return self.add_blackbox_call(node)
+            return self.add_builtin_or_blackbox_call(node, blackbox=True)
         logger.debug("[LUVTEA] nodes are %s", self.nodes[-1])
-        return self.add_builtin(node)
+        return self.add_builtin_or_blackbox_call(node)
 
     def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
         """
