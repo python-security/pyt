@@ -71,6 +71,16 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_built_in_with_user_defined_inner(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/built_in_with_user_defined_inner.py')
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            HEY
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
     def test_find_vulnerabilities_import_file_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/import_file_command_injection.py')
 

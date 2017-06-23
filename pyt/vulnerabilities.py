@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from .base_cfg import AssignmentNode
 from .framework_adaptor import TaintedNode
-from .lattice import Lattice
+from .lattice import Lattice, print_lattice
 from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
@@ -257,17 +257,32 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
 
     secondary_in_sink = list()
 
+    # logger.debug("[voy] So source.secondary_nodes is %s THIS SHOULD INCLUE WHERE IT IS USED AS AN ARG",source.secondary_nodes)
+    for node in source.secondary_nodes:
+        logger.debug("secondary node label is %s", node.label)
+
+    logger.debug("[VOY] sink is %s", sink)
+    logger.debug("[VOY] sink.cfg_node is %s", sink.cfg_node)
     if source.secondary_nodes:
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
                                                       sink.cfg_node)]
+    logger.debug("[VOY] secondary in sink list is %s", secondary_in_sink)
 
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
+    for sarg in sink_args:
+        if 'ret_' in sarg:
+            logger.debug("special sarg is %s", sarg)
+
+    logger.debug("[Voyager] MIA sink_args are %s", sink_args)
     secondary_node_in_sink_args = None
     if sink_args:
+        logger.debug("secondary in sink list is %s", secondary_in_sink)
         for node in secondary_in_sink:
+            logger.debug("secondary in sink is %s", node)
+            logger.debug("secondary in sink.LHS is %s", node.left_hand_side)
             if sink_args and node.left_hand_side in sink_args:
                 secondary_node_in_sink_args = node
 
@@ -282,6 +297,7 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
                     node_in_the_vulnerability_chain = secondary
                     trimmed_reassignment_nodes.insert(0, node_in_the_vulnerability_chain)
 
+    logger.debug("[voy] source.cfg_node.left_hand_side is %s", source.cfg_node.left_hand_side)
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
 
@@ -326,6 +342,9 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
+            for i, n in enumerate(cfg.nodes):
+                logger.debug("#%s n.label is %s. in_constraint is %s", i, n.label, lattice.in_constraint(n, cfg.nodes[20]))
+            logger.debug("cfg.nodes[20] is %s", cfg.nodes[20])
             vulnerability = get_vulnerability(source,
                                               sink,
                                               triggers,
@@ -354,7 +373,9 @@ def find_vulnerabilities(cfg_list, analysis_type,
     logger.debug("definitions.sinks is %s", definitions.sinks)
     vulnerability_log = VulnerabilityLog()
 
+
     for cfg in cfg_list:
+        print_lattice([cfg], analysis_type)
         find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions,
                                     Lattice(cfg.nodes, analysis_type),
                                     trim_reassigned_in)

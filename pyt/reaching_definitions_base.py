@@ -2,6 +2,8 @@ from .analysis_base import AnalysisBase
 from .base_cfg import AssignmentNode
 from .constraint_table import constraint_join
 from .lattice import Lattice
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class ReachingDefinitionsAnalysisBase(AnalysisBase):
@@ -13,6 +15,10 @@ class ReachingDefinitionsAnalysisBase(AnalysisBase):
     def join(self, cfg_node):
         """Joins all constraints of the ingoing nodes and returns them.
         This represents the JOIN auxiliary definition from Schwartzbach."""
+        if cfg_node.label.startswith('subp'):
+            logger.debug("special len(cfg_node.ingoing) is %s", len(cfg_node.ingoing))
+            logger.debug("special cfg_node.ingoing is %s", cfg_node.ingoing)
+            logger.debug("special cfg_node.outgoing is %s", cfg_node.outgoing)
         return constraint_join(cfg_node.ingoing)
 
     def arrow(self, JOIN, _id):

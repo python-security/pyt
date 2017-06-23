@@ -1,6 +1,8 @@
 import ast
 
 from .ast_helper import get_call_names
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class VarsVisitor(ast.NodeVisitor):
@@ -86,10 +88,19 @@ class VarsVisitor(ast.NodeVisitor):
             self.visit(node.func)
         if node.args:
             for arg in node.args:
-                self.visit(arg)
+                logger.debug("[voyager] arg is %s", arg)
+                if isinstance(arg, ast.Call):
+                    logger.debug("[voyager] arg.func.id is %s", arg.func.id)
+                    self.result.append('ret_' + arg.func.id)
+                else:
+                    self.visit(arg)
         if node.keywords:
             for keyword in node.keywords:
-                self.visit(keyword)
+                logger.debug("[voyager] keyword is %s", keyword)
+                if isinstance(keyword, ast.Call):
+                    self.result.append('ret_' + keyword.func.id)
+                else:
+                    self.visit(keyword)
 
     def visit_Attribute(self, node):
         if not isinstance(node.value, ast.Name):

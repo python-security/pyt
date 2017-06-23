@@ -620,14 +620,18 @@ class Visitor(ast.NodeVisitor):
         if not isinstance(node, ast.Call):
             raise
 
+
+        call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
+
         for arg in node.args:
             if isinstance(arg, ast.Call):
                 return_value_of_nested_call = self.visit(arg)
+                logger.debug("[Voyager] return_value_of_nested_call is %s", return_value_of_nested_call)
+                return_value_of_nested_call.connect(call_node)
+            logger.debug("[Voyager] arg is %s", arg)
 
-            logger.debug("[Juicy Spot] arg is %s", arg)
-
-        call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
         if not self.undecided:
+            # if 
             self.nodes.append(call_node)
 
         if blackbox:
