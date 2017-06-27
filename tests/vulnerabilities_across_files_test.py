@@ -81,6 +81,51 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_sink_with_user_defined_inner(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_user_defined_inner.py')
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/nested_functions_code/sink_with_user_defined_inner.py
+             > User input at line 17, trigger word "form[": 
+                req_param = request.form['suggestion']
+            Reassigned in: 
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 6: save_1_req_param = req_param
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 10: save_2_req_param = req_param
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 19: temp_2_inner_arg = req_param
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 10: inner_arg = temp_2_inner_arg
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 11: inner_ret_val = inner_arg + 'hey'
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 13: ret_inner = inner_ret_val
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 10: req_param = inner_arg
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 19: ¤call_2 = ret_inner
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 19: temp_1_outer_arg = ¤call_2
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 6: outer_arg = temp_1_outer_arg
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 7: outer_ret_val = outer_arg + 'hey'
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 8: ret_outer = outer_ret_val
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 6: req_param = save_1_req_param
+                File: example/nested_functions_code/sink_with_user_defined_inner.py
+                 > Line 19: ¤call_1 = ret_outer
+            File: example/nested_functions_code/sink_with_user_defined_inner.py
+             > reaches line 19, trigger word "subprocess.call(": 
+                subprocess.call(outer(inner(req_param)),shell=True)
+        """
+        
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
     def test_find_vulnerabilities_import_file_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/import_file_command_injection.py')
 
