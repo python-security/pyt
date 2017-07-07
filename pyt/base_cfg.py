@@ -618,20 +618,27 @@ class Visitor(ast.NodeVisitor):
         label.visit(node)
 
         if not isinstance(node, ast.Call):
+            logger.debug("node that isnt a call in add_builtin_or_blackbox_call is %s", node)
             raise
 
 
         call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
 
+        saved_undecided = self.undecided
         for arg in node.args:
             if isinstance(arg, ast.Call):
+                self.undecided = False
                 return_value_of_nested_call = self.visit(arg)
-                logger.debug("[Voyager] return_value_of_nested_call is %s", return_value_of_nested_call)
+                logger.debug("[DAVIDsTEA] return_value_of_nested_call is %s", return_value_of_nested_call)
+                logger.debug("[DAVIDsTEA] self.nodes is %s", self.nodes)
+                # for n in self.nodes:
+                #     if n == return_value_of_nested_call:
+                #         raise
                 return_value_of_nested_call.connect(call_node)
             logger.debug("[Voyager] arg is %s", arg)
+        self.undecided = saved_undecided
 
         if not self.undecided:
-            # if 
             self.nodes.append(call_node)
 
         if blackbox:

@@ -21,7 +21,11 @@ def convert_to_3(path):
 
 
 def generate_ast(path):
-    """Generate an Abstract Syntax Tree using the ast module."""
+    """Generate an Abstract Syntax Tree using the ast module.
+
+    Args:
+        path(string): A relative or full path to a Python file, that is used to generate the 
+    """
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:

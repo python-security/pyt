@@ -36,6 +36,8 @@ from .save import (
     vulnerabilities_to_file
 )
 from .vulnerabilities import find_vulnerabilities
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 parser = argparse.ArgumentParser(prog='python -m pyt')
@@ -227,6 +229,7 @@ def main():
         # Add all the route functions to the cfg_list
         FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
+    logger.debug("[DAVIDsTEA] cfg_list is %s", cfg_list)
     initialize_constraint_table(cfg_list)
 
     analyse(cfg_list, analysis_type=analysis)

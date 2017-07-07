@@ -90,8 +90,18 @@ class VarsVisitor(ast.NodeVisitor):
             for arg in node.args:
                 logger.debug("[voyager] arg is %s", arg)
                 if isinstance(arg, ast.Call):
-                    logger.debug("[voyager] arg.func.id is %s", arg.func.id)
-                    self.result.append('ret_' + arg.func.id)
+                    logger.debug("[voyager] arg.func is %s", arg.func)
+                    if isinstance(arg.func, ast.Name):
+                        logger.debug("[voyager] arg.func.id is %s", arg.func.id)
+                        self.result.append('ret_' + arg.func.id)
+                    elif isinstance(arg.func, ast.Attribute):
+                        logger.debug("It is an attribute!")
+                        logger.debug("[voyager] arg.func.attr is %s", arg.func.attr)
+                        self.result.append('ret_' + arg.func.attr)
+                        raise
+                    else:
+                        logger.debug("type(arg.func) is %s", type(arg.func))
+                        raise
                 else:
                     self.visit(arg)
         if node.keywords:

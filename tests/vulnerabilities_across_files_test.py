@@ -81,6 +81,16 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_sink_with_result_of_user_defined_nested(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_result_of_user_defined_nested.py')
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            HEY
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        
     def test_sink_with_user_defined_inner(self):
         vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_user_defined_inner.py')
         logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
@@ -123,7 +133,6 @@ class EngineTest(BaseTestCase):
              > reaches line 19, trigger word "subprocess.call(": 
                 subprocess.call(outer(inner(req_param)),shell=True)
         """
-        
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_find_vulnerabilities_import_file_command_injection(self):

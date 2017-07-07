@@ -335,16 +335,18 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
     """Find vulnerabilities in a cfg.
 
     Args:
-        cfg(CFG): The CFG look find vulnerabilities in.
-        vulnerabilitiy_log: The log in which to place found vulnerabilities.
-        definitions: Source and sink definitions.
+        cfg(CFG): The CFG to find vulnerabilities in.
+        vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
+        definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
     """
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
-            for i, n in enumerate(cfg.nodes):
-                logger.debug("#%s n.label is %s. in_constraint is %s", i, n.label, lattice.in_constraint(n, cfg.nodes[20]))
-            logger.debug("cfg.nodes[20] is %s", cfg.nodes[20])
+            # logger.debug("type(vulnerability_log(VulnerabilityLog)) is %s", type(vulnerability_log(VulnerabilityLog)))
+            # logger.debug("type(definitions) is %s", type(definitions))
+            # for i, n in enumerate(cfg.nodes):
+            #     logger.debug("#%s n.label is %s. in_constraint is %s", i, n.label, lattice.in_constraint(n, cfg.nodes[20]))
+            # logger.debug("cfg.nodes[20] is %s", cfg.nodes[20])
             vulnerability = get_vulnerability(source,
                                               sink,
                                               triggers,

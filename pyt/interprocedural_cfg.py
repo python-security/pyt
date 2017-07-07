@@ -286,17 +286,23 @@ class InterproceduralVisitor(Visitor):
 
             if isinstance(call_arg, ast.Call):
                 return_value_of_nested_call = self.visit(call_arg)
-                logger.debug("[QQ LUV NESTED]return_value_of_nested_call is %s", return_value_of_nested_call)
-                logger.debug("[QQ LUV NESTED]type(return_value_of_nested_call) is %s", type(return_value_of_nested_call))
+                if return_value_of_nested_call in self.blackbox_calls:
+                  logger.debug("nested blackbox call, ouchie")
+                  # raise
+                  continue
+                else:
+                  logger.debug("[QQ LUV NESTED]self.blackbox_calls is %s", self.blackbox_calls)
+                  logger.debug("[QQ LUV NESTED]return_value_of_nested_call is %s", return_value_of_nested_call)
+                  logger.debug("[QQ LUV NESTED]type(return_value_of_nested_call) is %s", type(return_value_of_nested_call))
 
-                logger.debug("[QQ LUV NESTED]call_arg_rhs_visitor.result is %s", call_arg_rhs_visitor.result)
-                logger.debug("[QQ LUV NESTED]type(call_arg_rhs_visitor.result) is %s", type(call_arg_rhs_visitor.result))
-                node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
-                                   def_arg_temp_name,
-                                   return_value_of_nested_call.left_hand_side,
-                                   line_number=line_number,
-                                   path=self.filenames[-1])
-                logger.debug("[QQ LUV NESTED]RestoreNode is %s", node)
+                  logger.debug("[QQ LUV NESTED]call_arg_rhs_visitor.result is %s", call_arg_rhs_visitor.result)
+                  logger.debug("[QQ LUV NESTED]type(call_arg_rhs_visitor.result) is %s", type(call_arg_rhs_visitor.result))
+                  node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
+                                     def_arg_temp_name,
+                                     return_value_of_nested_call.left_hand_side,
+                                     line_number=line_number,
+                                     path=self.filenames[-1])
+                  logger.debug("[QQ LUV NESTED]RestoreNode is %s", node)
             else:                
                 logger.debug("[LUV NESTED]call_arg is %s", call_arg)
                 logger.debug("[LUV NESTED]call_arg_label_visitor.result is %s", call_arg_label_visitor.result)
