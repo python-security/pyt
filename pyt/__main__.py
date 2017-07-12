@@ -159,8 +159,8 @@ def analyse_repo(github_repo, analysis_type):
     return vulnerability_log
 
 
-def main():
-    args = parse_args(sys.argv[1:])
+def main(command_line_args=sys.argv[1:]):
+    args = parse_args(command_line_args)
 
     analysis = None
     if args.liveness:
