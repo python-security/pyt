@@ -1,9 +1,10 @@
+"""This just tests __main__.py"""
 import sys
 from contextlib import contextmanager
 from io import StringIO
 
 from .base_test_case import BaseTestCase
-from pyt.__main__ import main, parse_args
+from pyt.__main__ import parse_args
 
 @contextmanager
 def capture_sys_output():
@@ -17,8 +18,8 @@ def capture_sys_output():
 
 class CommandLineTest(BaseTestCase):
     def test_no_args(self):
-        with self.assertRaises(SystemExit) as cm:
-            with capture_sys_output() as (stdout, stderr):
+        with self.assertRaises(SystemExit):
+            with capture_sys_output() as (_, stderr):
                 parse_args([])
 
         EXPECTED = """usage: python -m pyt [-h] (-f FILEPATH | -gr GIT_REPOS) [-pr PROJECT_ROOT]
@@ -27,5 +28,6 @@ class CommandLineTest(BaseTestCase):
                      [-a ADAPTOR] [-db] [-dl DRAW_LATTICE [DRAW_LATTICE ...]]
                      [-li | -re | -rt] [-intra] [-ppm]
                      {save,github_search} ...\n""" + \
-                     "python -m pyt: error: one of the arguments -f/--filepath -gr/--git-repos is required\n"
+                     "python -m pyt: error: one of the arguments " + \
+                     "-f/--filepath -gr/--git-repos is required\n"
         self.assertEqual(stderr.getvalue(), EXPECTED)
