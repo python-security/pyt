@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import sys
 from datetime import date
 from pprint import pprint
 
@@ -32,119 +33,120 @@ from .save import (
 )
 from .vulnerabilities import find_vulnerabilities
 
+def parse_args(args):
+    parser = argparse.ArgumentParser(prog='python -m pyt')
+    parser.set_defaults(which='')
 
-parser = argparse.ArgumentParser(prog='python -m pyt')
-parser.set_defaults(which='')
+    subparsers = parser.add_subparsers()
 
-subparsers = parser.add_subparsers()
+    entry_group = parser.add_mutually_exclusive_group(required=True)
+    entry_group.add_argument('-f', '--filepath',
+                             help='Path to the file that should be analysed.',
+                             type=str)
+    entry_group.add_argument('-gr', '--git-repos',
+                             help='Takes a CSV file of git_url, path per entry.',
+                             type=str)
 
-entry_group = parser.add_mutually_exclusive_group(required=True)
-entry_group.add_argument('-f', '--filepath',
-                         help='Path to the file that should be analysed.',
-                         type=str)
-entry_group.add_argument('-gr', '--git-repos',
-                         help='Takes a CSV file of git_url, path per entry.',
-                         type=str)
+    parser.add_argument('-pr', '--project-root',
+                        help='Add project root, this is important when the entry' +
+                        ' file is not at the root of the project.', type=str)
+    parser.add_argument('-d', '--draw-cfg',
+                        help='Draw CFG and output as .pdf file.',
+                        action='store_true')
+    parser.add_argument('-o', '--output-filename',
+                        help='Output filename.', type=str)
+    parser.add_argument('-csv', '--csv-path', type=str,
+                        help='Give the path of the csv file'
+                        ' repos should be added to.')
 
-parser.add_argument('-pr', '--project-root',
-                    help='Add project root, this is important when the entry' +
-                    ' file is not at the root of the project.', type=str)
-parser.add_argument('-d', '--draw-cfg',
-                    help='Draw CFG and output as .pdf file.',
-                    action='store_true')
-parser.add_argument('-o', '--output-filename',
-                    help='Output filename.', type=str)
-parser.add_argument('-csv', '--csv-path', type=str,
-                    help='Give the path of the csv file'
-                    ' repos should be added to.')
-
-print_group = parser.add_mutually_exclusive_group()
-print_group.add_argument('-p', '--print',
-                         help='Prints the nodes of the CFG.',
-                         action='store_true')
-print_group.add_argument('-vp', '--verbose-print',
-                         help='Verbose printing of -p.', action='store_true')
-print_group.add_argument('-trim', '--trim-reassigned-in',
-                         help='Trims the reassigned list to the vulnerability chain.', action='store_true')
-
-
-parser.add_argument('-t', '--trigger-word-file',
-                    help='Input trigger word file.', type=str)
-parser.add_argument('-l', '--log-level',
-                    help='Choose logging level: CRITICAL, ERROR,' +
-                    ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
-parser.add_argument('-a', '--adaptor',
-                    help='Choose an adaptor: FLASK(Default) or DJANGO.',
-                    type=str)
-parser.add_argument('-db', '--create-database',
-                    help='Creates a sql file that can be used to' +
-                    ' create a database.', action='store_true')
-parser.add_argument('-dl', '--draw-lattice',
-                    nargs='+', help='Draws a lattice.')
-
-analysis_group = parser.add_mutually_exclusive_group()
-analysis_group.add_argument('-li', '--liveness',
-                            help='Run liveness analysis. Default is' +
-                            ' reaching definitions tainted version.',
-                            action='store_true')
-analysis_group.add_argument('-re', '--reaching',
-                            help='Run reaching definitions analysis.' +
-                            ' Default is reaching definitions' +
-                            ' tainted version.', action='store_true')
-analysis_group.add_argument('-rt', '--reaching-taint',
-                            help='This is the default analysis:' +
-                            ' reaching definitions tainted version.',
-                            action='store_true')
-
-parser.add_argument('-intra', '--intraprocedural-analysis',
-                    help='Run intraprocedural analysis.', action='store_true')
-parser.add_argument('-ppm', '--print-project-modules',
-                    help='Print project modules.', action='store_true')
+    print_group = parser.add_mutually_exclusive_group()
+    print_group.add_argument('-p', '--print',
+                             help='Prints the nodes of the CFG.',
+                             action='store_true')
+    print_group.add_argument('-vp', '--verbose-print',
+                             help='Verbose printing of -p.', action='store_true')
+    print_group.add_argument('-trim', '--trim-reassigned-in',
+                             help='Trims the reassigned list to the vulnerability chain.', action='store_true')
 
 
-save_parser = subparsers.add_parser('save', help='Save menu.')
-save_parser.set_defaults(which='save')
-save_parser.add_argument('-fp', '--filename-prefix',
-                         help='Filename prefix fx file_lattice.pyt',
-                         type=str)
-save_parser.add_argument('-du', '--def-use-chain',
-                         help='Output the def-use chain(s) to file.',
-                         action='store_true')
-save_parser.add_argument('-ud', '--use-def-chain',
-                         help='Output the use-def chain(s) to file',
-                         action='store_true')
-save_parser.add_argument('-cfg', '--control-flow-graph',
-                         help='Output the CFGs to file.',
-                         action='store_true')
-save_parser.add_argument('-vcfg', '--verbose-control-flow-graph',
-                         help='Output the verbose CFGs to file.',
-                         action='store_true')
-save_parser.add_argument('-an', '--analysis',
-                         help='Output analysis results to file'
-                         + ' in form of a constraint table.',
-                         action='store_true')
-save_parser.add_argument('-la', '--lattice', help='Output lattice(s) to file.',
-                         action='store_true')
-save_parser.add_argument('-vu', '--vulnerabilities',
-                         help='Output vulnerabilities to file.',
-                         action='store_true')
-save_parser.add_argument('-all', '--save-all',
-                         help='Output everything to file.',
-                         action='store_true')
+    parser.add_argument('-t', '--trigger-word-file',
+                        help='Input trigger word file.', type=str)
+    parser.add_argument('-l', '--log-level',
+                        help='Choose logging level: CRITICAL, ERROR,' +
+                        ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
+    parser.add_argument('-a', '--adaptor',
+                        help='Choose an adaptor: FLASK(Default) or DJANGO.',
+                        type=str)
+    parser.add_argument('-db', '--create-database',
+                        help='Creates a sql file that can be used to' +
+                        ' create a database.', action='store_true')
+    parser.add_argument('-dl', '--draw-lattice',
+                        nargs='+', help='Draws a lattice.')
 
-search_parser = subparsers.add_parser(
-    'github_search',
-    help='Searches through github and runs PyT'
-    ' on found repositories. This can take some time.')
-search_parser.set_defaults(which='search')
+    analysis_group = parser.add_mutually_exclusive_group()
+    analysis_group.add_argument('-li', '--liveness',
+                                help='Run liveness analysis. Default is' +
+                                ' reaching definitions tainted version.',
+                                action='store_true')
+    analysis_group.add_argument('-re', '--reaching',
+                                help='Run reaching definitions analysis.' +
+                                ' Default is reaching definitions' +
+                                ' tainted version.', action='store_true')
+    analysis_group.add_argument('-rt', '--reaching-taint',
+                                help='This is the default analysis:' +
+                                ' reaching definitions tainted version.',
+                                action='store_true')
 
-search_parser.add_argument(
-    '-ss', '--search-string', required=True,
-    help='String for searching for repos on github.', type=str)
+    parser.add_argument('-intra', '--intraprocedural-analysis',
+                        help='Run intraprocedural analysis.', action='store_true')
+    parser.add_argument('-ppm', '--print-project-modules',
+                        help='Print project modules.', action='store_true')
 
-search_parser.add_argument('-sd', '--start-date',
-                           help='Start date for repo search. '
-                           'Criteria used is Created Date.', type=valid_date)
+
+    save_parser = subparsers.add_parser('save', help='Save menu.')
+    save_parser.set_defaults(which='save')
+    save_parser.add_argument('-fp', '--filename-prefix',
+                             help='Filename prefix fx file_lattice.pyt',
+                             type=str)
+    save_parser.add_argument('-du', '--def-use-chain',
+                             help='Output the def-use chain(s) to file.',
+                             action='store_true')
+    save_parser.add_argument('-ud', '--use-def-chain',
+                             help='Output the use-def chain(s) to file',
+                             action='store_true')
+    save_parser.add_argument('-cfg', '--control-flow-graph',
+                             help='Output the CFGs to file.',
+                             action='store_true')
+    save_parser.add_argument('-vcfg', '--verbose-control-flow-graph',
+                             help='Output the verbose CFGs to file.',
+                             action='store_true')
+    save_parser.add_argument('-an', '--analysis',
+                             help='Output analysis results to file'
+                             + ' in form of a constraint table.',
+                             action='store_true')
+    save_parser.add_argument('-la', '--lattice', help='Output lattice(s) to file.',
+                             action='store_true')
+    save_parser.add_argument('-vu', '--vulnerabilities',
+                             help='Output vulnerabilities to file.',
+                             action='store_true')
+    save_parser.add_argument('-all', '--save-all',
+                             help='Output everything to file.',
+                             action='store_true')
+
+    search_parser = subparsers.add_parser(
+        'github_search',
+        help='Searches through github and runs PyT'
+        ' on found repositories. This can take some time.')
+    search_parser.set_defaults(which='search')
+
+    search_parser.add_argument(
+        '-ss', '--search-string', required=True,
+        help='String for searching for repos on github.', type=str)
+
+    search_parser.add_argument('-sd', '--start-date',
+                               help='Start date for repo search. '
+                               'Criteria used is Created Date.', type=valid_date)
+    return parser.parse_args(args)
 
 
 def analyse_repo(github_repo, analysis_type):
@@ -158,7 +160,7 @@ def analyse_repo(github_repo, analysis_type):
 
 
 def main():
-    args = parser.parse_args()
+    args = parse_args(sys.argv[1:])
 
     analysis = None
     if args.liveness:
@@ -205,11 +207,12 @@ def main():
 
     cfg_list = list()
 
-    # project_modules = [p for p in project_modules if 'sqli.py' in p[1]]
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
-        cfg_list.append(interprocedural(tree, project_modules, local_modules,
+        cfg_list.append(interprocedural(tree, 
+                                        project_modules,
+                                        local_modules,
                                         path))
         adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
 
@@ -219,11 +222,13 @@ def main():
 
     vulnerability_log = None
     if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list, analysis,
+        vulnerability_log = find_vulnerabilities(cfg_list, 
+                                                 analysis,
                                                  args.trim_reassigned_in,
                                                  args.trigger_word_file)
     else:
-        vulnerability_log = find_vulnerabilities(cfg_list, analysis,
+        vulnerability_log = find_vulnerabilities(cfg_list,
+                                                 analysis,
                                                  args.trim_reassigned_in)
 
     vulnerability_log.print_report()
