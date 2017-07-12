@@ -33,6 +33,7 @@ from .save import (
 )
 from .vulnerabilities import find_vulnerabilities
 
+
 def parse_args(args):
     parser = argparse.ArgumentParser(prog='python -m pyt')
     parser.set_defaults(which='')
@@ -68,7 +69,6 @@ def parse_args(args):
     print_group.add_argument('-trim', '--trim-reassigned-in',
                              help='Trims the reassigned list to the vulnerability chain.', action='store_true')
 
-
     parser.add_argument('-t', '--trigger-word-file',
                         help='Input trigger word file.', type=str)
     parser.add_argument('-l', '--log-level',
@@ -101,7 +101,6 @@ def parse_args(args):
                         help='Run intraprocedural analysis.', action='store_true')
     parser.add_argument('-ppm', '--print-project-modules',
                         help='Print project modules.', action='store_true')
-
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -210,7 +209,7 @@ def main(command_line_args=sys.argv[1:]):
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
-        cfg_list.append(interprocedural(tree, 
+        cfg_list.append(interprocedural(tree,
                                         project_modules,
                                         local_modules,
                                         path))
@@ -222,7 +221,7 @@ def main(command_line_args=sys.argv[1:]):
 
     vulnerability_log = None
     if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list, 
+        vulnerability_log = find_vulnerabilities(cfg_list,
                                                  analysis,
                                                  args.trim_reassigned_in,
                                                  args.trigger_word_file)
