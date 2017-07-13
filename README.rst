@@ -63,7 +63,9 @@ Contributions
 
 Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@gmail.com
 
-[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
+`Guidelines`_
+
+.. _Guidelines: https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md
 
 
 Virtual env setup guide
