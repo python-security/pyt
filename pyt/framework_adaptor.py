@@ -1,4 +1,4 @@
-"""A generic framework adaptor that leaves route criteteria to the caller."""
+"""A generic framework adaptor that leaves route criteria to the caller."""
 import ast
 
 from .ast_helper import Arguments
@@ -28,9 +28,9 @@ class FrameworkAdaptor():
         args = Arguments(definition.node.args)
         if args:
             function_entry_node = func_cfg.nodes[0]
-            function_entry_node.outgoing = []
+            function_entry_node.outgoing = list()
             first_node_after_args = func_cfg.nodes[1]
-            first_node_after_args.ingoing = []
+            first_node_after_args.ingoing = list()
 
             # We're just gonna give all the tainted args the lineno of the def
             definition_lineno = definition.node.lineno
