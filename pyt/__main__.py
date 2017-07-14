@@ -11,7 +11,12 @@ from .ast_helper import generate_ast
 from .draw import draw_cfgs, draw_lattices
 from .constraint_table import initialize_constraint_table, print_table
 from .fixed_point import analyse
-from .flask_adaptor import FlaskAdaptor
+from .framework_adaptor import FrameworkAdaptor
+from .framework_helper import (
+    is_flask_route_function,
+    is_function,
+    is_function_without_leading_
+)
 from .github_search import scan_github, set_github_api_token
 from .interprocedural_cfg import interprocedural
 from .intraprocedural_cfg import intraprocedural
@@ -78,7 +83,7 @@ def parse_args(args):
                         help='Choose logging level: CRITICAL, ERROR,' +
                         ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
     parser.add_argument('-a', '--adaptor',
-                        help='Choose an adaptor: FLASK(Default) or DJANGO.',
+                        help='Choose an adaptor: Flask(Default) or Every or Pylons.',
                         type=str)
     parser.add_argument('-db', '--create-database',
                         help='Creates a sql file that can be used to' +
@@ -212,11 +217,19 @@ def main(command_line_args=sys.argv[1:]):
     if args.intraprocedural_analysis:
         intraprocedural(project_modules, cfg_list)
     else:
-        cfg_list.append(interprocedural(tree,
-                                        project_modules,
-                                        local_modules,
-                                        path))
-        adaptor_type = FlaskAdaptor(cfg_list, project_modules, local_modules)
+        interprocedural_cfg = interprocedural(tree,
+                                              project_modules,
+                                              local_modules,
+                                              path)
+        cfg_list.append(interprocedural_cfg)
+        if args.adaptor and args.adaptor.lower().startswith('e'):
+            framework_route_criteria = is_function
+        elif args.adaptor and args.adaptor.lower().startswith('p'):
+            framework_route_criteria = is_function_without_leading_
+        else:
+            framework_route_criteria = is_flask_route_function
+        # Add all the route functions to the cfg_list
+        FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
     initialize_constraint_table(cfg_list)
 
