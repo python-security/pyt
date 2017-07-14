@@ -33,6 +33,18 @@ class TriggerNode():
             elif not self.secondary_nodes:
                 self.secondary_nodes = [cfg_node]
 
+    def __repr__(self):
+        output = 'TriggerNode('
+
+        if self.trigger_word:
+            output = output + 'trigger_word is ' + str(self.trigger_word) + ', '
+
+        return (
+            output +
+            'sanitisers are ' + str(self.sanitisers) + ', '
+            'cfg_node is ' + str(self.cfg_node) + ')\n'
+        )
+
 
 def identify_triggers(cfg, sources, sinks):
     """Identify sources, sinks and sanitisers in a CFG.
@@ -209,10 +221,10 @@ def get_sink_args(cfg_node):
     return vv.result
 
 
-def get_vulnerability(source, sink, triggers, lattice):
+def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
     """Get vulnerability between source and sink if it exists.
 
-    Uses triggers to find sanitisers
+    Uses triggers to find sanitisers.
 
     Args:
         source(TriggerNode): TriggerNode of the source.
@@ -224,7 +236,8 @@ def get_vulnerability(source, sink, triggers, lattice):
     """
     source_in_sink = lattice.in_constraint(source.cfg_node, sink.cfg_node)
 
-    secondary_in_sink = []
+    secondary_in_sink = list()
+
     if source.secondary_nodes:
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
@@ -233,33 +246,50 @@ def get_vulnerability(source, sink, triggers, lattice):
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
+    secondary_node_in_sink_args = None
+    if sink_args:
+        for node in secondary_in_sink:
+            if sink_args and node.left_hand_side in sink_args:
+                secondary_node_in_sink_args = node
+
+    trimmed_nodes = list()
+    if secondary_node_in_sink_args and trim_reassigned_in:
+        trimmed_nodes.append(secondary_node_in_sink_args)
+        node_in_the_vulnerability_chain = secondary_node_in_sink_args
+        # Here is where we do backwards slicing to traceback which nodes led to the vulnerability
+        for secondary in reversed(source.secondary_nodes):
+            if lattice.in_constraint(secondary, sink.cfg_node):
+                if secondary.left_hand_side in node_in_the_vulnerability_chain.right_hand_side_variables:
+                    node_in_the_vulnerability_chain = secondary
+                    trimmed_nodes.insert(0, node_in_the_vulnerability_chain)
+
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
 
-    secondary_nodes_in_sink_args = any(True for node in secondary_in_sink
-                                       if node.left_hand_side in sink_args)\
-                                       if sink_args else None
-    lhs_in_sink_args = source_lhs_in_sink_args or secondary_nodes_in_sink_args
+    lhs_in_sink_args = source_lhs_in_sink_args or secondary_node_in_sink_args
 
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
-        sink_is_sanitised = is_sanitized(sink, triggers.sanitiser_dict,
+        sink_is_sanitised = is_sanitized(sink,
+                                         triggers.sanitiser_dict,
                                          lattice)
-
+        reassignment_nodes = source.secondary_nodes
+        if trimmed_nodes:
+            reassignment_nodes = trimmed_nodes
         if sink_is_sanitised:
             return SanitisedVulnerability(source.cfg_node, source_trigger_word,
                                           sink.cfg_node, sink_trigger_word,
                                           sink.sanitisers,
-                                          source.secondary_nodes)
+                                          reassignment_nodes)
         else:
             return Vulnerability(source.cfg_node, source_trigger_word,
                                  sink.cfg_node, sink_trigger_word,
-                                 source.secondary_nodes)
+                                 reassignment_nodes)
     return None
 
 
-def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice):
+def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, trim_reassigned_in):
     """Find vulnerabilities in a cfg.
 
     Args:
@@ -270,12 +300,13 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice):
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
-            vulnerability = get_vulnerability(source, sink, triggers, lattice)
+            vulnerability = get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in)
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
 
 def find_vulnerabilities(cfg_list, analysis_type,
+                         trim_reassigned_in=False,
                          trigger_word_file=default_trigger_word_file):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
@@ -290,7 +321,9 @@ def find_vulnerabilities(cfg_list, analysis_type,
     definitions = parse(trigger_word_file)
 
     vulnerability_log = VulnerabilityLog()
+
     for cfg in cfg_list:
         find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions,
-                                    Lattice(cfg.nodes, analysis_type))
+                                    Lattice(cfg.nodes, analysis_type),
+                                    trim_reassigned_in)
     return vulnerability_log

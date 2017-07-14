@@ -18,6 +18,11 @@ ratings:
   - "pyt/*"
   - "**.py"
 exclude_paths:
+- "pyt/draw.py"
+- "pyt/github_search.py"
+- "pyt/intraprocedural_cfg.py"
+- "pyt/repo_runner.py"
+- "pyt/save.py"
 - "example/**"
 - "profiling/**"
 - "tests/**"
