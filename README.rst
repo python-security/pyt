@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
     :target: https://travis-ci.org/python-security/pyt
 
+.. image:: https://readthedocs.org/projects/pyt/badge/?version=latest
+    :target: http://pyt.readthedocs.io/en/latest/?badge=latest
+
 .. image:: https://codeclimate.com/github/python-security/pyt/badges/coverage.svg
     :target: https://codeclimate.com/github/python-security/pyt/coverage
 
@@ -60,7 +63,9 @@ Contributions
 
 Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@gmail.com
 
-[Guidelines](https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md)
+`Guidelines`_
+
+.. _Guidelines: https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md
 
 
 Virtual env setup guide
