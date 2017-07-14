@@ -12,8 +12,6 @@ from pyt.framework_helper import is_flask_route_function
 from pyt.lattice import Lattice
 from pyt.project_handler import get_directory_modules, get_modules
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class EngineTest(BaseTestCase):
@@ -50,7 +48,6 @@ class EngineTest(BaseTestCase):
 
     def test_blackbox_library_call(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/blackbox_library_call.py')
-        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
