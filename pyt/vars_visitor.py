@@ -98,10 +98,10 @@ class VarsVisitor(ast.NodeVisitor):
                         logger.debug("It is an attribute!")
                         logger.debug("[voyager] arg.func.attr is %s", arg.func.attr)
                         self.result.append('ret_' + arg.func.attr)
-                        raise
+                        # raise
                     else:
                         logger.debug("type(arg.func) is %s", type(arg.func))
-                        raise
+                        # raise
                 else:
                     self.visit(arg)
         if node.keywords:

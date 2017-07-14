@@ -7,6 +7,7 @@ import subprocess
 
 BLACK_LISTED_CALL_NAMES = ['self']
 recursive = False
+python_2_mode = False
 
 
 def convert_to_3(path):
@@ -20,12 +21,17 @@ def convert_to_3(path):
         exit(1)
 
 
-def generate_ast(path):
+def generate_ast(path, python_2=False):
     """Generate an Abstract Syntax Tree using the ast module.
 
-    Args:
-        path(string): A relative or full path to a Python file, that is used to generate the 
+        Args:
+            path(str): The path to the file e.g. example/foo/bar.py
+            python_2(bool): Determines whether or not to call 2to3.
     """
+    # If set, it stays set.
+    global python_2_mode
+    if python_2:
+        python_2_mode = True
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:
@@ -33,7 +39,8 @@ def generate_ast(path):
             except SyntaxError:
                 global recursive
                 if not recursive:
-                    convert_to_3(path)
+                    if not python_2_mode:
+                        convert_to_3(path)
                     recursive = True
                     return generate_ast(path)
                 else:

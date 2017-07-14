@@ -8,35 +8,34 @@ class Lattice:
         self.el2bv = dict()  # Element to bitvector dictionary
         self.bv2el = list()  # Bitvector to element list
         for i, e in enumerate(analysis_type.get_lattice_elements(cfg_nodes)):
+            # Give each element a unique shift of 1
             self.el2bv[e] = 0b1 << i
-            self.bv2el.append(e)
-        self.bv2el = list(reversed(self.bv2el))
+            self.bv2el.insert(0, e)
 
     def get_elements(self, number):
-        r = list()
-
         if number == 0:
-            return r
+            return []
 
+        elements = list()
         # Turn number into a binary string of length len(self.bv2el)
-        for i, x in enumerate(format(number,
-                                     '0' + str(len(self.bv2el)) + 'b')):
-            if x == '1':
-                r.append(self.bv2el[i])
-        return r
+        binary_string = format(number,
+                               '0' + str(len(self.bv2el)) + 'b')
+        for i, bit in enumerate(binary_string):
+            if bit == '1':
+                elements.append(self.bv2el[i])
+        return elements
 
     def in_constraint(self, node1, node2):
         """Checks if node1 is in node2's constraints
         For instance, if node1 = 010 and node2 = 110:
         010 & 110 = 010 -> has the element."""
         constraint = constraint_table[node2]
+        if constraint == 0b0:
+            return False
 
         try:
             value = self.el2bv[node1]
         except KeyError:
-            value = 0b0
-
-        if constraint == 0b0 or value == 0b0:
             return False
 
         logger.debug("constraint is %s", bin(constraint))

@@ -7,7 +7,6 @@ from .right_hand_side_visitor import RHSVisitor
 from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
-
 ControlFlowNode = namedtuple('ControlFlowNode',
                              'test last_nodes break_statements')
 

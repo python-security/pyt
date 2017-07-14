@@ -16,6 +16,7 @@ from .vulnerability_log import (
 from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
+
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
 Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 
@@ -218,11 +219,11 @@ class SinkArgsError(Exception):
 
 
 def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
-    """Check if vulnerability is unknown seeing if a blackbox assignment is in trimmed_reassignment_nodes.
+    """Check if vulnerability is unknown by seeing if a blackbox assignment is in trimmed_reassignment_nodes.
 
     Args:
         trimmed_reassignment_nodes(list[AssignmentNode]): list of the reassignment nodes leading to the vulnerability.
-        blackbox_assignments(list[AssignmentNode]): list of blackbox assignments.
+        blackbox_assignments(set[AssignmentNode]): set of blackbox assignments.
 
     Returns:
         AssignmentNode or None
@@ -249,6 +250,9 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
         source(TriggerNode): TriggerNode of the source.
         sink(TriggerNode): TriggerNode of the sink.
         triggers(Triggers): Triggers of the CFG.
+        lattice(Lattice): The lattice we're analysing.
+        trim_reassigned_in(bool): Whether or not the trim option is set.
+        blackbox_assignments(set[AssignmentNode]): used in is_unknown.
 
     Returns:
         A Vulnerability if it exists, else None
@@ -371,8 +375,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
         A VulnerabilityLog with found vulnerabilities.
     """
     definitions = parse(trigger_word_file)
-    logger.debug("definitions.sources is %s", definitions.sources)
-    logger.debug("definitions.sinks is %s", definitions.sinks)
     vulnerability_log = VulnerabilityLog()
 
 

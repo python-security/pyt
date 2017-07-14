@@ -34,7 +34,6 @@ from .right_hand_side_visitor import RHSVisitor
 from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
-
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 NOT_A_BLACKBOX = set(['Flask',
                       'run',
@@ -554,7 +553,7 @@ class InterproceduralVisitor(Visitor):
         #     logger.debug("return_of_visit_keyword is %s", return_of_visit_keyword)
         #     logger.debug("type(return_of_visit_keyword) is %s", type(return_of_visit_keyword))
 
-        # "request.args.get" -> "get"
+        # e.g. "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
         if definition:
             if isinstance(definition.node, ast.ClassDef):

@@ -11,9 +11,10 @@ class ReachingDefinitionsAnalysis(ReachingDefinitionsAnalysisBase):
         # Assignment check
         if isinstance(cfg_node, AssignmentNode):
             arrow_result = JOIN
-            arrow_result = self.arrow(JOIN, cfg_node)
+            # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
+            arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
             arrow_result = arrow_result | self.lattice.el2bv[cfg_node]
             constraint_table[cfg_node] = arrow_result
-        # Default case:
+        # Default case
         else:
             constraint_table[cfg_node] = JOIN
