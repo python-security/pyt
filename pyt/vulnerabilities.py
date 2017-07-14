@@ -9,6 +9,7 @@ from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
     SanitisedVulnerability,
+    UnknownVulnerability,
     Vulnerability,
     VulnerabilityLog
 )
@@ -194,7 +195,7 @@ def find_sanitiser_nodes(sanitiser, sanitisers_in_file):
             yield sanitiser_tuple.cfg_node
 
 
-def is_sanitized(sink, sanitiser_dict, lattice):
+def is_sanitised(sink, sanitiser_dict, lattice):
     """Check if sink is sanitised by any santiser in the sanitiser_dict.
 
     Args:
@@ -215,13 +216,30 @@ class SinkArgsError(Exception):
     pass
 
 
+def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
+    """Check if vulnerability is unknown by seeing if a blackbox assignment is in trimmed_reassignment_nodes.
+
+    Args:
+        trimmed_reassignment_nodes(list[AssignmentNode]): list of the reassignment nodes leading to the vulnerability.
+        blackbox_assignments(set[AssignmentNode]): set of blackbox assignments.
+
+    Returns:
+        AssignmentNode or None
+    """
+    for blackbox_assignment in blackbox_assignments:
+        for node in trimmed_reassignment_nodes:
+            if node == blackbox_assignment:
+                return blackbox_assignment
+    return None
+
+
 def get_sink_args(cfg_node):
     vv = VarsVisitor()
     vv.visit(cfg_node.ast_node)
     return vv.result
 
 
-def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
+def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, blackbox_assignments):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers.
@@ -230,6 +248,9 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
         source(TriggerNode): TriggerNode of the source.
         sink(TriggerNode): TriggerNode of the sink.
         triggers(Triggers): Triggers of the CFG.
+        lattice(Lattice): The lattice we're analysing.
+        trim_reassigned_in(bool): Whether or not the trim option is set.
+        blackbox_assignments(set[AssignmentNode]): used in is_unknown.
 
     Returns:
         A Vulnerability if it exists, else None
@@ -252,16 +273,16 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
             if sink_args and node.left_hand_side in sink_args:
                 secondary_node_in_sink_args = node
 
-    trimmed_nodes = list()
-    if secondary_node_in_sink_args and trim_reassigned_in:
-        trimmed_nodes.append(secondary_node_in_sink_args)
+    trimmed_reassignment_nodes = list()
+    if secondary_node_in_sink_args:
+        trimmed_reassignment_nodes.append(secondary_node_in_sink_args)
         node_in_the_vulnerability_chain = secondary_node_in_sink_args
         # Here is where we do backwards slicing to traceback which nodes led to the vulnerability
         for secondary in reversed(source.secondary_nodes):
             if lattice.in_constraint(secondary, sink.cfg_node):
                 if secondary.left_hand_side in node_in_the_vulnerability_chain.right_hand_side_variables:
                     node_in_the_vulnerability_chain = secondary
-                    trimmed_nodes.insert(0, node_in_the_vulnerability_chain)
+                    trimmed_reassignment_nodes.insert(0, node_in_the_vulnerability_chain)
 
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
@@ -271,17 +292,24 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in):
     if trigger_node_in_sink and lhs_in_sink_args:
         source_trigger_word = source.trigger_word
         sink_trigger_word = sink.trigger_word
-        sink_is_sanitised = is_sanitized(sink,
+        sink_is_sanitised = is_sanitised(sink,
                                          triggers.sanitiser_dict,
                                          lattice)
+        blackbox_assignment_in_chain = is_unknown(trimmed_reassignment_nodes,
+                                                  blackbox_assignments)
         reassignment_nodes = source.secondary_nodes
-        if trimmed_nodes:
-            reassignment_nodes = trimmed_nodes
+        if trim_reassigned_in:
+            reassignment_nodes = trimmed_reassignment_nodes
         if sink_is_sanitised:
             return SanitisedVulnerability(source.cfg_node, source_trigger_word,
                                           sink.cfg_node, sink_trigger_word,
                                           sink.sanitisers,
                                           reassignment_nodes)
+        elif blackbox_assignment_in_chain:
+            return UnknownVulnerability(source.cfg_node, source_trigger_word,
+                                        sink.cfg_node, sink_trigger_word,
+                                        blackbox_assignment_in_chain,
+                                        reassignment_nodes)
         else:
             return Vulnerability(source.cfg_node, source_trigger_word,
                                  sink.cfg_node, sink_trigger_word,
@@ -300,7 +328,12 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
-            vulnerability = get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in)
+            vulnerability = get_vulnerability(source,
+                                              sink,
+                                              triggers,
+                                              lattice,
+                                              trim_reassigned_in,
+                                              cfg.blackbox_assignments)
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
@@ -319,7 +352,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
         A VulnerabilityLog with found vulnerabilities.
     """
     definitions = parse(trigger_word_file)
-
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:

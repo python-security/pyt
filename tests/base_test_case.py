@@ -64,3 +64,8 @@ class BaseTestCase(unittest.TestCase):
         project_definitions.clear()
         tree = generate_ast(filename)
         self.cfg = interprocedural(tree, project_modules, local_modules, filename)
+
+    def string_compare_alpha(self, output, expected_string):
+        return [char for char in output if char.isalpha()] \
+                == \
+               [char for char in expected_string if char.isalpha()]

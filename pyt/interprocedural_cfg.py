@@ -34,6 +34,26 @@ from .right_hand_side_visitor import RHSVisitor
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
+NOT_A_BLACKBOX = set(['Flask',
+                      'run',
+                      'get',
+                      'replace',
+                      'read',
+                      'set_cookie',
+                      'make_response',
+                      'SQLAlchemy',
+                      'Column',
+                      'execute',
+                      'sessionmaker',
+                      'Session',
+                      'filter',
+                      'execute',
+                      'call',
+                      'render_template',
+                      'redirect',
+                      'url_for',
+                      'flash',
+                      'jsonify'])
 
 
 class InterproceduralVisitor(Visitor):
@@ -43,6 +63,8 @@ class InterproceduralVisitor(Visitor):
         self.project_modules = project_modules
         self.local_modules = local_modules
         self.filenames = [filename]
+        self.blackbox_assignments = set()
+        self.blackbox_calls = set()
         self.nodes = list()
         self.function_index = 0
         self.undecided = False
@@ -50,6 +72,7 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack = list()
         self.module_definitions_stack = list()
 
+        # Are we already in a module?
         if module_definitions:
             self.init_function_cfg(node, module_definitions)
         else:
@@ -362,6 +385,8 @@ class InterproceduralVisitor(Visitor):
         else:
             definition = local_definitions.get_definition(_id)
 
+        # e.g. "request.args.get" -> "get"
+        last_attribute = _id.rpartition('.')[-1]
         if definition:
             if isinstance(definition.node, ast.ClassDef):
                 self.add_builtin(node)
@@ -371,6 +396,9 @@ class InterproceduralVisitor(Visitor):
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
+        elif last_attribute not in NOT_A_BLACKBOX:
+            return self.add_blackbox_call(node)
+
         return self.add_builtin(node)
 
     def add_class(self, call_node, def_node):
@@ -641,4 +669,4 @@ def interprocedural(node, project_modules, local_modules, filename,
                                      project_modules,
                                      local_modules, filename,
                                      module_definitions)
-    return CFG(visitor.nodes)
+    return CFG(visitor.nodes, visitor.blackbox_assignments)

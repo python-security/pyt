@@ -132,11 +132,15 @@ class AssignmentNode(Node):
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
+        # Only set True in assignment_call_node()
+        self.blackbox = False
 
     def __repr__(self):
         output_string = super().__repr__()
         output_string += '\n'
-        return ''.join((output_string, 'left_hand_side:\t', str(self.left_hand_side), '\n', 'right_hand_side_variables:\t', str(self.right_hand_side_variables)))
+        return ''.join((output_string,
+                        'left_hand_side:\t', str(self.left_hand_side), '\n',
+                        'right_hand_side_variables:\t', str(self.right_hand_side_variables)))
 
 
 class RestoreNode(AssignmentNode):
@@ -199,8 +203,9 @@ class Function():
 
 
 class CFG():
-    def __init__(self, nodes):
+    def __init__(self, nodes, blackbox_assignments):
         self.nodes = nodes
+        self.blackbox_assignments = blackbox_assignments
 
     def __repr__(self):
         output = ''
@@ -522,6 +527,10 @@ class Visitor(ast.NodeVisitor):
             call_label = call.label
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
+        if call in self.blackbox_calls:
+            self.blackbox_assignments.add(call_assignment)
+            call_assignment.blackbox = True
+
         self.nodes.append(call_assignment)
 
         self.undecided = False
@@ -586,17 +595,26 @@ class Visitor(ast.NodeVisitor):
 
         for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number=node.lineno, path=self.filenames[-1]))
 
-
-
         if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func)  in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
-
 
         return self.loop_node_skeleton(for_node, node)
 
     def visit_Expr(self, node):
         return self.visit(node.value)
+
+    def add_blackbox_call(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        blackbox_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
+        if not self.undecided:
+            self.nodes.append(blackbox_call)
+        self.blackbox_calls.add(blackbox_call)
+        self.undecided = False
+
+        return blackbox_call
 
     def add_builtin(self, node):
         label = LabelVisitor()
