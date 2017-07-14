@@ -83,7 +83,7 @@ def parse_args(args):
                         help='Choose logging level: CRITICAL, ERROR,' +
                         ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
     parser.add_argument('-a', '--adaptor',
-                        help='Choose an adaptor: FLASK(Default) or DJANGO.',
+                        help='Choose an adaptor: Flask(Default) or Every or Pylons.',
                         type=str)
     parser.add_argument('-db', '--create-database',
                         help='Creates a sql file that can be used to' +
