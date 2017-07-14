@@ -5,7 +5,8 @@ from pyt import trigger_definitions_parser, vulnerabilities
 from pyt.base_cfg import Node
 from pyt.constraint_table import constraint_table, initialize_constraint_table
 from pyt.fixed_point import analyse
-from pyt.flask_adaptor import FlaskAdaptor
+from pyt.framework_adaptor import FrameworkAdaptor
+from pyt.framework_helper import is_flask_route_function
 from pyt.lattice import Lattice
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
@@ -67,7 +68,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list, [], [])
+        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
 
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
@@ -90,7 +91,7 @@ class EngineTest(BaseTestCase):
         self.cfg_create_from_file('example/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list, [], [])
+        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
 
         cfg = cfg_list[1]
 
@@ -156,7 +157,7 @@ class EngineTest(BaseTestCase):
 
         cfg_list = [self.cfg]
 
-        FlaskAdaptor(cfg_list, [], [])
+        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
 
         initialize_constraint_table(cfg_list)
 
