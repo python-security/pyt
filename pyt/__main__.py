@@ -222,9 +222,9 @@ def main(command_line_args=sys.argv[1:]):
                                               local_modules,
                                               path)
         cfg_list.append(interprocedural_cfg)
-        if args.adaptor and args.adaptor.lower().startswith('E'):
+        if args.adaptor and args.adaptor.lower().startswith('e'):
             framework_route_criteria = is_function
-        elif args.adaptor and args.adaptor.lower().startswith('P'):
+        elif args.adaptor and args.adaptor.lower().startswith('p'):
             framework_route_criteria = is_function_without_leading_
         else:
             framework_route_criteria = is_flask_route_function
