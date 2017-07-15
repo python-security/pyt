@@ -19,18 +19,6 @@ def constraint_join(cfg_nodes):
     return r
 
 
-def constraint_meet(self, cfg_nodes):
-    """Finds the meet by looking up all given cfg nodes
-    and performing logical and."""
-    r = 0
-    for i in range(len(cfg_nodes)):
-        r = r | (0b1 << i)
-
-    for e in cfg_nodes:
-        r = r & constraint_table[e]
-    return r
-
-
 def print_table(l):
     print('Constraint table:')
     for k, v in constraint_table.items():
