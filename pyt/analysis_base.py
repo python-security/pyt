@@ -38,7 +38,7 @@ class AnalysisBase(metaclass=ABCMeta):
     def build_lattice(self, cfg):
         pass
 
+    @abstractmethod
     def dep(self, q_1):
         """Represents the dep mapping from Schwartzbach."""
-        for node in self.cfg.nodes:
-            yield node
+        pass
