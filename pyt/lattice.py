@@ -1,6 +1,4 @@
 from .constraint_table import constraint_table
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class Lattice:
@@ -38,15 +36,10 @@ class Lattice:
         except KeyError:
             return False
 
-        logger.debug("constraint is %s", bin(constraint))
-        logger.debug("value is %s", value)
         return constraint & value != 0
 
 
 def print_lattice(cfg_list, analysis_type):
-    """
-        Type of params is...?
-    """
     nodes = list()
     for cfg in cfg_list:
         nodes.extend(cfg.nodes)

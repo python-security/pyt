@@ -367,7 +367,7 @@ def find_vulnerabilities(cfg_list, analysis_type,
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
-        cfg_list (list): the list of CFGs to scan.
+        cfg_list (list[CFG]): the list of CFGs to scan.
         trigger_word_file (string): file containing trigger words.
         Defaults to the flask trigger word file.
 
