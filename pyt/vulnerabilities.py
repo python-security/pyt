@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from .base_cfg import AssignmentNode
 from .framework_adaptor import TaintedNode
-from .lattice import Lattice, print_lattice
+from .lattice import Lattice
 from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
@@ -342,15 +342,12 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
         cfg(CFG): The CFG to find vulnerabilities in.
         vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
+        lattice(Lattice)
+        trim_reassigned_in(bool): Whether or not the trim option is set.
     """
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
     for sink in triggers.sinks:
         for source in triggers.sources:
-            # logger.debug("type(vulnerability_log(VulnerabilityLog)) is %s", type(vulnerability_log(VulnerabilityLog)))
-            # logger.debug("type(definitions) is %s", type(definitions))
-            # for i, n in enumerate(cfg.nodes):
-            #     logger.debug("#%s n.label is %s. in_constraint is %s", i, n.label, lattice.in_constraint(n, cfg.nodes[20]))
-            # logger.debug("cfg.nodes[20] is %s", cfg.nodes[20])
             vulnerability = get_vulnerability(source,
                                               sink,
                                               triggers,
@@ -379,7 +376,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
 
 
     for cfg in cfg_list:
-        print_lattice([cfg], analysis_type)
         find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions,
                                     Lattice(cfg.nodes, analysis_type),
                                     trim_reassigned_in)

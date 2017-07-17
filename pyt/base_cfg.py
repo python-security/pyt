@@ -456,7 +456,7 @@ class Visitor(ast.NodeVisitor):
                 new_ast_node = ast.Assign(target, value)
                 new_ast_node.lineno = node.lineno
 
-                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
+                new_assignment_nodes.append(self.assignment_call_node(label.result, new_ast_node))
 
             else:
                 label.result += ' = '
@@ -472,13 +472,13 @@ class Visitor(ast.NodeVisitor):
         new_assignment_nodes = list()
 
         for target in node.targets:
-                label = LabelVisitor()
-                label.visit(target)
-                left_hand_side = label.result
-                label.result += ' = '
-                label.visit(node.value)
+            label = LabelVisitor()
+            label.visit(target)
+            left_hand_side = label.result
+            label.result += ' = '
+            label.visit(node.value)
 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
+            new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
@@ -593,7 +593,6 @@ class Visitor(ast.NodeVisitor):
     def visit_For(self, node):
         self.undecided = True  # Used for handling functions in for loops
 
-        #issue23
         iterator_label = LabelVisitor()
         iterator = iterator_label.visit(node.iter)
         self.undecided = False
@@ -616,10 +615,10 @@ class Visitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
+        # node should always be a call
         if not isinstance(node, ast.Call):
             logger.debug("node that isnt a call in add_builtin_or_blackbox_call is %s", node)
             raise
-
 
         call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
 
