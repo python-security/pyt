@@ -362,13 +362,6 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        # logger.debug("label_visitor.result is %s", label_visitor.result)
-        # logger.debug("node.__class__.__name__ is %s", node.__class__.__name__)
-        # logger.debug("node is %s", node)
-        # logger.debug("node.lineno is %s", node.lineno)
-        # logger.debug("self.filenames[-1] is %s", self.filenames[-1])
-        # # def __init__(self, label, ast_node, *, line_number, path):
-
         return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
@@ -627,8 +620,8 @@ class Visitor(ast.NodeVisitor):
             if isinstance(arg, ast.Call):
                 self.undecided = False
                 return_value_of_nested_call = self.visit(arg)
-                logger.debug("[DAVIDsTEA] return_value_of_nested_call is %s", return_value_of_nested_call)
-                logger.debug("[DAVIDsTEA] self.nodes is %s", self.nodes)
+                logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
+                logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
                 # for n in self.nodes:
                 #     if n == return_value_of_nested_call:
                 #         raise
@@ -637,6 +630,7 @@ class Visitor(ast.NodeVisitor):
         self.undecided = saved_undecided
 
         if not self.undecided:
+            logger.debug("[OSLO WAS SO GOOD] call_node is %s", call_node)
             self.nodes.append(call_node)
 
         if blackbox:

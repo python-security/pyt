@@ -4,11 +4,8 @@ from flask import Flask, render_template, request
 # This is a lib we can't possibly see inside of
 import scrypt
 
-app = Flask(__name__)
 
-def outer(outer_arg):
-	outer_ret_val = outer_arg + 'hey'
-	return outer_ret_val
+app = Flask(__name__)
 
 def inner(inner_arg):
 	# inner_ret_val = inner_arg + 'hey'
@@ -19,8 +16,12 @@ def inner(inner_arg):
 def menu():
     req_param = request.form['suggestion']
 
-    # builtin(blackbox())
-    foo = set_cookie(scrypt.encrypt(req_param))
+    # blackbox(user_defined_inner())
+    foo = scrypt.encrypt(inner(req_param))
+    
+    # This should work already
+    # foo = scrypt.encrypt(req_param)
+
     subprocess.call(foo, shell=True)
 
     with open('menu.txt','r') as f:

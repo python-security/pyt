@@ -374,7 +374,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
     definitions = parse(trigger_word_file)
     vulnerability_log = VulnerabilityLog()
 
-
     for cfg in cfg_list:
         find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions,
                                     Lattice(cfg.nodes, analysis_type),
