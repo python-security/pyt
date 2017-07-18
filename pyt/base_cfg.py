@@ -45,6 +45,9 @@ class Node():
         if isinstance(self, ConnectToExitNode) and\
            not isinstance(successor, EntryOrExitNode):
             return
+        if successor.label.startswith("scrypt"):
+            logger.debug("trouble node is %s", successor)
+            # raise
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -361,7 +364,7 @@ class Visitor(ast.NodeVisitor):
     def visit_NameConstant(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
-
+        logger.debug("[oslo] label_visitor.result is %s", label_visitor.result)
         return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
@@ -614,6 +617,7 @@ class Visitor(ast.NodeVisitor):
             raise
 
         call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
+        add_the_call_node = False
 
         saved_undecided = self.undecided
         for arg in node.args:
@@ -625,11 +629,13 @@ class Visitor(ast.NodeVisitor):
                 # for n in self.nodes:
                 #     if n == return_value_of_nested_call:
                 #         raise
+
                 return_value_of_nested_call.connect(call_node)
+                add_the_call_node = True
             logger.debug("[Voyager] arg is %s", arg)
         self.undecided = saved_undecided
 
-        if not self.undecided:
+        if not self.undecided or add_the_call_node:
             logger.debug("[OSLO WAS SO GOOD] call_node is %s", call_node)
             self.nodes.append(call_node)
 

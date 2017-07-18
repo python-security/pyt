@@ -92,27 +92,32 @@ def find_assignments(assignment_nodes, source):
     # added in order to propagate reassignments of the source node
     new = [source.cfg_node]
 
-    update_assignments(new, assignment_nodes, source.cfg_node)
+    update_assignments(new, assignment_nodes)
     while new != old:
         old = new
-        update_assignments(new, assignment_nodes, source.cfg_node)
+        update_assignments(new, assignment_nodes)
     new.remove(source.cfg_node)  # remove source node from result
     return new
 
 
-def update_assignments(l, assignment_nodes, source):
+def update_assignments(assignment_list, assignment_nodes):
     for node in assignment_nodes:
-        for other in l:
-            if node not in l:
-                append_if_reassigned(l, other, node)
+        for other in assignment_list:
+            if node not in assignment_list:
+                append_if_reassigned(assignment_list, other, node)
 
 
-def append_if_reassigned(l, secondary, node):
-    # maybe:  secondary in node.new_constraint and
+def append_if_reassigned(assignment_list, secondary, node):
     try:
         if secondary.left_hand_side in node.right_hand_side_variables or\
            secondary.left_hand_side == node.left_hand_side:
-            l.append(node)
+            assignment_list.append(node)
+            logger.debug("[blue bottle] yes gonna add Node %s", node)
+
+        else:
+            logger.debug("[blue bottle] NOT gonna add Node %s", node)
+            pass
+
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)
@@ -120,19 +125,19 @@ def append_if_reassigned(l, secondary, node):
 
 
 def find_triggers(nodes, trigger_words):
-    """Find triggers from the trigger_word_list in the cfg.
+    """Find triggers from the trigger_word_list in the nodes.
 
     Args:
-        cfg(CFG): the CFG to find triggers in.
+        nodes(list[Node]): the nodes to find triggers in.
         trigger_word_list(list[string]): list of trigger words to look for.
 
     Returns:
         List of found TriggerNodes
     """
-    l = list()
+    trigger_nodes = list()
     for node in nodes:
-        l.extend(iter(label_contains(node, trigger_words)))
-    return l
+        trigger_nodes.extend(iter(label_contains(node, trigger_words)))
+    return trigger_nodes
 
 
 def label_contains(node, trigger_words):
@@ -219,10 +224,11 @@ class SinkArgsError(Exception):
 
 
 def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
-    """Check if vulnerability is unknown by seeing if a blackbox assignment is in trimmed_reassignment_nodes.
+    """Check if vulnerability is unknown by seeing if a blackbox
+        assignment is in trimmed_reassignment_nodes.
 
     Args:
-        trimmed_reassignment_nodes(list[AssignmentNode]): list of the reassignment nodes leading to the vulnerability.
+        trimmed_reassignment_nodes(list[AssignmentNode]): reassignments leading to the vulnerability.
         blackbox_assignments(set[AssignmentNode]): set of blackbox assignments.
 
     Returns:
@@ -261,9 +267,8 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
 
     secondary_in_sink = list()
 
-    # logger.debug("[voy] So source.secondary_nodes is %s THIS SHOULD INCLUE WHERE IT IS USED AS AN ARG",source.secondary_nodes)
     for node in source.secondary_nodes:
-        logger.debug("secondary node label is %s", node.label)
+        logger.debug("BLUE BOTTLE secondary node label is %s", node.label)
 
     logger.debug("[VOY] sink is %s", sink)
     logger.debug("[VOY] sink.cfg_node is %s", sink.cfg_node)
@@ -280,7 +285,7 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
         if 'ret_' in sarg:
             logger.debug("special sarg is %s", sarg)
 
-    logger.debug("[Voyager] MIA sink_args are %s", sink_args)
+    logger.debug("[Voyager] sink_args are %s", sink_args)
     secondary_node_in_sink_args = None
     if sink_args:
         logger.debug("secondary in sink list is %s", secondary_in_sink)
@@ -342,7 +347,7 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
         cfg(CFG): The CFG to find vulnerabilities in.
         vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
-        lattice(Lattice)
+        lattice(Lattice): The lattice we're analysing.
         trim_reassigned_in(bool): Whether or not the trim option is set.
     """
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
