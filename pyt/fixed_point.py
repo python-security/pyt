@@ -21,6 +21,7 @@ class FixedPointAnalysis():
 
         while q != []:
             logger.debug("q[0] is %s", q[0])
+            logger.debug("type(q[0]) is %s", type(q[0]))
             x_i = constraint_table[q[0]]  # x_i = q[0].old_constraint
             self.analysis.fixpointmethod(q[0])  # y = F_i(x_1, ..., x_n);
             y = constraint_table[q[0]]  # y = q[0].new_constraint

@@ -161,6 +161,20 @@ class RestoreNode(AssignmentNode):
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
 
+class BBnode(AssignmentNode):
+    """Node used for handling restore nodes returning from function calls."""
+
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+        """Create a Restore node.
+
+        Args:
+            label (str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            line_number(Optional[int]): The line of the expression the Node represents.
+        """
+        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        self.args = []
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
@@ -520,15 +534,19 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor.visit(ast_node.value)
 
         call = self.visit(ast_node.value)
-
+        logger.debug("[NYSEC] call is %s", call)
+        logger.debug("[NYSEC] type(call) is %s", type(call))
         call_label = ''
         call_assignment = None
-        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
+        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin e.g. RestoreNode ¤call_1 = ret_outer
+            # raise
             call_label = call.left_hand_side
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno, path=self.filenames[-1])
             call.connect(call_assignment)
         else: #  assignment to builtin
-            call_label = call.label
+            logger.debug("call.left_hand_side is %s", call.left_hand_side)
+            raise
+            call_label = call.left_hand_side
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
         if call in self.blackbox_calls:
@@ -607,42 +625,96 @@ class Visitor(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    def add_builtin_or_blackbox_call(self, node, blackbox=False):
+    def add_blackbox_or_builtin_call(self, node, blackbox=False):
+        """Processes a blackbox or builtin function when it is called.
+
+        Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
+        Create e.g. ¤call_1 = ret_func_foo RestoreNode.
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. Visit the arguments if they're calls. (save_def_args_in_temp)
+        I do not think I care about this one actually -- Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
+        Add RestoreNode to the end of the Nodes.
+
+        Args:
+            node()
+            blackbox(bool): Whether or not it is a builtin or blackbox call.
+        Returns:
+            ???
+        """
+        # Increment function_call_index
+        self.function_call_index += 1
+        saved_function_call_index = self.function_call_index
+
+        self.undecided = False
+
         label = LabelVisitor()
         label.visit(node)
 
         # node should always be a call
-        if not isinstance(node, ast.Call):
-            logger.debug("node that isnt a call in add_builtin_or_blackbox_call is %s", node)
-            raise
+        assert isinstance(node, ast.Call) == True
 
-        call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-        add_the_call_node = False
-
-        saved_undecided = self.undecided
+        # Create e.g. ¤call_1 = ret_func_foo
+        LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+        RHS = 'ret_' + label.result
+        call_node = BBnode("",
+                           LHS,
+                           [],
+                           line_number=node.lineno,
+                           path=self.filenames[-1])
+        visited_args = []
         for arg in node.args:
             if isinstance(arg, ast.Call):
-                self.undecided = False
                 return_value_of_nested_call = self.visit(arg)
                 logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
                 logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
                 # for n in self.nodes:
                 #     if n == return_value_of_nested_call:
                 #         raise
-
                 return_value_of_nested_call.connect(call_node)
-                add_the_call_node = True
+                visited_args.append(return_value_of_nested_call)
+            else:
+                visited_args.append(arg)
             logger.debug("[Voyager] arg is %s", arg)
-        self.undecided = saved_undecided
+        logger.debug("[VINEAPPLE] BLACKBOX visited_args is %s", visited_args)
 
-        if not self.undecided or add_the_call_node:
-            logger.debug("[OSLO WAS SO GOOD] call_node is %s", call_node)
-            self.nodes.append(call_node)
+        logger.debug("[VINEAPPLE] label.result is %s", label.result)
+        call_node.label = LHS + " = " + RHS
+        get_rhs = []
+        for arg in visited_args:
+            try:
+                get_rhs.extend(arg.right_hand_side_variables)
+            except AttributeError:
+                get_rhs.append(arg)
+        logger.debug("[VINEAPPLE] get_rhs is %s", get_rhs)
+        call_node.right_hand_side_variables = get_rhs
+        call_node.args = get_rhs
+        # What is assigned to ret_func_foo in the builtin/blackbox case?
+        # What is assigned to ret_func_foo in the builtin/blackbox case?
+        # What is assigned to ret_func_foo in the builtin/blackbox case?
+
+
+        # ReturnNode
+
+
+        # the old way
+        # call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
+
+        # We need to know what the arguments are to a sink,
+        #     we also need to know the arguments to a builtin or blackbox so we can have a mapping of
+            # e.g. arg1 taints return value and arg2 does not.
+
+
+        # call save_def_args_in_temp()
+        # call_args, def_args, line_number, saved_function_call_index
+        
+        # args_mapping = save_def_args_in_temp(call_args???, def_args???, node.lineno, saved_function_call_index)
+
+
 
         if blackbox:
             self.blackbox_calls.add(call_node)
 
-        self.undecided = False
+        self.nodes[-1].connect(call_node)
+        self.nodes.append(call_node)
 
         return call_node
 

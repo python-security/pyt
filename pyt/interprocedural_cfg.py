@@ -402,15 +402,11 @@ class InterproceduralVisitor(Visitor):
         for node in function_nodes:
             # Only Return's and Raise's can be of type ConnectToExitNode
             if isinstance(node, ConnectToExitNode):
-                logger.debug("ConnectToExitNode is %s", node)
-                # logger.debug("PROCESS call_node being processed in return_handler is %s", call_node)
-                # logger.debug("PROCESS dir(call_node) being processed in return_handler is %s", dir(call_node))
-                # logger.debug("PROCESS dir(call_node.func) being processed in return_handler is %s", dir(call_node.func))
-                # logger.debug("PROCESS call_node being processed in return_handler is %s", call_node.func.id)
-                
                 # Create e.g. ¤call_1 = ret_func_foo RestoreNode
                 LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+                logger.debug("flux call_node.func is %s", call_node.func)
                 RHS = 'ret_' + get_call_names_as_string(call_node.func)
+                logger.debug("flux RHS is %s", RHS)
                 return_node = RestoreNode(LHS + ' = ' + RHS,
                                           LHS,
                                           [RHS],
@@ -433,7 +429,8 @@ class InterproceduralVisitor(Visitor):
 
         Notes:
             Page 31 in the original thesis, but changed a little.
-            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler, because it's the last node anyways, that we return in this function.
+            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler, because it's the last node anyway, that we return in this function.
+            e.g. ret_func_foo gets assigned to visit_Return. 
 
         Args:
             call_node(ast.Call) : The node that calls the definition.
@@ -557,7 +554,7 @@ class InterproceduralVisitor(Visitor):
         last_attribute = _id.rpartition('.')[-1]
         if definition:
             if isinstance(definition.node, ast.ClassDef):
-                self.add_builtin_or_blackbox_call(node)
+                self.add_blackbox_or_builtin_call(node)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
                 return self.process_function(node, definition)
@@ -566,9 +563,10 @@ class InterproceduralVisitor(Visitor):
                                 'ClassDef, cannot add the function ')
         elif last_attribute not in NOT_A_BLACKBOX:
             # Mark the call as a blackbox because we don't have the definition
-            return self.add_builtin_or_blackbox_call(node, blackbox=True)
+            return self.add_blackbox_or_builtin_call(node, blackbox=True)
         logger.debug("[LUVTEA] nodes are %s", self.nodes[-1])
-        return self.add_builtin_or_blackbox_call(node)
+        logger.debug("[WhyNot] nodes are %s", self.nodes[-1])
+        return self.add_blackbox_or_builtin_call(node)
 
     def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
         """

@@ -234,7 +234,7 @@ def main(command_line_args=sys.argv[1:]):
         FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
     logger.debug("[OSLO SO GOOD] cfg_list[0] is %s", cfg_list[0])
-    logger.debug("[OSLO SO GOOD] len(cfg_list[0]) is %s", len(cfg_list[0]))
+    # logger.debug("[OSLO SO GOOD] len(cfg_list[0]) is %s", len(cfg_list[0]))
     initialize_constraint_table(cfg_list)
 
     analyse(cfg_list, analysis_type=analysis)
