@@ -249,14 +249,15 @@ def get_sink_args(cfg_node):
     
     other_results = list()
     if isinstance(cfg_node, BBnode):
-        logger.debug("[VINEAPPLE] So visited args is %s", cfg_node.args)
-        for arg in cfg_node.args:
-            logger.debug("arg is %s", arg)
-            logger.debug("type of arg is %s", type(arg))
-            if isinstance(arg, RestoreNode):
-                other_results.append(arg.left_hand_side)
-            else:
-                vv.visit(arg)
+        # logger.debug("[VINEAPPLE] So visited args is %s", cfg_node.args)
+        # for arg in cfg_node.args:
+        #     logger.debug("arg is %s", arg)
+        #     logger.debug("type of arg is %s", type(arg))
+        #     if isinstance(arg, RestoreNode):
+        #         other_results.append(arg.left_hand_side)
+        #     else:
+        #         vv.visit(arg)
+        other_results = cfg_node.args
         logger.debug("[VINEAPPLE] So vv.result is %s", vv.result)
         logger.debug("[VINEAPPLE] So other_results is %s", other_results)
         # raise

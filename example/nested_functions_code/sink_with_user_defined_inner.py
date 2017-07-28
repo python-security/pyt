@@ -9,7 +9,6 @@ def outer(outer_arg):
 
 def inner(inner_arg):
     inner_ret_val = inner_arg + 'hey'
-    # inner_ret_val = 'no more vuln'
     return inner_ret_val
 
 @app.route('/menu', methods=['POST'])

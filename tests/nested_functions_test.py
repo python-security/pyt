@@ -46,9 +46,9 @@ class NestedTest(BaseTestCase):
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
-    def test_built_in_with_user_defined_inner(self):
+    def test_builtin_with_user_defined_inner(self):
 
-        path = os.path.normpath('example/nested_functions_code/built_in_with_user_defined_inner.py')
+        path = os.path.normpath('example/nested_functions_code/builtin_with_user_defined_inner.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))

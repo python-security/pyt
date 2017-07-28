@@ -681,9 +681,15 @@ class Visitor(ast.NodeVisitor):
         get_rhs = []
         for arg in visited_args:
             try:
+                logger.debug("[BLUESTONE sucks] type(arg.right_hand_side_variables) is %s", arg.right_hand_side_variables)
                 get_rhs.extend(arg.right_hand_side_variables)
             except AttributeError:
-                get_rhs.append(arg)
+                from .vars_visitor import VarsVisitor
+                vv = VarsVisitor()
+                vv.visit(arg)
+                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
+                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
+                get_rhs.extend(vv.result)
         logger.debug("[VINEAPPLE] get_rhs is %s", get_rhs)
         call_node.right_hand_side_variables = get_rhs
         call_node.args = get_rhs

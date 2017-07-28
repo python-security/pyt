@@ -70,13 +70,39 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
-    def test_built_in_with_user_defined_inner(self):
-        vulnerability_log = self.run_analysis('example/nested_functions_code/built_in_with_user_defined_inner.py')
+    def test_builtin_with_user_defined_inner(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/builtin_with_user_defined_inner.py')
         logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
         self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        logger.debug("vulnerability_description is %s", vulnerability_description)
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            HEY
+            File: example/nested_functions_code/builtin_with_user_defined_inner.py
+             > User input at line 22, trigger word "form[": 
+                req_param = request.form['suggestion']
+            Reassigned in: 
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 14: save_2_req_param = req_param
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 25: temp_2_inner_arg = req_param
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 14: inner_arg = temp_2_inner_arg
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 17: yes_vuln = inner_arg + 'hey'
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 18: ret_inner = yes_vuln
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 14: req_param = inner_arg
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 25: ¤call_2 = ret_inner
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 25: ¤call_1 = ret_scrypt.encrypt(inner(req_param))
+                File: example/nested_functions_code/builtin_with_user_defined_inner.py
+                 > Line 25: foo = ¤call_1
+            File: example/nested_functions_code/builtin_with_user_defined_inner.py
+             > reaches line 31, trigger word "subprocess.call(": 
+                ¤call_3 = ret_subprocess.call(foo,shell=True)
+            This vulnerability is unknown due to:  Label: foo = ¤call_1
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
@@ -87,7 +113,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-             > User input at line 17, trigger word "form[": 
+             > User input at line 16, trigger word "form[": 
                 req_param = request.form['suggestion']
             Reassigned in: 
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
@@ -95,19 +121,19 @@ class EngineTest(BaseTestCase):
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 10: save_2_req_param = req_param
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 18: temp_2_inner_arg = req_param
+                 > Line 17: temp_2_inner_arg = req_param
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 10: inner_arg = temp_2_inner_arg
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 11: inner_ret_val = inner_arg + 'hey'
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 13: ret_inner = inner_ret_val
+                 > Line 12: ret_inner = inner_ret_val
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 10: req_param = inner_arg
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 18: ¤call_2 = ret_inner
+                 > Line 17: ¤call_2 = ret_inner
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 18: temp_1_outer_arg = ¤call_2
+                 > Line 17: temp_1_outer_arg = ¤call_2
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 6: outer_arg = temp_1_outer_arg
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
@@ -117,12 +143,12 @@ class EngineTest(BaseTestCase):
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 6: req_param = save_1_req_param
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 18: ¤call_1 = ret_outer
+                 > Line 17: ¤call_1 = ret_outer
                 File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 18: result = ¤call_1
+                 > Line 17: result = ¤call_1
             File: example/nested_functions_code/sink_with_result_of_user_defined_nested.py
-             > reaches line 19, trigger word "subprocess.call(": 
-                subprocess.call(result,shell=True)
+             > reaches line 18, trigger word "subprocess.call(": 
+                ¤call_3 = ret_subprocess.call(result,shell=True)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
         
@@ -133,40 +159,40 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/nested_functions_code/sink_with_user_defined_inner.py
-             > User input at line 17, trigger word "form[": 
+             > User input at line 16, trigger word "form[": 
                 req_param = request.form['suggestion']
             Reassigned in: 
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 6: save_1_req_param = req_param
+                 > Line 6: save_2_req_param = req_param
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 10: save_2_req_param = req_param
+                 > Line 10: save_3_req_param = req_param
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 19: temp_2_inner_arg = req_param
+                 > Line 18: temp_3_inner_arg = req_param
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 10: inner_arg = temp_2_inner_arg
+                 > Line 10: inner_arg = temp_3_inner_arg
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 11: inner_ret_val = inner_arg + 'hey'
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 13: ret_inner = inner_ret_val
+                 > Line 12: ret_inner = inner_ret_val
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 10: req_param = inner_arg
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 19: ¤call_2 = ret_inner
+                 > Line 18: ¤call_3 = ret_inner
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 19: temp_1_outer_arg = ¤call_2
+                 > Line 18: temp_2_outer_arg = ¤call_3
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 6: outer_arg = temp_1_outer_arg
+                 > Line 6: outer_arg = temp_2_outer_arg
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 7: outer_ret_val = outer_arg + 'hey'
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 8: ret_outer = outer_ret_val
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 6: req_param = save_1_req_param
+                 > Line 6: req_param = save_2_req_param
                 File: example/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 19: ¤call_1 = ret_outer
+                 > Line 18: ¤call_2 = ret_outer
             File: example/nested_functions_code/sink_with_user_defined_inner.py
-             > reaches line 19, trigger word "subprocess.call(": 
-                subprocess.call(outer(inner(req_param)),shell=True)
+             > reaches line 18, trigger word "subprocess.call(": 
+                ¤call_1 = ret_subprocess.call(outer(inner(req_param)),shell=True)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
