@@ -12,7 +12,7 @@ def menu():
     param = request.args.get('suggestion')
 
     # This is a function we can't possibly see inside of
-    foobar = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+    # foobar = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
     command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
     hey = command
     subprocess.call(hey, shell=True)

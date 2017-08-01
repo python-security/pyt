@@ -726,8 +726,9 @@ class Visitor(ast.NodeVisitor):
                            line_number=node.lineno,
                            path=self.filenames[-1])
 
-        visited_args = []
-        instead_of_dot_dot_dot = []
+        # visited_args = []
+        visual_args = []
+        rhs_vars = []
         for arg in node.args:
             if isinstance(arg, ast.Call):
                 logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
@@ -739,23 +740,32 @@ class Visitor(ast.NodeVisitor):
                 #     if n == return_value_of_nested_call:
                 #         raise
                 return_value_of_nested_call.connect(call_node)
-                visited_args.append(return_value_of_nested_call)
+                # visited_args.append(return_value_of_nested_call)
 
-                logger.debug("[3rd rail] should we add %s to instead_of_dot_dot_dot?", return_value_of_nested_call.left_hand_side)
-                instead_of_dot_dot_dot.append(return_value_of_nested_call.left_hand_side)
+                logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
+                visual_args.append(return_value_of_nested_call.left_hand_side)
+                rhs_vars.append(return_value_of_nested_call.left_hand_side)
             else:
                 label = LabelVisitor()
                 label.visit(arg)
                 logger.debug("arg is %s, and label.result is %s", arg, label.result)
-                instead_of_dot_dot_dot.append(label.result)
-                visited_args.append(arg)
+                visual_args.append(label.result)
+                # visited_args.append(arg)
+
+                from .vars_visitor import VarsVisitor
+                vv = VarsVisitor()
+                vv.visit(arg)
+                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
+                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
+                rhs_vars.extend(vv.result)
+
             logger.debug("[Voyager] arg is %s", arg)
-        logger.debug("[3rd rail] instead_of_dot_dot_dot is %s", instead_of_dot_dot_dot)
-        logger.debug("[3rd rail] visited_args is %s", visited_args)
+        logger.debug("[3rd rail] visual_args is %s", visual_args)
+        # logger.debug("[3rd rail] visited_args is %s", visited_args)
 
         logger.debug("[VINEAPPLE] label.result is %s", label.result)
-        if len(instead_of_dot_dot_dot) > 0:
-            for arg in instead_of_dot_dot_dot:
+        if len(visual_args) > 0:
+            for arg in visual_args:
                 RHS = RHS + arg + ", "
             logger.debug("[3rd rail] RHS[:len(RHS)-2] is %s", RHS[:len(RHS)-2])
             # Replace the last ", " with a )
@@ -764,28 +774,29 @@ class Visitor(ast.NodeVisitor):
             RHS = RHS + ')'
         logger.debug("[Dominique bistro] RHS is now %s", RHS)
         call_node.label = LHS + " = " + RHS
-        get_rhs = []
-        for arg in visited_args:
-            try:
-                logger.debug("[BLUESTONE sucks] type(arg.right_hand_side_variables) is %s", arg.right_hand_side_variables)
-                get_rhs.extend(arg.right_hand_side_variables)
-            except AttributeError:
-                from .vars_visitor import VarsVisitor
-                vv = VarsVisitor()
-                vv.visit(arg)
-                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
-                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
-                get_rhs.extend(vv.result)
-        logger.debug("[qq] get_rhs is %s", get_rhs)
-        # Should strings be excluded from instead_of_dot_dot_dot? It isn't like they'll ever be on an LHS
-        logger.debug("[qq] instead_of_dot_dot_dot is %s", instead_of_dot_dot_dot)
+        # get_rhs = []
+        # for arg in visited_args:
+        #     try:
+        #         logger.debug("[BLUESTONE sucks] type(arg.right_hand_side_variables) is %s", arg.right_hand_side_variables)
+        #         get_rhs.extend(arg.right_hand_side_variables)
+        #     except AttributeError:
+        #         from .vars_visitor import VarsVisitor
+        #         vv = VarsVisitor()
+        #         vv.visit(arg)
+        #         logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
+        #         logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
+        #         get_rhs.extend(vv.result)
+        # logger.debug("[qq] get_rhs is %s", get_rhs)
+        # Should strings be excluded from visual_args? It isn't like they'll ever be on an LHS
+        logger.debug("[qq] visual_args is %s", visual_args)
+        logger.debug("[qq] rhs_vars is %s", rhs_vars)
 
         # This is where we'll ask the user, then save the mapping or just use the mapping.
         # Or perhaps we'll do that in vulnerabilities.py
 
 
-        call_node.right_hand_side_variables = instead_of_dot_dot_dot
-        call_node.args = instead_of_dot_dot_dot
+        call_node.right_hand_side_variables = rhs_vars
+        call_node.args = rhs_vars
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
