@@ -110,6 +110,7 @@ class InterproceduralVisitor(Visitor):
         self.module_definitions_stack.append(module_definitions)
 
         self.function_names.append(node.name)
+        logger.debug("[BRC] node.name being added to function_return_stack is %s", node.name)
         self.function_return_stack.append(node.name)
 
         entry_node = self.append_node(EntryOrExitNode("Entry function"))
@@ -191,14 +192,19 @@ class InterproceduralVisitor(Visitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function_name = self.function_return_stack[-1]
-        LHS = 'ret_' + this_function_name
 
         try:
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(node.value)
         except AttributeError:
             rhs_visitor.result = 'EmptyReturn'
+        logger.debug("returning a return node with RHS label.result %s", label.result)
+        logger.debug("returning a return node with RHS rhs_visitor.result %s", rhs_visitor.result)
+
+        this_function_name = self.function_return_stack[-1]
+        logger.debug("[BRC] this_function_name is %s", this_function_name)
+        LHS = 'ret_' + this_function_name
+
 
         if isinstance(node.value, ast.Call):
           return_value_of_call = self.visit(node.value)
@@ -215,8 +221,6 @@ class InterproceduralVisitor(Visitor):
           self.nodes.append(return_node)
           return return_value_of_call
 
-        logger.debug("returning a return node with RHS label.result %s", label.result)
-        logger.debug("returning a return node with RHS rhs_visitor.result %s", rhs_visitor.result)
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
                                            node, line_number=node.lineno,
@@ -483,6 +487,8 @@ class InterproceduralVisitor(Visitor):
             self.filenames.pop()  # Maybe move after restore nodes
             self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
             self.return_handler(call_node, function_nodes, saved_function_call_index)
+            # This pop corresponds to a push from init_function_cfg, I think
+            logger.debug("[BRC] So we are now popping off %s from the function_return_stack", self.function_return_stack[-1])
             self.function_return_stack.pop()
             logger.debug("[FOR COMMENTS] last node is %s", self.nodes[-1])
             logger.debug("[FOR COMMENTS] type of last node is %s", type(self.nodes[-1]))
@@ -524,10 +530,12 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-        logger.debug("in visit_Call, _id is %s", _id)
+        logger.debug("[BRC]in visit_Call, _id is %s", _id)
         # if _id.startswith('request'):
         #   raise
-        self.function_return_stack.append(_id)
+        # Why do we always do this? We should only do it if it is user defined
+        # If it is user defined, then we'll append in init_function_cfg, so remove this line
+        # self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
 
@@ -579,6 +587,7 @@ class InterproceduralVisitor(Visitor):
                 self.add_blackbox_or_builtin_call(node)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
+                self.function_return_stack.append(_id)
                 return self.process_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ' +

@@ -731,9 +731,9 @@ class Visitor(ast.NodeVisitor):
         rhs_vars = []
         for arg in node.args:
             if isinstance(arg, ast.Call):
-                logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
+                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 return_value_of_nested_call = self.visit(arg)
-                logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
+                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
                 logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
                 # for n in self.nodes:
@@ -829,7 +829,9 @@ class Visitor(ast.NodeVisitor):
         self.nodes.append(call_node)
 
         logger.debug("[Dominique bistro] call_node is %s", call_node)
-        self.function_return_stack.pop()
+        # WHY DO WE DO THIS?
+        # WHEN DO WE ACTUALLY PUSH?
+        # self.function_return_stack.pop()
         logger.debug("[qq] EXIT self.blackbox_calls is %s", self.blackbox_calls)
 
         return call_node
