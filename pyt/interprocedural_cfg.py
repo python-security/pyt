@@ -35,7 +35,8 @@ from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-NOT_A_BLACKBOX = set(['Flask',
+NOT_A_BLACKBOX = set(['get'
+                      'Flask',
                       'run',
                       'get',
                       'replace',
@@ -191,6 +192,7 @@ class InterproceduralVisitor(Visitor):
         label.visit(node)
 
         this_function_name = self.function_return_stack[-1]
+        LHS = 'ret_' + this_function_name
 
         try:
             rhs_visitor = RHSVisitor()
@@ -198,7 +200,23 @@ class InterproceduralVisitor(Visitor):
         except AttributeError:
             rhs_visitor.result = 'EmptyReturn'
 
-        LHS = 'ret_' + this_function_name
+        if isinstance(node.value, ast.Call):
+          return_value_of_call = self.visit(node.value)
+          logger.debug("idk")
+          logger.debug("return_value_of_call is %s", return_value_of_call)
+          logger.debug("return_value_of_call.left_hand_side is %s", return_value_of_call.left_hand_side)
+          logger.debug("LHS is %s", LHS)
+          logger.debug("this is shit due to return_value_of_call.left_hand_side being %s", return_value_of_call.left_hand_side)
+          return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
+                                   LHS, return_value_of_call.left_hand_side,
+                                   node, line_number=node.lineno,
+                                   path=self.filenames[-1])
+          return_value_of_call.connect(return_node)
+          self.nodes.append(return_node)
+          return return_value_of_call
+
+        logger.debug("returning a return node with RHS label.result %s", label.result)
+        logger.debug("returning a return node with RHS rhs_visitor.result %s", rhs_visitor.result)
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
                                            node, line_number=node.lineno,
@@ -506,6 +524,9 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
+        logger.debug("in visit_Call, _id is %s", _id)
+        # if _id.startswith('request'):
+        #   raise
         self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
@@ -552,6 +573,7 @@ class InterproceduralVisitor(Visitor):
 
         # e.g. "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
+        logger.debug("[Dominique] last_attribute is %s", last_attribute)
         if definition:
             if isinstance(definition.node, ast.ClassDef):
                 self.add_blackbox_or_builtin_call(node)

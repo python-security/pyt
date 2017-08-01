@@ -45,9 +45,10 @@ class Node():
         if isinstance(self, ConnectToExitNode) and\
            not isinstance(successor, EntryOrExitNode):
             return
-        if successor.label.startswith("scrypt"):
-            logger.debug("trouble node is %s", successor)
-            # raise
+        logger.debug("type(successor) is %s", type(successor))
+        # if successor.label.startswith("scrypt"):
+        #     logger.debug("trouble node is %s", successor)
+        # raise
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -640,30 +641,98 @@ class Visitor(ast.NodeVisitor):
         Returns:
             ???
         """
+
+        logger.debug("[qq] ENTER self.blackbox_calls is %s", self.blackbox_calls)
         # Increment function_call_index
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
 
         self.undecided = False
 
+
+
         label = LabelVisitor()
+        logger.debug("[BLUESTONE sucks] node is %s", node)
+        logger.debug("[BLUESTONE sucks] node.func is %s", node.func)
+        if isinstance(node.func, ast.Name):
+            logger.debug("[BLUESTONE sucks] node.func.attr is %s", node.func.id)
+            pass
+        elif isinstance(node.func, ast.Attribute):
+            attribute = node.func
+
+            logger.debug("HERE COMES THE CRAZY AST CODE")
+            logger.debug("[3rd rail] attribute.attr is %s", attribute.attr)
+            logger.debug("[3rd rail] attribute.value is %s", attribute.value)
+            logger.debug("[3rd rail] type(attribute.value is %s", type(attribute.value))
+            if isinstance(attribute.value, ast.Name):
+                logger.debug("[3rd rail] NAMENAMENAME dir(attribute.value) is %s", dir(attribute.value))
+            elif isinstance(attribute.value, ast.Attribute):
+                logger.debug("[3rd rail] ATTRIBUTE ATTRIBUTE ATTRIBUTE dir(attribute.value) is %s", dir(attribute.value))
+            elif isinstance(attribute.value, ast.Call):
+                the_call_before = attribute.value
+                logger.debug("the_call_before.args is %s", the_call_before.args)
+                for the_call_before_arg in the_call_before.args:
+                    label = LabelVisitor()
+                    label.visit(the_call_before_arg)
+                    logger.debug("the_call_before_arg is %s, and label.result is %s", the_call_before_arg, label.result)
+                logger.debug("[3rd rail] CALL CALL CALL dir(attribute.value) is %s", dir(attribute.value))
+            elif isinstance(attribute.value, ast.Str):
+                label = LabelVisitor()
+                label.visit(attribute.value)
+                logger.debug("[3rd rail] string attribute.value was %s", label.result)
+            else:
+                logger.debug("type(attribute.value) is %s", type(attribute.value))
+                raise
+        else:
+            raise
+        logger.debug("AFTER THE CRAZY AST CODE")
+        logger.debug("[3rd rail] node is %s", node)
+        logger.debug("[3rd rail] node.args is %s", node.args)
+        logger.debug("[3rd rail] node.func is %s", node.func)
+        logger.debug("[3rd rail] node.keywords is %s", node.keywords)
+        logger.debug("[3rd rail] dir(node) is %s", dir(node))
+
         label.visit(node)
 
         # node should always be a call
         assert isinstance(node, ast.Call) == True
 
+
+        index = label.result.find('(')
+        if index == -1:
+            logger.warning("No ( in a call")
+            raise
+        else:
+            logger.debug("[3rd rail] the call is %s", label.result[:index])
+            logger.debug("[3rd rail] the args are %s", label.result[index:])
+            logger.debug("[3rd rail] len(node.args) is %s", len(node.args))
+            logger.debug("[3rd rail] len(node.keywords) is %s", len(node.keywords))
+            try:
+                logger.debug("[3rd rail] len(node.starargs) is %s", len(node.starargs))
+            except AttributeError:
+                pass
+            try:
+                logger.debug("[3rd rail] len(node.kwargs) is %s", len(node.kwargs))
+            except AttributeError:
+                pass
+
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
-        RHS = 'ret_' + label.result
+        RHS = 'ret_' + label.result[:index] + '('
+        logger.debug("[Dominique bistro] RHS is %s", RHS)
         call_node = BBnode("",
                            LHS,
                            [],
                            line_number=node.lineno,
                            path=self.filenames[-1])
+
         visited_args = []
+        instead_of_dot_dot_dot = []
         for arg in node.args:
             if isinstance(arg, ast.Call):
+                logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 return_value_of_nested_call = self.visit(arg)
+                logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
                 logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
                 # for n in self.nodes:
@@ -671,12 +740,29 @@ class Visitor(ast.NodeVisitor):
                 #         raise
                 return_value_of_nested_call.connect(call_node)
                 visited_args.append(return_value_of_nested_call)
+
+                logger.debug("[3rd rail] should we add %s to instead_of_dot_dot_dot?", return_value_of_nested_call.left_hand_side)
+                instead_of_dot_dot_dot.append(return_value_of_nested_call.left_hand_side)
             else:
+                label = LabelVisitor()
+                label.visit(arg)
+                logger.debug("arg is %s, and label.result is %s", arg, label.result)
+                instead_of_dot_dot_dot.append(label.result)
                 visited_args.append(arg)
             logger.debug("[Voyager] arg is %s", arg)
-        logger.debug("[VINEAPPLE] BLACKBOX visited_args is %s", visited_args)
+        logger.debug("[3rd rail] instead_of_dot_dot_dot is %s", instead_of_dot_dot_dot)
+        logger.debug("[3rd rail] visited_args is %s", visited_args)
 
         logger.debug("[VINEAPPLE] label.result is %s", label.result)
+        if len(instead_of_dot_dot_dot) > 0:
+            for arg in instead_of_dot_dot_dot:
+                RHS = RHS + arg + ", "
+            logger.debug("[3rd rail] RHS[:len(RHS)-2] is %s", RHS[:len(RHS)-2])
+            # Replace the last ", " with a )
+            RHS = RHS[:len(RHS)-2] + ')'
+        else:
+            RHS = RHS + ')'
+        logger.debug("[Dominique bistro] RHS is now %s", RHS)
         call_node.label = LHS + " = " + RHS
         get_rhs = []
         for arg in visited_args:
@@ -690,9 +776,16 @@ class Visitor(ast.NodeVisitor):
                 logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
                 logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
                 get_rhs.extend(vv.result)
-        logger.debug("[VINEAPPLE] get_rhs is %s", get_rhs)
-        call_node.right_hand_side_variables = get_rhs
-        call_node.args = get_rhs
+        logger.debug("[qq] get_rhs is %s", get_rhs)
+        # Should strings be excluded from instead_of_dot_dot_dot? It isn't like they'll ever be on an LHS
+        logger.debug("[qq] instead_of_dot_dot_dot is %s", instead_of_dot_dot_dot)
+
+        # This is where we'll ask the user, then save the mapping or just use the mapping.
+        # Or perhaps we'll do that in vulnerabilities.py
+
+
+        call_node.right_hand_side_variables = instead_of_dot_dot_dot
+        call_node.args = instead_of_dot_dot_dot
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
@@ -717,10 +810,16 @@ class Visitor(ast.NodeVisitor):
 
 
         if blackbox:
-            self.blackbox_calls.add(call_node)
+            logger.debug("[qq] call_node being added to blackbox_calls is %s", call_node)
+            # This makes so much sense!
+            self.blackbox_assignments.add(call_node)
 
         self.nodes[-1].connect(call_node)
         self.nodes.append(call_node)
+
+        logger.debug("[Dominique bistro] call_node is %s", call_node)
+        self.function_return_stack.pop()
+        logger.debug("[qq] EXIT self.blackbox_calls is %s", self.blackbox_calls)
 
         return call_node
 
