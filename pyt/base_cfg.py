@@ -697,7 +697,7 @@ class Visitor(ast.NodeVisitor):
         # node should always be a call
         assert isinstance(node, ast.Call) == True
 
-
+        logger.debug("[PR] the label.result is %s", label.result)
         index = label.result.find('(')
         if index == -1:
             logger.warning("No ( in a call")

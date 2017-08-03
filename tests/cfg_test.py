@@ -527,11 +527,13 @@ class CFGAssignmentMultiTest(BaseTestCase):
     def test_assign_list_comprehension(self):
         self.cfg_create_from_file('example/example_inputs/generator_expression_assign.py')
 
-        length = 3
-        self.assert_length(self.cfg.nodes, expected_length = length)
+        length = 4
+        print("self.cfg.nodes is ")
+        print(self.cfg.nodes)
+        self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "x = ''.join((x.n for x in range(16)))")
+        self.assertEqual(call.label, "¤call_1 = ret_''''.join((x.n for x in range(16)))")
 
         l = zip(range(1, length), range(length))
 

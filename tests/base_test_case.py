@@ -70,3 +70,8 @@ class BaseTestCase(unittest.TestCase):
         return [char for char in output if char.isalpha()] \
                 == \
                [char for char in expected_string if char.isalpha()]
+
+    def string_compare_alnum(self, output, expected_string):
+        return [char for char in output if char.isalnum()] \
+                == \
+               [char for char in expected_string if char.isalnum()]
