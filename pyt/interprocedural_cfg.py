@@ -31,7 +31,8 @@ from .module_definitions import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
-
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 NOT_A_BLACKBOX = set(['Flask',

@@ -4,6 +4,8 @@ from collections import namedtuple
 from .ast_helper import Arguments, get_call_names_as_string
 from .label_visitor import LabelVisitor
 from .right_hand_side_visitor import RHSVisitor
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 ControlFlowNode = namedtuple('ControlFlowNode',
@@ -326,6 +328,11 @@ class Visitor(ast.NodeVisitor):
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
+            logger.debug("[Integral] type(orelse[0]) is %s", type(orelse[0]))
+            label_visitor = LabelVisitor()
+            label_visitor.visit(orelse[0])
+            logger.debug("[Integral] result of orelse[0] is %s", label_visitor.result)
+
             else_connect_statements = self.stmt_star_handler(orelse)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
@@ -379,6 +386,21 @@ class Visitor(ast.NodeVisitor):
     def visit_Try(self, node):
         try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
 
+        logger.debug("[Integral] visit_Try node.body[0] is %s", node.body[0])
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.body[0])
+        logger.debug("[Integral] result of node.body[0] is %s", label_visitor.result)
+
+        logger.debug("[Integral] visit_Try node.orelse[0] is %s", node.orelse[0])
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.orelse[0])
+        logger.debug("[Integral] result of node.orelse[0] is %s", label_visitor.result)
+        
+        logger.debug("[Integral] visit_Try node.handlers[0] is %s", node.handlers[0])
+        label_visitor = LabelVisitor()
+        label_visitor.visit(node.handlers[0])
+        logger.debug("[Integral] result of node.handlers[0] is %s", label_visitor.result)
+        
         body = self.stmt_star_handler(node.body)
         body = self.handle_stmt_star_ignore_node(body, try_node)
 
@@ -397,6 +419,16 @@ class Visitor(ast.NodeVisitor):
 
         if node.orelse:
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
+
+            # Perhaps
+            # for last in body.last_statements:
+            #     last.connect(orelse_last_nodes.first_statement)
+            # HERE
+            # HERE
+            # HERE
+            # Does that included return nodes? I hope not.
+            # Does the return type of self.handle_or_else even have a .first_statement attribute?
+
             body.last_statements.extend(orelse_last_nodes)
 
         if node.finalbody:
