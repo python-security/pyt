@@ -345,7 +345,14 @@ class Visitor(ast.NodeVisitor):
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
+            logger.debug("[Integral] orelse is %s", orelse)
+            label_visitor = LabelVisitor()
+            label_visitor.visit(orelse[0])
+            logger.debug("[Integral] at this point, self.nodes[-1] is %s", self.nodes[-1])
+            logger.debug("[Integral] label_visitor.result is %s", label_visitor.result)
+            logger.debug("[Integral] test is %s", test)
             else_connect_statements = self.stmt_star_handler(orelse)
+            logger.debug("[Integral] else_connect_statements.first_statement is %s", else_connect_statements.first_statement)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -825,8 +832,15 @@ class Visitor(ast.NodeVisitor):
             # This makes so much sense!
             self.blackbox_assignments.add(call_node)
 
-        self.nodes[-1].connect(call_node)
+        # IMPORTANT
+        logger.debug("[Integral] connecting %s", self.nodes[-1])
+        logger.debug("[Integral] to call_node %s", call_node)
+        # THE CULPRIT!
+        # self.nodes[-1].connect(call_node)
+        # raise
         self.nodes.append(call_node)
+        # raise
+        # IMPORTANT
 
         logger.debug("[Dominique bistro] call_node is %s", call_node)
         # WHY DO WE DO THIS?
