@@ -231,7 +231,9 @@ class InterproceduralVisitor(Visitor):
         # above can be optimized with the assignments dict
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
+            print("previous_node is")
             previous_node = self.nodes[-1]
+            print(previous_node)
             r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
                             save_name, [assignment.left_hand_side],
                             line_number=line_number, path=self.filenames[-1])
@@ -258,7 +260,8 @@ class InterproceduralVisitor(Visitor):
                                rhs_visitor.result,
                                line_number=line_number,
                                path=self.filenames[-1])
-
+            print("INTEGRAL self.nodes[-1] is ")
+            print(self.nodes[-1])
             self.nodes[-1].connect(node)
             self.nodes.append(node)
 
