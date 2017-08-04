@@ -24,6 +24,8 @@ class BaseTestCase(unittest.TestCase):
         for element in range(nodes):
             for sets in range(nodes):
                 if not (element, sets) in connections:
+                    # print("HEY element is %s", element)
+                    # print("HEY sets is %s", sets)
                     self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s <- %s)" % (element, sets)  +  " expected to be disconnected")
                     self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s <- %s)" % (sets, element)  +  " expected to be disconnected")
 

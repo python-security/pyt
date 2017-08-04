@@ -187,6 +187,16 @@ class CFGTryTest(BaseTestCase):
         print_else = 5
         _exit = 6
 
+        print("shit")
+        print("shit")
+        print("shit")
+        print("shit")
+        print(self.cfg.nodes[except_im_body_1])
+        print(self.cfg.nodes[except_im_body_1].outgoing)
+        print("shit")
+        print("shit")
+        print("shit")
+        print("shit")
         self.assertInCfg([self.connected(entry, try_),
                           self.connected(try_, try_body),
                           self.connected(try_body, except_im),
@@ -194,6 +204,7 @@ class CFGTryTest(BaseTestCase):
                           self.connected(try_body, _exit),
                           self.connected(except_im, except_im_body_1),
                           self.connected(except_im_body_1, _exit),
+                          # self.connected(except_im_body_1, print_else), This is connected WHEN IT SHOULD NOT BE
                           self.connected(print_else, _exit)])
 
     def test_final(self):
@@ -470,16 +481,21 @@ class CFGAssignmentMultiTest(BaseTestCase):
     def test_assignment_multi_target_call(self):
         self.cfg_create_from_file('example/example_inputs/assignment_multiple_assign_call.py')
 
-        self.assert_length(self.cfg.nodes, expected_length=4)
+        self.assert_length(self.cfg.nodes, expected_length=6)
         start_node = self.cfg.nodes[0]
-        node = self.cfg.nodes[1]
-        node_2 = self.cfg.nodes[2]
-        exit_node = self.cfg.nodes[-1]
+        assignment_to_call1 = self.cfg.nodes[1]
+        assignment_to_x = self.cfg.nodes[2]
+        assignment_to_call2 = self.cfg.nodes[3]
+        assignment_to_y = self.cfg.nodes[4]
+        exit_node = self.cfg.nodes[5]
 
-        self.assertInCfg([(1,0),(2,1),(3,2)])
+        # This assert means N should be connected to N+1
+        self.assertInCfg([(1,0),(2,1),(3,2),(4,3),(5,4)])
 
-        self.assertEqual(node.label, 'x = int(5)')
-        self.assertEqual(node_2.label, 'y = int(4)')
+        self.assertEqual(assignment_to_call1.label, '¤call_1 = ret_int(5)')
+        self.assertEqual(assignment_to_x.label, 'x = ¤call_1')
+        self.assertEqual(assignment_to_call2.label, '¤call_2 = ret_int(4)')
+        self.assertEqual(assignment_to_y.label, 'y = ¤call_2')
 
     def test_assignment_multi_target_line_numbers(self):
         self.cfg_create_from_file('example/example_inputs/assignment_two_targets.py')
@@ -528,8 +544,6 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.cfg_create_from_file('example/example_inputs/generator_expression_assign.py')
 
         length = 4
-        print("self.cfg.nodes is ")
-        print(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[1]
@@ -546,7 +560,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         start_node = 0
         node = 1
         exit_node = 2
-        print(self.cfg)
+        # print(self.cfg)
 
         self.assertInCfg([(node, start_node), (exit_node, node)])
 
