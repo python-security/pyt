@@ -282,8 +282,8 @@ class Visitor(ast.NodeVisitor):
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
         """
-        cfg_statements = list()
         break_nodes = list()
+        cfg_statements = list()
 
         for stmt in stmts:
             node = self.visit(stmt)
@@ -317,7 +317,7 @@ class Visitor(ast.NodeVisitor):
         CFG_node.label = 'el' + CFG_node.label
 
     def handle_or_else(self, orelse, test):
-        """Handle the orelse part of an if node.
+        """Handle the orelse part of an if or try node.
 
         Returns:
             The last nodes of the orelse branch.
@@ -418,11 +418,13 @@ class Visitor(ast.NodeVisitor):
             last_statements.extend(handler_body.last_statements)
 
         if node.orelse:
+            logger.debug("body.last_statements are %s", body.last_statements)
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
-
+            logger.debug("orelse_last_nodes is %s", orelse_last_nodes)
+            logger.debug("type of orelse_last_nodes is %s", type(orelse_last_nodes))
             # Perhaps
             # for last in body.last_statements:
-            #     last.connect(orelse_last_nodes.first_statement)
+            #     last.connect(node.orelse[0])
             # HERE
             # HERE
             # HERE
@@ -627,7 +629,7 @@ class Visitor(ast.NodeVisitor):
 
         for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number=node.lineno, path=self.filenames[-1]))
 
-        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func)  in self.function_names:
+        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func) in self.function_names:
             last_node = self.visit(node.iter)
             last_node.connect(for_node)
 
