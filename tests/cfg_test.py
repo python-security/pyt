@@ -201,6 +201,7 @@ class CFGTryTest(BaseTestCase):
         print_good = 16
         _exit = 17
 
+        # OUTDATED COMMENT:
         # With our added stmt_star_handler loop:
         #       We have save_node->print_so instead of return_handler->print_so
         # If we comment out our stmt_star_handler loop that we added:
@@ -787,6 +788,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assertEqual(call.label, "request.args.get('param', 'not set')")
 
         l = zip(range(1, length), range(length))
+        logger.debug("self.cfg.nodes is %s", self.cfg.nodes)
         self.assertInCfg(list(l))
 
     def test_call_with_attribute_line_numbers(self):

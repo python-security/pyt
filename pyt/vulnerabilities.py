@@ -91,7 +91,7 @@ def filter_cfg_nodes(cfg, cfg_node_type):
 def find_secondary_sources(assignment_nodes, sources, lattice):
     """
         Sets the secondary_nodes attribute of each source in the sources list.
-        
+
         Args:
             assignment_nodes([AssignmentNode])
             sources([tuple])
@@ -126,8 +126,14 @@ def append_if_reassigned(l, secondary, node, lattice):
     try:
         if secondary.left_hand_side in node.right_hand_side_variables or\
            secondary.left_hand_side == node.left_hand_side:
-            if lattice.in_constraint(node, secondary):
+            if lattice.in_constraint(secondary, node):
                 l.append(node)
+            else:
+                logger.debug("So node %s is not in the constraint of secondary %s", node, secondary)
+                logger.debug("So node.ingoing is %s ", node.ingoing)
+                logger.debug("So node.outgoing is %s ", node.outgoing)
+                logger.debug("So secondary.ingoing is %s ", secondary.ingoing)
+                logger.debug("So secondary.outgoing is %s ", secondary.outgoing)
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)
