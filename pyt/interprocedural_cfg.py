@@ -393,7 +393,6 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-        self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
 
@@ -410,6 +409,7 @@ class InterproceduralVisitor(Visitor):
                 self.add_builtin(node)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
+                self.function_return_stack.append(_id)
                 return self.add_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
