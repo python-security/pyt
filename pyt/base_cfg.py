@@ -311,7 +311,7 @@ class Visitor(ast.NodeVisitor):
                     while loop_node.ingoing:
                         logger.debug("IMPORTANT loop_node.ingoing[0] is %s", loop_node.ingoing[0])
                         # Is it an Entry node? Let's not backwards traverse any more.
-                        if loop_node.ingoing[0].label.startswith('Entry'):
+                        if loop_node.ingoing[0].label.startswith('Entry module'):
                             break
                         # if isinstance(loop_node.ingoing[0], EntryOrExitNode):
                         #     logger.debug("[Kaffe1668] So instead of %s ingoing is %s", loop_node.ingoing[0], ingoing)

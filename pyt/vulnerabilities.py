@@ -122,10 +122,17 @@ def update_assignments(l, assignment_nodes, source, lattice):
 
 
 def append_if_reassigned(l, secondary, node, lattice):
-    # maybe:  secondary in node.new_constraint and
     try:
-        if secondary.left_hand_side in node.right_hand_side_variables or\
-           secondary.left_hand_side == node.left_hand_side:
+        logger.debug("[BAD]secondary is %s", secondary)
+        logger.debug("[BAD]node is %s", node)
+        logger.debug("[BAD]node.left_hand_side is %s", node.left_hand_side)
+        logger.debug("[BAD]node.right_hand_side_variables is %s", node.right_hand_side_variables)
+        # WHY IS image_name NOT IN node.right_hand_side_variables? RIGHT NOW IT IS AN EMPTY LIST!
+        if secondary.left_hand_side in node.right_hand_side_variables:
+            if lattice.in_constraint(secondary, node) or node.left_hand_side in node.right_hand_side_variables:
+                l.append(node)
+                return
+        if secondary.left_hand_side == node.left_hand_side:
             if lattice.in_constraint(secondary, node):
                 l.append(node)
             else:
