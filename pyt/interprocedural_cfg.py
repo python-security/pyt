@@ -72,6 +72,7 @@ class InterproceduralVisitor(Visitor):
         self.function_names = list()
         self.function_return_stack = list()
         self.module_definitions_stack = list()
+        self.use_prev_node = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -224,25 +225,37 @@ class InterproceduralVisitor(Visitor):
     def save_local_scope(self, line_number):
         """Save the local scope before entering a function call."""
         saved_variables = list()
+        original_previous_node = self.nodes[-1]
+        LHS_so_far = set()
+
         for assignment in [node for node in self.nodes
                            if type(node) == AssignmentNode]:
             if isinstance(assignment, RestoreNode):
                 continue
-
-        # above can be optimized with the assignments dict
+            if assignment.left_hand_side in LHS_so_far:
+                continue
+            LHS_so_far.add(assignment.left_hand_side)
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
-            print("previous_node is")
+            logger.debug("previous_node is")
             previous_node = self.nodes[-1]
-            print(previous_node)
+            logger.debug(previous_node)
+
             r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
                             save_name, [assignment.left_hand_side],
                             line_number=line_number, path=self.filenames[-1])
             saved_scope_node = self.append_node(r)
-
+            logger.debug("saved_scope_node is %s", saved_scope_node)
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-            previous_node.connect(saved_scope_node)
+            logger.debug("[Flux]self.use_prev_node is %s", self.use_prev_node)
+
+            if self.use_prev_node[-1] or previous_node is not original_previous_node:
+                previous_node.connect(saved_scope_node)
+                logger.debug("[Flux]Connecting")
+            else:
+                logger.debug("[Flux]Not connecting")
+
         return saved_variables
 
     def save_actual_parameters_in_temp(self, args, arguments, line_number):
@@ -261,8 +274,7 @@ class InterproceduralVisitor(Visitor):
                                rhs_visitor.result,
                                line_number=line_number,
                                path=self.filenames[-1])
-            print("INTEGRAL self.nodes[-1] is ")
-            print(self.nodes[-1])
+            logger.debug("[Flux] KILL self.nodes[-1] is %s", self.nodes[-1])
             self.nodes[-1].connect(node)
             self.nodes.append(node)
 
@@ -310,6 +322,8 @@ class InterproceduralVisitor(Visitor):
             n.connect(successor)
 
         if restore_nodes:
+            logger.debug("[Flux]A5 self.nodes[-1] is %s", self.nodes[-1])
+            logger.debug("[Flux]A5 restore_nodes are %s", restore_nodes)
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
 

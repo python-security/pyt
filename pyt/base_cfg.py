@@ -277,7 +277,7 @@ class Visitor(ast.NodeVisitor):
         else:
             return [cfg_statements[-1]]
 
-    def stmt_star_handler(self, stmts):
+    def stmt_star_handler(self, stmts, use_prev_node=True):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -285,7 +285,10 @@ class Visitor(ast.NodeVisitor):
         break_nodes = list()
         cfg_statements = list()
 
+        self.use_prev_node.append(use_prev_node)
+
         for stmt in stmts:
+            logger.debug("[pay attention] stmt is %s", stmt)
             node = self.visit(stmt)
 
             if isinstance(node, ControlFlowNode):
@@ -293,14 +296,35 @@ class Visitor(ast.NodeVisitor):
             elif isinstance(node, BreakNode):
                 break_nodes.append(node)
 
-            if self.node_to_connect(node) and node:
+            logger.debug("[pay attention] node is %s", node)
+            connected_ingoing = False
+            if node:
+                if hasattr(node, 'ingoing'):
+                    logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
+                    ingoing = node.ingoing
+                    logger.debug("[pa] ingoing was %s", ingoing)
+                    while node.ingoing:
+                        ingoing = node.ingoing
+                        node = node.ingoing[0]
+                    if ingoing:
+                        logger.debug("[pa] ingoing is now %s", ingoing[0])
+                        logger.debug("[pa] type(ingoing) is now %s", type(ingoing[0]))
+                        cfg_statements.append(ingoing[0])
+                        connected_ingoing = True
+
+            if self.node_to_connect(node) and node and not connected_ingoing:
                 cfg_statements.append(node)
 
+        self.use_prev_node.pop()
         self.connect_nodes(cfg_statements)
+        logger.debug("[Flux] So cfg_statements are %s", cfg_statements)
 
         if cfg_statements:
             first_statement = self.get_first_statement(cfg_statements[0])
+            logger.debug("[zzz] cfg_statements[0] is %s", cfg_statements[0])
+            logger.debug("[zzz] first_statement is %s", first_statement)
             last_statements = self.get_last_statements(cfg_statements)
+            logger.debug("[zzz] last_statements is %s", last_statements)
             return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
         else: # When body of module only contains ignored nodes
             return IgnoredNode()
@@ -332,8 +356,12 @@ class Visitor(ast.NodeVisitor):
             label_visitor = LabelVisitor()
             label_visitor.visit(orelse[0])
             logger.debug("[Integral] result of orelse[0] is %s", label_visitor.result)
+            logger.debug("[Integral][Flux] type(test) is %s", type(test))
+            logger.debug("[Integral][Flux] result of test is %s", test)
 
-            else_connect_statements = self.stmt_star_handler(orelse)
+            else_connect_statements = self.stmt_star_handler(orelse, use_prev_node=False)
+            logger.debug("[foo] test is %s", test)
+            logger.debug("[foo] else_connect_statements.first_statement is %s", else_connect_statements.first_statement)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -424,6 +452,10 @@ class Visitor(ast.NodeVisitor):
             logger.debug("type of orelse_last_nodes is %s", type(orelse_last_nodes))
             # Perhaps
             # for last in body.last_statements:
+            #     logger.debug("[ghi] last is %s", last)
+            #     logger.debug("[ghi] type(last) is %s", type(last))
+            #     logger.debug("[ghi] node.orelse[0] is %s", node.orelse[0])
+            #     logger.debug("[ghi] type(node.orelse[0]) is %s", type(node.orelse[0]))
             #     last.connect(node.orelse[0])
             # HERE
             # HERE
@@ -444,6 +476,7 @@ class Visitor(ast.NodeVisitor):
             body.last_statements.extend(finalbody.last_statements)
 
         last_statements.extend(self.remove_breaks(body.last_statements))
+        logger.debug("Enough is enough, self.nodes are %s", self.nodes)
 
         return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
 
