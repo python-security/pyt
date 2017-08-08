@@ -259,6 +259,8 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
+            logger.debug("node n is %s", n)
+            logger.debug("node n+1 is %s", next_node)
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
@@ -286,7 +288,7 @@ class Visitor(ast.NodeVisitor):
         cfg_statements = list()
 
         self.use_prev_node.append(use_prev_node)
-
+        first_node = None
         for stmt in stmts:
             logger.debug("[pay attention] stmt is %s", stmt)
             node = self.visit(stmt)
@@ -297,32 +299,45 @@ class Visitor(ast.NodeVisitor):
                 break_nodes.append(node)
 
             logger.debug("[pay attention] node is %s", node)
-            connected_ingoing = False
-            # if node:
-            #     if hasattr(node, 'ingoing'):
-            #         logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
-            #         ingoing = node.ingoing
-            #         logger.debug("[pa] ingoing was %s", ingoing)
-            #         while node.ingoing:
-            #             ingoing = node.ingoing
-            #             node = node.ingoing[0]
-            #         if ingoing:
-            #             logger.debug("[pa] ingoing is now %s", ingoing[0])
-            #             logger.debug("[pa] type(ingoing) is now %s", type(ingoing[0]))
-            #             cfg_statements.append(ingoing[0])
-            #             connected_ingoing = True
 
-            if self.node_to_connect(node) and node and not connected_ingoing:
+            # this if should maybe be in the `if self.node_to_connect(node) and node:`
+            if node:
+                # note: multiple ingoing nodes kills this!! fix that
+                if hasattr(node, 'ingoing'):
+                    logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
+                    ingoing = None
+                    logger.debug("[pa] ingoing was %s", ingoing)
+                    loop_node = node
+                    while loop_node.ingoing:
+                        ingoing = loop_node.ingoing
+                        loop_node = loop_node.ingoing[0]
+                    if ingoing:
+                        logger.debug("[pa] ingoing is now %s", ingoing[0])
+                        logger.debug("[pa] type(ingoing) is now %s", type(ingoing[0]))
+                        # Only set it once from the first stmt
+                        if not first_node:
+                            first_node = ingoing[0]
+
+                        # cfg_statements.append(ingoing[0])
+
+            if self.node_to_connect(node) and node:
                 cfg_statements.append(node)
 
         self.use_prev_node.pop()
+        logger.debug("[Flux] BEFORE So cfg_statements are %s", cfg_statements)
         self.connect_nodes(cfg_statements)
-        logger.debug("[Flux] So cfg_statements are %s", cfg_statements)
+        logger.debug("[Flux] AFTER So cfg_statements are %s", cfg_statements)
 
         if cfg_statements:
-            first_statement = self.get_first_statement(cfg_statements[0])
+            if first_node:
+                first_statement = first_node
+            else:
+                first_statement = self.get_first_statement(cfg_statements[0])
             logger.debug("[zzz] cfg_statements[0] is %s", cfg_statements[0])
             logger.debug("[zzz] first_statement is %s", first_statement)
+            logger.debug("[zzz] type(first_statement) is %s", type(first_statement))
+            logger.debug("[zzz] type(first_node) is %s", type(first_node))
+
             last_statements = self.get_last_statements(cfg_statements)
             logger.debug("[zzz] last_statements is %s", last_statements)
             return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
