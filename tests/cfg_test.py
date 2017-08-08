@@ -201,7 +201,12 @@ class CFGTryTest(BaseTestCase):
         print_good = 16
         _exit = 17
 
-        # So currently the problem is that save_node is connected to print_so instead of return_handler
+        # With our added stmt_star_handler loop:
+        #       We have save_node->print_so instead of return_handler->print_so
+        # If we comment out our stmt_star_handler loop that we added:
+        #       print_a5 is connected to return_handler
+        #       save_node has no predecessors
+        #       ... but at least we have return_handler->print_so
         self.assertInCfg([self.connected(entry, try_),
 
                           self.connected(try_, try_body),

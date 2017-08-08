@@ -298,19 +298,19 @@ class Visitor(ast.NodeVisitor):
 
             logger.debug("[pay attention] node is %s", node)
             connected_ingoing = False
-            if node:
-                if hasattr(node, 'ingoing'):
-                    logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
-                    ingoing = node.ingoing
-                    logger.debug("[pa] ingoing was %s", ingoing)
-                    while node.ingoing:
-                        ingoing = node.ingoing
-                        node = node.ingoing[0]
-                    if ingoing:
-                        logger.debug("[pa] ingoing is now %s", ingoing[0])
-                        logger.debug("[pa] type(ingoing) is now %s", type(ingoing[0]))
-                        cfg_statements.append(ingoing[0])
-                        connected_ingoing = True
+            # if node:
+            #     if hasattr(node, 'ingoing'):
+            #         logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
+            #         ingoing = node.ingoing
+            #         logger.debug("[pa] ingoing was %s", ingoing)
+            #         while node.ingoing:
+            #             ingoing = node.ingoing
+            #             node = node.ingoing[0]
+            #         if ingoing:
+            #             logger.debug("[pa] ingoing is now %s", ingoing[0])
+            #             logger.debug("[pa] type(ingoing) is now %s", type(ingoing[0]))
+            #             cfg_statements.append(ingoing[0])
+            #             connected_ingoing = True
 
             if self.node_to_connect(node) and node and not connected_ingoing:
                 cfg_statements.append(node)
