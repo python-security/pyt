@@ -123,19 +123,24 @@ def update_assignments(l, assignment_nodes, source, lattice):
 
 def append_if_reassigned(l, secondary, node, lattice):
     try:
-        logger.debug("[BAD]secondary is %s", secondary)
-        logger.debug("[BAD]node is %s", node)
-        logger.debug("[BAD]node.left_hand_side is %s", node.left_hand_side)
-        logger.debug("[BAD]node.right_hand_side_variables is %s", node.right_hand_side_variables)
+        logger.debug("[DED]secondary is %s", secondary)
+        logger.debug("[DED]node is %s", node)
+        logger.debug("[DED]type(node) is %s", type(node))
+        logger.debug("[DED]node.left_hand_side is %s", node.left_hand_side)
+        logger.debug("[DED]node.right_hand_side_variables is %s", node.right_hand_side_variables)
         # WHY IS image_name NOT IN node.right_hand_side_variables? RIGHT NOW IT IS AN EMPTY LIST!
         if secondary.left_hand_side in node.right_hand_side_variables:
             if lattice.in_constraint(secondary, node) or node.left_hand_side in node.right_hand_side_variables:
+                logger.debug("Added")
                 l.append(node)
                 return
+            logger.debug("Not added")
         if secondary.left_hand_side == node.left_hand_side:
             if lattice.in_constraint(secondary, node):
+                logger.debug("Added")
                 l.append(node)
             else:
+                logger.debug("Not added")
                 logger.debug("So node %s is not in the constraint of secondary %s", node, secondary)
                 logger.debug("So node.ingoing is %s ", node.ingoing)
                 logger.debug("So node.outgoing is %s ", node.outgoing)

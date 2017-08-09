@@ -616,9 +616,6 @@ class Visitor(ast.NodeVisitor):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
 
-        rhs_visitor = RHSVisitor()
-        rhs_visitor.visit(ast_node.value)
-
         call = self.visit(ast_node.value)
 
         call_label = ''
@@ -629,6 +626,14 @@ class Visitor(ast.NodeVisitor):
             call.connect(call_assignment)
         else: #  assignment to builtin
             call_label = call.label
+            rhs_visitor = RHSVisitor()
+            logger.debug("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nBEGIN ANALYZING THE IMPORTANT NODE")
+            logger.debug("type(ast_node) is %s", ast_node)
+            logger.debug("type(ast_node.value) is %s", ast_node.value)
+            rhs_visitor.visit(ast_node.value)
+            logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
+            # if ast_node.lineno ==10:
+            #     raise
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
         if call in self.blackbox_calls:
