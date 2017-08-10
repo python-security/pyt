@@ -6,6 +6,7 @@ from collections import namedtuple
 from .base_cfg import AssignmentNode
 from .framework_adaptor import TaintedNode
 from .lattice import Lattice
+from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
@@ -283,11 +284,8 @@ def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
 
 
 def get_sink_args(cfg_node):
-    # new
-    vv = VarsVisitor()
-    from .right_hand_side_visitor import RHSVisitor
-    rhs_visitor = RHSVisitor()
     if isinstance(cfg_node.ast_node, ast.Call):
+        rhs_visitor = RHSVisitor()
         rhs_visitor.visit(cfg_node.ast_node)
         logger.debug("returning rhs_visitor.result %s", rhs_visitor.result)
         return rhs_visitor.result
@@ -295,16 +293,11 @@ def get_sink_args(cfg_node):
         logger.debug("returning cfg_node.right_hand_side_variables %s", cfg_node.right_hand_side_variables)
         return cfg_node.right_hand_side_variables
     else:
+        vv = VarsVisitor()
         logger.debug("So cfg_node.ast_node is %s", cfg_node.ast_node)
         logger.debug("So type of cfg_node.ast_node is %s", type(cfg_node.ast_node))
-        logger.debug("So vv.result is %s", vv.result)
         vv.visit(cfg_node.ast_node)
-    #     # raise
-
-    # old
-    # vv = VarsVisitor()
-    # vv.visit(cfg_node.ast_node)
-
+        logger.debug("So vv.result is %s", vv.result)
     return vv.result
 
 

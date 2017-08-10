@@ -4,7 +4,7 @@ from collections import namedtuple
 from .ast_helper import Arguments, get_call_names_as_string
 from .label_visitor import LabelVisitor
 from .right_hand_side_visitor import RHSVisitor
-from .right_hand_side_and_func_name_visitor import RHSIncludeFuncsVisitor
+from .vars_visitor import VarsVisitor
 from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
@@ -261,8 +261,6 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
-            logger.debug("node n is %s", n)
-            logger.debug("node n+1 is %s", next_node)
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
@@ -636,12 +634,10 @@ class Visitor(ast.NodeVisitor):
 
             logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
             
-            rhs_incf_visitor = RHSIncludeFuncsVisitor()
-            rhs_incf_visitor.visit(ast_node.value)
-            logger.debug("iphone Rhs_incf_visitor.result is %s", rhs_incf_visitor.result)
-            # if ast_node.lineno ==10:
-            #     raise
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, rhs_incf_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
+            vars_visitor = VarsVisitor()
+            vars_visitor.visit(ast_node.value)
+
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
         if call in self.blackbox_calls:
             self.blackbox_assignments.add(call_assignment)
