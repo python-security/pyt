@@ -1,5 +1,6 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
+import ast
 from collections import namedtuple
 
 from .base_cfg import AssignmentNode
@@ -125,27 +126,40 @@ def append_if_reassigned(l, secondary, node, lattice):
     try:
         logger.debug("[DED]secondary is %s", secondary)
         logger.debug("[DED]node is %s", node)
+        logger.debug("[DED] So lattice.in_constraint is %s", lattice.in_constraint(secondary, node))
         logger.debug("[DED]type(node) is %s", type(node))
         logger.debug("[DED]node.left_hand_side is %s", node.left_hand_side)
         logger.debug("[DED]node.right_hand_side_variables is %s", node.right_hand_side_variables)
+        if node.rhs_incf:
+            logger.debug("[DED]node.rhs_incf is %s", node.rhs_incf)
+
         # WHY IS image_name NOT IN node.right_hand_side_variables? RIGHT NOW IT IS AN EMPTY LIST!
-        if secondary.left_hand_side in node.right_hand_side_variables:
-            if lattice.in_constraint(secondary, node) or node.left_hand_side in node.right_hand_side_variables:
+        if node.rhs_incf:
+            logger.debug("[DED] IMPORTANT secondary.left_hand_side is %s and node.rhs_incf is %s", secondary.left_hand_side, node.rhs_incf)
+            if secondary.left_hand_side in node.rhs_incf:
+                logger.debug("Hmm, reaches `if secondary.left_hand_side in node.rhs_incf`")
+                # if node.left_hand_side in node.rhs_incf:
+                if lattice.in_constraint(secondary, node):
+                    logger.debug("IPHONE")
+                    l.append(node)
+                    return
+        elif secondary.left_hand_side in node.right_hand_side_variables:
+            if lattice.in_constraint(secondary, node):
                 logger.debug("Added")
                 l.append(node)
                 return
-            logger.debug("Not added")
         if secondary.left_hand_side == node.left_hand_side:
             if lattice.in_constraint(secondary, node):
                 logger.debug("Added")
                 l.append(node)
+                return
             else:
-                logger.debug("Not added")
                 logger.debug("So node %s is not in the constraint of secondary %s", node, secondary)
                 logger.debug("So node.ingoing is %s ", node.ingoing)
                 logger.debug("So node.outgoing is %s ", node.outgoing)
                 logger.debug("So secondary.ingoing is %s ", secondary.ingoing)
                 logger.debug("So secondary.outgoing is %s ", secondary.outgoing)
+        logger.debug("Not added")
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)
@@ -269,8 +283,28 @@ def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
 
 
 def get_sink_args(cfg_node):
+    # new
     vv = VarsVisitor()
-    vv.visit(cfg_node.ast_node)
+    from .right_hand_side_visitor import RHSVisitor
+    rhs_visitor = RHSVisitor()
+    if isinstance(cfg_node.ast_node, ast.Call):
+        rhs_visitor.visit(cfg_node.ast_node)
+        logger.debug("returning rhs_visitor.result %s", rhs_visitor.result)
+        return rhs_visitor.result
+    elif isinstance(cfg_node.ast_node, ast.Assign):
+        logger.debug("returning cfg_node.right_hand_side_variables %s", cfg_node.right_hand_side_variables)
+        return cfg_node.right_hand_side_variables
+    else:
+        logger.debug("So cfg_node.ast_node is %s", cfg_node.ast_node)
+        logger.debug("So type of cfg_node.ast_node is %s", type(cfg_node.ast_node))
+        logger.debug("So vv.result is %s", vv.result)
+        vv.visit(cfg_node.ast_node)
+    #     # raise
+
+    # old
+    # vv = VarsVisitor()
+    # vv.visit(cfg_node.ast_node)
+
     return vv.result
 
 
@@ -299,7 +333,7 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
     logger.debug("[vuln] Hmm so source.cfg_node is %s", source.cfg_node)
 
     for node in source.secondary_nodes:
-        if lattice.in_constraint(node, source.cfg_node):
+        if lattice.in_constraint(source.cfg_node, node):
             logger.debug("secondary node %s is reachable from %s", node, source.cfg_node)
         else:
             logger.debug("secondary node %s is NOT reachable from %s", node, source.cfg_node)
@@ -311,6 +345,7 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
+    logger.debug(".... so sink_args is %s", sink_args)
     secondary_node_in_sink_args = None
     if sink_args:
         for node in secondary_in_sink:

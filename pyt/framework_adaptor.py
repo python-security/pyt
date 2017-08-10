@@ -39,6 +39,7 @@ class FrameworkAdaptor():
             for arg in args:
                 tainted_node = TaintedNode(arg, arg,
                                            None, [],
+                                           None,
                                            line_number=definition_lineno,
                                            path=definition.path)
                 function_entry_node.connect(tainted_node)

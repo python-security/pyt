@@ -4,6 +4,7 @@ from collections import namedtuple
 from .ast_helper import Arguments, get_call_names_as_string
 from .label_visitor import LabelVisitor
 from .right_hand_side_visitor import RHSVisitor
+from .right_hand_side_and_func_name_visitor import RHSIncludeFuncsVisitor
 from pyt.utils.log import enable_logger, logger
 enable_logger(to_file='./pyt.log')
 
@@ -122,7 +123,7 @@ class EntryOrExitNode(Node):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, rhs_incf, *, line_number, path):
         """Create an Assignment node.
 
         Args:
@@ -134,6 +135,7 @@ class AssignmentNode(Node):
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
+        self.rhs_incf = rhs_incf
         # Only set True in assignment_call_node()
         self.blackbox = False
 
@@ -157,7 +159,7 @@ class RestoreNode(AssignmentNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
 
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
@@ -172,7 +174,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
-        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, None, line_number=line_number, path=path)
 
 
 class Function():
@@ -558,7 +560,7 @@ class Visitor(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(value)
 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, None, line_number=node.lineno, path=self.filenames[-1])))
 
 
         self.connect_nodes(new_assignment_nodes)
@@ -574,7 +576,7 @@ class Visitor(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(node.value)
 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, None, line_number=node.lineno, path=self.filenames[-1])))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
@@ -598,7 +600,7 @@ class Visitor(ast.NodeVisitor):
                 print('Assignment not properly handled.',
                       'Could result in not finding a vulnerability.',
                       'Assignment:', label.result)
-                return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
 
         elif len(node.targets) > 1:                #  x = y = 3
             return self.assign_multi_target(node, rhs_visitor.result)
@@ -610,7 +612,7 @@ class Visitor(ast.NodeVisitor):
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
-                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
@@ -622,7 +624,7 @@ class Visitor(ast.NodeVisitor):
         call_assignment = None
         if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], line_number=ast_node.lineno, path=self.filenames[-1])
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1])
             call.connect(call_assignment)
         else: #  assignment to builtin
             call_label = call.label
@@ -631,10 +633,15 @@ class Visitor(ast.NodeVisitor):
             logger.debug("type(ast_node) is %s", ast_node)
             logger.debug("type(ast_node.value) is %s", ast_node.value)
             rhs_visitor.visit(ast_node.value)
+
             logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
+            
+            rhs_incf_visitor = RHSIncludeFuncsVisitor()
+            rhs_incf_visitor.visit(ast_node.value)
+            logger.debug("iphone Rhs_incf_visitor.result is %s", rhs_incf_visitor.result)
             # if ast_node.lineno ==10:
             #     raise
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
+            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, rhs_incf_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
 
         if call in self.blackbox_calls:
             self.blackbox_assignments.add(call_assignment)
@@ -653,7 +660,7 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
 
-        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
