@@ -355,8 +355,6 @@ class Visitor(ast.NodeVisitor):
             logger.debug("[zzz] cfg_statements[0] is %s", cfg_statements[0])
             logger.debug("[zzz] self.get_first_statement(cfg_statements[0]) is %s", self.get_first_statement(cfg_statements[0]))
             logger.debug("[zzz] type(self.get_first_statement(cfg_statements[0])) is %s", type(self.get_first_statement(cfg_statements[0])))
-            logger.debug("[zzz] type(first_node) is %s", type(first_node))
-            
             logger.debug("[Kaffe1668] first_statement is %s", first_statement)
             logger.debug("[Kaffe1668] Whereas self.get_first_statement(cfg_statements[0]) is %s", self.get_first_statement(cfg_statements[0]))
 
@@ -450,22 +448,18 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Try(self, node):
         try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
-
         # logger.debug("[Integral] visit_Try node.body[0] is %s", node.body[0])
         # label_visitor = LabelVisitor()
         # label_visitor.visit(node.body[0])
         # logger.debug("[Integral] result of node.body[0] is %s", label_visitor.result)
-
         # logger.debug("[Integral] visit_Try node.orelse[0] is %s", node.orelse[0])
         # label_visitor = LabelVisitor()
         # label_visitor.visit(node.orelse[0])
         # logger.debug("[Integral] result of node.orelse[0] is %s", label_visitor.result)
-        
         # logger.debug("[Integral] visit_Try node.handlers[0] is %s", node.handlers[0])
         # label_visitor = LabelVisitor()
         # label_visitor.visit(node.handlers[0])
         # logger.debug("[Integral] result of node.handlers[0] is %s", label_visitor.result)
-        
         body = self.stmt_star_handler(node.body)
         body = self.handle_stmt_star_ignore_node(body, try_node)
 
