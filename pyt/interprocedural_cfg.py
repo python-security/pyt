@@ -226,15 +226,15 @@ class InterproceduralVisitor(Visitor):
         """Save the local scope before entering a function call."""
         saved_variables = list()
         original_previous_node = self.nodes[-1]
-        LHS_so_far = set()
+        saved_variables_so_far = set()
 
         for assignment in [node for node in self.nodes
                            if type(node) == AssignmentNode]:
             if isinstance(assignment, RestoreNode):
                 continue
-            if assignment.left_hand_side in LHS_so_far:
+            if assignment.left_hand_side in saved_variables_so_far:
                 continue
-            LHS_so_far.add(assignment.left_hand_side)
+            saved_variables_so_far.add(assignment.left_hand_side)
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
             logger.debug("previous_node is")
