@@ -269,10 +269,10 @@ class InterproceduralVisitor(Visitor):
             rhs_visitor.visit(parameter)
 
             restore_node = RestoreNode(temp_name + ' = ' + label_visitor.result,
-                               temp_name,
-                               rhs_visitor.result,
-                               line_number=line_number,
-                               path=self.filenames[-1])
+                                       temp_name,
+                                       rhs_visitor.result,
+                                       line_number=line_number,
+                                       path=self.filenames[-1])
             logger.debug("[Flux] KILL self.nodes[-1] is %s", self.nodes[-1])
             if self.use_prev_node[-1] or self.nodes[-1] is not original_previous_node:
                 self.nodes[-1].connect(restore_node)
