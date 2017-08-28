@@ -629,6 +629,7 @@ class Visitor(ast.NodeVisitor):
             rhs_visitor.visit(ast_node.value)
 
             logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
+            # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             vars_visitor = VarsVisitor()
             vars_visitor.visit(ast_node.value)
 

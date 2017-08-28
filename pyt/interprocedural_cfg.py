@@ -290,7 +290,8 @@ class InterproceduralVisitor(Visitor):
         """Create the local scope before entering
         the body of a function call.
 
-        Note: We do not need a check of original_previous_node because of the preceding call to save_actual_parameters_in_temp.
+        Note: We do not need a check of original_previous_node because of the
+              preceding call to save_actual_parameters_in_temp.
         """
 
         for i in range(len(args)):
