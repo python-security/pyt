@@ -131,15 +131,15 @@ def append_if_reassigned(l, secondary, node, lattice):
         logger.debug("[DED]type(node) is %s", type(node))
         logger.debug("[DED]node.left_hand_side is %s", node.left_hand_side)
         logger.debug("[DED]node.right_hand_side_variables is %s", node.right_hand_side_variables)
-        if node.rhs_incf:
-            logger.debug("[DED]node.rhs_incf is %s", node.rhs_incf)
+        if node.vv_result:
+            logger.debug("[DED]node.vv_result is %s", node.vv_result)
 
-        # WHY IS image_name NOT IN node.right_hand_side_variables? RIGHT NOW IT IS AN EMPTY LIST!
-        if node.rhs_incf:
-            logger.debug("[DED] IMPORTANT secondary.left_hand_side is %s and node.rhs_incf is %s", secondary.left_hand_side, node.rhs_incf)
-            if secondary.left_hand_side in node.rhs_incf:
-                logger.debug("Hmm, reaches `if secondary.left_hand_side in node.rhs_incf`")
-                # if node.left_hand_side in node.rhs_incf:
+        # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+        if node.vv_result:
+            logger.debug("[DED] IMPORTANT secondary.left_hand_side is %s and node.vv_result is %s", secondary.left_hand_side, node.vv_result)
+            if secondary.left_hand_side in node.vv_result:
+                logger.debug("Hmm, reaches `if secondary.left_hand_side in node.vv_result`")
+                # if node.left_hand_side in node.vv_result:
                 if lattice.in_constraint(secondary, node):
                     logger.debug("IPHONE")
                     l.append(node)

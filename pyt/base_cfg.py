@@ -123,19 +123,21 @@ class EntryOrExitNode(Node):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, rhs_incf, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, vv_result, *, line_number, path):
         """Create an Assignment node.
 
         Args:
             label (str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
         """
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
-        self.rhs_incf = rhs_incf
+        # Only set in assignment_call_node()
+        self.vv_result = vv_result
         # Only set True in assignment_call_node()
         self.blackbox = False
 
