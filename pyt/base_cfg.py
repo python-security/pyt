@@ -20,7 +20,7 @@ CALL_IDENTIFIER = '¤'
 
 
 class IgnoredNode():
-    """Ignored Node sent from a ast node that should not return anything."""
+    """Ignored Node sent from an ast node that should not return anything."""
 
 
 class Node():
@@ -627,7 +627,6 @@ class Visitor(ast.NodeVisitor):
             rhs_visitor.visit(ast_node.value)
 
             logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
-            
             vars_visitor = VarsVisitor()
             vars_visitor.visit(ast_node.value)
 
