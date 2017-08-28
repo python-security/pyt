@@ -268,19 +268,19 @@ class InterproceduralVisitor(Visitor):
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(parameter)
 
-            node = RestoreNode(temp_name + ' = ' + label_visitor.result,
+            restore_node = RestoreNode(temp_name + ' = ' + label_visitor.result,
                                temp_name,
                                rhs_visitor.result,
                                line_number=line_number,
                                path=self.filenames[-1])
             logger.debug("[Flux] KILL self.nodes[-1] is %s", self.nodes[-1])
             if self.use_prev_node[-1] or self.nodes[-1] is not original_previous_node:
-                self.nodes[-1].connect(saved_scope_node)
+                self.nodes[-1].connect(restore_node)
                 logger.debug("[2Flux]Connecting")
             else:
                 logger.debug("[2Flux]Not connecting")
 
-            self.nodes.append(node)
+            self.nodes.append(restore_node)
 
             parameters[label_visitor.result] = arguments[i]
         return parameters
@@ -389,7 +389,7 @@ class InterproceduralVisitor(Visitor):
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
         if self.use_prev_node[-1] or previous_node is not original_previous_node:
-            previous_node.connect(saved_scope_node)
+            previous_node.connect(entry_node)
             logger.debug("[3Flux]Connecting")
         else:
             logger.debug("[3Flux]Not connecting")
