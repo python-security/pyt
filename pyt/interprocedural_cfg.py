@@ -253,7 +253,10 @@ class InterproceduralVisitor(Visitor):
                 previous_node.connect(saved_scope_node)
                 logger.debug("[Flux]Connecting")
             else:
+                logger.debug("original previous node is %s", original_previous_node)
                 logger.debug("[Flux]Not connecting")
+                # try_orelse hits here.
+                # raise
 
         return saved_variables
 
@@ -279,6 +282,8 @@ class InterproceduralVisitor(Visitor):
                 logger.debug("[2Flux]Connecting")
             else:
                 logger.debug("[2Flux]Not connecting")
+                # example/example_inputs/try_orelse_with_no_variables_to_save.py
+                # raise
 
             self.nodes.append(restore_node)
 
@@ -394,6 +399,9 @@ class InterproceduralVisitor(Visitor):
             logger.debug("[3Flux]Connecting")
         else:
             logger.debug("[3Flux]Not connecting")
+            logger.debug("[3Flux]original_previous_node is %s", original_previous_node)
+            # example/example_inputs/try_orelse_with_no_variables_to_save_and_no_args.py
+            # raise
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)

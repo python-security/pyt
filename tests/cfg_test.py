@@ -201,15 +201,6 @@ class CFGTryTest(BaseTestCase):
         print_good = 16
         _exit = 17
 
-        # OUTDATED COMMENT:
-        # With our added stmt_star_handler loop:
-        #       We have save_node->print_so instead of return_handler->print_so
-        # If we comment out our stmt_star_handler loop that we added:
-        #       print_a5 is connected to return_handler
-        #       save_node has no predecessors
-        #       ... but at least we have return_handler->print_so
-
-
         self.assertInCfg([self.connected(entry, try_),
 
                           self.connected(try_, try_body),
@@ -226,14 +217,13 @@ class CFGTryTest(BaseTestCase):
                           self.connected(print_wagyu, print_good),
 
                           self.connected(save_node, assign_to_temp),
-                          # self.connected(save_node, print_so), # THIS SHOULD NOT BE!
                           self.connected(assign_to_temp, assign_from_temp),
                           self.connected(assign_from_temp, function_entry),
                           self.connected(function_entry, ret_of_subprocess_call),
                           self.connected(ret_of_subprocess_call, function_exit),
                           self.connected(function_exit, restore_node),
                           self.connected(restore_node, return_handler),
-                          self.connected(return_handler, print_so), # THIS SHOULD BE
+                          self.connected(return_handler, print_so),
 
                           self.connected(print_so, print_good),
                           self.connected(print_good, _exit)])

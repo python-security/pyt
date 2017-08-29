@@ -292,7 +292,6 @@ class Visitor(ast.NodeVisitor):
         self.use_prev_node.append(use_prev_node)
         first_node = None
         for stmt in stmts:
-            logger.debug("[pay attention] stmt is %s", stmt)
             node = self.visit(stmt)
 
             if isinstance(node, ControlFlowNode):
@@ -300,46 +299,29 @@ class Visitor(ast.NodeVisitor):
             elif isinstance(node, BreakNode):
                 break_nodes.append(node)
 
-            logger.debug("[pay attention] node is %s", node)
-
-            # this if should maybe be in the `if self.node_to_connect(node) and node:`
-            if node and not first_node:
-                # note: multiple ingoing nodes kills this!! fix that
+            if node and not first_node: # (Make sure first_node isn't already set.)
+                # first_node is always a "node_to_connect", because it won't have ingoing otherwise
+                # If we have e.g.
+                #   import os # An ignored node
+                #   value = None
+                # first_node will be `value = None`
                 if hasattr(node, 'ingoing'):
-                    logger.debug("[pay attention] node.ingoing is %s", node.ingoing)
                     ingoing = None
-                    loop_node = node
-                    logger.debug("[pa] loop_node.ingoing was %s", loop_node.ingoing)
-                    while loop_node.ingoing:
-                        logger.debug("IMPORTANT loop_node.ingoing[0] is %s", loop_node.ingoing[0])
-                        # Is it an Entry node? Let's not backwards traverse any more.
-                        if loop_node.ingoing[0].label.startswith('Entry module'):
+                    current_node = node
+                    while current_node.ingoing:
+                        # Is it an Entry to a module? Let's not backwards traverse any more.
+                        # Entries to functions are fine
+                        if current_node.ingoing[0].label.startswith('Entry module'):
                             break
-                        # if isinstance(loop_node.ingoing[0], EntryOrExitNode):
-                        #     logger.debug("[Kaffe1668] So instead of %s ingoing is %s", loop_node.ingoing[0], ingoing)
-                        #     break
-                        ingoing = loop_node.ingoing
-                        loop_node = loop_node.ingoing[0]
-                    logger.debug("ingoing list is %s", ingoing)
+                        ingoing = current_node.ingoing
+                        current_node = current_node.ingoing[0]
                     if ingoing:
-                        logger.debug("[pa] ingoing[0] is now %s", ingoing[0])
-                        logger.debug("[pa] type(ingoing[0]) is now %s", type(ingoing[0]))
-                        # Only set it once from the first stmt
-                        logger.debug("making first_node be %s", ingoing[0])
+                        # Only set it once
                         first_node = ingoing[0]
-
-                        # cfg_statements.append(ingoing[0])
-
             if self.node_to_connect(node) and node:
                 if not first_node:
-                    logger.debug("shit, should first_node be %s", node)
-                    logger.debug("shit, should type(first_node) be %s", type(node))
                     if isinstance(node, ControlFlowNode):
-                        logger.debug("dir(node) is %s", dir(node))
-                        logger.debug("node.test is %s", node.test)
-                        logger.debug("type(node.test) is %s", type(node.test))
                         first_node = node.test
-                        # raise
                     else:
                         first_node = node
                 cfg_statements.append(node)
