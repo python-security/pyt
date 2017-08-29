@@ -113,23 +113,18 @@ def update_assignments(l, assignment_nodes, source, lattice):
             if node not in l:
                 append_if_reassigned(l, other, node, lattice)
 
-
 def append_if_reassigned(l, secondary, node, lattice):
     try:
+        reassigned = False
         # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        if node.vv_result:
-            if secondary.left_hand_side in node.vv_result:
-                if lattice.in_constraint(secondary, node):
-                    l.append(node)
-                    return
+        if node.vv_result and secondary.left_hand_side in node.vv_result:
+            reassigned = True
         elif secondary.left_hand_side in node.right_hand_side_variables:
-            if lattice.in_constraint(secondary, node):
-                l.append(node)
-                return
-        if secondary.left_hand_side == node.left_hand_side:
-            if lattice.in_constraint(secondary, node):
-                l.append(node)
-                return
+            reassigned = True
+        elif secondary.left_hand_side == node.left_hand_side:
+            reassigned = True
+        if reassigned and lattice.in_constraint(secondary, node):
+            l.append(node)
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)

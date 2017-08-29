@@ -243,11 +243,13 @@ class InterproceduralVisitor(Visitor):
             saved_scope_node = self.append_node(r)
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-
-            if self.use_prev_node[-1] or previous_node is not original_previous_node:
-                previous_node.connect(saved_scope_node)
+            self.connect_if_allowed(previous_node, saved_scope_node, original_previous_node)
 
         return saved_variables
+
+    def connect_if_allowed(self, previous_node, node_to_connect_to, original_previous_node):
+        if self.use_prev_node[-1] or previous_node is not original_previous_node:
+            previous_node.connect(node_to_connect_to)
 
     def save_actual_parameters_in_temp(self, args, arguments, line_number, original_previous_node):
         """Save the actual parameters of a function call."""
@@ -265,8 +267,7 @@ class InterproceduralVisitor(Visitor):
                                        rhs_visitor.result,
                                        line_number=line_number,
                                        path=self.filenames[-1])
-            if self.use_prev_node[-1] or self.nodes[-1] is not original_previous_node:
-                self.nodes[-1].connect(restore_node)
+            self.connect_if_allowed(self.nodes[-1], restore_node, original_previous_node)
 
             self.nodes.append(restore_node)
 
@@ -375,8 +376,7 @@ class InterproceduralVisitor(Visitor):
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
-        if self.use_prev_node[-1] or previous_node is not original_previous_node:
-            previous_node.connect(entry_node)
+        self.connect_if_allowed(previous_node, entry_node, original_previous_node)
 
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
