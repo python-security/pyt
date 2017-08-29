@@ -176,25 +176,53 @@ class CFGTryTest(BaseTestCase):
         self.cfg_create_from_file('example/example_inputs/try_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
-        self.assert_length(self.cfg.nodes, expected_length=7)
+        self.assert_length(self.cfg.nodes, expected_length=18)
 
         entry = 0
         try_ = 1
         try_body = 2
-        except_im = 3
-        except_im_body_1 = 4
-        print_else = 5
-        _exit = 6
+        print_a5 = 3
+        except_im = 4
+        except_im_body_1 = 5
+        print_wagyu = 6
+        save_node = 7
+        assign_to_temp = 8
+        assign_from_temp = 9
+        function_entry = 10
+        ret_of_subprocess_call = 11
+        function_exit = 12
+        restore_node = 13
+        return_handler = 14
+        print_so = 15
+        print_good = 16
+        _exit = 17
 
         self.assertInCfg([self.connected(entry, try_),
+
                           self.connected(try_, try_body),
-                          self.connected(try_body, except_im),
-                          self.connected(try_body, print_else),
-                          self.connected(try_body, _exit),
+
+                          self.connected(try_body, print_a5),
+
+                          self.connected(print_a5, except_im),
+                          self.connected(print_a5, save_node),
+                          self.connected(print_a5, print_good),
+
                           self.connected(except_im, except_im_body_1),
-                          self.connected(except_im_body_1, _exit),
-                          self.connected(print_else, _exit)])
+                          self.connected(except_im_body_1, print_wagyu),
+
+                          self.connected(print_wagyu, print_good),
+
+                          self.connected(save_node, assign_to_temp),
+                          self.connected(assign_to_temp, assign_from_temp),
+                          self.connected(assign_from_temp, function_entry),
+                          self.connected(function_entry, ret_of_subprocess_call),
+                          self.connected(ret_of_subprocess_call, function_exit),
+                          self.connected(function_exit, restore_node),
+                          self.connected(restore_node, return_handler),
+                          self.connected(return_handler, print_so),
+
+                          self.connected(print_so, print_good),
+                          self.connected(print_good, _exit)])
 
     def test_final(self):
         self.cfg_create_from_file('example/example_inputs/try_final.py')

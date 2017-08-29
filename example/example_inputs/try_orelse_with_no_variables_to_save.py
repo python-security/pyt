@@ -4,12 +4,10 @@ def does_this_kill_us(diff):
 # @app.route('/poc', methods=['POST'])
 # def poc():
 try:
-    value = None
     print('A5')
 except ImportError:
-    value = request.args.get('foo')
     print('Wagyu')
 else:
-    does_this_kill_us(value)
+    does_this_kill_us("hard-coded string")
     print('So')
 print('Good')

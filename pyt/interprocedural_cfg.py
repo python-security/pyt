@@ -71,6 +71,7 @@ class InterproceduralVisitor(Visitor):
         self.function_names = list()
         self.function_return_stack = list()
         self.module_definitions_stack = list()
+        self.use_prev_node = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -220,29 +221,37 @@ class InterproceduralVisitor(Visitor):
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
-    def save_local_scope(self, line_number):
+    def save_local_scope(self, line_number, original_previous_node):
         """Save the local scope before entering a function call."""
         saved_variables = list()
+        saved_variables_so_far = set()
+
         for assignment in [node for node in self.nodes
                            if type(node) == AssignmentNode]:
             if isinstance(assignment, RestoreNode):
                 continue
-
-        # above can be optimized with the assignments dict
+            if assignment.left_hand_side in saved_variables_so_far:
+                continue
+            saved_variables_so_far.add(assignment.left_hand_side)
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
             previous_node = self.nodes[-1]
+
             r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
                             save_name, [assignment.left_hand_side],
                             line_number=line_number, path=self.filenames[-1])
             saved_scope_node = self.append_node(r)
-
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-            previous_node.connect(saved_scope_node)
+            self.connect_if_allowed(previous_node, saved_scope_node, original_previous_node)
+
         return saved_variables
 
-    def save_actual_parameters_in_temp(self, args, arguments, line_number):
+    def connect_if_allowed(self, previous_node, node_to_connect_to, original_previous_node):
+        if self.use_prev_node[-1] or previous_node is not original_previous_node:
+            previous_node.connect(node_to_connect_to)
+
+    def save_actual_parameters_in_temp(self, args, arguments, line_number, original_previous_node):
         """Save the actual parameters of a function call."""
         parameters = dict()
         for i, parameter in enumerate(args):
@@ -253,14 +262,14 @@ class InterproceduralVisitor(Visitor):
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(parameter)
 
-            node = RestoreNode(temp_name + ' = ' + label_visitor.result,
-                               temp_name,
-                               rhs_visitor.result,
-                               line_number=line_number,
-                               path=self.filenames[-1])
+            restore_node = RestoreNode(temp_name + ' = ' + label_visitor.result,
+                                       temp_name,
+                                       rhs_visitor.result,
+                                       line_number=line_number,
+                                       path=self.filenames[-1])
+            self.connect_if_allowed(self.nodes[-1], restore_node, original_previous_node)
 
-            self.nodes[-1].connect(node)
-            self.nodes.append(node)
+            self.nodes.append(restore_node)
 
             parameters[label_visitor.result] = arguments[i]
         return parameters
@@ -268,7 +277,11 @@ class InterproceduralVisitor(Visitor):
     def create_local_scope_from_actual_parameters(self, args, arguments,
                                                   line_number):
         """Create the local scope before entering
-        the body of a function call."""
+        the body of a function call.
+
+        Note: We do not need a check of original_previous_node because of the
+              preceding call to save_actual_parameters_in_temp.
+        """
 
         for i in range(len(args)):
             temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
@@ -333,17 +346,19 @@ class InterproceduralVisitor(Visitor):
         try:
             self.function_index += 1
             def_node = definition.node
-            saved_variables = self.save_local_scope(def_node.lineno)
+            original_previous_node = self.nodes[-1]
+            saved_variables = self.save_local_scope(def_node.lineno, original_previous_node)
 
             parameters = self.save_actual_parameters_in_temp(call_node.args,
                                                              Arguments(def_node.args),
-                                                             call_node.lineno)
+                                                             call_node.lineno,
+                                                             original_previous_node)
 
             self.filenames.append(definition.path)
             self.create_local_scope_from_actual_parameters(call_node.args,
                                                            Arguments(def_node.args),
                                                            def_node.lineno)
-            function_nodes = self.get_function_nodes(definition)
+            function_nodes = self.get_function_nodes(definition, original_previous_node)
             self.filenames.pop()  # Maybe move after restore nodes
             self.restore_saved_local_scope(saved_variables, parameters, def_node.lineno)
             self.return_handler(call_node, function_nodes)
@@ -356,12 +371,13 @@ class InterproceduralVisitor(Visitor):
 
         return self.nodes[-1]
 
-    def get_function_nodes(self, definition):
+    def get_function_nodes(self, definition, original_previous_node):
         length = len(self.nodes)
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
-        previous_node.connect(entry_node)
+        self.connect_if_allowed(previous_node, entry_node, original_previous_node)
+
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)
@@ -375,7 +391,6 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-        self.function_return_stack.append(_id)
 
         local_definitions = self.module_definitions_stack[-1]
 
@@ -392,6 +407,7 @@ class InterproceduralVisitor(Visitor):
                 self.add_builtin(node)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
+                self.function_return_stack.append(_id)
                 return self.add_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
@@ -446,7 +462,7 @@ class InterproceduralVisitor(Visitor):
         self.local_modules = get_directory_modules(module_path)
         tree = generate_ast(module_path)
 
-        # Remember, module[0] is None during e.g. "from . import foo", so we must str()
+        # module[0] is None during e.g. "from . import foo", so we must str()
         self.append_node(EntryOrExitNode('Module Entry ' + str(module[0])))
         self.visit(tree)
         exit_node = self.append_node(EntryOrExitNode('Module Exit ' + str(module[0])))

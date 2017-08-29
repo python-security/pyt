@@ -82,6 +82,7 @@ class VarsVisitor(ast.NodeVisitor):
             self.visit(c)
 
     def visit_Call(self, node):
+        # This will not visit Flask in Flask(__name__) but it will visit request in `request.args.get()
         if not isinstance(node.func, ast.Name):
             self.visit(node.func)
         if node.args:

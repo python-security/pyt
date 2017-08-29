@@ -1,5 +1,4 @@
 """Contains a class that finds all names.
-
 Used to find all variables on a right hand side(RHS) of assignment.
 """
 import ast

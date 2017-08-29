@@ -1,10 +1,12 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
+import ast
 from collections import namedtuple
 
 from .base_cfg import AssignmentNode
 from .framework_adaptor import TaintedNode
 from .lattice import Lattice
+from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
@@ -47,7 +49,7 @@ class TriggerNode():
         )
 
 
-def identify_triggers(cfg, sources, sinks):
+def identify_triggers(cfg, sources, sinks, lattice):
     """Identify sources, sinks and sanitisers in a CFG.
 
     Args:
@@ -66,7 +68,7 @@ def identify_triggers(cfg, sources, sinks):
     sources_in_file = find_triggers(assignment_nodes, sources)
     sources_in_file.extend(tainted_trigger_nodes)
 
-    find_secondary_sources(assignment_nodes, sources_in_file)
+    find_secondary_sources(assignment_nodes, sources_in_file, lattice)
 
     sinks_in_file = find_triggers(cfg.nodes, sinks)
 
@@ -79,37 +81,50 @@ def filter_cfg_nodes(cfg, cfg_node_type):
     return [node for node in cfg.nodes if isinstance(node, cfg_node_type)]
 
 
-def find_secondary_sources(assignment_nodes, sources):
+def find_secondary_sources(assignment_nodes, sources, lattice):
+    """
+        Sets the secondary_nodes attribute of each source in the sources list.
+
+        Args:
+            assignment_nodes([AssignmentNode])
+            sources([tuple])
+    """
     for source in sources:
-        source.secondary_nodes = find_assignments(assignment_nodes, source)
+        source.secondary_nodes = find_assignments(assignment_nodes, source, lattice)
 
 
-def find_assignments(assignment_nodes, source):
+def find_assignments(assignment_nodes, source, lattice):
     old = list()
 
     # added in order to propagate reassignments of the source node
     new = [source.cfg_node]
 
-    update_assignments(new, assignment_nodes, source.cfg_node)
+    update_assignments(new, assignment_nodes, source.cfg_node, lattice)
     while new != old:
         old = new
-        update_assignments(new, assignment_nodes, source.cfg_node)
+        update_assignments(new, assignment_nodes, source.cfg_node, lattice)
     new.remove(source.cfg_node)  # remove source node from result
     return new
 
 
-def update_assignments(l, assignment_nodes, source):
+def update_assignments(l, assignment_nodes, source, lattice):
     for node in assignment_nodes:
         for other in l:
             if node not in l:
-                append_if_reassigned(l, other, node)
+                append_if_reassigned(l, other, node, lattice)
 
 
-def append_if_reassigned(l, secondary, node):
-    # maybe:  secondary in node.new_constraint and
+def append_if_reassigned(l, secondary, node, lattice):
     try:
-        if secondary.left_hand_side in node.right_hand_side_variables or\
-           secondary.left_hand_side == node.left_hand_side:
+        reassigned = False
+        # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+        if node.vv_result and secondary.left_hand_side in node.vv_result:
+            reassigned = True
+        elif secondary.left_hand_side in node.right_hand_side_variables:
+            reassigned = True
+        elif secondary.left_hand_side == node.left_hand_side:
+            reassigned = True
+        if reassigned and lattice.in_constraint(secondary, node):
             l.append(node)
     except AttributeError:
         print(secondary)
@@ -234,6 +249,13 @@ def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
 
 
 def get_sink_args(cfg_node):
+    if isinstance(cfg_node.ast_node, ast.Call):
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(cfg_node.ast_node)
+        return rhs_visitor.result
+    elif isinstance(cfg_node.ast_node, ast.Assign):
+        return cfg_node.right_hand_side_variables
+
     vv = VarsVisitor()
     vv.visit(cfg_node.ast_node)
     return vv.result
@@ -325,7 +347,7 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
         vulnerabilitiy_log: The log in which to place found vulnerabilities.
         definitions: Source and sink definitions.
     """
-    triggers = identify_triggers(cfg, definitions.sources, definitions.sinks)
+    triggers = identify_triggers(cfg, definitions.sources, definitions.sinks, lattice)
     for sink in triggers.sinks:
         for source in triggers.sources:
             vulnerability = get_vulnerability(source,
