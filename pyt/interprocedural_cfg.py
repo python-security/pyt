@@ -31,8 +31,7 @@ from .module_definitions import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
+
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
 NOT_A_BLACKBOX = set(['Flask',
@@ -236,27 +235,17 @@ class InterproceduralVisitor(Visitor):
             saved_variables_so_far.add(assignment.left_hand_side)
             save_name = 'save_' + str(self.function_index) + '_' +\
                         assignment.left_hand_side
-            logger.debug("previous_node is")
             previous_node = self.nodes[-1]
-            logger.debug(previous_node)
 
             r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
                             save_name, [assignment.left_hand_side],
                             line_number=line_number, path=self.filenames[-1])
             saved_scope_node = self.append_node(r)
-            logger.debug("saved_scope_node is %s", saved_scope_node)
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-            logger.debug("[Flux]self.use_prev_node is %s", self.use_prev_node)
 
             if self.use_prev_node[-1] or previous_node is not original_previous_node:
                 previous_node.connect(saved_scope_node)
-                logger.debug("[Flux]Connecting")
-            else:
-                logger.debug("original previous node is %s", original_previous_node)
-                logger.debug("[Flux]Not connecting")
-                # try_orelse hits here.
-                # raise
 
         return saved_variables
 
@@ -276,14 +265,8 @@ class InterproceduralVisitor(Visitor):
                                        rhs_visitor.result,
                                        line_number=line_number,
                                        path=self.filenames[-1])
-            logger.debug("[Flux] KILL self.nodes[-1] is %s", self.nodes[-1])
             if self.use_prev_node[-1] or self.nodes[-1] is not original_previous_node:
                 self.nodes[-1].connect(restore_node)
-                logger.debug("[2Flux]Connecting")
-            else:
-                logger.debug("[2Flux]Not connecting")
-                # example/example_inputs/try_orelse_with_no_variables_to_save.py
-                # raise
 
             self.nodes.append(restore_node)
 
@@ -335,8 +318,6 @@ class InterproceduralVisitor(Visitor):
             n.connect(successor)
 
         if restore_nodes:
-            logger.debug("[Flux]A5 self.nodes[-1] is %s", self.nodes[-1])
-            logger.debug("[Flux]A5 restore_nodes are %s", restore_nodes)
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
 
@@ -396,12 +377,7 @@ class InterproceduralVisitor(Visitor):
                                                       definition.name))
         if self.use_prev_node[-1] or previous_node is not original_previous_node:
             previous_node.connect(entry_node)
-            logger.debug("[3Flux]Connecting")
-        else:
-            logger.debug("[3Flux]Not connecting")
-            logger.debug("[3Flux]original_previous_node is %s", original_previous_node)
-            # example/example_inputs/try_orelse_with_no_variables_to_save_and_no_args.py
-            # raise
+
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
 
         entry_node.connect(function_body_connect_statements.first_statement)

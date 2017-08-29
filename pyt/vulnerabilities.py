@@ -15,8 +15,6 @@ from .vulnerability_log import (
     Vulnerability,
     VulnerabilityLog
 )
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
@@ -69,13 +67,6 @@ def identify_triggers(cfg, sources, sinks, lattice):
                                          node) for node in tainted_nodes]
     sources_in_file = find_triggers(assignment_nodes, sources)
     sources_in_file.extend(tainted_trigger_nodes)
-    logger.debug("sources[0] are %s", sources[0])
-    logger.debug("type(sources[0]) are %s", type(sources[0]))
-    try:
-        logger.debug("assignment_nodes[0] are %s", assignment_nodes[0])
-        logger.debug("type(assignment_nodes[0]) are %s", type(assignment_nodes[0]))
-    except Exception:
-        pass
 
     find_secondary_sources(assignment_nodes, sources_in_file, lattice)
 
@@ -125,42 +116,20 @@ def update_assignments(l, assignment_nodes, source, lattice):
 
 def append_if_reassigned(l, secondary, node, lattice):
     try:
-        logger.debug("[DED]secondary is %s", secondary)
-        logger.debug("[DED]node is %s", node)
-        logger.debug("[DED] So lattice.in_constraint is %s", lattice.in_constraint(secondary, node))
-        logger.debug("[DED]type(node) is %s", type(node))
-        logger.debug("[DED]node.left_hand_side is %s", node.left_hand_side)
-        logger.debug("[DED]node.right_hand_side_variables is %s", node.right_hand_side_variables)
-        if node.vv_result:
-            logger.debug("[DED]node.vv_result is %s", node.vv_result)
-
         # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
         if node.vv_result:
-            logger.debug("[DED] IMPORTANT secondary.left_hand_side is %s and node.vv_result is %s", secondary.left_hand_side, node.vv_result)
             if secondary.left_hand_side in node.vv_result:
-                logger.debug("Hmm, reaches `if secondary.left_hand_side in node.vv_result`")
-                # if node.left_hand_side in node.vv_result:
                 if lattice.in_constraint(secondary, node):
-                    logger.debug("IPHONE")
                     l.append(node)
                     return
         elif secondary.left_hand_side in node.right_hand_side_variables:
             if lattice.in_constraint(secondary, node):
-                logger.debug("Added")
                 l.append(node)
                 return
         if secondary.left_hand_side == node.left_hand_side:
             if lattice.in_constraint(secondary, node):
-                logger.debug("Added")
                 l.append(node)
                 return
-            else:
-                logger.debug("So node %s is not in the constraint of secondary %s", node, secondary)
-                logger.debug("So node.ingoing is %s ", node.ingoing)
-                logger.debug("So node.outgoing is %s ", node.outgoing)
-                logger.debug("So secondary.ingoing is %s ", secondary.ingoing)
-                logger.debug("So secondary.outgoing is %s ", secondary.outgoing)
-        logger.debug("Not added")
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)
@@ -287,17 +256,12 @@ def get_sink_args(cfg_node):
     if isinstance(cfg_node.ast_node, ast.Call):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(cfg_node.ast_node)
-        logger.debug("returning rhs_visitor.result %s", rhs_visitor.result)
         return rhs_visitor.result
     elif isinstance(cfg_node.ast_node, ast.Assign):
-        logger.debug("returning cfg_node.right_hand_side_variables %s", cfg_node.right_hand_side_variables)
         return cfg_node.right_hand_side_variables
-    else:
-        vv = VarsVisitor()
-        logger.debug("So cfg_node.ast_node is %s", cfg_node.ast_node)
-        logger.debug("So type of cfg_node.ast_node is %s", type(cfg_node.ast_node))
-        vv.visit(cfg_node.ast_node)
-        logger.debug("So vv.result is %s", vv.result)
+
+    vv = VarsVisitor()
+    vv.visit(cfg_node.ast_node)
     return vv.result
 
 
@@ -321,15 +285,6 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
 
     secondary_in_sink = list()
 
-    logger.debug("[vuln] Hmm so source.secondary_nodes is %s", source.secondary_nodes)
-    logger.debug("[vuln] Hmm so source is %s", source)
-    logger.debug("[vuln] Hmm so source.cfg_node is %s", source.cfg_node)
-
-    for node in source.secondary_nodes:
-        if lattice.in_constraint(source.cfg_node, node):
-            logger.debug("secondary node %s is reachable from %s", node, source.cfg_node)
-        else:
-            logger.debug("secondary node %s is NOT reachable from %s", node, source.cfg_node)
     if source.secondary_nodes:
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
@@ -338,7 +293,6 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
-    logger.debug(".... so sink_args is %s", sink_args)
     secondary_node_in_sink_args = None
     if sink_args:
         for node in secondary_in_sink:

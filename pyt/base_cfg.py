@@ -5,8 +5,6 @@ from .ast_helper import Arguments, get_call_names_as_string
 from .label_visitor import LabelVisitor
 from .right_hand_side_visitor import RHSVisitor
 from .vars_visitor import VarsVisitor
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 ControlFlowNode = namedtuple('ControlFlowNode',
@@ -327,23 +325,15 @@ class Visitor(ast.NodeVisitor):
                 cfg_statements.append(node)
 
         self.use_prev_node.pop()
-        logger.debug("[Flux] BEFORE So cfg_statements are %s", cfg_statements)
         self.connect_nodes(cfg_statements)
-        logger.debug("[Flux] AFTER So cfg_statements are %s", cfg_statements)
 
         if cfg_statements:
             if first_node:
                 first_statement = first_node
             else:
                 first_statement = self.get_first_statement(cfg_statements[0])
-            logger.debug("[zzz] cfg_statements[0] is %s", cfg_statements[0])
-            logger.debug("[zzz] self.get_first_statement(cfg_statements[0]) is %s", self.get_first_statement(cfg_statements[0]))
-            logger.debug("[zzz] type(self.get_first_statement(cfg_statements[0])) is %s", type(self.get_first_statement(cfg_statements[0])))
-            logger.debug("[Kaffe1668] first_statement is %s", first_statement)
-            logger.debug("[Kaffe1668] Whereas self.get_first_statement(cfg_statements[0]) is %s", self.get_first_statement(cfg_statements[0]))
 
             last_statements = self.get_last_statements(cfg_statements)
-            logger.debug("[zzz] last_statements is %s", last_statements)
             return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
         else: # When body of module only contains ignored nodes
             return IgnoredNode()
@@ -371,16 +361,7 @@ class Visitor(ast.NodeVisitor):
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
-            logger.debug("[Integral] type(orelse[0]) is %s", type(orelse[0]))
-            label_visitor = LabelVisitor()
-            label_visitor.visit(orelse[0])
-            logger.debug("[Integral] result of orelse[0] is %s", label_visitor.result)
-            logger.debug("[Integral][Flux] type(test) is %s", type(test))
-            logger.debug("[Integral][Flux] result of test is %s", test)
-
             else_connect_statements = self.stmt_star_handler(orelse, use_prev_node=False)
-            logger.debug("[foo] test is %s", test)
-            logger.debug("[foo] else_connect_statements.first_statement is %s", else_connect_statements.first_statement)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -432,18 +413,6 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Try(self, node):
         try_node = self.append_node(Node('Try', node, line_number=node.lineno, path=self.filenames[-1]))
-        # logger.debug("[Integral] visit_Try node.body[0] is %s", node.body[0])
-        # label_visitor = LabelVisitor()
-        # label_visitor.visit(node.body[0])
-        # logger.debug("[Integral] result of node.body[0] is %s", label_visitor.result)
-        # logger.debug("[Integral] visit_Try node.orelse[0] is %s", node.orelse[0])
-        # label_visitor = LabelVisitor()
-        # label_visitor.visit(node.orelse[0])
-        # logger.debug("[Integral] result of node.orelse[0] is %s", label_visitor.result)
-        # logger.debug("[Integral] visit_Try node.handlers[0] is %s", node.handlers[0])
-        # label_visitor = LabelVisitor()
-        # label_visitor.visit(node.handlers[0])
-        # logger.debug("[Integral] result of node.handlers[0] is %s", label_visitor.result)
         body = self.stmt_star_handler(node.body)
         body = self.handle_stmt_star_ignore_node(body, try_node)
 
@@ -461,23 +430,7 @@ class Visitor(ast.NodeVisitor):
             last_statements.extend(handler_body.last_statements)
 
         if node.orelse:
-            logger.debug("body.last_statements are %s", body.last_statements)
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
-            logger.debug("orelse_last_nodes is %s", orelse_last_nodes)
-            logger.debug("type of orelse_last_nodes is %s", type(orelse_last_nodes))
-            # Perhaps
-            # for last in body.last_statements:
-            #     logger.debug("[ghi] last is %s", last)
-            #     logger.debug("[ghi] type(last) is %s", type(last))
-            #     logger.debug("[ghi] node.orelse[0] is %s", node.orelse[0])
-            #     logger.debug("[ghi] type(node.orelse[0]) is %s", type(node.orelse[0]))
-            #     last.connect(node.orelse[0])
-            # HERE
-            # HERE
-            # HERE
-            # Does that included return nodes? I hope not.
-            # Does the return type of self.handle_or_else even have a .first_statement attribute?
-
             body.last_statements.extend(orelse_last_nodes)
 
         if node.finalbody:
@@ -491,7 +444,6 @@ class Visitor(ast.NodeVisitor):
             body.last_statements.extend(finalbody.last_statements)
 
         last_statements.extend(self.remove_breaks(body.last_statements))
-        logger.debug("Enough is enough, self.nodes are %s", self.nodes)
 
         return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
 
@@ -605,12 +557,8 @@ class Visitor(ast.NodeVisitor):
         else: #  assignment to builtin
             call_label = call.label
             rhs_visitor = RHSVisitor()
-            logger.debug("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nBEGIN ANALYZING THE IMPORTANT NODE")
-            logger.debug("type(ast_node) is %s", ast_node)
-            logger.debug("type(ast_node.value) is %s", ast_node.value)
             rhs_visitor.visit(ast_node.value)
 
-            logger.debug("rhs_visitor.result is %s", rhs_visitor.result)
             # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             vars_visitor = VarsVisitor()
             vars_visitor.visit(ast_node.value)

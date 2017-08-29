@@ -1,8 +1,6 @@
 from .base_test_case import BaseTestCase
 from pyt.base_cfg import EntryOrExitNode, Node
 # from pyt.project_handler import get_modules
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class CFGGeneralTest(BaseTestCase):
@@ -178,8 +176,6 @@ class CFGTryTest(BaseTestCase):
         self.cfg_create_from_file('example/example_inputs/try_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-        logger.debug("Nodes are")
-        logger.debug(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=18)
 
         entry = 0
@@ -778,7 +774,6 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assertEqual(call.label, "request.args.get('param', 'not set')")
 
         l = zip(range(1, length), range(length))
-        logger.debug("self.cfg.nodes is %s", self.cfg.nodes)
         self.assertInCfg(list(l))
 
     def test_call_with_attribute_line_numbers(self):
