@@ -113,6 +113,7 @@ def update_assignments(l, assignment_nodes, source, lattice):
             if node not in l:
                 append_if_reassigned(l, other, node, lattice)
 
+
 def append_if_reassigned(l, secondary, node, lattice):
     try:
         reassigned = False
