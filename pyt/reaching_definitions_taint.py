@@ -15,9 +15,13 @@ class ReachingDefinitionsTaintAnalysis(ReachingDefinitionsAnalysisBase):
         if isinstance(cfg_node, AssignmentNode):
             arrow_result = JOIN
 
-            # Reassignment check
-            if cfg_node.left_hand_side not in\
-               cfg_node.right_hand_side_variables:
+            # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+            if cfg_node.vv_result:
+                if cfg_node.left_hand_side not in cfg_node.vv_result:
+                    # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
+                    arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
+            # Other reassignment check
+            elif cfg_node.left_hand_side not in cfg_node.right_hand_side_variables:
                 # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
                 arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
 
