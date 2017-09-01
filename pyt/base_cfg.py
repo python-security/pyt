@@ -299,7 +299,7 @@ class Visitor(ast.NodeVisitor):
         else:
             return [cfg_statements[-1]]
 
-    def stmt_star_handler(self, stmts, use_prev_node=True):
+    def stmt_star_handler(self, stmts, use_prev_node=True, break_on_func_entry=False):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -310,12 +310,16 @@ class Visitor(ast.NodeVisitor):
         self.use_prev_node.append(use_prev_node)
         first_node = None
         for stmt in stmts:
+            logger.debug("stmt is %s", stmt)
             node = self.visit(stmt)
+            logger.debug("node is %s", node)
 
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
             elif isinstance(node, BreakNode):
                 break_nodes.append(node)
+
+            logger.debug("BEFORE so first_node is %s", first_node)
 
             if node and not first_node: # (Make sure first_node isn't already set.)
                 # first_node is always a "node_to_connect", because it won't have ingoing otherwise
@@ -329,8 +333,21 @@ class Visitor(ast.NodeVisitor):
                     while current_node.ingoing:
                         # Is it an Entry to a module? Let's not backwards traverse any more.
                         # Entries to functions are fine
+                        # logger.debug("Hey so this may be an infinite loop! :D")
                         if current_node.ingoing[0].label.startswith('Entry module'):
                             break
+                        if break_on_func_entry and current_node.ingoing[0].label.startswith('Function Entry'):
+                            logger.debug("WoahWoahWoahWoahWoah curent_node is %s", current_node)
+                            logger.debug("WoahWoahWoahWoahWoah ingoing is %s", ingoing)
+
+                            break
+                        logger.debug("CURRENT_NODE is %s", current_node)
+                        logger.debug("current_node.ingoing is %s", current_node.ingoing)
+                        logger.debug("current_node.ingoing[0] is %s", current_node.ingoing[0])
+                        logger.debug("current_node.ingoing[0].ingoing is %s", current_node.ingoing[0].ingoing)
+                            # raise
+                            # break
+
                         ingoing = current_node.ingoing
                         current_node = current_node.ingoing[0]
                     if ingoing:
@@ -345,7 +362,19 @@ class Visitor(ast.NodeVisitor):
                 cfg_statements.append(node)
 
         self.use_prev_node.pop()
+        logger.debug("Woah so first_node is %s", first_node)
+        if first_node.label.startswith('save_4_value'):
+            # raise
+            pass
+            # logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
+        try:
+            logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
+        except Exception:
+            pass
+        logger.debug("BEFORE cfg_statements are %s", cfg_statements)
+
         self.connect_nodes(cfg_statements)
+        logger.debug("AFTER cfg_statements are %s", cfg_statements)
 
         if cfg_statements:
             if first_node:
@@ -688,51 +717,53 @@ class Visitor(ast.NodeVisitor):
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
 
+        original_previous_node = self.nodes[-1]
         self.undecided = False
 
 
 
+        # label = LabelVisitor()
+        # logger.debug("[BLUESTONE sucks] node is %s", node)
+        # logger.debug("[BLUESTONE sucks] node.func is %s", node.func)
+        # if isinstance(node.func, ast.Name):
+        #     logger.debug("[BLUESTONE sucks] node.func.attr is %s", node.func.id)
+        #     pass
+        # elif isinstance(node.func, ast.Attribute):
+        #     attribute = node.func
+
+        #     logger.debug("HERE COMES THE CRAZY AST CODE")
+        #     logger.debug("[3rd rail] attribute.attr is %s", attribute.attr)
+        #     logger.debug("[3rd rail] attribute.value is %s", attribute.value)
+        #     logger.debug("[3rd rail] type(attribute.value is %s", type(attribute.value))
+        #     if isinstance(attribute.value, ast.Name):
+        #         logger.debug("[3rd rail] NAMENAMENAME dir(attribute.value) is %s", dir(attribute.value))
+        #     elif isinstance(attribute.value, ast.Attribute):
+        #         logger.debug("[3rd rail] ATTRIBUTE ATTRIBUTE ATTRIBUTE dir(attribute.value) is %s", dir(attribute.value))
+        #     elif isinstance(attribute.value, ast.Call):
+        #         the_call_before = attribute.value
+        #         logger.debug("the_call_before.args is %s", the_call_before.args)
+        #         for the_call_before_arg in the_call_before.args:
+        #             label = LabelVisitor()
+        #             label.visit(the_call_before_arg)
+        #             logger.debug("the_call_before_arg is %s, and label.result is %s", the_call_before_arg, label.result)
+        #         logger.debug("[3rd rail] CALL CALL CALL dir(attribute.value) is %s", dir(attribute.value))
+        #     elif isinstance(attribute.value, ast.Str):
+        #         label = LabelVisitor()
+        #         label.visit(attribute.value)
+        #         logger.debug("[3rd rail] string attribute.value was %s", label.result)
+        #     else:
+        #         logger.debug("type(attribute.value) is %s", type(attribute.value))
+        #         raise
+        # else:
+        #     raise
+        # logger.debug("AFTER THE CRAZY AST CODE")
+        # logger.debug("[3rd rail] node is %s", node)
+        # logger.debug("[3rd rail] node.args is %s", node.args)
+        # logger.debug("[3rd rail] node.func is %s", node.func)
+        # logger.debug("[3rd rail] node.keywords is %s", node.keywords)
+        # logger.debug("[3rd rail] dir(node) is %s", dir(node))
+
         label = LabelVisitor()
-        logger.debug("[BLUESTONE sucks] node is %s", node)
-        logger.debug("[BLUESTONE sucks] node.func is %s", node.func)
-        if isinstance(node.func, ast.Name):
-            logger.debug("[BLUESTONE sucks] node.func.attr is %s", node.func.id)
-            pass
-        elif isinstance(node.func, ast.Attribute):
-            attribute = node.func
-
-            logger.debug("HERE COMES THE CRAZY AST CODE")
-            logger.debug("[3rd rail] attribute.attr is %s", attribute.attr)
-            logger.debug("[3rd rail] attribute.value is %s", attribute.value)
-            logger.debug("[3rd rail] type(attribute.value is %s", type(attribute.value))
-            if isinstance(attribute.value, ast.Name):
-                logger.debug("[3rd rail] NAMENAMENAME dir(attribute.value) is %s", dir(attribute.value))
-            elif isinstance(attribute.value, ast.Attribute):
-                logger.debug("[3rd rail] ATTRIBUTE ATTRIBUTE ATTRIBUTE dir(attribute.value) is %s", dir(attribute.value))
-            elif isinstance(attribute.value, ast.Call):
-                the_call_before = attribute.value
-                logger.debug("the_call_before.args is %s", the_call_before.args)
-                for the_call_before_arg in the_call_before.args:
-                    label = LabelVisitor()
-                    label.visit(the_call_before_arg)
-                    logger.debug("the_call_before_arg is %s, and label.result is %s", the_call_before_arg, label.result)
-                logger.debug("[3rd rail] CALL CALL CALL dir(attribute.value) is %s", dir(attribute.value))
-            elif isinstance(attribute.value, ast.Str):
-                label = LabelVisitor()
-                label.visit(attribute.value)
-                logger.debug("[3rd rail] string attribute.value was %s", label.result)
-            else:
-                logger.debug("type(attribute.value) is %s", type(attribute.value))
-                raise
-        else:
-            raise
-        logger.debug("AFTER THE CRAZY AST CODE")
-        logger.debug("[3rd rail] node is %s", node)
-        logger.debug("[3rd rail] node.args is %s", node.args)
-        logger.debug("[3rd rail] node.func is %s", node.func)
-        logger.debug("[3rd rail] node.keywords is %s", node.keywords)
-        logger.debug("[3rd rail] dir(node) is %s", dir(node))
-
         label.visit(node)
 
         # node should always be a call
@@ -872,6 +903,10 @@ class Visitor(ast.NodeVisitor):
         # THE CULPRIT!
         # self.nodes[-1].connect(call_node)
         # raise
+        logger.debug("1617CULPRIT self.nodes[-1] IS %s", self.nodes[-1])
+        logger.debug("1617CULPRIT call_node IS %s", call_node)
+        # logger.debug("1617CULPRIT original_previous_node IS %s", original_previous_node)
+        self.connect_if_allowed(self.nodes[-1], call_node, original_previous_node)
         self.nodes.append(call_node)
         # raise
         # IMPORTANT

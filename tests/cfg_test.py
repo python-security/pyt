@@ -1,6 +1,8 @@
 from .base_test_case import BaseTestCase
 from pyt.base_cfg import EntryOrExitNode, Node
 # from pyt.project_handler import get_modules
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class CFGGeneralTest(BaseTestCase):
@@ -177,7 +179,11 @@ class CFGTryTest(BaseTestCase):
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
 
-        self.assert_length(self.cfg.nodes, expected_length=18)
+        # logger.debug("self.cfg.nodes are %s", self.cfg.nodes)
+        for i,n in enumerate(self.cfg.nodes):
+            logger.debug("%s n.label is %s", i, n.label)
+
+        self.assert_length(self.cfg.nodes, expected_length=20)
 
         entry = 0
         try_ = 1
@@ -185,18 +191,20 @@ class CFGTryTest(BaseTestCase):
         print_a5 = 3
         except_im = 4
         except_im_body_1 = 5
-        print_wagyu = 6
-        save_node = 7
-        assign_to_temp = 8
-        assign_from_temp = 9
-        function_entry = 10
-        ret_of_subprocess_call = 11
-        function_exit = 12
-        restore_node = 13
-        return_handler = 14
-        print_so = 15
-        print_good = 16
-        _exit = 17
+        value_equal_call_2 = 6 # value = ¤call_2
+        print_wagyu = 7
+        save_node = 8
+        assign_to_temp = 9
+        assign_from_temp = 10
+        function_entry = 11
+        ret_of_subprocess_call = 12
+        ret_does_this_kill_us_equal_call_5 = 13 # ret_does_this_kill_us = ¤call_5
+        function_exit = 14
+        restore_node = 15
+        return_handler = 16
+        print_so = 17
+        print_good = 18
+        _exit = 19
 
         self.assertInCfg([self.connected(entry, try_),
 
@@ -210,7 +218,8 @@ class CFGTryTest(BaseTestCase):
 
                           self.connected(except_im, except_im_body_1),
 
-                          self.connected(except_im_body_1, print_wagyu),
+                          self.connected(except_im_body_1, value_equal_call_2),
+                          self.connected(value_equal_call_2, print_wagyu),
 
                           self.connected(print_wagyu, print_good),
 
@@ -218,7 +227,8 @@ class CFGTryTest(BaseTestCase):
                           self.connected(assign_to_temp, assign_from_temp),
                           self.connected(assign_from_temp, function_entry),
                           self.connected(function_entry, ret_of_subprocess_call),
-                          self.connected(ret_of_subprocess_call, function_exit),
+                          self.connected(ret_of_subprocess_call, ret_does_this_kill_us_equal_call_5),
+                          self.connected(ret_does_this_kill_us_equal_call_5, function_exit),
                           self.connected(function_exit, restore_node),
                           self.connected(restore_node, return_handler),
                           self.connected(return_handler, print_so),

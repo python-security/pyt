@@ -267,6 +267,10 @@ class InterproceduralVisitor(Visitor):
             # Save LHS
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
+            # logger.debug("[FLUX AGAIN] So saved_scope_node is %s", saved_scope_node)
+            # logger.debug("[FLUX AGAIN] So previous_node is %s", previous_node)
+
+            # raise
             self.connect_if_allowed(previous_node, saved_scope_node, original_previous_node)
 
         return saved_variables
@@ -384,6 +388,7 @@ class InterproceduralVisitor(Visitor):
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
 
+        # logger.debug("BEFORE restore_nodes are %s", restore_nodes)
         # Chain the restore nodes
         for node, successor in zip(restore_nodes, restore_nodes[1:]):
             node.connect(successor)
@@ -392,6 +397,7 @@ class InterproceduralVisitor(Visitor):
             # Connect the last node to the first restore node
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
+        # logger.debug("AFTER restore_nodes are %s", restore_nodes)
 
         return restore_nodes
 
@@ -451,7 +457,7 @@ class InterproceduralVisitor(Visitor):
             saved_variables = self.save_local_scope(def_node.lineno,
                                                     saved_function_call_index,
                                                     original_previous_node)
-
+            logger.debug("BEFORE saved_variables are %s", saved_variables)
             args_mapping = self.save_def_args_in_temp(call_node.args,
                                                       Arguments(def_node.args),
                                                       call_node.lineno,
@@ -467,6 +473,8 @@ class InterproceduralVisitor(Visitor):
             self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
             self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
             self.return_handler(call_node, function_nodes, saved_function_call_index)
+            logger.debug("AFTER saved_variables are %s", saved_variables)
+
             self.function_return_stack.pop()
         except IndexError:
             error_call = get_call_names_as_string(call_node.func)
@@ -491,8 +499,8 @@ class InterproceduralVisitor(Visitor):
                                                       definition.name))
         self.connect_if_allowed(previous_node, entry_node, original_previous_node)
 
-        function_body_connect_statements = self.stmt_star_handler(definition.node.body)
-
+        function_body_connect_statements = self.stmt_star_handler(definition.node.body, break_on_func_entry=True)
+        logger.debug("holy crap, function_body_connect_statements.first_statement is %s", function_body_connect_statements.first_statement)
         entry_node.connect(function_body_connect_statements.first_statement)
 
         exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
@@ -505,6 +513,9 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
+        if self.nodes[-1].label.startswith('¤call_4'):
+          logger.debug("HMMMM")
+          raise
 
         local_definitions = self.module_definitions_stack[-1]
 
