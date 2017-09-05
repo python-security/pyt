@@ -47,10 +47,18 @@ class Node():
         if isinstance(self, ConnectToExitNode) and\
            not isinstance(successor, EntryOrExitNode):
             return
-        logger.debug("type(successor) is %s", type(successor))
-        # if successor.label.startswith("scrypt"):
-        #     logger.debug("trouble node is %s", successor)
-        # raise
+
+        # Debug connects!
+        # first = 'Exit does_this_kill_us'
+        # second = 'call_5'
+        # if first in self.label or first in successor.label:
+        #     logger.debug("self.label is %s", self.label)
+        #     logger.debug("successor.label is %s", successor.label)
+        #     # raise
+        #     if second in successor.label or second in self.label:
+        #         logger.debug("I am being connected to %s", successor)
+        #         raise
+
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -299,7 +307,7 @@ class Visitor(ast.NodeVisitor):
         else:
             return [cfg_statements[-1]]
 
-    def stmt_star_handler(self, stmts, use_prev_node=True, break_on_func_entry=False):
+    def stmt_star_handler(self, stmts, prev_node_to_avoid=None, break_on_func_entry=False):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -307,8 +315,13 @@ class Visitor(ast.NodeVisitor):
         break_nodes = list()
         cfg_statements = list()
 
-        self.use_prev_node.append(use_prev_node)
+        if prev_node_to_avoid:
+            self.prev_nodes_to_avoid.append(prev_node_to_avoid)
+
         first_node = None
+        logger.debug("\n\n\n***********in stmt_star_handler self.nodes[-1] is %s***************\n\n\n\n\n", self.nodes[-1])
+        node_not_to_step_passed = self.nodes[-1]
+
         for stmt in stmts:
             logger.debug("stmt is %s", stmt)
             node = self.visit(stmt)
@@ -334,6 +347,10 @@ class Visitor(ast.NodeVisitor):
                         # Is it an Entry to a module? Let's not backwards traverse any more.
                         # Entries to functions are fine
                         # logger.debug("Hey so this may be an infinite loop! :D")
+
+                        # e.g. We don't want to step passed the Except of an Except BB
+                        if current_node.ingoing[0] == node_not_to_step_passed:
+                            break
                         if current_node.ingoing[0].label.startswith('Entry module'):
                             break
                         if break_on_func_entry and current_node.ingoing[0].label.startswith('Function Entry'):
@@ -360,9 +377,11 @@ class Visitor(ast.NodeVisitor):
                     else:
                         first_node = node
                 cfg_statements.append(node)
+        if prev_node_to_avoid:
+            self.prev_nodes_to_avoid.pop()
 
-        self.use_prev_node.pop()
         logger.debug("Woah so first_node is %s", first_node)
+        logger.debug("Woah so first_node.ingoing is %s", first_node.ingoing)
         if first_node.label.startswith('save_4_value'):
             # raise
             pass
@@ -383,6 +402,7 @@ class Visitor(ast.NodeVisitor):
                 first_statement = self.get_first_statement(cfg_statements[0])
 
             last_statements = self.get_last_statements(cfg_statements)
+            logger.debug("Legal Pad] last_statements are %s", last_statements)
             return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
         else: # When body of module only contains ignored nodes
             return IgnoredNode()
@@ -404,13 +424,16 @@ class Visitor(ast.NodeVisitor):
         Returns:
             The last nodes of the orelse branch.
         """
+        logger.debug("orelse is %s", orelse)
         if isinstance(orelse[0], ast.If):
             control_flow_node = self.visit(orelse[0])
             self.add_elif_label(control_flow_node.test)
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
-            else_connect_statements = self.stmt_star_handler(orelse, use_prev_node=False)
+            logger.debug("Ahh shit, so self.nodes[-1] is %s", self.nodes[-1])
+            else_connect_statements = self.stmt_star_handler(orelse, prev_node_to_avoid=self.nodes[-1])
+            logger.debug("hmm, connecting %s to %s", test, else_connect_statements.first_statement)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -455,6 +478,7 @@ class Visitor(ast.NodeVisitor):
 
     def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
         try:
+            logger.debug("[Tuesday] so fallback_cfg_node %s is being connected to %s", fallback_cfg_node, body.first_statement)
             fallback_cfg_node.connect(body.first_statement)
         except AttributeError:
             body = ConnectStatements([fallback_cfg_node], [fallback_cfg_node], list())
@@ -473,14 +497,22 @@ class Visitor(ast.NodeVisitor):
                 name = ''
             handler_node = self.append_node(Node('except ' + name + ':', handler, line_number=handler.lineno, path=self.filenames[-1]))
             for body_node in body.last_statements:
+                logger.debug("[Tuesday]connecting %s with %s", body_node, handler_node)
                 body_node.connect(handler_node)
             handler_body = self.stmt_star_handler(handler.body)
+            logger.debug("[sad panda] handler_node is %s", handler_node)
+            logger.debug("[sad panda] handler_body.first_statement is %s", handler_body.first_statement)
+
             handler_body = self.handle_stmt_star_ignore_node(handler_body, handler_node)
             last_statements.extend(handler_body.last_statements)
 
+        logger.debug("[Tuesday] BEFORE try_node is %s", try_node)
         if node.orelse:
+            logger.debug("body.last_statements[-1] is %s", body.last_statements[-1])
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
             body.last_statements.extend(orelse_last_nodes)
+        logger.debug("[Tuesday] AFTER try_node is %s", try_node)
+
 
         if node.finalbody:
             finalbody = self.stmt_star_handler(node.finalbody)
@@ -716,8 +748,6 @@ class Visitor(ast.NodeVisitor):
         # Increment function_call_index
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
-
-        original_previous_node = self.nodes[-1]
         self.undecided = False
 
 
@@ -905,8 +935,7 @@ class Visitor(ast.NodeVisitor):
         # raise
         logger.debug("1617CULPRIT self.nodes[-1] IS %s", self.nodes[-1])
         logger.debug("1617CULPRIT call_node IS %s", call_node)
-        # logger.debug("1617CULPRIT original_previous_node IS %s", original_previous_node)
-        self.connect_if_allowed(self.nodes[-1], call_node, original_previous_node)
+        self.connect_if_allowed(self.nodes[-1], call_node)
         self.nodes.append(call_node)
         # raise
         # IMPORTANT

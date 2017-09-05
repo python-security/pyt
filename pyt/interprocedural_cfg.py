@@ -74,7 +74,7 @@ class InterproceduralVisitor(Visitor):
         self.function_names = list()
         self.function_return_stack = list()
         self.module_definitions_stack = list()
-        self.use_prev_node = list()
+        self.prev_nodes_to_avoid = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -202,7 +202,6 @@ class InterproceduralVisitor(Visitor):
         LHS = 'ret_' + this_function_name
 
         if isinstance(node.value, ast.Call):
-          logger.debug("[Little Collins]Beware, check this code out")
           return_value_of_call = self.visit(node.value)
           return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
                                    LHS, return_value_of_call.left_hand_side,
@@ -210,7 +209,7 @@ class InterproceduralVisitor(Visitor):
                                    path=self.filenames[-1])
           return_value_of_call.connect(return_node)
           self.nodes.append(return_node)
-          return return_value_of_call
+          return return_node
 
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
@@ -234,13 +233,12 @@ class InterproceduralVisitor(Visitor):
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
-    def save_local_scope(self, line_number, saved_function_call_index, original_previous_node):
+    def save_local_scope(self, line_number, saved_function_call_index):
         """Save the local scope before entering a function call by saving all the LHS's of assignments so far.
 
         Args:
             line_number(int): Of the def of the function call about to be entered into.
             saved_function_call_index(int): Unique number for each call.
-            original_previous_node(Node)
 
         Returns:
             saved_variables(list[SavedVariable])
@@ -271,15 +269,19 @@ class InterproceduralVisitor(Visitor):
             # logger.debug("[FLUX AGAIN] So previous_node is %s", previous_node)
 
             # raise
-            self.connect_if_allowed(previous_node, saved_scope_node, original_previous_node)
+            self.connect_if_allowed(previous_node, saved_scope_node)
 
         return saved_variables
 
-    def connect_if_allowed(self, previous_node, node_to_connect_to, original_previous_node):
-        if self.use_prev_node[-1] or previous_node is not original_previous_node:
-            previous_node.connect(node_to_connect_to)
+    def connect_if_allowed(self, previous_node, node_to_connect_to):
+        try:
+          if previous_node is not self.prev_nodes_to_avoid[-1]:
+              previous_node.connect(node_to_connect_to)
+        except IndexError:
+          # If there are no prev_nodes_to_avoid we just connect safely.
+          previous_node.connect(node_to_connect_to)
 
-    def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index, original_previous_node):
+    def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index):
         """Save the arguments of the definition being called. Visit the arguments if they're calls.
 
         Args:
@@ -287,7 +289,6 @@ class InterproceduralVisitor(Visitor):
             def_args(ast_helper.Arguments): Of the definition being called.
             line_number(int): Of the call being made.
             saved_function_call_index(int): Unique number for each call.
-            original_previous_node(Node)
 
         Returns:
             args_mapping(dict): A mapping of call argument to definition argument.
@@ -321,7 +322,7 @@ class InterproceduralVisitor(Visitor):
                                            call_arg_rhs_visitor.result,
                                            line_number=line_number,
                                            path=self.filenames[-1])                
-            self.connect_if_allowed(self.nodes[-1], restore_node, original_previous_node)
+            self.connect_if_allowed(self.nodes[-1], restore_node)
             self.nodes.append(restore_node)
 
             args_mapping[call_arg_label_visitor.result] = def_args[i]
@@ -340,7 +341,7 @@ class InterproceduralVisitor(Visitor):
             line_number(int): Of the def of the function call about to be entered into.
             saved_function_call_index(int): Unique number for each call.
 
-        Note: We do not need a check of original_previous_node because of the
+        Note: We do not need a connect_if_allowed because of the
               preceding call to save_def_args_in_temp.
         """
         # Create e.g. def_arg1 = temp_N_def_arg1 for each argument
@@ -367,7 +368,7 @@ class InterproceduralVisitor(Visitor):
            args_mapping(dict): A mapping of call argument to definition argument.
            line_number(int): Of the def of the function call about to be entered into.
 
-        Note: We do not need a check of original_previous_node because of the
+        Note: We do not need connect_if_allowed because of the
               preceding call to save_local_scope.           
         """
         restore_nodes = list()
@@ -420,6 +421,8 @@ class InterproceduralVisitor(Visitor):
                                           [RHS],
                                           line_number=call_node.lineno,
                                           path=self.filenames[-1])
+                logger.debug("Florence, self.nodes[-1] is %s", self.nodes[-1])
+                logger.debug("Florence, return_node is %s", return_node)
                 self.nodes[-1].connect(return_node)
                 self.nodes.append(return_node)                
                 return
@@ -452,43 +455,40 @@ class InterproceduralVisitor(Visitor):
             saved_function_call_index = self.function_call_index
 
             def_node = definition.node
-            original_previous_node = self.nodes[-1]
             
             saved_variables = self.save_local_scope(def_node.lineno,
-                                                    saved_function_call_index,
-                                                    original_previous_node)
+                                                    saved_function_call_index)
             logger.debug("BEFORE saved_variables are %s", saved_variables)
             args_mapping = self.save_def_args_in_temp(call_node.args,
                                                       Arguments(def_node.args),
                                                       call_node.lineno,
-                                                      saved_function_call_index,
-                                                      original_previous_node)
+                                                      saved_function_call_index)
 
             self.filenames.append(definition.path)
             self.create_local_scope_from_def_args(call_node.args,
                                                   Arguments(def_node.args),
                                                   def_node.lineno,
                                                   saved_function_call_index)
-            function_nodes = self.visit_and_get_function_nodes(definition, original_previous_node)
+            function_nodes = self.visit_and_get_function_nodes(definition)
             self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
             self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
             self.return_handler(call_node, function_nodes, saved_function_call_index)
-            logger.debug("AFTER saved_variables are %s", saved_variables)
 
+            logger.debug("AFTER saved_variables are %s", saved_variables)
             self.function_return_stack.pop()
         except IndexError:
             error_call = get_call_names_as_string(call_node.func)
             print('Error: Possible nameclash in "{}".' +
                   ' Call omitted!\n'.format(error_call))
 
+        logger.debug('[Legal pad] returning %s', self.nodes[-1])
         return self.nodes[-1]
 
-    def visit_and_get_function_nodes(self, definition, original_previous_node):
+    def visit_and_get_function_nodes(self, definition):
         """Visits the nodes of a user defined function.
 
         Args:
             definition(LocalModuleDefinition): Definition of the function being added.
-            original_previous_node(Node)
 
         Returns:
             the_new_nodes(list[Node]): The nodes added while visiting the function.
@@ -497,13 +497,14 @@ class InterproceduralVisitor(Visitor):
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
-        self.connect_if_allowed(previous_node, entry_node, original_previous_node)
+        self.connect_if_allowed(previous_node, entry_node)
 
         function_body_connect_statements = self.stmt_star_handler(definition.node.body, break_on_func_entry=True)
         logger.debug("holy crap, function_body_connect_statements.first_statement is %s", function_body_connect_statements.first_statement)
         entry_node.connect(function_body_connect_statements.first_statement)
 
         exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
+        logger.debug("No light] function_body_connect_statements.last_statements are %s", function_body_connect_statements.last_statements)
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         the_new_nodes = self.nodes[len_before_visiting_func:]
@@ -513,9 +514,9 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-        if self.nodes[-1].label.startswith('¤call_4'):
-          logger.debug("HMMMM")
-          raise
+        # if self.nodes[-1].label.startswith('¤call_4'):
+        #   logger.debug("HMMMM")
+        #   raise
 
         local_definitions = self.module_definitions_stack[-1]
 
