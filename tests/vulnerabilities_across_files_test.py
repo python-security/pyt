@@ -54,20 +54,23 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code_across_files/blackbox_library_call.py
-             > User input at line 12, trigger word "get(":
-                param = request.args.get('suggestion')
+             > User input at line 12, trigger word "get(": 
+                ¤call_1 = ret_request.args.get('suggestion')
             Reassigned in: 
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
-                 > Line 15: foobar = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                 > Line 12: param = ¤call_1
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
-                 > Line 16: command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                 > Line 16: ¤call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                File: example/vulnerable_code_across_files/blackbox_library_call.py
+                 > Line 16: command = ¤call_2
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
                  > Line 17: hey = command
             File: example/vulnerable_code_across_files/blackbox_library_call.py
              > reaches line 18, trigger word "subprocess.call(": 
-                subprocess.call(hey,shell=True)
-            This vulnerability is unknown due to:  Label: command = scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                ¤call_3 = ret_subprocess.call(hey)
+            This vulnerability is unknown due to:  Label: ¤call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
         """
+
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_builtin_with_user_defined_inner(self):
@@ -78,31 +81,31 @@ class EngineTest(BaseTestCase):
         logger.debug("vulnerability_description is %s", vulnerability_description)
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/nested_functions_code/builtin_with_user_defined_inner.py
-             > User input at line 22, trigger word "form[": 
+             > User input at line 20, trigger word "form[": 
                 req_param = request.form['suggestion']
             Reassigned in: 
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 14: save_2_req_param = req_param
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 25: temp_2_inner_arg = req_param
+                 > Line 23: temp_2_inner_arg = req_param
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 14: inner_arg = temp_2_inner_arg
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 17: yes_vuln = inner_arg + 'hey'
+                 > Line 15: yes_vuln = inner_arg + 'hey'
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 18: ret_inner = yes_vuln
+                 > Line 16: ret_inner = yes_vuln
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 14: req_param = inner_arg
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 25: ¤call_2 = ret_inner
+                 > Line 23: ¤call_2 = ret_inner
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 25: ¤call_1 = ret_scrypt.encrypt(inner(req_param))
+                 > Line 23: ¤call_1 = ret_scrypt.encrypt(¤call_2)
                 File: example/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 25: foo = ¤call_1
+                 > Line 23: foo = ¤call_1
             File: example/nested_functions_code/builtin_with_user_defined_inner.py
-             > reaches line 31, trigger word "subprocess.call(": 
-                ¤call_3 = ret_subprocess.call(foo,shell=True)
-            This vulnerability is unknown due to:  Label: foo = ¤call_1
+             > reaches line 24, trigger word "subprocess.call(": 
+                ¤call_3 = ret_subprocess.call(foo)
+            This vulnerability is unknown due to:  Label: ¤call_1 = ret_scrypt.encrypt(¤call_2)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 

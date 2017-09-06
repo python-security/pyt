@@ -2,7 +2,7 @@ import unittest
 from collections import namedtuple
 
 from .base_test_case import BaseTestCase
-from pyt.constraint_table import initialize_constraint_table
+from pyt.constraint_table import constraint_table, initialize_constraint_table
 from pyt.fixed_point import FixedPointAnalysis
 from pyt.lattice import Lattice
 

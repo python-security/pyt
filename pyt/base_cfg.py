@@ -307,7 +307,7 @@ class Visitor(ast.NodeVisitor):
         else:
             return [cfg_statements[-1]]
 
-    def stmt_star_handler(self, stmts, prev_node_to_avoid=None, break_on_func_entry=False):
+    def stmt_star_handler(self, stmts, prev_node_to_avoid=None):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -323,9 +323,16 @@ class Visitor(ast.NodeVisitor):
         node_not_to_step_passed = self.nodes[-1]
 
         for stmt in stmts:
-            logger.debug("stmt is %s", stmt)
+            logger.debug("[kaytranada]stmt is %s", stmt)
+
             node = self.visit(stmt)
-            logger.debug("node is %s", node)
+            if isinstance(stmt, ast.While) or isinstance(stmt, ast.For):
+                self.last_was_loop_stack.append(True)
+            else:
+                self.last_was_loop_stack.append(False)
+
+            logger.debug("[kaytranada]node is %s", node)
+            logger.debug("[kaytranada]type(node) is %s", type(node))
 
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
@@ -344,26 +351,13 @@ class Visitor(ast.NodeVisitor):
                     ingoing = None
                     current_node = node
                     while current_node.ingoing:
-                        # Is it an Entry to a module? Let's not backwards traverse any more.
-                        # Entries to functions are fine
-                        # logger.debug("Hey so this may be an infinite loop! :D")
-
                         # e.g. We don't want to step passed the Except of an Except BB
                         if current_node.ingoing[0] == node_not_to_step_passed:
-                            break
-                        if current_node.ingoing[0].label.startswith('Entry module'):
-                            break
-                        if break_on_func_entry and current_node.ingoing[0].label.startswith('Function Entry'):
-                            logger.debug("WoahWoahWoahWoahWoah curent_node is %s", current_node)
-                            logger.debug("WoahWoahWoahWoahWoah ingoing is %s", ingoing)
-
                             break
                         logger.debug("CURRENT_NODE is %s", current_node)
                         logger.debug("current_node.ingoing is %s", current_node.ingoing)
                         logger.debug("current_node.ingoing[0] is %s", current_node.ingoing[0])
                         logger.debug("current_node.ingoing[0].ingoing is %s", current_node.ingoing[0].ingoing)
-                            # raise
-                            # break
 
                         ingoing = current_node.ingoing
                         current_node = current_node.ingoing[0]
@@ -379,12 +373,12 @@ class Visitor(ast.NodeVisitor):
                 cfg_statements.append(node)
         if prev_node_to_avoid:
             self.prev_nodes_to_avoid.pop()
-
+        self.last_was_loop_stack.pop()
         logger.debug("Woah so first_node is %s", first_node)
-        logger.debug("Woah so first_node.ingoing is %s", first_node.ingoing)
-        if first_node.label.startswith('save_4_value'):
-            # raise
-            pass
+        # logger.debug("Woah so first_node.ingoing is %s", first_node.ingoing)
+        # if first_node.label.startswith('save_4_value'):
+        #     # raise
+        #     pass
             # logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
         try:
             logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
@@ -673,7 +667,7 @@ class Visitor(ast.NodeVisitor):
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
-        body_connect_stmts = self.stmt_star_handler(node.body)
+        body_connect_stmts = self.stmt_star_handler(node.body, prev_node_to_avoid=self.nodes[-1])
 
         test.connect(body_connect_stmts.first_statement)
         test.connect_predecessors(body_connect_stmts.last_statements)
@@ -684,13 +678,14 @@ class Visitor(ast.NodeVisitor):
         last_nodes.extend(body_connect_stmts.break_statements)
 
         if node.orelse:
-            orelse_connect_stmts = self.stmt_star_handler(node.orelse)
+            orelse_connect_stmts = self.stmt_star_handler(node.orelse, prev_node_to_avoid=self.nodes[-1])
 
             test.connect(orelse_connect_stmts.first_statement)
             last_nodes.extend(orelse_connect_stmts.last_statements)
         else:
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
+        logger.debug("[broke] last_nodes are %s", last_nodes)
         return ControlFlowNode(test, last_nodes, list())
 
     def add_while_label(self, node):

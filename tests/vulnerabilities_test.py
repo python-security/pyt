@@ -9,6 +9,8 @@ from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.lattice import Lattice
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class EngineTest(BaseTestCase):
@@ -102,7 +104,7 @@ class EngineTest(BaseTestCase):
         self.assert_length(sanitiser_dict, expected_length=1)
         self.assertIn('escape', sanitiser_dict.keys())
 
-        self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[2])
+        self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[3])
 
     def test_is_sanitised_false(self):
         cfg_node_1 = Node('Not sanitising at all', None, line_number=None, path=None)

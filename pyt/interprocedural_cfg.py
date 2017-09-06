@@ -75,6 +75,7 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack = list()
         self.module_definitions_stack = list()
         self.prev_nodes_to_avoid = list()
+        self.last_was_loop_stack = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -275,9 +276,30 @@ class InterproceduralVisitor(Visitor):
 
     def connect_if_allowed(self, previous_node, node_to_connect_to):
         try:
-          if previous_node is not self.prev_nodes_to_avoid[-1]:
-              previous_node.connect(node_to_connect_to)
+          # Do not connect if last statement was a loop e.g.
+          # while x != 10:
+          #     if x > 0:
+          #         print(x)
+          #         break
+          #     else:
+          #         print('hest')
+          # print('next') # self.nodes[-1] is print('hest')
+          if self.last_was_loop_stack[-1]:
+            logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
+            logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
+            return
         except IndexError:
+          pass
+        try:
+          if previous_node is not self.prev_nodes_to_avoid[-1]:
+              logger.debug("ALLOWED, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
+              previous_node.connect(node_to_connect_to)
+          else:
+            logger.debug("SHUT DOWN, WOO, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
+            logger.debug("SHUT DOWN, WOO, node_to_connect_to is %s", node_to_connect_to)
+        except IndexError:
+          logger.debug("ALLOWED, no self.prev_nodes_to_avoid[-1] ")
+          logger.debug("ALLOWED, node_to_connect_to is %s and previous_node is %s", node_to_connect_to, previous_node)
           # If there are no prev_nodes_to_avoid we just connect safely.
           previous_node.connect(node_to_connect_to)
 
@@ -499,7 +521,7 @@ class InterproceduralVisitor(Visitor):
                                                       definition.name))
         self.connect_if_allowed(previous_node, entry_node)
 
-        function_body_connect_statements = self.stmt_star_handler(definition.node.body, break_on_func_entry=True)
+        function_body_connect_statements = self.stmt_star_handler(definition.node.body)
         logger.debug("holy crap, function_body_connect_statements.first_statement is %s", function_body_connect_statements.first_statement)
         entry_node.connect(function_body_connect_statements.first_statement)
 
