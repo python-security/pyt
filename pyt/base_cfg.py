@@ -175,6 +175,7 @@ class RestoreNode(AssignmentNode):
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
 
+
 class BBnode(AssignmentNode):
     """Node used for handling restore nodes returning from function calls."""
 
@@ -189,6 +190,7 @@ class BBnode(AssignmentNode):
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
         self.args = []
+
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
@@ -375,11 +377,6 @@ class Visitor(ast.NodeVisitor):
             self.prev_nodes_to_avoid.pop()
         self.last_was_loop_stack.pop()
         logger.debug("Woah so first_node is %s", first_node)
-        # logger.debug("Woah so first_node.ingoing is %s", first_node.ingoing)
-        # if first_node.label.startswith('save_4_value'):
-        #     # raise
-        #     pass
-            # logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
         try:
             logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
         except Exception:
@@ -743,8 +740,6 @@ class Visitor(ast.NodeVisitor):
         saved_function_call_index = self.function_call_index
         self.undecided = False
 
-
-
         # label = LabelVisitor()
         # logger.debug("[BLUESTONE sucks] node is %s", node)
         # logger.debug("[BLUESTONE sucks] node.func is %s", node.func)
@@ -790,7 +785,7 @@ class Visitor(ast.NodeVisitor):
         label.visit(node)
 
         # node should always be a call
-        assert isinstance(node, ast.Call) == True
+        assert isinstance(node, ast.Call) is True
 
         logger.debug("[PR] the label.result is %s", label.result)
         index = label.result.find('(')
@@ -889,31 +884,22 @@ class Visitor(ast.NodeVisitor):
         # This is where we'll ask the user, then save the mapping or just use the mapping.
         # Or perhaps we'll do that in vulnerabilities.py
 
-
         call_node.right_hand_side_variables = rhs_vars
         call_node.args = rhs_vars
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
 
-
         # ReturnNode
-
 
         # the old way
         # call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-
         # We need to know what the arguments are to a sink,
         #     we also need to know the arguments to a builtin or blackbox so we can have a mapping of
             # e.g. arg1 taints return value and arg2 does not.
-
-
         # call save_def_args_in_temp()
         # call_args, def_args, line_number, saved_function_call_index
-        
         # args_mapping = save_def_args_in_temp(call_args???, def_args???, node.lineno, saved_function_call_index)
-
-
 
         if blackbox:
             logger.debug("[qq] call_node being added to blackbox_calls is %s", call_node)

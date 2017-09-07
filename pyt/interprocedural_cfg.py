@@ -203,14 +203,14 @@ class InterproceduralVisitor(Visitor):
         LHS = 'ret_' + this_function_name
 
         if isinstance(node.value, ast.Call):
-          return_value_of_call = self.visit(node.value)
-          return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
-                                   LHS, return_value_of_call.left_hand_side,
-                                   node, line_number=node.lineno,
-                                   path=self.filenames[-1])
-          return_value_of_call.connect(return_node)
-          self.nodes.append(return_node)
-          return return_node
+            return_value_of_call = self.visit(node.value)
+            return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
+                                     LHS, return_value_of_call.left_hand_side,
+                                     node, line_number=node.lineno,
+                                     path=self.filenames[-1])
+            return_value_of_call.connect(return_node)
+            self.nodes.append(return_node)
+            return return_node
 
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
@@ -243,13 +243,13 @@ class InterproceduralVisitor(Visitor):
 
         Returns:
             saved_variables(list[SavedVariable])
-        """        
+        """
         saved_variables = list()
         saved_variables_so_far = set()
 
         # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
-                           if type(node) == AssignmentNode]: # type() is used on purpose here
+                           if type(node) == AssignmentNode]:  # type() is used on purpose here
             if isinstance(assignment, RestoreNode):
                 continue
             if assignment.left_hand_side in saved_variables_so_far:
@@ -272,32 +272,32 @@ class InterproceduralVisitor(Visitor):
 
     def connect_if_allowed(self, previous_node, node_to_connect_to):
         try:
-          # Do not connect if last statement was a loop e.g.
-          # while x != 10:
-          #     if x > 0:
-          #         print(x)
-          #         break
-          #     else:
-          #         print('hest')
-          # print('next')         # self.nodes[-1] is print('hest')
-          if self.last_was_loop_stack[-1]:
-            logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
-            logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
-            return
+            # Do not connect if last statement was a loop e.g.
+            # while x != 10:
+            #     if x > 0:
+            #         print(x)
+            #         break
+            #     else:
+            #         print('hest')
+            # print('next')         # self.nodes[-1] is print('hest')
+            if self.last_was_loop_stack[-1]:
+              logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
+              logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
+              return
         except IndexError:
-          pass
+            pass
         try:
-          if previous_node is not self.prev_nodes_to_avoid[-1]:
-              logger.debug("ALLOWED, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
-              previous_node.connect(node_to_connect_to)
-          else:
-            logger.debug("SHUT DOWN, WOO, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
-            logger.debug("SHUT DOWN, WOO, node_to_connect_to is %s", node_to_connect_to)
+            if previous_node is not self.prev_nodes_to_avoid[-1]:
+                logger.debug("ALLOWED, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
+                previous_node.connect(node_to_connect_to)
+            else:
+                logger.debug("SHUT DOWN, WOO, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
+                logger.debug("SHUT DOWN, WOO, node_to_connect_to is %s", node_to_connect_to)
         except IndexError:
-          logger.debug("ALLOWED, no self.prev_nodes_to_avoid[-1] ")
-          logger.debug("ALLOWED, node_to_connect_to is %s and previous_node is %s", node_to_connect_to, previous_node)
-          # If there are no prev_nodes_to_avoid we just connect safely.
-          previous_node.connect(node_to_connect_to)
+            logger.debug("ALLOWED, no self.prev_nodes_to_avoid[-1] ")
+            logger.debug("ALLOWED, node_to_connect_to is %s and previous_node is %s", node_to_connect_to, previous_node)
+            # If there are no prev_nodes_to_avoid we just connect safely.
+            previous_node.connect(node_to_connect_to)
 
     def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index):
         """Save the arguments of the definition being called. Visit the arguments if they're calls.
@@ -339,7 +339,7 @@ class InterproceduralVisitor(Visitor):
                                            def_arg_temp_name,
                                            call_arg_rhs_visitor.result,
                                            line_number=line_number,
-                                           path=self.filenames[-1])                
+                                           path=self.filenames[-1])
             self.connect_if_allowed(self.nodes[-1], restore_node)
             self.nodes.append(restore_node)
 
@@ -387,7 +387,7 @@ class InterproceduralVisitor(Visitor):
            line_number(int): Of the def of the function call about to be entered into.
 
         Note: We do not need connect_if_allowed because of the
-              preceding call to save_local_scope.           
+              preceding call to save_local_scope.
         """
         restore_nodes = list()
         for var in saved_variables:
@@ -428,7 +428,7 @@ class InterproceduralVisitor(Visitor):
             function_nodes(list[Node]): List of nodes of the function being called.
             saved_function_call_index(int): Unique number for each call.
         """
-        for node in function_nodes:            
+        for node in function_nodes:
             # Only `Return`s and `Raise`s can be of type ConnectToExitNode
             if isinstance(node, ConnectToExitNode):
                 # Create e.g. ¤call_1 = ret_func_foo RestoreNode
@@ -442,7 +442,7 @@ class InterproceduralVisitor(Visitor):
                 logger.debug("Florence, self.nodes[-1] is %s", self.nodes[-1])
                 logger.debug("Florence, return_node is %s", return_node)
                 self.nodes[-1].connect(return_node)
-                self.nodes.append(return_node)                
+                self.nodes.append(return_node)
                 return
 
     def process_function(self, call_node, definition):
@@ -459,7 +459,7 @@ class InterproceduralVisitor(Visitor):
         Notes:
             Page 31 in the original thesis, but changed a little.
             We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler, because it's the last node anyway, that we return in this function.
-            e.g. ret_func_foo gets assigned to visit_Return. 
+            e.g. ret_func_foo gets assigned to visit_Return.
 
         Args:
             call_node(ast.Call) : The node that calls the definition.
@@ -467,7 +467,7 @@ class InterproceduralVisitor(Visitor):
 
         Returns:
             Last node in self.nodes, probably the return of the function appended to self.nodes in return_handler.
-        """        
+        """
         try:
             self.function_call_index += 1
             saved_function_call_index = self.function_call_index
@@ -510,7 +510,7 @@ class InterproceduralVisitor(Visitor):
 
         Returns:
             the_new_nodes(list[Node]): The nodes added while visiting the function.
-        """        
+        """
         len_before_visiting_func = len(self.nodes)
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +

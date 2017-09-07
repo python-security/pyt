@@ -263,7 +263,6 @@ def get_sink_args(cfg_node):
     logger.debug("[VINEAPPLE] cfg_node is %s", cfg_node)
     logger.debug("[VINEAPPLE] cfg_node.ast_node is %s", cfg_node.ast_node)
     logger.debug("[VINEAPPLE] type(cfg_node.ast_node) is %s", type(cfg_node.ast_node))
-    
     other_results = list()
     if isinstance(cfg_node, BBnode):
         # logger.debug("[VINEAPPLE] So visited args is %s", cfg_node.args)
