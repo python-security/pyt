@@ -281,9 +281,9 @@ class InterproceduralVisitor(Visitor):
             #         print('hest')
             # print('next')         # self.nodes[-1] is print('hest')
             if self.last_was_loop_stack[-1]:
-              logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
-              logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
-              return
+                logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
+                logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
+                return
         except IndexError:
             pass
         try:
