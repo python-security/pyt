@@ -2,12 +2,9 @@ import unittest
 from collections import namedtuple
 
 from .base_test_case import BaseTestCase
-from pyt.constraint_table import constraint_table, initialize_constraint_table
+from pyt.constraint_table import initialize_constraint_table
 from pyt.fixed_point import FixedPointAnalysis
 from pyt.lattice import Lattice
-
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class AnalysisBaseTestCase(BaseTestCase):
@@ -19,12 +16,13 @@ class AnalysisBaseTestCase(BaseTestCase):
         """Assert that all connections in the connections list exists in the cfg,
         as well as all connections not in the list do not exist.
 
-        connections is a list of tuples where the node at index 0 of the tuple has
-        to be in the new_constraint set of the node at index 1 of the tuple."""
+        Args:
+            connections(list[tuples]): the node at index 0 of the tuple has
+                                       to be in the new_constraint set of the node
+                                       at index 1 of the tuple.
+            lattice(Lattice): The lattice we're analysing.
+        """
         for connection in connections:
-            logger.debug("self.cfg.nodes[connection[0]] is %s", self.cfg.nodes[connection[0]])
-            logger.debug("self.cfg.nodes[connection[1]] is %s", self.cfg.nodes[connection[1]])
-
             self.assertEqual(lattice.in_constraint(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]]), True, str(connection) + " expected to be connected")
         nodes = len(self.cfg.nodes)
 

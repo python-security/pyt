@@ -7,10 +7,6 @@ import scrypt
 
 app = Flask(__name__)
 
-def outer(outer_arg):
-    outer_ret_val = outer_arg + 'hey'
-    return outer_ret_val
-
 def inner(inner_arg):
     yes_vuln = inner_arg + 'hey'
     return yes_vuln

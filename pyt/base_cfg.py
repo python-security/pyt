@@ -496,7 +496,6 @@ class Visitor(ast.NodeVisitor):
             handler_body = self.stmt_star_handler(handler.body)
             logger.debug("[sad panda] handler_node is %s", handler_node)
             logger.debug("[sad panda] handler_body.first_statement is %s", handler_body.first_statement)
-
             handler_body = self.handle_stmt_star_ignore_node(handler_body, handler_node)
             last_statements.extend(handler_body.last_statements)
 
@@ -506,7 +505,6 @@ class Visitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
             body.last_statements.extend(orelse_last_nodes)
         logger.debug("[Tuesday] AFTER try_node is %s", try_node)
-
 
         if node.finalbody:
             finalbody = self.stmt_star_handler(node.finalbody)
@@ -631,7 +629,7 @@ class Visitor(ast.NodeVisitor):
             call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1])
             call.connect(call_assignment)
         else: #  assignment to builtin
-            # Consider using call.left_hand_side
+            # Consider using call.left_hand_side instead of call.label
             # logger.debug("call.left_hand_side is %s", call.left_hand_side)
             # raise
             # call_label = call.left_hand_side

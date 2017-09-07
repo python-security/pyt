@@ -11,10 +11,13 @@ class BaseTestCase(unittest.TestCase):
 
     def assertInCfg(self, connections):
         """Asserts that all connections in the connections list exists in the cfg,
-        as well as all connections not in the list do not exist
+        as well as that all connections not in the list do not exist.
 
-        connections is a list of tuples where
-        the node at index 0 of the tuple has to be in the new_constraint set of the node at index 1 of the tuple"""
+        Args:
+            connections(list[tuple]): the node at index 0 of the tuple has
+                                      to be in the new_constraint set of the node
+                                      at index 1 of the tuple.
+        """
         for connection in connections:
             self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].outgoing, str(connection) + " expected to be connected")
             self.assertIn(self.cfg.nodes[connection[1]], self.cfg.nodes[connection[0]].ingoing, str(connection) + " expected to be connected")
@@ -24,8 +27,6 @@ class BaseTestCase(unittest.TestCase):
         for element in range(nodes):
             for sets in range(nodes):
                 if not (element, sets) in connections:
-                    # print("HEY element is %s", element)
-                    # print("HEY sets is %s", sets)
                     self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s <- %s)" % (element, sets)  +  " expected to be disconnected")
                     self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s <- %s)" % (sets, element)  +  " expected to be disconnected")
 

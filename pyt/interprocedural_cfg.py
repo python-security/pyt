@@ -266,10 +266,6 @@ class InterproceduralVisitor(Visitor):
             # Save LHS
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-            # logger.debug("[FLUX AGAIN] So saved_scope_node is %s", saved_scope_node)
-            # logger.debug("[FLUX AGAIN] So previous_node is %s", previous_node)
-
-            # raise
             self.connect_if_allowed(previous_node, saved_scope_node)
 
         return saved_variables
@@ -283,7 +279,7 @@ class InterproceduralVisitor(Visitor):
           #         break
           #     else:
           #         print('hest')
-          # print('next') # self.nodes[-1] is print('hest')
+          # print('next')         # self.nodes[-1] is print('hest')
           if self.last_was_loop_stack[-1]:
             logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
             logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
@@ -536,10 +532,6 @@ class InterproceduralVisitor(Visitor):
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-        # if self.nodes[-1].label.startswith('¤call_4'):
-        #   logger.debug("HMMMM")
-        #   raise
-
         local_definitions = self.module_definitions_stack[-1]
 
         alias = handle_aliases_in_calls(_id, local_definitions.import_alias_mapping)

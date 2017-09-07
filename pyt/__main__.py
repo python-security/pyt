@@ -37,8 +37,6 @@ from .save import (
     vulnerabilities_to_file
 )
 from .vulnerabilities import find_vulnerabilities
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 def parse_args(args):
@@ -233,8 +231,6 @@ def main(command_line_args=sys.argv[1:]):
         # Add all the route functions to the cfg_list
         FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
-    logger.debug("[OSLO SO GOOD] cfg_list[0] is %s", cfg_list[0])
-    # logger.debug("[OSLO SO GOOD] len(cfg_list[0]) is %s", len(cfg_list[0]))
     initialize_constraint_table(cfg_list)
 
     analyse(cfg_list, analysis_type=analysis)

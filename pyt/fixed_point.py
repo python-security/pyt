@@ -1,7 +1,5 @@
 """This module implements the fixed point algorithm."""
 from .constraint_table import constraint_table
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class FixedPointAnalysis():
@@ -20,8 +18,6 @@ class FixedPointAnalysis():
         q = self.cfg.nodes
 
         while q != []:
-            logger.debug("q[0] is %s", q[0])
-            logger.debug("type(q[0]) is %s", type(q[0]))
             x_i = constraint_table[q[0]]  # x_i = q[0].old_constraint
             self.analysis.fixpointmethod(q[0])  # y = F_i(x_1, ..., x_n);
             y = constraint_table[q[0]]  # y = q[0].new_constraint
