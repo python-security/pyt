@@ -731,7 +731,7 @@ class Visitor(ast.NodeVisitor):
             node()
             blackbox(bool): Whether or not it is a builtin or blackbox call.
         Returns:
-            ???
+            FILL ME IN
         """
 
         logger.debug("[qq] ENTER self.blackbox_calls is %s", self.blackbox_calls)
@@ -802,7 +802,7 @@ class Visitor(ast.NodeVisitor):
             except AttributeError:
                 pass
             try:
-                logger.debug("[3rd rail] len(node.kwargs) is %s", len(node.kwargs))
+                logger.debug("[3rd rail] len(node.keywords) is %s", len(node.keywords))
             except AttributeError:
                 pass
 
@@ -848,8 +848,40 @@ class Visitor(ast.NodeVisitor):
                 logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
                 logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
                 rhs_vars.extend(vv.result)
-
             logger.debug("[Voyager] arg is %s", arg)
+        ########
+        for arg in node.keywords:
+            if isinstance(arg, ast.Call):
+                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
+                return_value_of_nested_call = self.visit(arg)
+                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
+                logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
+                logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
+                # for n in self.nodes:
+                #     if n == return_value_of_nested_call:
+                #         raise
+                return_value_of_nested_call.connect(call_node)
+                # visited_args.append(return_value_of_nested_call)
+
+                logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
+                visual_args.append(return_value_of_nested_call.left_hand_side)
+                rhs_vars.append(return_value_of_nested_call.left_hand_side)
+            else:
+                label = LabelVisitor()
+                label.visit(arg)
+                logger.debug("arg is %s, and label.result is %s", arg, label.result)
+                visual_args.append(label.result)
+                # visited_args.append(arg)
+
+                from .vars_visitor import VarsVisitor
+                vv = VarsVisitor()
+                vv.visit(arg)
+                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
+                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
+                rhs_vars.extend(vv.result)
+            logger.debug("[SOUL BREW] arg is %s", arg)
+        ########
+
         logger.debug("[3rd rail] visual_args is %s", visual_args)
         # logger.debug("[3rd rail] visited_args is %s", visited_args)
 

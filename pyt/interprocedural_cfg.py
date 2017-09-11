@@ -473,7 +473,7 @@ class InterproceduralVisitor(Visitor):
             saved_function_call_index = self.function_call_index
 
             def_node = definition.node
-            
+
             saved_variables = self.save_local_scope(def_node.lineno,
                                                     saved_function_call_index)
             logger.debug("BEFORE saved_variables are %s", saved_variables)

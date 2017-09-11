@@ -60,14 +60,14 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
                  > Line 12: param = ¤call_1
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
-                 > Line 16: ¤call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+                 > Line 15: ¤call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
-                 > Line 16: command = ¤call_2
+                 > Line 15: command = ¤call_2
                 File: example/vulnerable_code_across_files/blackbox_library_call.py
-                 > Line 17: hey = command
+                 > Line 16: hey = command
             File: example/vulnerable_code_across_files/blackbox_library_call.py
-             > reaches line 18, trigger word "subprocess.call(": 
-                ¤call_3 = ret_subprocess.call(hey)
+             > reaches line 17, trigger word "subprocess.call(": 
+                ¤call_3 = ret_subprocess.call(hey, shell=True)
             This vulnerability is unknown due to:  Label: ¤call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
         """
 
@@ -104,7 +104,7 @@ class EngineTest(BaseTestCase):
                  > Line 23: foo = ¤call_1
             File: example/nested_functions_code/builtin_with_user_defined_inner.py
              > reaches line 24, trigger word "subprocess.call(": 
-                ¤call_3 = ret_subprocess.call(foo)
+                ¤call_3 = ret_subprocess.call(foo, shell=True)
             This vulnerability is unknown due to:  Label: ¤call_1 = ret_scrypt.encrypt(¤call_2)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
@@ -195,7 +195,7 @@ class EngineTest(BaseTestCase):
                  > Line 18: ¤call_2 = ret_outer
             File: example/nested_functions_code/sink_with_user_defined_inner.py
              > reaches line 18, trigger word "subprocess.call(": 
-                ¤call_1 = ret_subprocess.call(outer(inner(req_param)),shell=True)
+                ¤call_1 = ret_subprocess.call(¤call_2, shell=True)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
