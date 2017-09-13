@@ -109,6 +109,29 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_sink_with_result_of_blackbox_nested(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_result_of_blackbox_nested.py')
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/nested_functions_code/sink_with_result_of_blackbox_nested.py
+             > User input at line 12, trigger word "form[": 
+                req_param = request.form['suggestion']
+            Reassigned in: 
+                File: example/nested_functions_code/sink_with_result_of_blackbox_nested.py
+                 > Line 13: ¤call_2 = ret_scrypt.encrypt(req_param)
+                File: example/nested_functions_code/sink_with_result_of_blackbox_nested.py
+                 > Line 13: ¤call_1 = ret_scrypt.encrypt(¤call_2)
+                File: example/nested_functions_code/sink_with_result_of_blackbox_nested.py
+                 > Line 13: result = ¤call_1
+            File: example/nested_functions_code/sink_with_result_of_blackbox_nested.py
+             > reaches line 14, trigger word "subprocess.call(": 
+                ¤call_3 = ret_subprocess.call(result, shell=True)
+            This vulnerability is unknown due to:  Label: ¤call_1 = ret_scrypt.encrypt(¤call_2)
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
     def test_sink_with_result_of_user_defined_nested(self):
         vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_result_of_user_defined_nested.py')
         logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
@@ -155,6 +178,27 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
         
+    def test_sink_with_blackbox_inner(self):
+        vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_blackbox_inner.py')
+        logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/nested_functions_code/sink_with_blackbox_inner.py
+             > User input at line 12, trigger word "form[": 
+                req_param = request.form['suggestion']
+            Reassigned in: 
+                File: example/nested_functions_code/sink_with_blackbox_inner.py
+                 > Line 14: ¤call_3 = ret_scrypt.encypt(req_param)
+                File: example/nested_functions_code/sink_with_blackbox_inner.py
+                 > Line 14: ¤call_2 = ret_scrypt.encypt(¤call_3)
+            File: example/nested_functions_code/sink_with_blackbox_inner.py
+             > reaches line 14, trigger word "subprocess.call(": 
+                ¤call_1 = ret_subprocess.call(¤call_2, shell=True)
+            This vulnerability is unknown due to:  Label: ¤call_3 = ret_scrypt.encypt(req_param)
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
     def test_sink_with_user_defined_inner(self):
         vulnerability_log = self.run_analysis('example/nested_functions_code/sink_with_user_defined_inner.py')
         logger.debug("vulnerability_log.vulnerabilities is %s", vulnerability_log.vulnerabilities)

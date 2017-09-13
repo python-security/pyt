@@ -366,6 +366,7 @@ class Visitor(ast.NodeVisitor):
                     if ingoing:
                         # Only set it once
                         first_node = ingoing[0]
+            logger.debug("here in my, node is %s", node)
             if self.node_to_connect(node) and node:
                 if not first_node:
                     if isinstance(node, ControlFlowNode):
@@ -381,10 +382,15 @@ class Visitor(ast.NodeVisitor):
             logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
         except Exception:
             pass
-        logger.debug("BEFORE cfg_statements are %s", cfg_statements)
+        # logger.debug("A1A Beachfront Ave BEFORE cfg_statements[-1] are %s", cfg_statements[-1])
+        # logger.debug("Hmm so type(cfg_statements) is %s", type(cfg_statements))
+        for i,s in enumerate(cfg_statements):
+            logger.debug("BEFORE SO CONFUSED statement #%s is %s", i, s)
 
         self.connect_nodes(cfg_statements)
-        logger.debug("AFTER cfg_statements are %s", cfg_statements)
+        for i,s in enumerate(cfg_statements):
+            logger.debug("AFTER SO CONFUSED statement #%s is %s", i, s)
+        # logger.debug("A1A Beachfront Ave AFTER cfg_statements[-1] are %s", cfg_statements[-1])
 
         if cfg_statements:
             if first_node:
@@ -453,6 +459,7 @@ class Visitor(ast.NodeVisitor):
 
         last_statements = self.remove_breaks(body_connect_stmts.last_statements)
 
+        logger.debug("SO CONFUSED so last_statements is %s", last_statements)
         return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
 
     def visit_NameConstant(self, node):
@@ -815,6 +822,7 @@ class Visitor(ast.NodeVisitor):
                            [],
                            line_number=node.lineno,
                            path=self.filenames[-1])
+        original_prev_node = self.nodes[-1]
 
         # visited_args = []
         visual_args = []
@@ -829,6 +837,8 @@ class Visitor(ast.NodeVisitor):
                 # for n in self.nodes:
                 #     if n == return_value_of_nested_call:
                 #         raise
+                logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
+                logger.debug("BNBN About to append %s", return_value_of_nested_call)
                 return_value_of_nested_call.connect(call_node)
                 # visited_args.append(return_value_of_nested_call)
 
@@ -860,6 +870,8 @@ class Visitor(ast.NodeVisitor):
                 # for n in self.nodes:
                 #     if n == return_value_of_nested_call:
                 #         raise
+                logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
+                logger.debug("BNBN About to append %s", return_value_of_nested_call)
                 return_value_of_nested_call.connect(call_node)
                 # visited_args.append(return_value_of_nested_call)
 
@@ -939,14 +951,14 @@ class Visitor(ast.NodeVisitor):
             self.blackbox_assignments.add(call_node)
 
         # IMPORTANT
-        logger.debug("[Integral] connecting %s", self.nodes[-1])
+        logger.debug("[Integral] connecting %s", original_prev_node)
         logger.debug("[Integral] to call_node %s", call_node)
         # THE CULPRIT!
-        # self.nodes[-1].connect(call_node)
+        # original_prev_node.connect(call_node)
         # raise
-        logger.debug("1617CULPRIT self.nodes[-1] IS %s", self.nodes[-1])
-        logger.debug("1617CULPRIT call_node IS %s", call_node)
-        self.connect_if_allowed(self.nodes[-1], call_node)
+        logger.debug("ON&ON original_prev_node IS %s", original_prev_node)
+        logger.debug("ON&ON call_node IS %s", call_node)
+        self.connect_if_allowed(original_prev_node, call_node)
         self.nodes.append(call_node)
         # raise
         # IMPORTANT

@@ -296,8 +296,17 @@ class InterproceduralVisitor(Visitor):
         except IndexError:
             logger.debug("ALLOWED, no self.prev_nodes_to_avoid[-1] ")
             logger.debug("ALLOWED, node_to_connect_to is %s and previous_node is %s", node_to_connect_to, previous_node)
-            # If there are no prev_nodes_to_avoid we just connect safely.
-            previous_node.connect(node_to_connect_to)
+            logger.debug("type(previous_node) is %s", type(previous_node))
+            # if not image_name:
+            #     return 404
+            # print('foo')  # We do not want to this line with `return 404`
+            if not isinstance(previous_node, ReturnNode):
+                # If there are no prev_nodes_to_avoid we just connect safely.
+                previous_node.connect(node_to_connect_to)
+            else:
+                logger.debug("SHUT DOWN, previous_node is ReturnNode")
+                logger.debug("PREV NODE IS A RETURN NODE")
+
 
     def save_def_args_in_temp(self, call_args, def_args, line_number, saved_function_call_index):
         """Save the arguments of the definition being called. Visit the arguments if they're calls.
@@ -313,8 +322,21 @@ class InterproceduralVisitor(Visitor):
         """
         args_mapping = dict()
 
+        logger.debug("call_args are %s", call_args)
+        logger.debug("def_args are %s", def_args)
+        logger.debug("call_args are %s", len(call_args))
+        logger.debug("def_args are %s", len(def_args))
         # Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument
         for i, call_arg in enumerate(call_args):
+            if len(call_args) == 0:
+                logger.debug("WTF")
+                raise
+            logger.debug("Bout to die!")
+            logger.debug("call_args are %s", call_args)
+            logger.debug("def_args are %s", def_args)
+            logger.debug("call_args are %s", len(call_args))
+            logger.debug("def_args are %s", len(def_args))
+
             def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
 
             call_arg_label_visitor = LabelVisitor()
@@ -468,36 +490,40 @@ class InterproceduralVisitor(Visitor):
         Returns:
             Last node in self.nodes, probably the return of the function appended to self.nodes in return_handler.
         """
-        try:
-            self.function_call_index += 1
-            saved_function_call_index = self.function_call_index
+        # try:
+        self.function_call_index += 1
+        saved_function_call_index = self.function_call_index
 
-            def_node = definition.node
+        def_node = definition.node
 
-            saved_variables = self.save_local_scope(def_node.lineno,
-                                                    saved_function_call_index)
-            logger.debug("BEFORE saved_variables are %s", saved_variables)
-            args_mapping = self.save_def_args_in_temp(call_node.args,
-                                                      Arguments(def_node.args),
-                                                      call_node.lineno,
-                                                      saved_function_call_index)
+        saved_variables = self.save_local_scope(def_node.lineno,
+                                                saved_function_call_index)
+        logger.debug("BEFORE saved_variables are %s", saved_variables)
 
-            self.filenames.append(definition.path)
-            self.create_local_scope_from_def_args(call_node.args,
+        # Check to make sure there is no bug
+        assert len(call_node.args) == len(Arguments(def_node.args))
+        
+        args_mapping = self.save_def_args_in_temp(call_node.args,
                                                   Arguments(def_node.args),
-                                                  def_node.lineno,
+                                                  call_node.lineno,
                                                   saved_function_call_index)
-            function_nodes = self.visit_and_get_function_nodes(definition)
-            self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
-            self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
-            self.return_handler(call_node, function_nodes, saved_function_call_index)
 
-            logger.debug("AFTER saved_variables are %s", saved_variables)
-            self.function_return_stack.pop()
-        except IndexError:
-            error_call = get_call_names_as_string(call_node.func)
-            print('Error: Possible nameclash in "{}".' +
-                  ' Call omitted!\n'.format(error_call))
+        self.filenames.append(definition.path)
+        self.create_local_scope_from_def_args(call_node.args,
+                                              Arguments(def_node.args),
+                                              def_node.lineno,
+                                              saved_function_call_index)
+        function_nodes = self.visit_and_get_function_nodes(definition)
+        self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
+        self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
+        self.return_handler(call_node, function_nodes, saved_function_call_index)
+
+        logger.debug("AFTER saved_variables are %s", saved_variables)
+        self.function_return_stack.pop()
+        # except IndexError:
+        #     error_call = get_call_names_as_string(call_node.func)
+        #     print('Error: Possible nameclash in "{}".' +
+        #           ' Call omitted!\n'.format(error_call))
 
         logger.debug('[Legal pad] returning %s', self.nodes[-1])
         return self.nodes[-1]

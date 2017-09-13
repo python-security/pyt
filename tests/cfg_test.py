@@ -783,6 +783,34 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (call_foo, exit_foo),
                           (_exit, call_foo)])
 
+    def test_path_traversal(self):
+        path = 'example/vulnerable_code/path_traversal.py'
+        self.cfg_create_from_file(path)
+
+        for i, n in enumerate(self.cfg.nodes):
+            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        entry_foo = 1
+        a = 2
+        _if = 3
+        ret_if = 4
+        ret = 5
+        exit_foo = 6
+        call_foo = 7
+        _exit = 8
+
+        self.assertInCfg([(entry_foo, entry),
+                          (a, entry_foo),
+                          (_if, a),
+                          (ret_if, _if),
+                          (ret, _if),
+                          (exit_foo, ret_if),
+                          (exit_foo, ret),
+                          (call_foo, exit_foo),
+                          (_exit, call_foo)])
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'

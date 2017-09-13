@@ -5,6 +5,8 @@ from .base_test_case import BaseTestCase
 from pyt.constraint_table import initialize_constraint_table
 from pyt.fixed_point import FixedPointAnalysis
 from pyt.lattice import Lattice
+from pyt.utils.log import enable_logger, logger
+enable_logger(to_file='./pyt.log')
 
 
 class AnalysisBaseTestCase(BaseTestCase):
