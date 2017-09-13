@@ -14,12 +14,9 @@ def inner():
 def cat_picture():
     image_name = request.args.get('image_name')
     if not image_name:
-        # image_name = 5
+        image_name = 'foo'
         return 404
-    # return send_file(os.path.join(os.getcwd(), image_name))
-    # send_file(os.path.join(os.getcwd(), image_name))
-    hey = inner()
-    foo = outer(hey, image_name) # Inlining inner here fucks everything
+    foo = outer(inner(), image_name) # Nested call after if caused the problem
     send_file(foo)
     return 'idk'
 

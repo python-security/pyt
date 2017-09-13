@@ -784,33 +784,44 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, call_foo)])
 
     def test_path_traversal(self):
-        path = 'example/vulnerable_code/path_traversal.py'
+        path = 'example/vulnerable_code/nested_call_after_if.py'
         self.cfg_create_from_file(path)
 
         for i, n in enumerate(self.cfg.nodes):
             logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
 
-        self.assert_length(self.cfg.nodes, expected_length=9)
+        self.assert_length(self.cfg.nodes, expected_length=10)
 
         entry = 0
-        entry_foo = 1
-        a = 2
+        ret_request = 1
+        image_name_equals_call_1 = 2
         _if = 3
-        ret_if = 4
-        ret = 5
-        exit_foo = 6
-        call_foo = 7
-        _exit = 8
+        image_name_equals_foo = 4
+        inner_call = 5
+        outer_call = 6
+        foo_equals_call_2 = 7
+        ret_send_file = 8
+        _exit = 9
 
-        self.assertInCfg([(entry_foo, entry),
-                          (a, entry_foo),
-                          (_if, a),
-                          (ret_if, _if),
-                          (ret, _if),
-                          (exit_foo, ret_if),
-                          (exit_foo, ret),
-                          (call_foo, exit_foo),
-                          (_exit, call_foo)])
+# image_name = request.args.get('image_name')
+# if not image_name:
+#     image_name = 'foo'
+# foo = scrypt.encrypt(scrypt.encrypt(), image_name) # Nested call after if caused the problem
+# send_file(foo)
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (inner_call, image_name_equals_foo),
+                          (outer_call, inner_call),
+                          (outer_call, image_name_equals_foo), # NO NO NO
+                          (foo_equals_call_2, outer_call),
+                          (foo_equals_call_2, _if), # NO NO NO
+                          (foo_equals_call_2, image_name_equals_foo), # NO NO NO
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'
