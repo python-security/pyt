@@ -194,6 +194,7 @@ class BBorBInode(AssignmentNode):
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
         self.args = []
+        self.inner_most_call = self
 
 
 class AssignmentCallNode(AssignmentNode):
@@ -308,7 +309,14 @@ class Visitor(ast.NodeVisitor):
             if isinstance(next_node, ControlFlowNode):
                 last.connect(next_node.test)  # connect to next if test case
             elif isinstance(next_node, AssignmentCallNode):
-                last.connect(next_node.call_node)
+                call_node = next_node.call_node
+                logger.debug("SPOTI So call_node is %s", call_node)
+                # Loop to inner most function call
+                # e.g. scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
+                while call_node != call_node.inner_most_call:
+                    call_node = call_node.inner_most_call
+                    logger.debug("SPOTI So call_node is now %s", call_node)
+                last.connect(call_node)
             else:
                 last.connect(next_node)
 
@@ -323,8 +331,8 @@ class Visitor(ast.NodeVisitor):
             elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
             # elif isinstance(n, AssignmentCallNode):
-                # Proceed as normal!
-                # raise
+            #     # Proceed as normal!
+            #     raise
             # elif isinstance(next_node, AssignmentCallNode):
                 # Proceed as normal!
                 # raise
@@ -837,6 +845,7 @@ class Visitor(ast.NodeVisitor):
                 logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
                 logger.debug("BNBN About to append %s", return_value_of_nested_call)
                 return_value_of_nested_call.connect(call_node)
+                call_node.inner_most_call = return_value_of_nested_call
                 # visited_args.append(return_value_of_nested_call)
 
                 logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
