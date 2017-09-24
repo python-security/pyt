@@ -815,14 +815,14 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, ret_send_file)
                           ])
 
-    def test_nested_blackbox_calls_after_for(self):
-        path = 'example/vulnerable_code/nested_blackbox_calls_after_for.py'
+    def test_multiple_nested_blackbox_calls_after_for(self):
+        path = 'example/vulnerable_code/multiple_nested_blackbox_calls_after_for.py'
         self.cfg_create_from_file(path)
 
         for i, n in enumerate(self.cfg.nodes):
             logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
 
-        self.assert_length(self.cfg.nodes, expected_length=10)
+        self.assert_length(self.cfg.nodes, expected_length=11)
 
         entry = 0
         ret_request = 1
@@ -830,12 +830,16 @@ class CFGFunctionNodeTest(BaseTestCase):
         _for = 3
         ret_print = 4
         inner_blackbox_call = 5
-        outer_blackbox_call = 6
-        foo_equals_call_3 = 7
-        ret_send_file = 8
-        _exit = 9
+        second_inner_blackbox_call = 6
+        outer_blackbox_call = 7
+        foo_equals_call_3 = 8
+        ret_send_file = 9
+        _exit = 10
 
+        logger.debug("[Four barrel] inner_blackbox_call is %s", self.cfg.nodes[inner_blackbox_call])
+        logger.debug("[Four barrel] second_inner_blackbox_call is %s", self.cfg.nodes[second_inner_blackbox_call])
         logger.debug("[Four barrel] inner_blackbox_call type is %s", type(self.cfg.nodes[inner_blackbox_call]))
+        logger.debug("[Four barrel] second_inner_blackbox_call type is %s", type(self.cfg.nodes[second_inner_blackbox_call]))
 
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
@@ -843,7 +847,8 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (ret_print, _for),
                           (_for, ret_print),
                           (inner_blackbox_call, _for),
-                          (outer_blackbox_call, inner_blackbox_call),
+                          (second_inner_blackbox_call, inner_blackbox_call),
+                          (outer_blackbox_call, second_inner_blackbox_call),
                           (foo_equals_call_3, outer_blackbox_call),
                           (ret_send_file, foo_equals_call_3),
                           (_exit, ret_send_file)

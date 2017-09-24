@@ -832,6 +832,8 @@ class Visitor(ast.NodeVisitor):
         # visited_args = []
         visual_args = []
         rhs_vars = []
+        last_return_value_of_nested_call = None
+
         for arg in itertools.chain(node.args, node.keywords):
             if isinstance(arg, ast.Call):
                 # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
@@ -844,8 +846,16 @@ class Visitor(ast.NodeVisitor):
                 #         raise
                 logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
                 logger.debug("BNBN About to append %s", return_value_of_nested_call)
-                return_value_of_nested_call.connect(call_node)
-                call_node.inner_most_call = return_value_of_nested_call
+
+                if last_return_value_of_nested_call:
+                    # connect inner to other_inner in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                else:
+                    # I should only set this once per loop, inner in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
+                    call_node.inner_most_call = return_value_of_nested_call
+                last_return_value_of_nested_call = return_value_of_nested_call
+
                 # visited_args.append(return_value_of_nested_call)
 
                 logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
@@ -865,6 +875,9 @@ class Visitor(ast.NodeVisitor):
                 logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
                 rhs_vars.extend(vv.result)
             logger.debug("[Voyager] arg is %s", arg)
+        if last_return_value_of_nested_call:
+            # connect other_inner to outer in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+            last_return_value_of_nested_call.connect(call_node)
         #####
 
         logger.debug("[3rd rail] visual_args is %s", visual_args)
