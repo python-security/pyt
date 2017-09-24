@@ -783,8 +783,8 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (call_foo, exit_foo),
                           (_exit, call_foo)])
 
-    def test_path_traversal(self):
-        path = 'example/vulnerable_code/nested_call_after_if.py'
+    def test_blackbox_call_after_if(self):
+        path = 'example/vulnerable_code/blackbox_call_after_if.py'
         self.cfg_create_from_file(path)
 
         for i, n in enumerate(self.cfg.nodes):
@@ -803,19 +803,46 @@ class CFGFunctionNodeTest(BaseTestCase):
         _exit = 8
 
         logger.debug("[Four barrel] blackbox_call type is %s", type(self.cfg.nodes[blackbox_call]))
-# image_name = request.args.get('image_name')
-# if not image_name:
-#     image_name = 'foo'
-# foo = scrypt.outer(image_name) # Any call after if causes the problem
-# send_file(foo)
+
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
                           (image_name_equals_foo, _if),
+                          (blackbox_call, _if),
                           (blackbox_call, image_name_equals_foo),
                           (foo_equals_call_2, blackbox_call),
-                          (foo_equals_call_2, _if), # NO NO NO
-                          (foo_equals_call_2, image_name_equals_foo), # NO NO NO
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
+
+    def test_nested_blackbox_calls_after_if(self):
+        path = 'example/vulnerable_code/nested_blackbox_calls_after_if.py'
+        self.cfg_create_from_file(path)
+
+        for i, n in enumerate(self.cfg.nodes):
+            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        blackbox_call = 5
+        foo_equals_call_2 = 6
+        ret_send_file = 7
+        _exit = 8
+
+        logger.debug("[Four barrel] blackbox_call type is %s", type(self.cfg.nodes[blackbox_call]))
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (blackbox_call, _if),
+                          (blackbox_call, image_name_equals_foo),
+                          (foo_equals_call_2, blackbox_call),
                           (ret_send_file, foo_equals_call_2),
                           (_exit, ret_send_file)
                           ])

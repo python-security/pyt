@@ -3,7 +3,7 @@
 import ast
 from collections import namedtuple
 
-from .base_cfg import AssignmentNode, BBnode, RestoreNode
+from .base_cfg import AssignmentNode, BBorBInode, RestoreNode
 from .framework_adaptor import TaintedNode
 from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
@@ -264,7 +264,7 @@ def get_sink_args(cfg_node):
     logger.debug("[VINEAPPLE] cfg_node.ast_node is %s", cfg_node.ast_node)
     logger.debug("[VINEAPPLE] type(cfg_node.ast_node) is %s", type(cfg_node.ast_node))
     other_results = list()
-    if isinstance(cfg_node, BBnode):
+    if isinstance(cfg_node, BBorBInode):
         # logger.debug("[VINEAPPLE] So visited args is %s", cfg_node.args)
         # for arg in cfg_node.args:
         #     logger.debug("arg is %s", arg)

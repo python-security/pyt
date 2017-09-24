@@ -149,6 +149,8 @@ class AssignmentNode(Node):
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
+
+        # TODO: REFACTOR THESE INTO AssignmentCallNode!
         # Only set in assignment_call_node()
         self.vv_result = vv_result
         # Only set True in assignment_call_node()
@@ -177,8 +179,8 @@ class RestoreNode(AssignmentNode):
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
 
 
-class BBnode(AssignmentNode):
-    """Node used for handling restore nodes returning from function calls."""
+class BBorBInode(AssignmentNode):
+    """Node used for handling restore nodes returning from blackbox or builtin function calls."""
 
     def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
         """Create a Restore node.
@@ -193,6 +195,23 @@ class BBnode(AssignmentNode):
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
         self.args = []
 
+
+class AssignmentCallNode(AssignmentNode):
+    """Node used for X."""
+
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, vv_result, *, line_number, path, call_node):
+        """Create a X.
+
+        Args:
+            label(str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            path?
+            call_node?
+        """
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, vv_result, line_number=line_number, path=path)
+        self.call_node = call_node
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
@@ -288,6 +307,8 @@ class Visitor(ast.NodeVisitor):
         for last in control_flow_node[1]:  # list of last nodes in ifs and elifs
             if isinstance(next_node, ControlFlowNode):
                 last.connect(next_node.test)  # connect to next if test case
+            elif isinstance(next_node, AssignmentCallNode):
+                last.connect(next_node.call_node)
             else:
                 last.connect(next_node)
 
@@ -301,6 +322,12 @@ class Visitor(ast.NodeVisitor):
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
+            # elif isinstance(n, AssignmentCallNode):
+                # Proceed as normal!
+                # raise
+            # elif isinstance(next_node, AssignmentCallNode):
+                # Proceed as normal!
+                # raise
             elif isinstance(next_node, RestoreNode):
                 continue
             elif CALL_IDENTIFIER in next_node.label:
@@ -634,15 +661,23 @@ class Visitor(ast.NodeVisitor):
         logger.debug("[NYSEC] type(call) is %s", type(call))
         call_label = ''
         call_assignment = None
-        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin e.g. RestoreNode ¤call_1 = ret_outer
-            # raise
+
+        # TODO eliminate else and code duplication
+        if isinstance(call, BBorBInode):
+            logger.debug("[sf]call is an BBorBInode!")
             call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1])
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
+            call.connect(call_assignment)
+        elif isinstance(call, AssignmentNode): #  assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
+            # raise
+            logger.debug("[sf]call is an AssignmentNode!")
+            call_label = call.left_hand_side
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
             call.connect(call_assignment)
         else: #  assignment to builtin
             # Consider using call.left_hand_side instead of call.label
             # logger.debug("call.left_hand_side is %s", call.left_hand_side)
-            # raise
+            raise
             # call_label = call.left_hand_side
 
             call_label = call.label
@@ -653,7 +688,7 @@ class Visitor(ast.NodeVisitor):
             vars_visitor = VarsVisitor()
             vars_visitor.visit(ast_node.value)
 
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
 
         if call in self.blackbox_calls:
             self.blackbox_assignments.add(call_assignment)
@@ -780,11 +815,11 @@ class Visitor(ast.NodeVisitor):
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + label.result[:index] + '('
         logger.debug("[Dominique bistro] RHS is %s", RHS)
-        call_node = BBnode("",
-                           LHS,
-                           [],
-                           line_number=node.lineno,
-                           path=self.filenames[-1])
+        call_node = BBorBInode("",
+                               LHS,
+                               [],
+                               line_number=node.lineno,
+                               path=self.filenames[-1])
 
         # visited_args = []
         visual_args = []
