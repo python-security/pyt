@@ -790,33 +790,30 @@ class CFGFunctionNodeTest(BaseTestCase):
         for i, n in enumerate(self.cfg.nodes):
             logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
 
-        self.assert_length(self.cfg.nodes, expected_length=10)
+        self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
         ret_request = 1
         image_name_equals_call_1 = 2
         _if = 3
         image_name_equals_foo = 4
-        inner_call = 5
-        outer_call = 6
-        foo_equals_call_2 = 7
-        ret_send_file = 8
-        _exit = 9
+        blackbox_call = 5
+        foo_equals_call_2 = 6
+        ret_send_file = 7
+        _exit = 8
 
+        logger.debug("[Four barrel] blackbox_call type is %s", type(self.cfg.nodes[blackbox_call]))
 # image_name = request.args.get('image_name')
 # if not image_name:
 #     image_name = 'foo'
-# foo = scrypt.encrypt(scrypt.encrypt(), image_name) # Nested call after if caused the problem
+# foo = scrypt.outer(image_name) # Any call after if causes the problem
 # send_file(foo)
-
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
                           (image_name_equals_foo, _if),
-                          (inner_call, image_name_equals_foo),
-                          (outer_call, inner_call),
-                          (outer_call, image_name_equals_foo), # NO NO NO
-                          (foo_equals_call_2, outer_call),
+                          (blackbox_call, image_name_equals_foo),
+                          (foo_equals_call_2, blackbox_call),
                           (foo_equals_call_2, _if), # NO NO NO
                           (foo_equals_call_2, image_name_equals_foo), # NO NO NO
                           (ret_send_file, foo_equals_call_2),

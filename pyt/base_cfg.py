@@ -1,4 +1,5 @@
 import ast
+import itertools
 from collections import namedtuple
 
 from .ast_helper import Arguments, get_call_names_as_string
@@ -187,6 +188,7 @@ class BBnode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path?
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
         self.args = []
@@ -203,6 +205,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path?
         """
         super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, None, line_number=line_number, path=path)
 
@@ -291,6 +294,9 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
+            logger.debug("DEATH")
+            logger.debug("n is %s", n)
+            logger.debug("next_node is %s", next_node)
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
@@ -385,11 +391,11 @@ class Visitor(ast.NodeVisitor):
         # logger.debug("A1A Beachfront Ave BEFORE cfg_statements[-1] are %s", cfg_statements[-1])
         # logger.debug("Hmm so type(cfg_statements) is %s", type(cfg_statements))
         for i,s in enumerate(cfg_statements):
-            logger.debug("BEFORE SO CONFUSED statement #%s is %s", i, s)
+            logger.debug("BEFORE SO MARG statement #%s is %s", i, s)
 
         self.connect_nodes(cfg_statements)
         for i,s in enumerate(cfg_statements):
-            logger.debug("AFTER SO CONFUSED statement #%s is %s", i, s)
+            logger.debug("AFTER SO MARG statement #%s is %s", i, s)
         # logger.debug("A1A Beachfront Ave AFTER cfg_statements[-1] are %s", cfg_statements[-1])
 
         if cfg_statements:
@@ -455,6 +461,7 @@ class Visitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, test)
             body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
+            logger.debug("SO CONFUSED LETS SEE, So we are adding test %s to ", test)
             body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
 
         last_statements = self.remove_breaks(body_connect_stmts.last_statements)
@@ -747,52 +754,8 @@ class Visitor(ast.NodeVisitor):
         saved_function_call_index = self.function_call_index
         self.undecided = False
 
-        # label = LabelVisitor()
-        # logger.debug("[BLUESTONE sucks] node is %s", node)
-        # logger.debug("[BLUESTONE sucks] node.func is %s", node.func)
-        # if isinstance(node.func, ast.Name):
-        #     logger.debug("[BLUESTONE sucks] node.func.attr is %s", node.func.id)
-        #     pass
-        # elif isinstance(node.func, ast.Attribute):
-        #     attribute = node.func
-
-        #     logger.debug("HERE COMES THE CRAZY AST CODE")
-        #     logger.debug("[3rd rail] attribute.attr is %s", attribute.attr)
-        #     logger.debug("[3rd rail] attribute.value is %s", attribute.value)
-        #     logger.debug("[3rd rail] type(attribute.value is %s", type(attribute.value))
-        #     if isinstance(attribute.value, ast.Name):
-        #         logger.debug("[3rd rail] NAMENAMENAME dir(attribute.value) is %s", dir(attribute.value))
-        #     elif isinstance(attribute.value, ast.Attribute):
-        #         logger.debug("[3rd rail] ATTRIBUTE ATTRIBUTE ATTRIBUTE dir(attribute.value) is %s", dir(attribute.value))
-        #     elif isinstance(attribute.value, ast.Call):
-        #         the_call_before = attribute.value
-        #         logger.debug("the_call_before.args is %s", the_call_before.args)
-        #         for the_call_before_arg in the_call_before.args:
-        #             label = LabelVisitor()
-        #             label.visit(the_call_before_arg)
-        #             logger.debug("the_call_before_arg is %s, and label.result is %s", the_call_before_arg, label.result)
-        #         logger.debug("[3rd rail] CALL CALL CALL dir(attribute.value) is %s", dir(attribute.value))
-        #     elif isinstance(attribute.value, ast.Str):
-        #         label = LabelVisitor()
-        #         label.visit(attribute.value)
-        #         logger.debug("[3rd rail] string attribute.value was %s", label.result)
-        #     else:
-        #         logger.debug("type(attribute.value) is %s", type(attribute.value))
-        #         raise
-        # else:
-        #     raise
-        # logger.debug("AFTER THE CRAZY AST CODE")
-        # logger.debug("[3rd rail] node is %s", node)
-        # logger.debug("[3rd rail] node.args is %s", node.args)
-        # logger.debug("[3rd rail] node.func is %s", node.func)
-        # logger.debug("[3rd rail] node.keywords is %s", node.keywords)
-        # logger.debug("[3rd rail] dir(node) is %s", dir(node))
-
         label = LabelVisitor()
         label.visit(node)
-
-        # node should always be a call
-        assert isinstance(node, ast.Call) is True
 
         logger.debug("[PR] the label.result is %s", label.result)
         index = label.result.find('(')
@@ -822,12 +785,11 @@ class Visitor(ast.NodeVisitor):
                            [],
                            line_number=node.lineno,
                            path=self.filenames[-1])
-        original_prev_node = self.nodes[-1]
 
         # visited_args = []
         visual_args = []
         rhs_vars = []
-        for arg in node.args:
+        for arg in itertools.chain(node.args, node.keywords):
             if isinstance(arg, ast.Call):
                 # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 return_value_of_nested_call = self.visit(arg)
@@ -859,40 +821,7 @@ class Visitor(ast.NodeVisitor):
                 logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
                 rhs_vars.extend(vv.result)
             logger.debug("[Voyager] arg is %s", arg)
-        ########
-        for arg in node.keywords:
-            if isinstance(arg, ast.Call):
-                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
-                return_value_of_nested_call = self.visit(arg)
-                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
-                logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
-                logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
-                # for n in self.nodes:
-                #     if n == return_value_of_nested_call:
-                #         raise
-                logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
-                logger.debug("BNBN About to append %s", return_value_of_nested_call)
-                return_value_of_nested_call.connect(call_node)
-                # visited_args.append(return_value_of_nested_call)
-
-                logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
-                visual_args.append(return_value_of_nested_call.left_hand_side)
-                rhs_vars.append(return_value_of_nested_call.left_hand_side)
-            else:
-                label = LabelVisitor()
-                label.visit(arg)
-                logger.debug("arg is %s, and label.result is %s", arg, label.result)
-                visual_args.append(label.result)
-                # visited_args.append(arg)
-
-                from .vars_visitor import VarsVisitor
-                vv = VarsVisitor()
-                vv.visit(arg)
-                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
-                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
-                rhs_vars.extend(vv.result)
-            logger.debug("[SOUL BREW] arg is %s", arg)
-        ########
+        #####
 
         logger.debug("[3rd rail] visual_args is %s", visual_args)
         # logger.debug("[3rd rail] visited_args is %s", visited_args)
@@ -925,25 +854,18 @@ class Visitor(ast.NodeVisitor):
         logger.debug("[qq] visual_args is %s", visual_args)
         logger.debug("[qq] rhs_vars is %s", rhs_vars)
 
-        # This is where we'll ask the user, then save the mapping or just use the mapping.
+        # This is where we'll ask the user, then save the mapping or just use the pre-made mapping.
         # Or perhaps we'll do that in vulnerabilities.py
 
         call_node.right_hand_side_variables = rhs_vars
+        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
+        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
+        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
+        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
         call_node.args = rhs_vars
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
-
-        # ReturnNode
-
-        # the old way
-        # call_node = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-        # We need to know what the arguments are to a sink,
-        #     we also need to know the arguments to a builtin or blackbox so we can have a mapping of
-        # e.g. arg1 taints return value and arg2 does not.
-        # call save_def_args_in_temp()
-        # call_args, def_args, line_number, saved_function_call_index
-        # args_mapping = save_def_args_in_temp(call_args???, def_args???, node.lineno, saved_function_call_index)
 
         if blackbox:
             logger.debug("[qq] call_node being added to blackbox_calls is %s", call_node)
@@ -951,16 +873,12 @@ class Visitor(ast.NodeVisitor):
             self.blackbox_assignments.add(call_node)
 
         # IMPORTANT
-        logger.debug("[Integral] connecting %s", original_prev_node)
+        logger.debug("[Integral] connecting %s", self.nodes[-1])
         logger.debug("[Integral] to call_node %s", call_node)
-        # THE CULPRIT!
-        # original_prev_node.connect(call_node)
-        # raise
-        logger.debug("ON&ON original_prev_node IS %s", original_prev_node)
+        logger.debug("ON&ON self.nodes[-1] IS %s", self.nodes[-1])
         logger.debug("ON&ON call_node IS %s", call_node)
-        self.connect_if_allowed(original_prev_node, call_node)
+        self.connect_if_allowed(self.nodes[-1], call_node)
         self.nodes.append(call_node)
-        # raise
         # IMPORTANT
 
         logger.debug("[Dominique bistro] call_node is %s", call_node)
