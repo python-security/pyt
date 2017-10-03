@@ -311,11 +311,17 @@ class Visitor(ast.NodeVisitor):
             elif isinstance(next_node, AssignmentCallNode):
                 call_node = next_node.call_node
                 logger.debug("SPOTI So call_node is %s", call_node)
-                # Loop to inner most function call
-                # e.g. scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
-                while call_node != call_node.inner_most_call:
-                    call_node = call_node.inner_most_call
-                    logger.debug("SPOTI So call_node is now %s", call_node)
+                if isinstance(call_node, BBorBInode):
+                    # Loop to inner most function call
+                    # e.g. scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
+                    while call_node != call_node.inner_most_call:
+                        call_node = call_node.inner_most_call
+                        logger.debug("SPOTI So call_node is now %s", call_node)
+                else:
+                    # It is a user-defined call
+                    # DO STUFF
+                    # DO STUFF
+                    pass
                 last.connect(call_node)
             else:
                 last.connect(next_node)

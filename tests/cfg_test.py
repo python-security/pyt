@@ -815,6 +815,139 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, ret_send_file)
                           ])
 
+    def test_multiple_nested_user_defined_calls_after_if(self):
+        path = 'example/vulnerable_code/multiple_nested_user_defined_calls_after_if.py'
+        self.cfg_create_from_file(path)
+
+        for i, n in enumerate(self.cfg.nodes):
+            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
+
+        self.assert_length(self.cfg.nodes, expected_length=39)
+
+#24 is  Label: image_name = inner_arg
+#25 is  Label: inner_ret_val = save_4_inner_ret_val
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+
+        save_2_image_name = 5
+        save_3_image_name = 6
+        temp_3_first_inner_arg = 7
+        inner_arg_equals_temp_3 = 8
+        function_entry_first_inner = 9
+        first_inner_ret_val_assign_1st = 10
+        ret_first_inner = 11
+        function_exit_first_inner = 12
+        image_name_equals_first_inner_arg = 13
+        call_3_equals_ret_first_inner = 14
+        temp_2_first_arg_equals_call_3 = 15
+
+        save_4_image_name = 16
+        save_4_inner_ret_val = 17
+        temp_4_inner_arg = 18
+        inner_arg_equals_temp_4 = 19
+        function_entry_second_inner = 20
+        second_inner_ret_val_assign_2nd = 21
+
+
+
+        ret_second_inner = 22
+
+
+        
+        function_exit_second_inner = 23
+        image_name_equals_second_inner_arg = 24
+        first_inner_ret_val_equals_save_4 = 25
+
+        call_4_equals_ret_second_inner = 26
+        temp_2_second_arg_equals_call_4 = 27
+        first_arg_equals_temp = 28
+        second_arg_equals_temp = 29
+        function_entry_outer = 30
+        outer_ret_val_assignment = 31
+        ret_outer = 32
+        function_exit_outer = 33
+        image_name_restore = 34
+        call_2_equals_ret_outer = 35
+
+        foo_equals_call_2 = 36
+        ret_send_file = 37
+        _exit = 38
+
+        logger.debug("[Four barrel] save_2_image_name type is %s", type(self.cfg.nodes[save_2_image_name]))
+        
+
+        logger.debug("[Four barrel] image_name_restore type is %s", type(self.cfg.nodes[image_name_restore]))
+        logger.debug("[Four barrel] call_2_equals_ret_outer type is %s", type(self.cfg.nodes[call_2_equals_ret_outer]))
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (call_2_equals_ret_outer, _if), ## NO NO NO
+                          (call_2_equals_ret_outer, image_name_equals_foo), ## NO NO NO
+                          (save_2_image_name, image_name_equals_foo),
+
+                          (save_3_image_name, save_2_image_name),
+                          (temp_3_first_inner_arg, save_3_image_name),
+                          (inner_arg_equals_temp_3, temp_3_first_inner_arg),
+                          (function_entry_first_inner, inner_arg_equals_temp_3),
+                          (first_inner_ret_val_assign_1st, function_entry_first_inner),
+                          (ret_first_inner, first_inner_ret_val_assign_1st),
+                          (function_exit_first_inner, ret_first_inner),
+                          (image_name_equals_first_inner_arg, function_exit_first_inner),
+                          (call_3_equals_ret_first_inner, image_name_equals_first_inner_arg),
+                          (temp_2_first_arg_equals_call_3, call_3_equals_ret_first_inner),
+                          (save_4_image_name, temp_2_first_arg_equals_call_3),
+                          (save_4_inner_ret_val, save_4_image_name),
+                          (temp_4_inner_arg, save_4_inner_ret_val),
+                          (inner_arg_equals_temp_4, temp_4_inner_arg),
+                          (function_entry_second_inner, inner_arg_equals_temp_4),
+                          (second_inner_ret_val_assign_2nd, function_entry_second_inner),
+                          (ret_second_inner, second_inner_ret_val_assign_2nd),
+                          (function_exit_second_inner, ret_second_inner),
+                          (image_name_equals_second_inner_arg, function_exit_second_inner),
+                          (first_inner_ret_val_equals_save_4, image_name_equals_second_inner_arg),
+                          # (Z, first_inner_ret_val_equals_save_4),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+                          # (Z, K),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+                          # (Z, K),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+                          # (Z, K),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+                          # (Z, K),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+                          # (Z, K),
+                          # (X, Z),
+                          # (V, X),
+                          # (K, V),
+
+
+                          (outer_ret_val_assignment, function_entry_outer),
+                          (ret_outer, outer_ret_val_assignment),
+                          (function_exit_outer, ret_outer),
+                          (image_name_restore, function_exit_outer),
+                          (call_2_equals_ret_outer, image_name_restore),
+                          
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
+
     def test_multiple_nested_blackbox_calls_after_for(self):
         path = 'example/vulnerable_code/multiple_nested_blackbox_calls_after_for.py'
         self.cfg_create_from_file(path)
@@ -853,6 +986,38 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (ret_send_file, foo_equals_call_3),
                           (_exit, ret_send_file)
                           ])
+
+    def test_multiple_nested_mixed_blackbox_and_user_defined_calls_after_if(self):
+        path = 'example/vulnerable_code/multiple_nested_mixed_blackbox_and_user_defined_calls_after_if.py'
+        self.cfg_create_from_file(path)
+
+        for i, n in enumerate(self.cfg.nodes):
+            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
+
+        self.assert_length(self.cfg.nodes, expected_length=17)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        # Function call starts here
+
+        # ...
+        ret_send_file = 49
+        _exit = 50
+
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (B, _if),
+                          (B, image_name_equals_foo),
+                          (A, B),
+                          (ret_send_file, A),
+                          (_exit, ret_send_file)
+                          ])        
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'

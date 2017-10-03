@@ -346,8 +346,9 @@ class InterproceduralVisitor(Visitor):
 
             if isinstance(call_arg, ast.Call):
                 return_value_of_nested_call = self.visit(call_arg)
+                # logger.debug
                 if return_value_of_nested_call in self.blackbox_calls:
-                    logger.debug("[Little collins] nested blackbox call, ouchie")
+                    logger.debug("[San Francisco apartment] blackbox call INSIDE USER-DEFINED CALL, ouchie ouchie")
                     raise
                     continue
                 else:
@@ -500,7 +501,7 @@ class InterproceduralVisitor(Visitor):
                                                 saved_function_call_index)
         logger.debug("BEFORE saved_variables are %s", saved_variables)
 
-        # Check to make sure there is no bug
+        # Check to make sure there is no bug in the input code (for when I don't feel like running the test case with CPython)
         assert len(call_node.args) == len(Arguments(def_node.args))
         
         args_mapping = self.save_def_args_in_temp(call_node.args,
