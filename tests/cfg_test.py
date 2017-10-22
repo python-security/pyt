@@ -834,6 +834,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         image_name_equals_foo = 4
 
         save_2_image_name = 5
+
         save_3_image_name = 6
         temp_3_first_inner_arg = 7
         inner_arg_equals_temp_3 = 8
@@ -851,18 +852,12 @@ class CFGFunctionNodeTest(BaseTestCase):
         inner_arg_equals_temp_4 = 19
         function_entry_second_inner = 20
         second_inner_ret_val_assign_2nd = 21
-
-
-
         ret_second_inner = 22
-
-
-        
         function_exit_second_inner = 23
         image_name_equals_second_inner_arg = 24
         first_inner_ret_val_equals_save_4 = 25
-
         call_4_equals_ret_second_inner = 26
+
         temp_2_second_arg_equals_call_4 = 27
         first_arg_equals_temp = 28
         second_arg_equals_temp = 29
@@ -878,17 +873,18 @@ class CFGFunctionNodeTest(BaseTestCase):
         _exit = 38
 
         logger.debug("[Four barrel] save_2_image_name type is %s", type(self.cfg.nodes[save_2_image_name]))
-        
-
         logger.debug("[Four barrel] image_name_restore type is %s", type(self.cfg.nodes[image_name_restore]))
+        logger.debug("[Four barrel] call_2_equals_ret_outer  is %s", self.cfg.nodes[call_2_equals_ret_outer])
         logger.debug("[Four barrel] call_2_equals_ret_outer type is %s", type(self.cfg.nodes[call_2_equals_ret_outer]))
 
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
                           (image_name_equals_foo, _if),
-                          (call_2_equals_ret_outer, _if), ## NO NO NO
-                          (call_2_equals_ret_outer, image_name_equals_foo), ## NO NO NO
+                          # (call_2_equals_ret_outer, _if), ## (Before) NO NO NO
+                          # (call_2_equals_ret_outer, image_name_equals_foo), ## (Before) NO NO NO
+                          (save_3_image_name, _if), ## (After) Aww yeah, feels so good
+                          (save_3_image_name, image_name_equals_foo), ## (After) Aww yeah, feels so good
                           (save_2_image_name, image_name_equals_foo),
 
                           (save_3_image_name, save_2_image_name),
@@ -900,6 +896,7 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (function_exit_first_inner, ret_first_inner),
                           (image_name_equals_first_inner_arg, function_exit_first_inner),
                           (call_3_equals_ret_first_inner, image_name_equals_first_inner_arg),
+                          (save_4_image_name, call_3_equals_ret_first_inner),
                           (temp_2_first_arg_equals_call_3, call_3_equals_ret_first_inner),
                           (save_4_image_name, temp_2_first_arg_equals_call_3),
                           (save_4_inner_ret_val, save_4_image_name),
@@ -911,32 +908,12 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (function_exit_second_inner, ret_second_inner),
                           (image_name_equals_second_inner_arg, function_exit_second_inner),
                           (first_inner_ret_val_equals_save_4, image_name_equals_second_inner_arg),
-                          # (Z, first_inner_ret_val_equals_save_4),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-                          # (Z, K),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-                          # (Z, K),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-                          # (Z, K),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-                          # (Z, K),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-                          # (Z, K),
-                          # (X, Z),
-                          # (V, X),
-                          # (K, V),
-
-
+                          (call_4_equals_ret_second_inner, first_inner_ret_val_equals_save_4),
+                          (save_2_image_name, call_4_equals_ret_second_inner),
+                          (temp_2_second_arg_equals_call_4, call_4_equals_ret_second_inner),
+                          (first_arg_equals_temp, temp_2_second_arg_equals_call_4),
+                          (second_arg_equals_temp, first_arg_equals_temp),
+                          (function_entry_outer, second_arg_equals_temp),
                           (outer_ret_val_assignment, function_entry_outer),
                           (ret_outer, outer_ret_val_assignment),
                           (function_exit_outer, ret_outer),

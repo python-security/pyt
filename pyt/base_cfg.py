@@ -321,7 +321,23 @@ class Visitor(ast.NodeVisitor):
                     # It is a user-defined call
                     # DO STUFF
                     # DO STUFF
-                    pass
+                    logger.error("[NEW] call_node is %s", call_node)
+                    logger.error("[NEW] call_node.first_node is %s", call_node.first_node)
+                    logger.error("[NEW] type(call_node.first_node) is %s", type(call_node.first_node))
+                    logger.error("[NEW] dir(call_node.first_node) is %s", dir(call_node.first_node))
+                    logger.error("[NEW] call_node.first_node.inner_most_call is %s", call_node.first_node.inner_most_call)
+                    logger.error("[NEW] type(call_node.first_node.inner_most_call) is %s", type(call_node.first_node.inner_most_call))
+                    logger.error("[NEW] dir(call_node.first_node.inner_most_call) is %s", dir(call_node.first_node.inner_most_call))
+                    # raise
+                    call_node = call_node.first_node
+                    try:
+                        while call_node != call_node.inner_most_call:
+                            call_node = call_node.inner_most_call
+                            logger.debug("[NEW] call_node is now %s", call_node)
+                    except AttributeError:
+                        # No inner calls
+                        # Possible improvement: Make new node for RestoreNode's made in process_function and make `self.inner_most_call = self`
+                        pass
                 last.connect(call_node)
             else:
                 last.connect(next_node)

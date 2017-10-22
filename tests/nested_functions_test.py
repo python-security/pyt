@@ -26,7 +26,7 @@ class NestedTest(BaseTestCase):
                     "inner_ret_val = inner_arg + 'hey'",
                     "ret_inner = inner_ret_val",
                     "Exit inner",
-                    "foo = inner_arg",
+                    "foo = save_2_foo",
                     "¤call_2 = ret_inner",
                     "temp_1_outer_arg = ¤call_2",
                     "outer_arg = temp_1_outer_arg",
