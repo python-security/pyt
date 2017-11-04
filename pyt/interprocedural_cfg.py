@@ -12,7 +12,9 @@ from .alias_helper import (
 )
 from .ast_helper import Arguments, generate_ast, get_call_names_as_string
 from .base_cfg import (
+    AssignmentCallNode,
     AssignmentNode,
+    BBorBInode,
     CALL_IDENTIFIER,
     CFG,
     ConnectToExitNode,
@@ -249,12 +251,20 @@ class InterproceduralVisitor(Visitor):
         first_node = None
 
         logger.debug("self.nodes are %s", self.nodes)
+        for n in self.nodes:
+            try:
+                if n.left_hand_side == 'b':
+                    logger.debug("n is %s",n)
+                    logger.debug("type(n) is %s",type(n))
+                    # raise
+            except AttributeError:
+                pass
         # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
-                           if type(node) == AssignmentNode]:  # type() is used on purpose here
+                           if type(node) == AssignmentNode or type(node) == AssignmentCallNode or type(Node) == BBorBInode]:  # type() is used on purpose here
             logger.debug("So one assignment is %s", assignment)
             if isinstance(assignment, RestoreNode):
-                continue
+                raise
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
@@ -287,34 +297,19 @@ class InterproceduralVisitor(Visitor):
             #         print('hest')
             # print('next')         # self.nodes[-1] is print('hest')
             if self.last_was_loop_stack[-1]:
-                # logger.debug("OMG LAST WAS A LOOP, previous_node is %s", previous_node)
-                # logger.debug("OMG LAST WAS A LOOP, node_to_connect_to is %s", node_to_connect_to)
                 return
         except IndexError:
             pass
         try:
             if previous_node is not self.prev_nodes_to_avoid[-1]:
-                # logger.debug("ALLOWED, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
                 previous_node.connect(node_to_connect_to)
-            # else:
-            #     logger.debug("SHUT DOWN, WOO, self.prev_nodes_to_avoid[-1] is %s", self.prev_nodes_to_avoid[-1])
-            #     logger.debug("SHUT DOWN, WOO, node_to_connect_to is %s", node_to_connect_to)
         except IndexError:
-            # logger.debug("ALLOWED, no self.prev_nodes_to_avoid[-1] ")
-            # logger.debug("ALLOWED, node_to_connect_to is %s and previous_node is %s", node_to_connect_to, previous_node)
-            # logger.debug("type(previous_node) is %s", type(previous_node))
-
             # if not image_name:
             #     return 404
             # print('foo')  # We do not want to this line with `return 404`
             if not isinstance(previous_node, ReturnNode):
-                # If there are no prev_nodes_to_avoid we just connect safely.
+                # If there are no prev_nodes_to_avoid, we just connect safely.
                 previous_node.connect(node_to_connect_to)
-
-            # else:
-            #     logger.debug("SHUT DOWN, previous_node is ReturnNode")
-            #     logger.debug("PREV NODE IS A RETURN NODE")
-
 
     def save_def_args_in_temp(self,
                               call_args,
@@ -385,6 +380,8 @@ class InterproceduralVisitor(Visitor):
                                            call_arg_rhs_visitor.result,
                                            line_number=line_number,
                                            path=self.filenames[-1])
+
+            # TODO: If there are no ??, and no saved variables, ... then this is the first node
             if not first_node:
                 first_node = restore_node
 
@@ -394,15 +391,19 @@ class InterproceduralVisitor(Visitor):
                     # connect inner to other_inner in e.g. `outer(inner(image_name), other_inner(image_name))`
                     logger.debug("[NEW] connecting %s to %s", last_return_value_of_nested_call, return_value_of_nested_call.first_node)
 
-                    # shit, check if has first_node?
-                    last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
-                    pass
+                    if isinstance(return_value_of_nested_call, BBorBInode):
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                    else:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+
                 else:
                     # I should only set this once per loop, inner in e.g. `outer(inner(image_name), other_inner(image_name))`
                     # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
                     logger.debug("[NEW] setting inner_most_call of %s to %s", first_node, return_value_of_nested_call)
-                    first_node.inner_most_call = return_value_of_nested_call.first_node
-                    pass
+                    if isinstance(return_value_of_nested_call, BBorBInode):
+                        first_node.inner_most_call = return_value_of_nested_call
+                    else:
+                        first_node.inner_most_call = return_value_of_nested_call.first_node
                 # We purposefully should not set this as the first_node of return_value_of_nested_call, last makes sense
                 last_return_value_of_nested_call = return_value_of_nested_call
 

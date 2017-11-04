@@ -692,17 +692,22 @@ class Visitor(ast.NodeVisitor):
         call_label = ''
         call_assignment = None
 
+        # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+        vars_visitor = VarsVisitor()
+        vars_visitor.visit(ast_node.value)
+        logger.debug("[empa] vars_visitor.result is %s", vars_visitor.result)
+
         # TODO eliminate else and code duplication
         if isinstance(call, BBorBInode):
             logger.debug("[sf]call is an BBorBInode!")
             call_label = call.left_hand_side
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], vv_result=vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
             call.connect(call_assignment)
         elif isinstance(call, AssignmentNode): #  assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
             # raise
             logger.debug("[sf]call is an AssignmentNode!")
             call_label = call.left_hand_side
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], vv_result=None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
             call.connect(call_assignment)
         else: #  assignment to builtin
             # Consider using call.left_hand_side instead of call.label
@@ -714,11 +719,8 @@ class Visitor(ast.NodeVisitor):
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(ast_node.value)
 
-            # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-            vars_visitor = VarsVisitor()
-            vars_visitor.visit(ast_node.value)
 
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vv_result=vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
 
         if call in self.blackbox_calls:
             self.blackbox_assignments.add(call_assignment)
