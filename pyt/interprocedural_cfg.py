@@ -385,21 +385,21 @@ class InterproceduralVisitor(Visitor):
             if not first_node:
                 first_node = restore_node
 
-            # Ugly to have 2 if's for this, but necessary to ensure first_node has a value, otherwise we would need 2 `if not first_node`s
             if isinstance(call_arg, ast.Call):
                 if last_return_value_of_nested_call:
                     # connect inner to other_inner in e.g. `outer(inner(image_name), other_inner(image_name))`
-                    logger.debug("[NEW] connecting %s to %s", last_return_value_of_nested_call, return_value_of_nested_call.first_node)
 
                     if isinstance(return_value_of_nested_call, BBorBInode):
+                        logger.debug("[NEW1] connecting %s to %s", last_return_value_of_nested_call, return_value_of_nested_call)
                         last_return_value_of_nested_call.connect(return_value_of_nested_call)
                     else:
+                        logger.debug("[NEW2] connecting %s to %s", last_return_value_of_nested_call, return_value_of_nested_call.first_node)
                         last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
 
                 else:
                     # I should only set this once per loop, inner in e.g. `outer(inner(image_name), other_inner(image_name))`
                     # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
-                    logger.debug("[NEW] setting inner_most_call of %s to %s", first_node, return_value_of_nested_call)
+                    logger.debug("[NEW3] setting inner_most_call of %s to %s", first_node, return_value_of_nested_call)
                     if isinstance(return_value_of_nested_call, BBorBInode):
                         first_node.inner_most_call = return_value_of_nested_call
                     else:
@@ -423,7 +423,7 @@ class InterproceduralVisitor(Visitor):
         # After loop
         if last_return_value_of_nested_call:
             # connect other_inner to outer in e.g. `outer(inner(image_name), other_inner(image_name))`
-            logger.debug("[NEW] connecting %s to %s", last_return_value_of_nested_call, first_node)
+            logger.debug("[NEW4] connecting %s to first_node %s", last_return_value_of_nested_call, first_node)
 
             # first_node or last or something else?
             # raise

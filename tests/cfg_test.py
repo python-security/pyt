@@ -964,14 +964,14 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, ret_send_file)
                           ])
 
-    def test_multiple_nested_mixed_blackbox_and_user_defined_calls_after_if(self):
-        path = 'example/vulnerable_code/multiple_nested_mixed_blackbox_and_user_defined_calls_after_if.py'
+    def test_multiple_blackbox_calls_in_user_defined_call_after_if(self):
+        path = 'example/vulnerable_code/multiple_blackbox_calls_in_user_defined_call_after_if.py'
         self.cfg_create_from_file(path)
 
         for i, n in enumerate(self.cfg.nodes):
             logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
 
-        self.assert_length(self.cfg.nodes, expected_length=17)
+        self.assert_length(self.cfg.nodes, expected_length=32)
 
         entry = 0
         ret_request = 1
@@ -979,22 +979,91 @@ class CFGFunctionNodeTest(BaseTestCase):
         _if = 3
         image_name_equals_foo = 4
         # Function call starts here
+        save_2_image_name = 5
 
-        # ...
-        ret_send_file = 49
-        _exit = 50
+        ret_scrypt_first = 6
+        temp_2_first_arg = 7
+        save_4_image_name = 8
+        temp_4_inner_arg = 9
+        inner_arg_equals_temp_4 = 10
+        function_entry_second_inner = 11
+        inner_ret_val_equals_inner_arg_2nd = 12
+        ret_second_inner = 13
+        function_exit_second_inner = 14
 
+        image_name_equals_save_4 = 15
+        call_4_equals_ret_second_inner = 16
+        temp_2_second_arg = 17
+
+        ret_scrypt_third = 18
+        temp_2_third_arg_equals_call_5 = 19
+        first_arg_equals_temp = 20
+        second_arg_equals_temp = 21
+        third_arg_equals_temp = 22
+        function_entry_outer = 23
+        outer_ret_val = 24
+        ret_outer = 25
+        exit_outer = 26
+        image_name_equals_save_2 = 27
+        call_2_equals_ret_outer = 28
+        foo_equals_call_2 = 29
+        ret_send_file = 30
+        _exit = 31
 
         self.assertInCfg([(ret_request, entry),
+                          (save_2_image_name, ret_scrypt_third), # Makes sense
+                          (ret_scrypt_first, _if), # Makes sense
+                          (ret_scrypt_first, image_name_equals_foo), # Makes sense
+                          (save_4_image_name, ret_scrypt_first), # Makes sense
+                          (ret_scrypt_third, call_4_equals_ret_second_inner), # Makes sense
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
                           (image_name_equals_foo, _if),
-                          (B, _if),
-                          (B, image_name_equals_foo),
-                          (A, B),
-                          (ret_send_file, A),
+                          (save_2_image_name, image_name_equals_foo),
+                          (ret_scrypt_first, save_2_image_name),
+                          (temp_2_first_arg, ret_scrypt_first),
+                          (save_4_image_name, temp_2_first_arg),
+                          (temp_4_inner_arg, save_4_image_name),
+                          (inner_arg_equals_temp_4, temp_4_inner_arg),
+                          (function_entry_second_inner, inner_arg_equals_temp_4),
+                          (inner_ret_val_equals_inner_arg_2nd, function_entry_second_inner),
+                          (ret_second_inner, inner_ret_val_equals_inner_arg_2nd),
+                          (function_exit_second_inner, ret_second_inner),
+                          (image_name_equals_save_4, function_exit_second_inner),
+                          (call_4_equals_ret_second_inner, image_name_equals_save_4),
+                          (temp_2_second_arg, call_4_equals_ret_second_inner),
+                          (ret_scrypt_third, temp_2_second_arg),
+                          (temp_2_third_arg_equals_call_5, ret_scrypt_third),
+                          (first_arg_equals_temp, temp_2_third_arg_equals_call_5),
+                          (second_arg_equals_temp, first_arg_equals_temp),
+                          (third_arg_equals_temp, second_arg_equals_temp),
+                          (function_entry_outer, third_arg_equals_temp),
+                          (outer_ret_val, function_entry_outer),
+                          (ret_outer, outer_ret_val),
+                          (exit_outer, ret_outer),
+                          (image_name_equals_save_2, exit_outer),
+                          (call_2_equals_ret_outer, image_name_equals_save_2),
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
                           (_exit, ret_send_file)
-                          ])        
+                          ])
+
+    def test_multiple_user_defined_calls_in_blackbox_call_after_if(self):
+        path = 'example/vulnerable_code/multiple_user_defined_calls_in_blackbox_call_after_if.py'
+        self.cfg_create_from_file(path)
+
+        for i, n in enumerate(self.cfg.nodes):
+            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
+
+        self.assert_length(self.cfg.nodes, expected_length=32)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        # Function call starts here
+        save_2_image_name = 5
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'
