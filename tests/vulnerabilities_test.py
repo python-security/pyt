@@ -9,8 +9,6 @@ from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.lattice import Lattice
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class EngineTest(BaseTestCase):
@@ -146,10 +144,6 @@ class EngineTest(BaseTestCase):
 
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-        # if len(self.cfg.nodes) != 6:
-        #     raise
         cfg_list = [self.cfg]
 
         FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
@@ -273,7 +267,6 @@ class EngineTest(BaseTestCase):
                 ¤call_3 = ret_send_file(¤call_4)
             This vulnerability is potentially sanitised by: ["'..'", "'..' in"]
         """
-        logger.debug("huh, vulnerability_description is %s", vulnerability_description)
 
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 

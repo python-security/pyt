@@ -143,7 +143,6 @@ class CFGForTest(BaseTestCase):
     def test_for_func_iterator(self):
         self.cfg_create_from_file('example/example_inputs/for_func_iterator.py')
 
-        logger.debug("self.cfg.nodes are %s", self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
@@ -196,11 +195,6 @@ class CFGTryTest(BaseTestCase):
         self.cfg_create_from_file('example/example_inputs/try_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-
-        # logger.debug("self.cfg.nodes are %s", self.cfg.nodes)
-        for i,n in enumerate(self.cfg.nodes):
-            logger.debug("%s n.label is %s", i, n.label)
-
         self.assert_length(self.cfg.nodes, expected_length=20)
 
         entry = 0
@@ -669,9 +663,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
 
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("#%s is %s", i, n)
-
         self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
@@ -682,7 +673,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         body_foo = 5
         exit_foo = 6
         y_load = 7
-        exit_ = 8
+        _exit = 8
 
         self.assertInCfg([self.connected(entry, input_call),
                           self.connected(input_call, y_assignment),
@@ -691,7 +682,7 @@ class CFGFunctionNodeTest(BaseTestCase):
                           self.connected(entry_foo, body_foo),
                           self.connected(body_foo, exit_foo),
                           self.connected(exit_foo, y_load),
-                          self.connected(y_load, exit_)])
+                          self.connected(y_load, _exit)])
 
     def test_function_line_numbers(self):
         path = 'example/example_inputs/simple_function.py'
@@ -732,7 +723,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         bar_print_x = 10
         exit_bar = 11
         restore_actual_y = 12
-        exit_ = 13
+        _exit = 13
 
         self.assertInCfg([self.connected(entry, input_call),
                           self.connected(input_call, y_assignment),
@@ -746,7 +737,7 @@ class CFGFunctionNodeTest(BaseTestCase):
                           self.connected(bar_print_y, bar_print_x),
                           self.connected(bar_print_x, exit_bar),
                           self.connected(exit_bar, restore_actual_y),
-                          self.connected(restore_actual_y, exit_)])
+                          self.connected(restore_actual_y, _exit)])
 
     def test_function_with_return(self):
         path = 'example/example_inputs/simple_function_with_return.py'
@@ -787,9 +778,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = 'example/vulnerable_code/blackbox_call_after_if.py'
         self.cfg_create_from_file(path)
 
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-
         self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
@@ -801,8 +789,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         foo_equals_call_2 = 6
         ret_send_file = 7
         _exit = 8
-
-        logger.debug("[Four barrel] blackbox_call type is %s", type(self.cfg.nodes[blackbox_call]))
 
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
@@ -819,13 +805,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = 'example/vulnerable_code/multiple_nested_user_defined_calls_after_if.py'
         self.cfg_create_from_file(path)
 
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-
         self.assert_length(self.cfg.nodes, expected_length=39)
-
-#24 is  Label: image_name = inner_arg
-#25 is  Label: inner_ret_val = save_4_inner_ret_val
 
         entry = 0
         ret_request = 1
@@ -871,11 +851,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         foo_equals_call_2 = 36
         ret_send_file = 37
         _exit = 38
-
-        logger.debug("[Four barrel] save_2_image_name type is %s", type(self.cfg.nodes[save_2_image_name]))
-        logger.debug("[Four barrel] image_name_restore type is %s", type(self.cfg.nodes[image_name_restore]))
-        logger.debug("[Four barrel] call_2_equals_ret_outer  is %s", self.cfg.nodes[call_2_equals_ret_outer])
-        logger.debug("[Four barrel] call_2_equals_ret_outer type is %s", type(self.cfg.nodes[call_2_equals_ret_outer]))
 
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
@@ -929,9 +904,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = 'example/vulnerable_code/multiple_nested_blackbox_calls_after_for.py'
         self.cfg_create_from_file(path)
 
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-
         self.assert_length(self.cfg.nodes, expected_length=11)
 
         entry = 0
@@ -945,11 +917,6 @@ class CFGFunctionNodeTest(BaseTestCase):
         foo_equals_call_3 = 8
         ret_send_file = 9
         _exit = 10
-
-        logger.debug("[Four barrel] inner_blackbox_call is %s", self.cfg.nodes[inner_blackbox_call])
-        logger.debug("[Four barrel] second_inner_blackbox_call is %s", self.cfg.nodes[second_inner_blackbox_call])
-        logger.debug("[Four barrel] inner_blackbox_call type is %s", type(self.cfg.nodes[inner_blackbox_call]))
-        logger.debug("[Four barrel] second_inner_blackbox_call type is %s", type(self.cfg.nodes[second_inner_blackbox_call]))
 
         self.assertInCfg([(ret_request, entry),
                           (image_name_equals_call_1, ret_request),
@@ -967,9 +934,6 @@ class CFGFunctionNodeTest(BaseTestCase):
     def test_multiple_blackbox_calls_in_user_defined_call_after_if(self):
         path = 'example/vulnerable_code/multiple_blackbox_calls_in_user_defined_call_after_if.py'
         self.cfg_create_from_file(path)
-
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
 
         self.assert_length(self.cfg.nodes, expected_length=32)
 
@@ -1010,12 +974,12 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 30
         _exit = 31
 
-        self.assertInCfg([(ret_request, entry),
-                          (save_2_image_name, ret_scrypt_third), # Makes sense
-                          (ret_scrypt_first, _if), # Makes sense
-                          (ret_scrypt_first, image_name_equals_foo), # Makes sense
-                          (save_4_image_name, ret_scrypt_first), # Makes sense
-                          (ret_scrypt_third, call_4_equals_ret_second_inner), # Makes sense
+        self.assertInCfg([(save_2_image_name, ret_scrypt_third),  # Makes sense
+                          (ret_scrypt_first, _if),  # Makes sense
+                          (ret_scrypt_first, image_name_equals_foo),  # Makes sense
+                          (save_4_image_name, ret_scrypt_first),  # Makes sense
+                          (ret_scrypt_third, call_4_equals_ret_second_inner),  # Makes sense
+                          (ret_request, entry),
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
                           (image_name_equals_foo, _if),
@@ -1048,14 +1012,14 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (_exit, ret_send_file)
                           ])
 
+
+
+
     def test_multiple_user_defined_calls_in_blackbox_call_after_if(self):
         path = 'example/vulnerable_code/multiple_user_defined_calls_in_blackbox_call_after_if.py'
         self.cfg_create_from_file(path)
 
-        for i, n in enumerate(self.cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-
-        self.assert_length(self.cfg.nodes, expected_length=32)
+        self.assert_length(self.cfg.nodes, expected_length=30)
 
         entry = 0
         ret_request = 1
@@ -1063,7 +1027,63 @@ class CFGFunctionNodeTest(BaseTestCase):
         _if = 3
         image_name_equals_foo = 4
         # Function call starts here
-        save_2_image_name = 5
+        save_3_image_name = 5
+        temp_3_first_arg = 6
+        first_arg_equals_temp = 7
+        function_entry_first_inner = 8
+        first_ret_val_equals_first = 9
+        ret_first_inner = 10
+        function_exit_first_inner = 11
+        image_name_equals_save_4 = 12
+        call_3_equals_ret_first_inner = 13
+        call_4_equals_ret_second_inner = 14
+        save_5_image_name = 15
+        save_5_first_ret_val = 16
+        temp_5_second_arg = 17
+        second_arg_equals_temp = 18
+        function_entry_third_inner = 19
+        third_ret_val = 20
+        ret_third_inner = 21
+        exit_third_inner = 22
+        image_name_equals_save_5 = 23
+        first_ret_val_equals_save_5 = 24
+        call_5_equals_ret_third_inner = 25
+        call_2_equals_ret_outer = 26
+        foo_equals_call_2 = 27
+        ret_send_file = 28
+        _exit = 29
+
+        self.assertInCfg([(save_3_image_name, _if), # Makes sense
+                          (ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (save_3_image_name, image_name_equals_foo),
+                          (temp_3_first_arg, save_3_image_name),
+                          (first_arg_equals_temp, temp_3_first_arg),
+                          (function_entry_first_inner, first_arg_equals_temp),
+                          (first_ret_val_equals_first, function_entry_first_inner),
+                          (ret_first_inner, first_ret_val_equals_first),
+                          (function_exit_first_inner, ret_first_inner),
+                          (image_name_equals_save_4, function_exit_first_inner),
+                          (call_3_equals_ret_first_inner, image_name_equals_save_4),
+                          (call_4_equals_ret_second_inner, call_3_equals_ret_first_inner),
+                          (save_5_image_name, call_4_equals_ret_second_inner),
+                          (save_5_first_ret_val, save_5_image_name),
+                          (temp_5_second_arg, save_5_first_ret_val),
+                          (second_arg_equals_temp, temp_5_second_arg),
+                          (function_entry_third_inner, second_arg_equals_temp),
+                          (third_ret_val, function_entry_third_inner),
+                          (ret_third_inner, third_ret_val),
+                          (exit_third_inner, ret_third_inner),
+                          (image_name_equals_save_5, exit_third_inner),
+                          (first_ret_val_equals_save_5, image_name_equals_save_5),
+                          (call_5_equals_ret_third_inner, first_ret_val_equals_save_5),
+                          (call_2_equals_ret_outer, call_5_equals_ret_third_inner),
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'

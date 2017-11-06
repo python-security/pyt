@@ -39,45 +39,5 @@ class NestedTest(BaseTestCase):
                     "abc = ¤call_1",
                     "Exit module"]
 
-        logger.debug("Nodes are:")
-        for node in self.cfg.nodes:
-        	logger.debug("%s", node.label)
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
-
-    def test_builtin_with_user_defined_inner(self):
-
-        path = os.path.normpath('example/nested_functions_code/builtin_with_user_defined_inner.py')
-
-        project_modules = get_modules_and_packages(os.path.dirname(path))
-        local_modules = get_directory_modules(os.path.dirname(path))
-
-        self.cfg_create_from_file(path, project_modules, local_modules)
-
-        EXPECTED = ["TODO"]
-
-        logger.debug("Nodes are:")
-        for node in self.cfg.nodes:
-            logger.debug("%s", node.label)
-
-        # for node, expected_label in zip(self.cfg.nodes, EXPECTED):
-        #     self.assertEqual(node.label, expected_label)
-            
-    # def test_nested_string_interpolation(self):
-
-    #     path = os.path.normpath('example/nested_functions_code/nested_string_interpolation.py')
-
-    #     project_modules = get_modules_and_packages(os.path.dirname(path))
-    #     local_modules = get_directory_modules(os.path.dirname(path))
-
-    #     self.cfg_create_from_file(path, project_modules, local_modules)
-
-    #     EXPECTED = ['Not Yet']
-
-    #     logger.debug("Nodes are:")
-    #     for node in self.cfg.nodes:
-    #     	logger.debug("%s", node)
-
-    #     for node, expected_label in zip(self.cfg.nodes, EXPECTED):
-    #         self.assertEqual(node.label, expected_label)

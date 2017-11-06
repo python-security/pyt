@@ -49,17 +49,6 @@ class Node():
            not isinstance(successor, EntryOrExitNode):
             return
 
-        # Debug connects!
-        # first = 'Exit does_this_kill_us'
-        # second = 'call_5'
-        # if first in self.label or first in successor.label:
-        #     logger.debug("self.label is %s", self.label)
-        #     logger.debug("successor.label is %s", successor.label)
-        #     # raise
-        #     if second in successor.label or second in self.label:
-        #         logger.debug("I am being connected to %s", successor)
-        #         raise
-
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -310,30 +299,27 @@ class Visitor(ast.NodeVisitor):
                 last.connect(next_node.test)  # connect to next if test case
             elif isinstance(next_node, AssignmentCallNode):
                 call_node = next_node.call_node
-                logger.debug("SPOTI So call_node is %s", call_node)
                 if isinstance(call_node, BBorBInode):
                     # Loop to inner most function call
                     # e.g. scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
-                    while call_node != call_node.inner_most_call:
-                        call_node = call_node.inner_most_call
-                        logger.debug("SPOTI So call_node is now %s", call_node)
+                    old_call_node = None
+                    while call_node != old_call_node:
+                        old_call_node = call_node
+                        if isinstance(call_node, BBorBInode):
+                            call_node = call_node.inner_most_call
+                        else:
+                            try:
+                                call_node = call_node.first_node.inner_most_call
+                            except AttributeError:
+                                try:
+                                    call_node = call_node.first_node
+                                except AttributeError:
+                                    pass
                 else:
-                    # It is a user-defined call
-                    # DO STUFF
-                    # DO STUFF
-                    logger.error("[NEW] call_node is %s", call_node)
-                    logger.error("[NEW] call_node.first_node is %s", call_node.first_node)
-                    logger.error("[NEW] type(call_node.first_node) is %s", type(call_node.first_node))
-                    logger.error("[NEW] dir(call_node.first_node) is %s", dir(call_node.first_node))
-                    logger.error("[NEW] call_node.first_node.inner_most_call is %s", call_node.first_node.inner_most_call)
-                    logger.error("[NEW] type(call_node.first_node.inner_most_call) is %s", type(call_node.first_node.inner_most_call))
-                    logger.error("[NEW] dir(call_node.first_node.inner_most_call) is %s", dir(call_node.first_node.inner_most_call))
-                    # raise
                     call_node = call_node.first_node
                     try:
                         while call_node != call_node.inner_most_call:
                             call_node = call_node.inner_most_call
-                            logger.debug("[NEW] call_node is now %s", call_node)
                     except AttributeError:
                         # No inner calls
                         # Possible improvement: Make new node for RestoreNode's made in process_function and make `self.inner_most_call = self`
@@ -345,19 +331,10 @@ class Visitor(ast.NodeVisitor):
     def connect_nodes(self, nodes):
         """Connect the nodes in a list linearly."""
         for n, next_node in zip(nodes, nodes[1:]):
-            logger.debug("DEATH")
-            logger.debug("n is %s", n)
-            logger.debug("next_node is %s", next_node)
             if isinstance(n, ControlFlowNode):  # case for if
                 self.connect_control_flow_node(n, next_node)
             elif isinstance(next_node, ControlFlowNode):  # case for if
                 n.connect(next_node[0])
-            # elif isinstance(n, AssignmentCallNode):
-            #     # Proceed as normal!
-            #     raise
-            # elif isinstance(next_node, AssignmentCallNode):
-                # Proceed as normal!
-                # raise
             elif isinstance(next_node, RestoreNode):
                 continue
             elif CALL_IDENTIFIER in next_node.label:
@@ -384,27 +361,19 @@ class Visitor(ast.NodeVisitor):
             self.prev_nodes_to_avoid.append(prev_node_to_avoid)
 
         first_node = None
-        logger.debug("\n\n\n***********in stmt_star_handler self.nodes[-1] is %s***************\n\n\n\n\n", self.nodes[-1])
         node_not_to_step_passed = self.nodes[-1]
 
         for stmt in stmts:
-            logger.debug("[kaytranada]stmt is %s", stmt)
-
             node = self.visit(stmt)
             if isinstance(stmt, ast.While) or isinstance(stmt, ast.For):
                 self.last_was_loop_stack.append(True)
             else:
                 self.last_was_loop_stack.append(False)
 
-            logger.debug("[kaytranada]node is %s", node)
-            logger.debug("[kaytranada]type(node) is %s", type(node))
-
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
             elif isinstance(node, BreakNode):
                 break_nodes.append(node)
-
-            logger.debug("BEFORE so first_node is %s", first_node)
 
             if node and not first_node: # (Make sure first_node isn't already set.)
                 # first_node is always a "node_to_connect", because it won't have ingoing otherwise
@@ -419,17 +388,12 @@ class Visitor(ast.NodeVisitor):
                         # e.g. We don't want to step passed the Except of an Except BB
                         if current_node.ingoing[0] == node_not_to_step_passed:
                             break
-                        logger.debug("CURRENT_NODE is %s", current_node)
-                        logger.debug("current_node.ingoing is %s", current_node.ingoing)
-                        logger.debug("current_node.ingoing[0] is %s", current_node.ingoing[0])
-                        logger.debug("current_node.ingoing[0].ingoing is %s", current_node.ingoing[0].ingoing)
-
                         ingoing = current_node.ingoing
                         current_node = current_node.ingoing[0]
                     if ingoing:
                         # Only set it once
                         first_node = ingoing[0]
-            logger.debug("here in my, node is %s", node)
+
             if self.node_to_connect(node) and node:
                 if not first_node:
                     if isinstance(node, ControlFlowNode):
@@ -440,20 +404,8 @@ class Visitor(ast.NodeVisitor):
         if prev_node_to_avoid:
             self.prev_nodes_to_avoid.pop()
         self.last_was_loop_stack.pop()
-        logger.debug("Woah so first_node is %s", first_node)
-        try:
-            logger.debug("Woah so first_node.incoming is %s", first_node.incoming)
-        except Exception:
-            pass
-        # logger.debug("A1A Beachfront Ave BEFORE cfg_statements[-1] are %s", cfg_statements[-1])
-        # logger.debug("Hmm so type(cfg_statements) is %s", type(cfg_statements))
-        for i,s in enumerate(cfg_statements):
-            logger.debug("BEFORE SO MARG statement #%s is %s", i, s)
 
         self.connect_nodes(cfg_statements)
-        for i,s in enumerate(cfg_statements):
-            logger.debug("AFTER SO MARG statement #%s is %s", i, s)
-        # logger.debug("A1A Beachfront Ave AFTER cfg_statements[-1] are %s", cfg_statements[-1])
 
         if cfg_statements:
             if first_node:
@@ -462,9 +414,11 @@ class Visitor(ast.NodeVisitor):
                 first_statement = self.get_first_statement(cfg_statements[0])
 
             last_statements = self.get_last_statements(cfg_statements)
-            logger.debug("Legal Pad] last_statements are %s", last_statements)
-            return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
-        else: # When body of module only contains ignored nodes
+
+            return ConnectStatements(first_statement=first_statement,
+                                     last_statements=last_statements,
+                                     break_statements=break_nodes)
+        else:  # When body of module only contains ignored nodes
             return IgnoredNode()
 
     def visit_Module(self, node):
@@ -484,16 +438,13 @@ class Visitor(ast.NodeVisitor):
         Returns:
             The last nodes of the orelse branch.
         """
-        logger.debug("orelse is %s", orelse)
         if isinstance(orelse[0], ast.If):
             control_flow_node = self.visit(orelse[0])
             self.add_elif_label(control_flow_node.test)
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
-            logger.debug("Ahh shit, so self.nodes[-1] is %s", self.nodes[-1])
             else_connect_statements = self.stmt_star_handler(orelse, prev_node_to_avoid=self.nodes[-1])
-            logger.debug("hmm, connecting %s to %s", test, else_connect_statements.first_statement)
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -518,18 +469,15 @@ class Visitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, test)
             body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
-            logger.debug("SO CONFUSED LETS SEE, So we are adding test %s to ", test)
             body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
 
         last_statements = self.remove_breaks(body_connect_stmts.last_statements)
 
-        logger.debug("SO CONFUSED so last_statements is %s", last_statements)
         return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
 
     def visit_NameConstant(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
-        logger.debug("[oslo] label_visitor.result is %s", label_visitor.result)
         return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
@@ -540,7 +488,6 @@ class Visitor(ast.NodeVisitor):
 
     def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
         try:
-            logger.debug("[Tuesday] so fallback_cfg_node %s is being connected to %s", fallback_cfg_node, body.first_statement)
             fallback_cfg_node.connect(body.first_statement)
         except AttributeError:
             body = ConnectStatements([fallback_cfg_node], [fallback_cfg_node], list())
@@ -559,20 +506,14 @@ class Visitor(ast.NodeVisitor):
                 name = ''
             handler_node = self.append_node(Node('except ' + name + ':', handler, line_number=handler.lineno, path=self.filenames[-1]))
             for body_node in body.last_statements:
-                logger.debug("[Tuesday]connecting %s with %s", body_node, handler_node)
                 body_node.connect(handler_node)
             handler_body = self.stmt_star_handler(handler.body)
-            logger.debug("[sad panda] handler_node is %s", handler_node)
-            logger.debug("[sad panda] handler_body.first_statement is %s", handler_body.first_statement)
             handler_body = self.handle_stmt_star_ignore_node(handler_body, handler_node)
             last_statements.extend(handler_body.last_statements)
 
-        logger.debug("[Tuesday] BEFORE try_node is %s", try_node)
         if node.orelse:
-            logger.debug("body.last_statements[-1] is %s", body.last_statements[-1])
             orelse_last_nodes = self.handle_or_else(node.orelse, body.last_statements[-1])
             body.last_statements.extend(orelse_last_nodes)
-        logger.debug("[Tuesday] AFTER try_node is %s", try_node)
 
         if node.finalbody:
             finalbody = self.stmt_star_handler(node.finalbody)
@@ -687,47 +628,39 @@ class Visitor(ast.NodeVisitor):
         self.undecided = True # Used for handling functions in assignments
 
         call = self.visit(ast_node.value)
-        logger.debug("[NYSEC] call is %s", call)
-        logger.debug("[NYSEC] type(call) is %s", type(call))
         call_label = ''
         call_assignment = None
 
         # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
         vars_visitor = VarsVisitor()
         vars_visitor.visit(ast_node.value)
-        logger.debug("[empa] vars_visitor.result is %s", vars_visitor.result)
 
-        # TODO eliminate else and code duplication
+        call_label = call.left_hand_side
         if isinstance(call, BBorBInode):
-            logger.debug("[sf]call is an BBorBInode!")
-            call_label = call.left_hand_side
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], vv_result=vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
-            call.connect(call_assignment)
-        elif isinstance(call, AssignmentNode): #  assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
-            # raise
-            logger.debug("[sf]call is an AssignmentNode!")
-            call_label = call.left_hand_side
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], vv_result=None, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
-            call.connect(call_assignment)
-        else: #  assignment to builtin
-            # Consider using call.left_hand_side instead of call.label
-            # logger.debug("call.left_hand_side is %s", call.left_hand_side)
-            raise
-            # call_label = call.left_hand_side
-
-            call_label = call.label
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(ast_node.value)
-
-
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vv_result=vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1], call_node=call)
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
+                                                 left_hand_label,
+                                                 ast_node,
+                                                 [call.left_hand_side],
+                                                 vv_result=vars_visitor.result,
+                                                 line_number=ast_node.lineno,
+                                                 path=self.filenames[-1],
+                                                 call_node=call)
+        #  assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
+        elif isinstance(call, AssignmentNode):
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
+                                                 left_hand_label,
+                                                 ast_node,
+                                                 [call.left_hand_side],
+                                                 vv_result=None,
+                                                 line_number=ast_node.lineno,
+                                                 path=self.filenames[-1], call_node=call)
+        call.connect(call_assignment)
 
         if call in self.blackbox_calls:
             self.blackbox_assignments.add(call_assignment)
             call_assignment.blackbox = True
 
         self.nodes.append(call_assignment)
-
         self.undecided = False
 
         return call_assignment
@@ -761,7 +694,6 @@ class Visitor(ast.NodeVisitor):
         else:
             last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
 
-        logger.debug("[broke] last_nodes are %s", last_nodes)
         return ControlFlowNode(test, last_nodes, list())
 
     def add_while_label(self, node):
@@ -812,10 +744,8 @@ class Visitor(ast.NodeVisitor):
             node()
             blackbox(bool): Whether or not it is a builtin or blackbox call.
         Returns:
-            FILL ME IN
+            TODO FILL ME IN
         """
-
-        logger.debug("[qq] ENTER self.blackbox_calls is %s", self.blackbox_calls)
         # Increment function_call_index
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
@@ -824,149 +754,84 @@ class Visitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        logger.debug("[PR] the label.result is %s", label.result)
         index = label.result.find('(')
         if index == -1:
-            logger.warning("No ( in a call")
+            print("No ( in a call")
             raise
-        else:
-            logger.debug("[3rd rail] the call is %s", label.result[:index])
-            logger.debug("[3rd rail] the args are %s", label.result[index:])
-            logger.debug("[3rd rail] len(node.args) is %s", len(node.args))
-            logger.debug("[3rd rail] len(node.keywords) is %s", len(node.keywords))
-            try:
-                logger.debug("[3rd rail] len(node.starargs) is %s", len(node.starargs))
-            except AttributeError:
-                pass
-            try:
-                logger.debug("[3rd rail] len(node.keywords) is %s", len(node.keywords))
-            except AttributeError:
-                pass
 
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + label.result[:index] + '('
-        logger.debug("[Dominique bistro] RHS is %s", RHS)
+
         call_node = BBorBInode("",
                                LHS,
                                [],
                                line_number=node.lineno,
                                path=self.filenames[-1])
-
-        # visited_args = []
         visual_args = []
         rhs_vars = []
         last_return_value_of_nested_call = None
 
         for arg in itertools.chain(node.args, node.keywords):
             if isinstance(arg, ast.Call):
-                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
                 return_value_of_nested_call = self.visit(arg)
-                # logger.debug("[Dominique bistro] function_return_stack[-1] is %s", self.function_return_stack[-1])
-                logger.debug("[OSLO WAS SO GOOD] return_value_of_nested_call is %s", return_value_of_nested_call)
-                logger.debug("[OSLO WAS SO GOOD] self.nodes is %s", self.nodes)
-                # for n in self.nodes:
-                #     if n == return_value_of_nested_call:
-                #         raise
-                logger.debug("BNBN So self.nodes[-1] is %s", self.nodes[-1])
-                logger.debug("BNBN About to append %s", return_value_of_nested_call)
 
                 if last_return_value_of_nested_call:
                     # connect inner to other_inner in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
-                    last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                    # I should probably loop to the inner most call of other_inner here.
+                    try:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+                    except AttributeError:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
                 else:
                     # I should only set this once per loop, inner in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
                     # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
                     call_node.inner_most_call = return_value_of_nested_call
                 last_return_value_of_nested_call = return_value_of_nested_call
 
-                # visited_args.append(return_value_of_nested_call)
-
-                logger.debug("[3rd rail] should we add %s to visual_args?", return_value_of_nested_call.left_hand_side)
                 visual_args.append(return_value_of_nested_call.left_hand_side)
                 rhs_vars.append(return_value_of_nested_call.left_hand_side)
             else:
                 label = LabelVisitor()
                 label.visit(arg)
-                logger.debug("arg is %s, and label.result is %s", arg, label.result)
                 visual_args.append(label.result)
-                # visited_args.append(arg)
 
-                from .vars_visitor import VarsVisitor
                 vv = VarsVisitor()
                 vv.visit(arg)
-                logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
-                logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
                 rhs_vars.extend(vv.result)
-            logger.debug("[Voyager] arg is %s", arg)
         if last_return_value_of_nested_call:
             # connect other_inner to outer in e.g. `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
             last_return_value_of_nested_call.connect(call_node)
-        #####
 
-        logger.debug("[3rd rail] visual_args is %s", visual_args)
-        # logger.debug("[3rd rail] visited_args is %s", visited_args)
-
-        logger.debug("[VINEAPPLE] label.result is %s", label.result)
         if len(visual_args) > 0:
             for arg in visual_args:
                 RHS = RHS + arg + ", "
-            logger.debug("[3rd rail] RHS[:len(RHS)-2] is %s", RHS[:len(RHS)-2])
             # Replace the last ", " with a )
             RHS = RHS[:len(RHS)-2] + ')'
         else:
             RHS = RHS + ')'
-        logger.debug("[Dominique bistro] RHS is now %s", RHS)
         call_node.label = LHS + " = " + RHS
-        # get_rhs = []
-        # for arg in visited_args:
-        #     try:
-        #         logger.debug("[BLUESTONE sucks] type(arg.right_hand_side_variables) is %s", arg.right_hand_side_variables)
-        #         get_rhs.extend(arg.right_hand_side_variables)
-        #     except AttributeError:
-        #         from .vars_visitor import VarsVisitor
-        #         vv = VarsVisitor()
-        #         vv.visit(arg)
-        #         logger.debug("[BLUESTONE sucks] type(arg) is %s", type(arg))
-        #         logger.debug("[BLUESTONE sucks] vv.result is %s", vv.result)
-        #         get_rhs.extend(vv.result)
-        # logger.debug("[qq] get_rhs is %s", get_rhs)
+
         # Should strings be excluded from visual_args? It isn't like they'll ever be on an LHS
-        logger.debug("[qq] visual_args is %s", visual_args)
-        logger.debug("[qq] rhs_vars is %s", rhs_vars)
 
         # This is where we'll ask the user, then save the mapping or just use the pre-made mapping.
         # Or perhaps we'll do that in vulnerabilities.py
 
         call_node.right_hand_side_variables = rhs_vars
         # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
-        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
-        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
-        # DOCUMENT THE NEEED FOR BB_node.args, was it just for get_sink_args?
         call_node.args = rhs_vars
-        # What is assigned to ret_func_foo in the builtin/blackbox case?
-        # What is assigned to ret_func_foo in the builtin/blackbox case?
         # What is assigned to ret_func_foo in the builtin/blackbox case?
 
         if blackbox:
-            logger.debug("[qq] call_node being added to blackbox_calls is %s", call_node)
             # This makes so much sense!
             self.blackbox_assignments.add(call_node)
 
-        # IMPORTANT
-        logger.debug("[Integral] connecting %s", self.nodes[-1])
-        logger.debug("[Integral] to call_node %s", call_node)
-        logger.debug("ON&ON self.nodes[-1] IS %s", self.nodes[-1])
-        logger.debug("ON&ON call_node IS %s", call_node)
         self.connect_if_allowed(self.nodes[-1], call_node)
         self.nodes.append(call_node)
-        # IMPORTANT
 
-        logger.debug("[Dominique bistro] call_node is %s", call_node)
         # WHY DO WE DO THIS?
         # WHEN DO WE ACTUALLY PUSH?
         # self.function_return_stack.pop()
-        logger.debug("[qq] EXIT self.blackbox_calls is %s", self.blackbox_calls)
 
         return call_node
 

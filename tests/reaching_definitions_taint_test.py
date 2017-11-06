@@ -3,8 +3,6 @@ from collections import namedtuple, OrderedDict
 from .analysis_base_test_case import AnalysisBaseTestCase
 from pyt.constraint_table import constraint_table
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
@@ -24,7 +22,6 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
         i = 0
         for k, v in constraint_table.items():
           row = str(k) + ': ' + ','.join([str(n) for n in lattice.get_elements(v)])
-          logger.debug("row is %s", row)
           self.assertTrue(self.string_compare_alnum(row, EXPECTED[i]))
           i = i + 1
 
@@ -72,7 +69,6 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
         i = 0
         for k, v in constraint_table.items():
           row = str(k) + ': ' + ','.join([str(n) for n in lattice.get_elements(v)])
-          logger.debug("EXAMPLErow is %s", row)
           self.assertTrue(self.string_compare_alnum(row, EXPECTED[i]))
           i = i + 1
 
@@ -110,7 +106,6 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
         i = 0
         for k, v in constraint_table.items():
           row = str(k) + ': ' + ','.join([str(n) for n in lattice.get_elements(v)])
-          logger.debug("row is %s", row)
           self.assertTrue(self.string_compare_alnum(row, EXPECTED[i]))
           i = i + 1
 
