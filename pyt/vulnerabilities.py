@@ -260,23 +260,9 @@ def get_sink_args(cfg_node):
         return cfg_node.right_hand_side_variables
 
     vv = VarsVisitor()
-    logger.debug("[VINEAPPLE] cfg_node is %s", cfg_node)
-    logger.debug("[VINEAPPLE] cfg_node.ast_node is %s", cfg_node.ast_node)
-    logger.debug("[VINEAPPLE] type(cfg_node.ast_node) is %s", type(cfg_node.ast_node))
     other_results = list()
     if isinstance(cfg_node, BBorBInode):
-        # logger.debug("[VINEAPPLE] So visited args is %s", cfg_node.args)
-        # for arg in cfg_node.args:
-        #     logger.debug("arg is %s", arg)
-        #     logger.debug("type of arg is %s", type(arg))
-        #     if isinstance(arg, RestoreNode):
-        #         other_results.append(arg.left_hand_side)
-        #     else:
-        #         vv.visit(arg)
         other_results = cfg_node.args
-        logger.debug("[VINEAPPLE] So vv.result is %s", vv.result)
-        logger.debug("[VINEAPPLE] So other_results is %s", other_results)
-        # raise
     else:
         vv.visit(cfg_node.ast_node)
 
@@ -303,32 +289,18 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
 
     secondary_in_sink = list()
 
-    for node in source.secondary_nodes:
-        logger.debug("YEE secondary node label is %s", node.label)
-
-    logger.debug("[BEATX] sink is %s", sink)
-    logger.debug("[VOY] sink.cfg_node is %s", sink.cfg_node)
     if source.secondary_nodes:
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
                                                       sink.cfg_node)]
-    logger.debug("[VOY] secondary in sink list is %s", secondary_in_sink)
 
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
-    logger.debug("[BEATX] sink_args is %s", sink_args)
-    for sarg in sink_args:
-        if 'ret_' in sarg:
-            logger.debug("special sarg is %s", sarg)
 
-    logger.debug("[Voyager] sink_args are %s", sink_args)
     secondary_node_in_sink_args = None
     if sink_args:
-        logger.debug("secondary in sink list is %s", secondary_in_sink)
         for node in secondary_in_sink:
-            logger.debug("secondary in sink is %s", node)
-            logger.debug("secondary in sink.LHS is %s", node.left_hand_side)
             if sink_args and node.left_hand_side in sink_args:
                 secondary_node_in_sink_args = node
 
@@ -343,7 +315,6 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
                     node_in_the_vulnerability_chain = secondary
                     trimmed_reassignment_nodes.insert(0, node_in_the_vulnerability_chain)
 
-    logger.debug("[voy] source.cfg_node.left_hand_side is %s", source.cfg_node.left_hand_side)
     source_lhs_in_sink_args = source.cfg_node.left_hand_side in sink_args\
                               if sink_args else None
 
@@ -417,10 +388,6 @@ def find_vulnerabilities(cfg_list, analysis_type,
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:
-        for i, n in enumerate(cfg.nodes):
-            logger.debug("WANTAGH STARBUCKS #%s is %s", i, n)
-            logger.debug("#%s ingoing is %s", i, n.ingoing)
-            logger.debug("#%s outgoing is %s", i, n.outgoing)
         find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions,
                                     Lattice(cfg.nodes, analysis_type),
                                     trim_reassigned_in)

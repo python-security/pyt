@@ -1,8 +1,6 @@
 import ast
 
 from .ast_helper import get_call_names
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class VarsVisitor(ast.NodeVisitor):
@@ -89,34 +87,22 @@ class VarsVisitor(ast.NodeVisitor):
             self.visit(node.func)
         if node.args:
             for arg in node.args:
-                logger.debug("[voyager] arg is %s", arg)
                 if isinstance(arg, ast.Call):
-                    logger.debug("[voyager] arg.func is %s", arg.func)
                     if isinstance(arg.func, ast.Name):
-                        logger.debug("[voyager] arg.func.id is %s", arg.func.id)
                         # We can't just visit because we need to add 'ret_'
                         self.result.append('ret_' + arg.func.id)
                     elif isinstance(arg.func, ast.Attribute):
-                        logger.debug("It is an attribute!")
-                        logger.debug("[pb] arg.func.attr is %s", arg.func.attr)
-                        logger.debug("[pb] type(arg.func.attr) is %s", type(arg.func.attr))
-                        logger.debug("[pb] arg.func is %s", arg.func)
-                        logger.debug("[pb] type(arg.func) is %s", type(arg.func))
-                        logger.debug("[pb] arg.func.value is %s", arg.func.value)
-                        logger.debug("[pb] type(arg.func.value) is %s", type(arg.func.value))
                         # e.g. html.replace('{{ param }}', param)
                         # func.attr is replace
                         # func.value.id is html
                         # We want replace
                         self.result.append('ret_' + arg.func.attr)
                     else:
-                        logger.debug("type(arg.func) is %s", type(arg.func))
                         raise
                 else:
                     self.visit(arg)
         if node.keywords:
             for keyword in node.keywords:
-                logger.debug("[voyager] keyword is %s", keyword)
                 if isinstance(keyword, ast.Call):
                     # FILL ME IN MORE
                     self.result.append('ret_' + keyword.func.id)
