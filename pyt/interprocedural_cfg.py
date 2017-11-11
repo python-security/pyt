@@ -38,27 +38,27 @@ enable_logger(to_file='./pyt.log')
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-NOT_A_BLACKBOX = set(['get',
-                      'Flask',
-                      'run',
-                      'get',
-                      'replace',
-                      'read',
-                      'set_cookie',
-                      'make_response',
-                      'SQLAlchemy',
-                      'Column',
-                      'execute',
-                      'sessionmaker',
-                      'Session',
-                      'filter',
-                      'execute',
-                      'call',
-                      'render_template',
-                      'redirect',
-                      'url_for',
-                      'flash',
-                      'jsonify'])
+BUILTINS = set(['get',
+                'Flask',
+                'run',
+                'get',
+                'replace',
+                'read',
+                'set_cookie',
+                'make_response',
+                'SQLAlchemy',
+                'Column',
+                'execute',
+                'sessionmaker',
+                'Session',
+                'filter',
+                'execute',
+                'call',
+                'render_template',
+                'redirect',
+                'url_for',
+                'flash',
+                'jsonify'])
 
 
 class InterproceduralVisitor(Visitor):
@@ -69,7 +69,6 @@ class InterproceduralVisitor(Visitor):
         self.local_modules = local_modules
         self.filenames = [filename]
         self.blackbox_assignments = set()
-        self.blackbox_calls = set()
         self.nodes = list()
         self.function_call_index = 0
         self.undecided = False
@@ -330,17 +329,13 @@ class InterproceduralVisitor(Visitor):
             return_value_of_nested_call = None
             if isinstance(call_arg, ast.Call):
                 return_value_of_nested_call = self.visit(call_arg)
-
-                if return_value_of_nested_call in self.blackbox_calls:
-                    logger.debug("[San Francisco apartment] blackbox call INSIDE USER-DEFINED CALL, ouchie ouchie")
-                    # TODO: huh?
-                    raise
-                else:
-                    restore_node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
-                                               def_arg_temp_name,
-                                               return_value_of_nested_call.left_hand_side,
-                                               line_number=line_number,
-                                               path=self.filenames[-1])
+                restore_node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
+                                           def_arg_temp_name,
+                                           return_value_of_nested_call.left_hand_side,
+                                           line_number=line_number,
+                                           path=self.filenames[-1])
+                if return_value_of_nested_call in self.blackbox_assignments:
+                    self.blackbox_assignments.add(restore_node)
             else:
                 call_arg_label_visitor = LabelVisitor()
                 call_arg_label_visitor.visit(call_arg)
@@ -585,9 +580,10 @@ class InterproceduralVisitor(Visitor):
 
         # e.g. "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
+
         if definition:
             if isinstance(definition.node, ast.ClassDef):
-                self.add_blackbox_or_builtin_call(node)
+                self.add_blackbox_or_builtin_call(node, blackbox=False)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
                 self.function_return_stack.append(_id)
@@ -595,11 +591,10 @@ class InterproceduralVisitor(Visitor):
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
-        elif last_attribute not in NOT_A_BLACKBOX:
+        elif last_attribute not in BUILTINS:
             # Mark the call as a blackbox because we don't have the definition
             return self.add_blackbox_or_builtin_call(node, blackbox=True)
-
-        return self.add_blackbox_or_builtin_call(node)
+        return self.add_blackbox_or_builtin_call(node, blackbox=False)
 
     def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
         """

@@ -129,11 +129,12 @@ class AssignmentNode(Node):
         """Create an Assignment node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            ast_node(_ast.Assign, _ast.AugAssign, _ast.Return or None)
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
         """
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
@@ -162,6 +163,7 @@ class RestoreNode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
 
@@ -177,7 +179,7 @@ class BBorBInode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
-            path? TODO
+            path(string): Current filename.
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
         self.args = []
@@ -187,20 +189,30 @@ class BBorBInode(AssignmentNode):
 class AssignmentCallNode(AssignmentNode):
     """Node used for X."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, vv_result, *, line_number, path, call_node):
+    def __init__(self,
+                 label,
+                 left_hand_side,
+                 ast_node,
+                 right_hand_side_variables,
+                 vv_result,
+                 *,
+                 line_number,
+                 path,
+                 call_node):
         """Create a X.
 
         Args:
             label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
-            path? TODO
-            call_node? TODO
+            path(string): Current filename.
+            call_node(BBorBInode or RestoreNode): Used in connect_control_flow_node.
         """
         super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
-        self.call_node = call_node
         self.vv_result = vv_result
+        self.call_node = call_node
         self.blackbox = False
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
@@ -214,7 +226,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
-            path?
+            path(string): Current filename.
         """
         super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
 
@@ -322,7 +334,8 @@ class Visitor(ast.NodeVisitor):
                             call_node = call_node.inner_most_call
                     except AttributeError:
                         # No inner calls
-                        # Possible improvement: Make new node for RestoreNode's made in process_function and make `self.inner_most_call = self`
+                        # Possible improvement: Make new node for RestoreNode's made in process_function
+                        #                       and make `self.inner_most_call = self`
                         pass
                 last.connect(call_node)
             else:
@@ -657,10 +670,6 @@ class Visitor(ast.NodeVisitor):
                                                  call_node=call)
         call.connect(call_assignment)
 
-        if call in self.blackbox_calls:
-            self.blackbox_assignments.add(call_assignment)
-            call_assignment.blackbox = True
-
         self.nodes.append(call_assignment)
         self.undecided = False
 
@@ -732,7 +741,7 @@ class Visitor(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    def add_blackbox_or_builtin_call(self, node, blackbox=False):
+    def add_blackbox_or_builtin_call(self, node, blackbox):
         """Processes a blackbox or builtin function when it is called.
         Nothing gets assigned to ret_func_foo in the builtin/blackbox case.
 
