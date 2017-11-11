@@ -3,8 +3,13 @@
 import ast
 from collections import namedtuple
 
-from .base_cfg import AssignmentNode, BBorBInode, RestoreNode
-from .framework_adaptor import TaintedNode
+from .base_cfg import (
+    AssignmentCallNode,
+    AssignmentNode,
+    BBorBInode,
+    RestoreNode,
+    TaintedNode
+)
 from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
@@ -120,7 +125,7 @@ def append_if_reassigned(assignment_list, secondary, node, lattice):
     try:
         reassigned = False
         # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        if node.vv_result and secondary.left_hand_side in node.vv_result:
+        if isinstance(node, AssignmentCallNode) and secondary.left_hand_side in node.vv_result:
             reassigned = True
         elif secondary.left_hand_side in node.right_hand_side_variables:
             reassigned = True

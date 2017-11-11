@@ -252,7 +252,9 @@ class InterproceduralVisitor(Visitor):
 
         # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
-                           if type(node) == AssignmentNode or type(node) == AssignmentCallNode or type(Node) == BBorBInode]:  # type() is used on purpose here
+                           if (type(node) == AssignmentNode or
+                           type(node) == AssignmentCallNode or
+                           type(Node) == BBorBInode)]:  # type() is used on purpose here
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
@@ -331,6 +333,7 @@ class InterproceduralVisitor(Visitor):
 
                 if return_value_of_nested_call in self.blackbox_calls:
                     logger.debug("[San Francisco apartment] blackbox call INSIDE USER-DEFINED CALL, ouchie ouchie")
+                    # TODO: huh?
                     raise
                 else:
                     restore_node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
@@ -349,7 +352,7 @@ class InterproceduralVisitor(Visitor):
                                            line_number=line_number,
                                            path=self.filenames[-1])
 
-            # TODO: If there are no ??, and no saved variables, ... then this is the first node
+            # If there are no args and no saved variables, then this is the first node
             if not first_node:
                 first_node = restore_node
 
@@ -488,15 +491,18 @@ class InterproceduralVisitor(Visitor):
 
         Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
         Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode. (save_local_scope)
-        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument. Visit the arguments if they're calls. (save_def_args_in_temp)
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument.
+            Visit the arguments if they're calls. (save_def_args_in_temp)
         Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
         Visit and get function nodes. (visit_and_get_function_nodes)
-        Loop through each save_N_LHS node and create an e.g. foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
+        Loop through each save_N_LHS node and create an e.g.
+            foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
         Create e.g. ¤call_1 = ret_func_foo RestoreNode. (return_handler)
 
         Notes:
             Page 31 in the original thesis, but changed a little.
-            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler, because it's the last node anyway, that we return in this function.
+            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler,
+                because it's the last node anyway, that we return in this function.
             e.g. ret_func_foo gets assigned to visit_Return.
 
         Args:
@@ -526,7 +532,9 @@ class InterproceduralVisitor(Visitor):
                                               saved_function_call_index)
         function_nodes, first_node = self.visit_and_get_function_nodes(definition, first_node)
         self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
-        self.restore_saved_local_scope(saved_variables, args_mapping, def_node.lineno)
+        self.restore_saved_local_scope(saved_variables,
+                                       args_mapping,
+                                       def_node.lineno)
         self.return_handler(call_node,
                             function_nodes,
                             saved_function_call_index,

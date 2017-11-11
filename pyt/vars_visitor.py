@@ -98,6 +98,7 @@ class VarsVisitor(ast.NodeVisitor):
                         # We want replace
                         self.result.append('ret_' + arg.func.attr)
                     else:
+                        # Deal with it when we have code that triggers it.
                         raise
                 else:
                     self.visit(arg)

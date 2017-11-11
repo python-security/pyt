@@ -2,7 +2,10 @@
 import ast
 
 from .ast_helper import Arguments
-from .base_cfg import AssignmentNode
+from .base_cfg import (
+    AssignmentNode,
+    TaintedNode
+)
 from .interprocedural_cfg import interprocedural
 from .module_definitions import project_definitions
 
@@ -39,7 +42,6 @@ class FrameworkAdaptor():
             for arg in args:
                 tainted_node = TaintedNode(arg, arg,
                                            None, [],
-                                           None,
                                            line_number=definition_lineno,
                                            path=definition.path)
                 function_entry_node.connect(tainted_node)
@@ -73,7 +75,3 @@ def _get_func_nodes():
     """Get all function nodes."""
     return [definition for definition in project_definitions.values()
             if isinstance(definition.node, ast.FunctionDef)]
-
-
-class TaintedNode(AssignmentNode):
-    pass
