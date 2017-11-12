@@ -10,6 +10,7 @@ exclude_lines =
 
 [run]
 omit =
+    pyt/definition_chains.py
     pyt/draw.py
     pyt/github_search.py
     pyt/intraprocedural_cfg.py
