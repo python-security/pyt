@@ -1,8 +1,6 @@
 from .analysis_base_test_case import AnalysisBaseTestCase
 from pyt.constraint_table import constraint_table
 from pyt.reaching_definitions import ReachingDefinitionsAnalysis
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class ReachingDefinitionsTest(AnalysisBaseTestCase):

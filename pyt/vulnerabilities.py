@@ -20,8 +20,6 @@ from .vulnerability_log import (
     Vulnerability,
     VulnerabilityLog
 )
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')

@@ -1,8 +1,6 @@
 from .base_test_case import BaseTestCase
 from pyt.base_cfg import EntryOrExitNode, Node
 # from pyt.project_handler import get_modules
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class CFGGeneralTest(BaseTestCase):

@@ -2,8 +2,6 @@ import os.path
 
 from .base_test_case import BaseTestCase
 from pyt.project_handler import get_directory_modules, get_modules_and_packages
-from pyt.utils.log import enable_logger, logger
-enable_logger(to_file='./pyt.log')
 
 
 class NestedTest(BaseTestCase):
