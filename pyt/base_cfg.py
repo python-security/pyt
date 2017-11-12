@@ -215,6 +215,7 @@ class AssignmentCallNode(AssignmentNode):
         self.call_node = call_node
         self.blackbox = False
 
+
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
 
@@ -304,6 +305,27 @@ class Visitor(ast.NodeVisitor):
         else:
             return True
 
+    def get_inner_most_function_call(self, call_node):
+        # Loop to inner most function call
+        # e.g. return scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
+        old_call_node = None
+        while call_node != old_call_node:
+            old_call_node = call_node
+            if isinstance(call_node, BBorBInode):
+                call_node = call_node.inner_most_call
+            else:
+                try:
+                    call_node = call_node.first_node.inner_most_call
+                except AttributeError:
+                    try:
+                        call_node = call_node.first_node
+                    except AttributeError:
+                        # No inner calls
+                        # Possible improvement: Make new node for RestoreNode's made in process_function
+                        #                       and make `self.inner_most_call = self`
+                        pass
+        return call_node
+
     def connect_control_flow_node(self, control_flow_node, next_node):
         """Connect a ControlFlowNode properly to the next_node."""
         for last in control_flow_node[1]:  # list of last nodes in ifs and elifs
@@ -311,33 +333,8 @@ class Visitor(ast.NodeVisitor):
                 last.connect(next_node.test)  # connect to next if test case
             elif isinstance(next_node, AssignmentCallNode):
                 call_node = next_node.call_node
-                if isinstance(call_node, BBorBInode):
-                    # Loop to inner most function call
-                    # e.g. scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
-                    old_call_node = None
-                    while call_node != old_call_node:
-                        old_call_node = call_node
-                        if isinstance(call_node, BBorBInode):
-                            call_node = call_node.inner_most_call
-                        else:
-                            try:
-                                call_node = call_node.first_node.inner_most_call
-                            except AttributeError:
-                                try:
-                                    call_node = call_node.first_node
-                                except AttributeError:
-                                    pass
-                else:
-                    call_node = call_node.first_node
-                    try:
-                        while call_node != call_node.inner_most_call:
-                            call_node = call_node.inner_most_call
-                    except AttributeError:
-                        # No inner calls
-                        # Possible improvement: Make new node for RestoreNode's made in process_function
-                        #                       and make `self.inner_most_call = self`
-                        pass
-                last.connect(call_node)
+                inner_most_call_node = self.get_inner_most_function_call(call_node)
+                last.connect(inner_most_call_node)
             else:
                 last.connect(next_node)
 

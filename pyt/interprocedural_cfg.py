@@ -253,8 +253,8 @@ class InterproceduralVisitor(Visitor):
         # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
                            if (type(node) == AssignmentNode or
-                           type(node) == AssignmentCallNode or
-                           type(Node) == BBorBInode)]:  # type() is used on purpose here
+                               type(node) == AssignmentCallNode or
+                               type(Node) == BBorBInode)]:  # type() is used on purpose here
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
@@ -294,11 +294,13 @@ class InterproceduralVisitor(Visitor):
             if previous_node is not self.prev_nodes_to_avoid[-1]:
                 previous_node.connect(node_to_connect_to)
         except IndexError:
+            # If there are no prev_nodes_to_avoid, we just connect safely.
+            # Except in this case:
+            #
             # if not image_name:
             #     return 404
-            # print('foo')  # We do not want to this line with `return 404`
+            # print('foo')  # We do not want to connect this line with `return 404`
             if not isinstance(previous_node, ReturnNode):
-                # If there are no prev_nodes_to_avoid, we just connect safely.
                 previous_node.connect(node_to_connect_to)
 
     def save_def_args_in_temp(self,
@@ -355,12 +357,10 @@ class InterproceduralVisitor(Visitor):
             if isinstance(call_arg, ast.Call):
                 if last_return_value_of_nested_call:
                     # connect inner to other_inner in e.g. `outer(inner(image_name), other_inner(image_name))`
-
                     if isinstance(return_value_of_nested_call, BBorBInode):
                         last_return_value_of_nested_call.connect(return_value_of_nested_call)
                     else:
                         last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
-
                 else:
                     # I should only set this once per loop, inner in e.g. `outer(inner(image_name), other_inner(image_name))`
                     # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
@@ -377,7 +377,8 @@ class InterproceduralVisitor(Visitor):
                 args_mapping[return_value_of_nested_call.left_hand_side] = def_args[i]
             else:
                 args_mapping[def_args[i]] = call_arg_label_visitor.result
-        # After loop
+
+        # After args loop
         if last_return_value_of_nested_call:
             # connect other_inner to outer in e.g. `outer(inner(image_name), other_inner(image_name))`
             last_return_value_of_nested_call.connect(first_node)
