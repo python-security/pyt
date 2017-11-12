@@ -243,7 +243,8 @@ class InterproceduralVisitor(Visitor):
             saved_function_call_index(int): Unique number for each call.
 
         Returns:
-            (saved_variables(list[SavedVariable]), first_node[RestoreNode or None])
+            saved_variables(list[SavedVariable])
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
         """
         saved_variables = list()
         saved_variables_so_far = set()
@@ -313,11 +314,11 @@ class InterproceduralVisitor(Visitor):
             def_args(ast_helper.Arguments): Of the definition being called.
             line_number(int): Of the call being made.
             saved_function_call_index(int): Unique number for each call.
-            first_node(None or RestoreNode): Used to connect previous statements to this function.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
 
         Returns:
             args_mapping(dict): A mapping of call argument to definition argument.
-            first_node(None or RestoreNode): Used to connect previous statements to this function.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
         """
         args_mapping = dict()
         last_return_value_of_nested_call = None
@@ -347,7 +348,7 @@ class InterproceduralVisitor(Visitor):
                                            line_number=line_number,
                                            path=self.filenames[-1])
 
-            # If there are no args and no saved variables, then this is the first node
+            # If there are no saved variables, then this is the first node
             if not first_node:
                 first_node = restore_node
 
@@ -462,7 +463,7 @@ class InterproceduralVisitor(Visitor):
             call_node(ast.Call) : The node that calls the definition.
             function_nodes(list[Node]): List of nodes of the function being called.
             saved_function_call_index(int): Unique number for each call.
-            first_node
+            first_node(EntryOrExitNode or RestoreNode): Used to connect previous statements to this function.
         """
         for node in function_nodes:
             # Only `Return`s and `Raise`s can be of type ConnectToExitNode
@@ -543,11 +544,11 @@ class InterproceduralVisitor(Visitor):
 
         Args:
             definition(LocalModuleDefinition): Definition of the function being added.
-            first_node
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
 
         Returns:
             the_new_nodes(list[Node]): The nodes added while visiting the function.
-            first_node
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
         """
         len_before_visiting_func = len(self.nodes)
         previous_node = self.nodes[-1]

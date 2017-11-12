@@ -2,8 +2,15 @@ import ast
 
 from .analysis_base import AnalysisBase
 from .ast_helper import get_call_names_as_string
-from .base_cfg import AssignmentNode, BBorBInode, EntryOrExitNode
-from .constraint_table import constraint_join, constraint_table
+from .base_cfg import (
+    AssignmentNode,
+    BBorBInode,
+    EntryOrExitNode
+)
+from .constraint_table import (
+    constraint_join,
+    constraint_table
+)
 from .lattice import Lattice
 from .vars_visitor import VarsVisitor
 

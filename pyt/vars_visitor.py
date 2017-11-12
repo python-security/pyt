@@ -1,4 +1,5 @@
 import ast
+import itertools
 
 from .ast_helper import get_call_names
 
@@ -85,30 +86,22 @@ class VarsVisitor(ast.NodeVisitor):
         # This will not visit Flask in Flask(__name__) but it will visit request in `request.args.get()
         if not isinstance(node.func, ast.Name):
             self.visit(node.func)
-        if node.args:
-            for arg in node.args:
-                if isinstance(arg, ast.Call):
-                    if isinstance(arg.func, ast.Name):
-                        # We can't just visit because we need to add 'ret_'
-                        self.result.append('ret_' + arg.func.id)
-                    elif isinstance(arg.func, ast.Attribute):
-                        # e.g. html.replace('{{ param }}', param)
-                        # func.attr is replace
-                        # func.value.id is html
-                        # We want replace
-                        self.result.append('ret_' + arg.func.attr)
-                    else:
-                        # Deal with it when we have code that triggers it.
-                        raise
+        for arg in itertools.chain(node.args, node.keywords):
+            if isinstance(arg, ast.Call):
+                if isinstance(arg.func, ast.Name):
+                    # We can't just visit because we need to add 'ret_'
+                    self.result.append('ret_' + arg.func.id)
+                elif isinstance(arg.func, ast.Attribute):
+                    # e.g. html.replace('{{ param }}', param)
+                    # func.attr is replace
+                    # func.value.id is html
+                    # We want replace
+                    self.result.append('ret_' + arg.func.attr)
                 else:
-                    self.visit(arg)
-        if node.keywords:
-            for keyword in node.keywords:
-                if isinstance(keyword, ast.Call):
-                    # FILL ME IN MORE
-                    self.result.append('ret_' + keyword.func.id)
-                else:
-                    self.visit(keyword)
+                    # Deal with it when we have code that triggers it.
+                    raise
+            else:
+                self.visit(arg)
 
     def visit_Attribute(self, node):
         if not isinstance(node.value, ast.Name):

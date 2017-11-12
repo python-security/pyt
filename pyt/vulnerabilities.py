@@ -249,10 +249,9 @@ def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
     Returns:
         AssignmentNode or None
     """
-    for blackbox_assignment in blackbox_assignments:
-        for node in trimmed_reassignment_nodes:
-            if node == blackbox_assignment:
-                return blackbox_assignment
+    for node in trimmed_reassignment_nodes:
+        if node in blackbox_assignments:
+            return node
     return None
 
 
@@ -274,7 +273,12 @@ def get_sink_args(cfg_node):
     return vv.result + other_results
 
 
-def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, blackbox_assignments):
+def get_vulnerability(source,
+                      sink,
+                      triggers,
+                      lattice,
+                      trim_reassigned_in,
+                      blackbox_assignments):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers.
