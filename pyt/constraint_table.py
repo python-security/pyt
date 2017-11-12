@@ -19,7 +19,7 @@ def constraint_join(cfg_nodes):
     return r
 
 
-def print_table(l):
+def print_table(lattice):
     print('Constraint table:')
     for k, v in constraint_table.items():
-        print(str(k) + ': ' + ','.join([str(n) for n in l.get_elements(v)]))
+        print(str(k) + ': ' + ','.join([str(n) for n in lattice.get_elements(v)]))

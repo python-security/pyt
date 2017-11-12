@@ -10,10 +10,14 @@ class BaseTestCase(unittest.TestCase):
     """A base class that has helper methods for testing PyT."""
 
     def assertInCfg(self, connections):
-        """ Assert that all connections in the connections list exists in the cfg,
-        as well as all connections not in the list do not exist
+        """Asserts that all connections in the connections list exists in the cfg,
+        as well as that all connections not in the list do not exist.
 
-        connections is a list of tuples where the node at index 0 of the tuple has to be in the new_constraintset of the node a index 1 of the tuple"""
+        Args:
+            connections(list[tuple]): the node at index 0 of the tuple has
+                                      to be in the new_constraint set of the node
+                                      at index 1 of the tuple.
+        """
         for connection in connections:
             self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].outgoing, str(connection) + " expected to be connected")
             self.assertIn(self.cfg.nodes[connection[1]], self.cfg.nodes[connection[0]].ingoing, str(connection) + " expected to be connected")
@@ -69,3 +73,8 @@ class BaseTestCase(unittest.TestCase):
         return [char for char in output if char.isalpha()] \
                 == \
                [char for char in expected_string if char.isalpha()]
+
+    def string_compare_alnum(self, output, expected_string):
+        return [char for char in output if char.isalnum()] \
+                == \
+               [char for char in expected_string if char.isalnum()]

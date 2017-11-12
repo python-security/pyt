@@ -74,13 +74,20 @@ class CFGForTest(BaseTestCase):
         exit_node = 7
 
         self.assertEqual(self.cfg.nodes[for_node].label,'for x in range(3):')
-        self.assertEqual(self.cfg.nodes[body_1].label, 'print(x)')
+        self.assertEqual(self.cfg.nodes[body_1].label, '¤call_1 = ret_print(x)')
         self.assertEqual(self.cfg.nodes[body_2].label, 'y += 1')
-        self.assertEqual(self.cfg.nodes[else_body_1].label, "print('Final: %s' % x)")
-        self.assertEqual(self.cfg.nodes[else_body_2].label, 'print(y)')
+        self.assertEqual(self.cfg.nodes[else_body_1].label, "¤call_2 = ret_print('Final: %s' % x)")
+        self.assertEqual(self.cfg.nodes[else_body_2].label, '¤call_3 = ret_print(y)')
         self.assertEqual(self.cfg.nodes[next_node].label, 'x = 3')
 
-        self.assertInCfg([(for_node, entry), (body_1, for_node), (else_body_1, for_node), (body_2, body_1), (for_node, body_2), (else_body_2, else_body_1), (next_node, else_body_2), (exit_node, next_node)])
+        self.assertInCfg([(for_node, entry),
+                          (body_1, for_node),
+                          (else_body_1, for_node),
+                          (body_2, body_1),
+                          (for_node, body_2),
+                          (else_body_2, else_body_1),
+                          (next_node, else_body_2),
+                          (exit_node, next_node)])
 
     def test_for_no_orelse(self):
         self.cfg_create_from_file('example/example_inputs/for_no_orelse.py')
@@ -118,10 +125,10 @@ class CFGForTest(BaseTestCase):
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         for_node = self.nodes['for x in range(3):']
-        body_1 = self.nodes['print(x)']
+        body_1 = self.nodes['¤call_1 = ret_print(x)']
         body_2 = self.nodes['y += 1']
-        else_body_1 = self.nodes["print('Final: %s' % x)"]
-        else_body_2 = self.nodes['print(y)']
+        else_body_1 = self.nodes["¤call_2 = ret_print('Final: %s' % x)"]
+        else_body_2 = self.nodes['¤call_3 = ret_print(y)']
         next_node = self.nodes['x = 3']
 
         self.assertLineNumber(for_node, 1)
@@ -134,18 +141,28 @@ class CFGForTest(BaseTestCase):
     def test_for_func_iterator(self):
         self.cfg_create_from_file('example/example_inputs/for_func_iterator.py')
 
-        self.assert_length(self.cfg.nodes, expected_length=8)
+        self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
         _for = 1
         entry_foo = 2
-        ret_foo = 3
-        exit_foo = 4
-        call_foo = 5
-        _print = 6
-        _exit = 7
+        call_to_range = 3
+        ret_foo = 4
+        exit_foo = 5
+        call_foo = 6
+        _print = 7
+        _exit = 8
 
-        self.assertInCfg([(_for, entry), (_for, call_foo), (_for, _print), (entry_foo, _for), (ret_foo, entry_foo), (exit_foo, ret_foo), (call_foo, exit_foo), (_print, _for), (_exit, _for)])
+        self.assertInCfg([(_for, entry),
+                          (_for, call_foo),
+                          (_for, _print),
+                          (entry_foo, _for),
+                          (call_to_range, entry_foo),
+                          (ret_foo, call_to_range),
+                          (exit_foo, ret_foo),
+                          (call_foo, exit_foo),
+                          (_print, _for),
+                          (_exit, _for)])
 
 class CFGTryTest(BaseTestCase):
     def connected(self, node, successor):
@@ -176,7 +193,7 @@ class CFGTryTest(BaseTestCase):
         self.cfg_create_from_file('example/example_inputs/try_orelse.py')
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
-        self.assert_length(self.cfg.nodes, expected_length=18)
+        self.assert_length(self.cfg.nodes, expected_length=20)
 
         entry = 0
         try_ = 1
@@ -184,18 +201,20 @@ class CFGTryTest(BaseTestCase):
         print_a5 = 3
         except_im = 4
         except_im_body_1 = 5
-        print_wagyu = 6
-        save_node = 7
-        assign_to_temp = 8
-        assign_from_temp = 9
-        function_entry = 10
-        ret_of_subprocess_call = 11
-        function_exit = 12
-        restore_node = 13
-        return_handler = 14
-        print_so = 15
-        print_good = 16
-        _exit = 17
+        value_equal_call_2 = 6 # value = ¤call_2
+        print_wagyu = 7
+        save_node = 8
+        assign_to_temp = 9
+        assign_from_temp = 10
+        function_entry = 11
+        ret_of_subprocess_call = 12
+        ret_does_this_kill_us_equal_call_5 = 13 # ret_does_this_kill_us = ¤call_5
+        function_exit = 14
+        restore_node = 15
+        return_handler = 16
+        print_so = 17
+        print_good = 18
+        _exit = 19
 
         self.assertInCfg([self.connected(entry, try_),
 
@@ -208,7 +227,9 @@ class CFGTryTest(BaseTestCase):
                           self.connected(print_a5, print_good),
 
                           self.connected(except_im, except_im_body_1),
-                          self.connected(except_im_body_1, print_wagyu),
+
+                          self.connected(except_im_body_1, value_equal_call_2),
+                          self.connected(value_equal_call_2, print_wagyu),
 
                           self.connected(print_wagyu, print_good),
 
@@ -216,7 +237,8 @@ class CFGTryTest(BaseTestCase):
                           self.connected(assign_to_temp, assign_from_temp),
                           self.connected(assign_from_temp, function_entry),
                           self.connected(function_entry, ret_of_subprocess_call),
-                          self.connected(ret_of_subprocess_call, function_exit),
+                          self.connected(ret_of_subprocess_call, ret_does_this_kill_us_equal_call_5),
+                          self.connected(ret_does_this_kill_us_equal_call_5, function_exit),
                           self.connected(function_exit, restore_node),
                           self.connected(restore_node, return_handler),
                           self.connected(return_handler, print_so),
@@ -498,16 +520,21 @@ class CFGAssignmentMultiTest(BaseTestCase):
     def test_assignment_multi_target_call(self):
         self.cfg_create_from_file('example/example_inputs/assignment_multiple_assign_call.py')
 
-        self.assert_length(self.cfg.nodes, expected_length=4)
+        self.assert_length(self.cfg.nodes, expected_length=6)
         start_node = self.cfg.nodes[0]
-        node = self.cfg.nodes[1]
-        node_2 = self.cfg.nodes[2]
-        exit_node = self.cfg.nodes[-1]
+        assignment_to_call1 = self.cfg.nodes[1]
+        assignment_to_x = self.cfg.nodes[2]
+        assignment_to_call2 = self.cfg.nodes[3]
+        assignment_to_y = self.cfg.nodes[4]
+        exit_node = self.cfg.nodes[5]
 
-        self.assertInCfg([(1,0),(2,1),(3,2)])
+        # This assert means N should be connected to N+1
+        self.assertInCfg([(1,0),(2,1),(3,2),(4,3),(5,4)])
 
-        self.assertEqual(node.label, 'x = int(5)')
-        self.assertEqual(node_2.label, 'y = int(4)')
+        self.assertEqual(assignment_to_call1.label, '¤call_1 = ret_int(5)')
+        self.assertEqual(assignment_to_x.label, 'x = ¤call_1')
+        self.assertEqual(assignment_to_call2.label, '¤call_2 = ret_int(4)')
+        self.assertEqual(assignment_to_y.label, 'y = ¤call_2')
 
     def test_assignment_multi_target_line_numbers(self):
         self.cfg_create_from_file('example/example_inputs/assignment_two_targets.py')
@@ -555,11 +582,11 @@ class CFGAssignmentMultiTest(BaseTestCase):
     def test_assign_list_comprehension(self):
         self.cfg_create_from_file('example/example_inputs/generator_expression_assign.py')
 
-        length = 3
-        self.assert_length(self.cfg.nodes, expected_length = length)
+        length = 4
+        self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "x = ''.join((x.n for x in range(16)))")
+        self.assertEqual(call.label, "¤call_1 = ret_''.join((x.n for x in range(16)))")
 
         l = zip(range(1, length), range(length))
 
@@ -572,7 +599,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         start_node = 0
         node = 1
         exit_node = 2
-        print(self.cfg)
+        # print(self.cfg)
 
         self.assertInCfg([(node, start_node), (exit_node, node)])
 
@@ -634,73 +661,87 @@ class CFGFunctionNodeTest(BaseTestCase):
         path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
 
-
-        self.assert_length(self.cfg.nodes, expected_length=8)
+        self.assert_length(self.cfg.nodes, expected_length=9)
 
         entry = 0
-        y_assignment = 1
-        save_y = 2
-        entry_foo = 3
-        body_foo = 4
-        exit_foo = 5
-        y_load = 6
-        exit_ = 7
+        input_call = 1
+        y_assignment = 2
+        save_y = 3
+        entry_foo = 4
+        body_foo = 5
+        exit_foo = 6
+        y_load = 7
+        _exit = 8
 
-        self.assertInCfg([self.connected(entry, y_assignment),
+        self.assertInCfg([self.connected(entry, input_call),
+                          self.connected(input_call, y_assignment),
                           self.connected(y_assignment, save_y),
                           self.connected(save_y, entry_foo),
                           self.connected(entry_foo, body_foo),
                           self.connected(body_foo, exit_foo),
                           self.connected(exit_foo, y_load),
-                          self.connected(y_load, exit_)])
+                          self.connected(y_load, _exit)])
 
     def test_function_line_numbers(self):
         path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
+        
+        input_call = self.cfg.nodes[1]
+        y_assignment = self.cfg.nodes[2]
+        save_y = self.cfg.nodes[3]
+        entry_foo = self.cfg.nodes[4]
+        body_foo = self.cfg.nodes[5]
+        exit_foo = self.cfg.nodes[6]
+        y_load = self.cfg.nodes[7]
 
-        y_assignment = self.cfg.nodes[1]
-        save_y = self.cfg.nodes[2]
-        entry_foo = self.cfg.nodes[3]
-        body_foo = self.cfg.nodes[4]
-        exit_foo = self.cfg.nodes[5]
-        y_load = self.cfg.nodes[6]
-
+        self.assertLineNumber(input_call, 5)
         self.assertLineNumber(y_assignment, 5)
         self.assertLineNumber(save_y, 1)
         self.assertLineNumber(entry_foo, None)
         self.assertLineNumber(body_foo, 2)
+        self.assertLineNumber(exit_foo, None)
+        self.assertLineNumber(y_load, 1)
 
     def test_function_parameters(self):
         path = 'example/example_inputs/parameters_function.py'
         self.cfg_create_from_file(path)
 
-        self.assert_length(self.cfg.nodes, expected_length=12)
+        self.assert_length(self.cfg.nodes, expected_length=14)
 
         entry = 0
-        y_assignment = 1
-        save_y = 2
-        save_actual_y = 3
-        bar_local_y = 4
-        entry_bar = 5
-        bar_y_assignment = 6
-        bar_print_y = 7
-        bar_print_x = 8
-        exit_bar = 9
-        restore_actual_y = 10
-        exit_ = 11
+        input_call = 1
+        y_assignment = 2
+        save_y = 3
+        save_actual_y = 4
+        bar_local_y = 5
+        entry_bar = 6
+        another_input_call = 7
+        bar_y_assignment = 8
+        bar_print_y = 9
+        bar_print_x = 10
+        exit_bar = 11
+        restore_actual_y = 12
+        _exit = 13
 
-        self.assertInCfg([self.connected(entry, y_assignment), self.connected(y_assignment, save_y),
-                          self.connected(save_y, save_actual_y), self.connected(save_actual_y, bar_local_y),
-                          self.connected(bar_local_y, entry_bar), self.connected(entry_bar, bar_y_assignment),
-                          self.connected(bar_y_assignment, bar_print_y), self.connected(bar_print_y, bar_print_x),
-                          self.connected(bar_print_x, exit_bar), self.connected(exit_bar, restore_actual_y),
-                          self.connected(restore_actual_y, exit_)])
+        self.assertInCfg([self.connected(entry, input_call),
+                          self.connected(input_call, y_assignment),
+                          self.connected(y_assignment, save_y),
+                          self.connected(save_y, save_actual_y),
+                          self.connected(save_actual_y, bar_local_y),
+                          self.connected(bar_local_y, entry_bar),
+                          self.connected(entry_bar, another_input_call),
+                          self.connected(another_input_call, bar_y_assignment),
+                          self.connected(bar_y_assignment, bar_print_y),
+                          self.connected(bar_print_y, bar_print_x),
+                          self.connected(bar_print_x, exit_bar),
+                          self.connected(exit_bar, restore_actual_y),
+                          self.connected(restore_actual_y, _exit)])
 
     def test_function_with_return(self):
         path = 'example/example_inputs/simple_function_with_return.py'
         self.cfg_create_from_file(path)
 
-        self.assert_length(self.cfg.nodes, expected_length=18)
+        self.assert_length(self.cfg.nodes, expected_length=19)
 
         l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
         self.assertInCfg(list(l))
@@ -731,6 +772,316 @@ class CFGFunctionNodeTest(BaseTestCase):
                           (call_foo, exit_foo),
                           (_exit, call_foo)])
 
+    def test_blackbox_call_after_if(self):
+        path = 'example/vulnerable_code/blackbox_call_after_if.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        blackbox_call = 5
+        foo_equals_call_2 = 6
+        ret_send_file = 7
+        _exit = 8
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (blackbox_call, _if),
+                          (blackbox_call, image_name_equals_foo),
+                          (foo_equals_call_2, blackbox_call),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
+
+    def test_multiple_nested_user_defined_calls_after_if(self):
+        path = 'example/vulnerable_code/multiple_nested_user_defined_calls_after_if.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=39)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+
+        save_2_image_name = 5
+
+        save_3_image_name = 6
+        temp_3_first_inner_arg = 7
+        inner_arg_equals_temp_3 = 8
+        function_entry_first_inner = 9
+        first_inner_ret_val_assign_1st = 10
+        ret_first_inner = 11
+        function_exit_first_inner = 12
+        image_name_equals_first_inner_arg = 13
+        call_3_equals_ret_first_inner = 14
+        temp_2_first_arg_equals_call_3 = 15
+
+        save_4_image_name = 16
+        save_4_inner_ret_val = 17
+        temp_4_inner_arg = 18
+        inner_arg_equals_temp_4 = 19
+        function_entry_second_inner = 20
+        second_inner_ret_val_assign_2nd = 21
+        ret_second_inner = 22
+        function_exit_second_inner = 23
+        image_name_equals_second_inner_arg = 24
+        first_inner_ret_val_equals_save_4 = 25
+        call_4_equals_ret_second_inner = 26
+
+        temp_2_second_arg_equals_call_4 = 27
+        first_arg_equals_temp = 28
+        second_arg_equals_temp = 29
+        function_entry_outer = 30
+        outer_ret_val_assignment = 31
+        ret_outer = 32
+        function_exit_outer = 33
+        image_name_restore = 34
+        call_2_equals_ret_outer = 35
+
+        foo_equals_call_2 = 36
+        ret_send_file = 37
+        _exit = 38
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          # (call_2_equals_ret_outer, _if), ## (Before) NO NO NO
+                          # (call_2_equals_ret_outer, image_name_equals_foo), ## (Before) NO NO NO
+                          (save_3_image_name, _if), ## (After) Aww yeah, feels so good
+                          (save_3_image_name, image_name_equals_foo), ## (After) Aww yeah, feels so good
+                          (save_2_image_name, image_name_equals_foo),
+
+                          (save_3_image_name, save_2_image_name),
+                          (temp_3_first_inner_arg, save_3_image_name),
+                          (inner_arg_equals_temp_3, temp_3_first_inner_arg),
+                          (function_entry_first_inner, inner_arg_equals_temp_3),
+                          (first_inner_ret_val_assign_1st, function_entry_first_inner),
+                          (ret_first_inner, first_inner_ret_val_assign_1st),
+                          (function_exit_first_inner, ret_first_inner),
+                          (image_name_equals_first_inner_arg, function_exit_first_inner),
+                          (call_3_equals_ret_first_inner, image_name_equals_first_inner_arg),
+                          (save_4_image_name, call_3_equals_ret_first_inner),
+                          (temp_2_first_arg_equals_call_3, call_3_equals_ret_first_inner),
+                          (save_4_image_name, temp_2_first_arg_equals_call_3),
+                          (save_4_inner_ret_val, save_4_image_name),
+                          (temp_4_inner_arg, save_4_inner_ret_val),
+                          (inner_arg_equals_temp_4, temp_4_inner_arg),
+                          (function_entry_second_inner, inner_arg_equals_temp_4),
+                          (second_inner_ret_val_assign_2nd, function_entry_second_inner),
+                          (ret_second_inner, second_inner_ret_val_assign_2nd),
+                          (function_exit_second_inner, ret_second_inner),
+                          (image_name_equals_second_inner_arg, function_exit_second_inner),
+                          (first_inner_ret_val_equals_save_4, image_name_equals_second_inner_arg),
+                          (call_4_equals_ret_second_inner, first_inner_ret_val_equals_save_4),
+                          (save_2_image_name, call_4_equals_ret_second_inner),
+                          (temp_2_second_arg_equals_call_4, call_4_equals_ret_second_inner),
+                          (first_arg_equals_temp, temp_2_second_arg_equals_call_4),
+                          (second_arg_equals_temp, first_arg_equals_temp),
+                          (function_entry_outer, second_arg_equals_temp),
+                          (outer_ret_val_assignment, function_entry_outer),
+                          (ret_outer, outer_ret_val_assignment),
+                          (function_exit_outer, ret_outer),
+                          (image_name_restore, function_exit_outer),
+                          (call_2_equals_ret_outer, image_name_restore),
+                          
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
+
+    def test_multiple_nested_blackbox_calls_after_for(self):
+        path = 'example/vulnerable_code/multiple_nested_blackbox_calls_after_for.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=11)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _for = 3
+        ret_print = 4
+        inner_blackbox_call = 5
+        second_inner_blackbox_call = 6
+        outer_blackbox_call = 7
+        foo_equals_call_3 = 8
+        ret_send_file = 9
+        _exit = 10
+
+        self.assertInCfg([(ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_for, image_name_equals_call_1),
+                          (ret_print, _for),
+                          (_for, ret_print),
+                          (inner_blackbox_call, _for),
+                          (second_inner_blackbox_call, inner_blackbox_call),
+                          (outer_blackbox_call, second_inner_blackbox_call),
+                          (foo_equals_call_3, outer_blackbox_call),
+                          (ret_send_file, foo_equals_call_3),
+                          (_exit, ret_send_file)
+                          ])
+
+    def test_multiple_blackbox_calls_in_user_defined_call_after_if(self):
+        path = 'example/vulnerable_code/multiple_blackbox_calls_in_user_defined_call_after_if.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=32)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        # Function call starts here
+        save_2_image_name = 5
+
+        ret_scrypt_first = 6
+        temp_2_first_arg = 7
+        save_4_image_name = 8
+        temp_4_inner_arg = 9
+        inner_arg_equals_temp_4 = 10
+        function_entry_second_inner = 11
+        inner_ret_val_equals_inner_arg_2nd = 12
+        ret_second_inner = 13
+        function_exit_second_inner = 14
+
+        image_name_equals_save_4 = 15
+        call_4_equals_ret_second_inner = 16
+        temp_2_second_arg = 17
+
+        ret_scrypt_third = 18
+        temp_2_third_arg_equals_call_5 = 19
+        first_arg_equals_temp = 20
+        second_arg_equals_temp = 21
+        third_arg_equals_temp = 22
+        function_entry_outer = 23
+        outer_ret_val = 24
+        ret_outer = 25
+        exit_outer = 26
+        image_name_equals_save_2 = 27
+        call_2_equals_ret_outer = 28
+        foo_equals_call_2 = 29
+        ret_send_file = 30
+        _exit = 31
+
+        self.assertInCfg([(save_2_image_name, ret_scrypt_third),  # Makes sense
+                          (ret_scrypt_first, _if),  # Makes sense
+                          (ret_scrypt_first, image_name_equals_foo),  # Makes sense
+                          (save_4_image_name, ret_scrypt_first),  # Makes sense
+                          (ret_scrypt_third, call_4_equals_ret_second_inner),  # Makes sense
+                          (ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (save_2_image_name, image_name_equals_foo),
+                          (ret_scrypt_first, save_2_image_name),
+                          (temp_2_first_arg, ret_scrypt_first),
+                          (save_4_image_name, temp_2_first_arg),
+                          (temp_4_inner_arg, save_4_image_name),
+                          (inner_arg_equals_temp_4, temp_4_inner_arg),
+                          (function_entry_second_inner, inner_arg_equals_temp_4),
+                          (inner_ret_val_equals_inner_arg_2nd, function_entry_second_inner),
+                          (ret_second_inner, inner_ret_val_equals_inner_arg_2nd),
+                          (function_exit_second_inner, ret_second_inner),
+                          (image_name_equals_save_4, function_exit_second_inner),
+                          (call_4_equals_ret_second_inner, image_name_equals_save_4),
+                          (temp_2_second_arg, call_4_equals_ret_second_inner),
+                          (ret_scrypt_third, temp_2_second_arg),
+                          (temp_2_third_arg_equals_call_5, ret_scrypt_third),
+                          (first_arg_equals_temp, temp_2_third_arg_equals_call_5),
+                          (second_arg_equals_temp, first_arg_equals_temp),
+                          (third_arg_equals_temp, second_arg_equals_temp),
+                          (function_entry_outer, third_arg_equals_temp),
+                          (outer_ret_val, function_entry_outer),
+                          (ret_outer, outer_ret_val),
+                          (exit_outer, ret_outer),
+                          (image_name_equals_save_2, exit_outer),
+                          (call_2_equals_ret_outer, image_name_equals_save_2),
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
+
+
+
+
+    def test_multiple_user_defined_calls_in_blackbox_call_after_if(self):
+        path = 'example/vulnerable_code/multiple_user_defined_calls_in_blackbox_call_after_if.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=30)
+
+        entry = 0
+        ret_request = 1
+        image_name_equals_call_1 = 2
+        _if = 3
+        image_name_equals_foo = 4
+        # Function call starts here
+        save_3_image_name = 5
+        temp_3_first_arg = 6
+        first_arg_equals_temp = 7
+        function_entry_first_inner = 8
+        first_ret_val_equals_first = 9
+        ret_first_inner = 10
+        function_exit_first_inner = 11
+        image_name_equals_save_4 = 12
+        call_3_equals_ret_first_inner = 13
+        call_4_equals_ret_second_inner = 14
+        save_5_image_name = 15
+        save_5_first_ret_val = 16
+        temp_5_second_arg = 17
+        second_arg_equals_temp = 18
+        function_entry_third_inner = 19
+        third_ret_val = 20
+        ret_third_inner = 21
+        exit_third_inner = 22
+        image_name_equals_save_5 = 23
+        first_ret_val_equals_save_5 = 24
+        call_5_equals_ret_third_inner = 25
+        call_2_equals_ret_outer = 26
+        foo_equals_call_2 = 27
+        ret_send_file = 28
+        _exit = 29
+
+        self.assertInCfg([(save_3_image_name, _if), # Makes sense
+                          (ret_request, entry),
+                          (image_name_equals_call_1, ret_request),
+                          (_if, image_name_equals_call_1),
+                          (image_name_equals_foo, _if),
+                          (save_3_image_name, image_name_equals_foo),
+                          (temp_3_first_arg, save_3_image_name),
+                          (first_arg_equals_temp, temp_3_first_arg),
+                          (function_entry_first_inner, first_arg_equals_temp),
+                          (first_ret_val_equals_first, function_entry_first_inner),
+                          (ret_first_inner, first_ret_val_equals_first),
+                          (function_exit_first_inner, ret_first_inner),
+                          (image_name_equals_save_4, function_exit_first_inner),
+                          (call_3_equals_ret_first_inner, image_name_equals_save_4),
+                          (call_4_equals_ret_second_inner, call_3_equals_ret_first_inner),
+                          (save_5_image_name, call_4_equals_ret_second_inner),
+                          (save_5_first_ret_val, save_5_image_name),
+                          (temp_5_second_arg, save_5_first_ret_val),
+                          (second_arg_equals_temp, temp_5_second_arg),
+                          (function_entry_third_inner, second_arg_equals_temp),
+                          (third_ret_val, function_entry_third_inner),
+                          (ret_third_inner, third_ret_val),
+                          (exit_third_inner, ret_third_inner),
+                          (image_name_equals_save_5, exit_third_inner),
+                          (first_ret_val_equals_save_5, image_name_equals_save_5),
+                          (call_5_equals_ret_third_inner, first_ret_val_equals_save_5),
+                          (call_2_equals_ret_outer, call_5_equals_ret_third_inner),
+                          (foo_equals_call_2, call_2_equals_ret_outer),
+                          (ret_send_file, foo_equals_call_2),
+                          (_exit, ret_send_file)
+                          ])
 
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'
@@ -771,7 +1122,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[2]
-        self.assertEqual(call.label, "request.args.get('param', 'not set')")
+        self.assertEqual(call.label, "¤call_1 = ret_request.args.get('param', 'not set')")
 
         l = zip(range(1, length), range(length))
         self.assertInCfg(list(l))
@@ -797,7 +1148,16 @@ class CFGBreak(BaseTestCase):
         print_next = 6
         _exit = 7
 
-        self.assertInCfg([(_while, entry), (_while, print_hest), (_if, _while), (print_x, _if), (_break, print_x), (print_hest, _if), (print_next, _while), (print_next, _break), (_exit, print_next)])
+        # (foo, bar) means foo <- bar
+        self.assertInCfg([(_while, entry),
+                          (_while, print_hest),
+                          (_if, _while),
+                          (print_x, _if),
+                          (_break, print_x),
+                          (print_hest, _if),
+                          (print_next, _while),
+                          (print_next, _break),
+                          (_exit, print_next)])
 
 
 class CFGNameConstant(BaseTestCase):

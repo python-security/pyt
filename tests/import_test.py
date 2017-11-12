@@ -129,13 +129,13 @@ class ImportTest(BaseTestCase):
                     "Module Exit folder",
                     "Module Exit package_star",
                     "Function Entry A.cobia",
-                    "print('A')",
+                    "¤call_2 = ret_print('A')",
                     "Exit A.cobia",
                     "Function Entry B.al",
-                    "print('B')",
+                    "¤call_4 = ret_print('B')",
                     "Exit B.al",
                     "Function Entry folder.C.pastor",
-                    "print('C')",
+                    "¤call_6 = ret_print('C')",
                     "Exit folder.C.pastor",
                     "Exit module"]
 
@@ -162,13 +162,13 @@ class ImportTest(BaseTestCase):
                     "Module Exit folder",
                     "Module Exit package_star_with_alias",
                     "Function Entry husk.cobia",
-                    "print('A')",
+                    "¤call_2 = ret_print('A')",
                     "Exit husk.cobia",
                     "Function Entry meringue.al",
-                    "print('B')",
+                    "¤call_4 = ret_print('B')",
                     "Exit meringue.al",
                     "Function Entry corn.mousse.pastor",
-                    "print('C')",
+                    "¤call_6 = ret_print('C')",
                     "Exit corn.mousse.pastor",
                     "Exit module"]
 
@@ -467,7 +467,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function",
                     "Function Entry package_with_function.StarbucksVisitor",
-                    "print('Iced Mocha')",
+                    "¤call_2 = ret_print('Iced Mocha')",
                     "Exit package_with_function.StarbucksVisitor",
                     "Exit module"]
 
@@ -491,7 +491,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function_and_alias",
                     "Function Entry package_with_function_and_alias.EatalyVisitor",
-                    "print('Iced Mocha')",
+                    "¤call_2 = ret_print('Iced Mocha')",
                     "Exit package_with_function_and_alias.EatalyVisitor",
                     "Exit module"]
 
@@ -513,7 +513,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file",
                     "Function Entry package_with_file.Starbucks.Tea",
-                    "print('Teavana Green')",
+                    "¤call_2 = ret_print('Teavana Green')",
                     "Exit package_with_file.Starbucks.Tea",
                     "Exit module"]
 
@@ -535,7 +535,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file_and_alias",
                     "Function Entry package_with_file_and_alias.Eataly.Tea",
-                    "print('Teavana Green')",
+                    "¤call_2 = ret_print('Teavana Green')",
                     "Exit package_with_file_and_alias.Eataly.Tea",
                     "Exit module"]
 
@@ -559,7 +559,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_folder",
                     "Function Entry package_with_folder.nested_folder_with_init.moose.fast",
-                    "print('real fast')",
+                    "¤call_2 = ret_print('real fast')",
                     "Exit package_with_folder.nested_folder_with_init.moose.fast",
                     "Exit module"]
 
@@ -583,7 +583,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_folder_and_alias",
                     "Function Entry package_with_folder_and_alias.heyo.moose.fast",
-                    "print('real fast')",
+                    "¤call_2 = ret_print('real fast')",
                     "Exit package_with_folder_and_alias.heyo.moose.fast",
                     "Exit module"]
 
@@ -607,7 +607,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function",
                     "Function Entry StarbucksVisitor",
-                    "print('Iced Mocha')",
+                    "¤call_2 = ret_print('Iced Mocha')",
                     "Exit StarbucksVisitor",
                     "Exit module"]
 
@@ -631,7 +631,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function_and_alias",
                     "Function Entry EatalyVisitor",
-                    "print('Iced Mocha')",
+                    "¤call_2 = ret_print('Iced Mocha')",
                     "Exit EatalyVisitor",
                     "Exit module"]
 
@@ -653,7 +653,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file",
                     "Function Entry Starbucks.Tea",
-                    "print('Teavana Green')",
+                    "¤call_2 = ret_print('Teavana Green')",
                     "Exit Starbucks.Tea",
                     "Exit module"]
 
@@ -675,7 +675,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file_and_alias",
                     "Function Entry Eataly.Tea",
-                    "print('Teavana Green')",
+                    "¤call_2 = ret_print('Teavana Green')",
                     "Exit Eataly.Tea",
                     "Exit module"]
 

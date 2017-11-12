@@ -42,7 +42,11 @@ class VarsVisitorTest(VarsVisitorTestCase):
 
     def test_call5(self):
         vars = self.perform_vars_on_expression("resp = make_response(html.replace('{{ param }}', param))")
-        self.assertEqual(vars.result, ['resp', 'html', 'param'])
+        self.assertEqual(vars.result, ['resp', 'ret_replace'])
+
+    def test_call6(self):
+        vars = self.perform_vars_on_expression("resp = make_response(html.replace.bar('{{ param }}', param))")
+        self.assertEqual(vars.result, ['resp', 'ret_bar'])
 
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print(arg = x)')

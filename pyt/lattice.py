@@ -47,5 +47,5 @@ def print_lattice(cfg_list, analysis_type):
 
     print('Lattice:')
     for k, v in l.el2bv.items():
-        print(str(k) + ': ' + bin(v))
+        print(str(k) + ': ' + str(v))
     return l

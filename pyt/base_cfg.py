@@ -1,4 +1,5 @@
 import ast
+import itertools
 from collections import namedtuple
 
 from .ast_helper import Arguments, get_call_names_as_string
@@ -45,6 +46,7 @@ class Node():
         if isinstance(self, ConnectToExitNode) and\
            not isinstance(successor, EntryOrExitNode):
             return
+
         self.outgoing.append(successor)
         successor.ingoing.append(self)
 
@@ -121,23 +123,20 @@ class EntryOrExitNode(Node):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, vv_result, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
         """Create an Assignment node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            ast_node(_ast.Assign, _ast.AugAssign, _ast.Return or None)
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
         """
         super().__init__(label, ast_node, line_number=line_number, path=path)
         self.left_hand_side = left_hand_side
         self.right_hand_side_variables = right_hand_side_variables
-        # Only set in assignment_call_node()
-        self.vv_result = vv_result
-        # Only set True in assignment_call_node()
-        self.blackbox = False
 
     def __repr__(self):
         output_string = super().__repr__()
@@ -145,6 +144,10 @@ class AssignmentNode(Node):
         return ''.join((output_string,
                         'left_hand_side:\t', str(self.left_hand_side), '\n',
                         'right_hand_side_variables:\t', str(self.right_hand_side_variables)))
+
+
+class TaintedNode(AssignmentNode):
+    pass
 
 
 class RestoreNode(AssignmentNode):
@@ -158,8 +161,57 @@ class RestoreNode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
         """
-        super().__init__(label, left_hand_side, None, right_hand_side_variables, None, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+
+
+class BBorBInode(AssignmentNode):
+    """Node used for handling restore nodes returning from blackbox or builtin function calls."""
+
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+        """Create a Restore node.
+
+        Args:
+            label(str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
+        """
+        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        self.args = []
+        self.inner_most_call = self
+
+
+class AssignmentCallNode(AssignmentNode):
+    """Node used for X."""
+
+    def __init__(self,
+                 label,
+                 left_hand_side,
+                 ast_node,
+                 right_hand_side_variables,
+                 vv_result,
+                 *,
+                 line_number,
+                 path,
+                 call_node):
+        """Create a X.
+
+        Args:
+            label(str): The label of the node, describing the expression it represents.
+            left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            right_hand_side_variables(list[str]): A list of variables on the right hand side.
+            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+            line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
+            call_node(BBorBInode or RestoreNode): Used in connect_control_flow_node.
+        """
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
+        self.vv_result = vv_result
+        self.call_node = call_node
+        self.blackbox = False
 
 
 class ReturnNode(AssignmentNode, ConnectToExitNode):
@@ -173,8 +225,9 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
+            path(string): Current filename.
         """
-        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, None, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
 
 
 class Function():
@@ -243,18 +296,43 @@ class Visitor(ast.NodeVisitor):
         else:
             return node_or_tuple
 
-    def node_to_connect(self, node):
+    def should_connect_node(self, node):
         """Determine if node should be in the final CFG."""
         if isinstance(node, (FunctionNode, IgnoredNode)):
             return False
         else:
             return True
 
+    def get_inner_most_function_call(self, call_node):
+        # Loop to inner most function call
+        # e.g. return scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
+        old_call_node = None
+        while call_node != old_call_node:
+            old_call_node = call_node
+            if isinstance(call_node, BBorBInode):
+                call_node = call_node.inner_most_call
+            else:
+                try:
+                    call_node = call_node.first_node.inner_most_call
+                except AttributeError:
+                    try:
+                        call_node = call_node.first_node
+                    except AttributeError:
+                        # No inner calls
+                        # Possible improvement: Make new node for RestoreNode's made in process_function
+                        #                       and make `self.inner_most_call = self`
+                        pass
+        return call_node
+
     def connect_control_flow_node(self, control_flow_node, next_node):
         """Connect a ControlFlowNode properly to the next_node."""
         for last in control_flow_node[1]:  # list of last nodes in ifs and elifs
             if isinstance(next_node, ControlFlowNode):
                 last.connect(next_node.test)  # connect to next if test case
+            elif isinstance(next_node, AssignmentCallNode):
+                call_node = next_node.call_node
+                inner_most_call_node = self.get_inner_most_function_call(call_node)
+                last.connect(inner_most_call_node)
             else:
                 last.connect(next_node)
 
@@ -279,7 +357,7 @@ class Visitor(ast.NodeVisitor):
         else:
             return [cfg_statements[-1]]
 
-    def stmt_star_handler(self, stmts, use_prev_node=True):
+    def stmt_star_handler(self, stmts, prev_node_to_avoid=None):
         """Handle stmt* expressions in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -287,10 +365,18 @@ class Visitor(ast.NodeVisitor):
         break_nodes = list()
         cfg_statements = list()
 
-        self.use_prev_node.append(use_prev_node)
+        if prev_node_to_avoid:
+            self.prev_nodes_to_avoid.append(prev_node_to_avoid)
+
         first_node = None
+        node_not_to_step_past = self.nodes[-1]
+
         for stmt in stmts:
             node = self.visit(stmt)
+            if isinstance(stmt, ast.While) or isinstance(stmt, ast.For):
+                self.last_was_loop_stack.append(True)
+            else:
+                self.last_was_loop_stack.append(False)
 
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
@@ -307,24 +393,26 @@ class Visitor(ast.NodeVisitor):
                     ingoing = None
                     current_node = node
                     while current_node.ingoing:
-                        # Is it an Entry to a module? Let's not backwards traverse any more.
-                        # Entries to functions are fine
-                        if current_node.ingoing[0].label.startswith('Entry module'):
+                        # e.g. We don't want to step past the Except of an Except BB
+                        if current_node.ingoing[0] == node_not_to_step_past:
                             break
                         ingoing = current_node.ingoing
                         current_node = current_node.ingoing[0]
                     if ingoing:
                         # Only set it once
                         first_node = ingoing[0]
-            if self.node_to_connect(node) and node:
+
+            if node and self.should_connect_node(node):
                 if not first_node:
                     if isinstance(node, ControlFlowNode):
                         first_node = node.test
                     else:
                         first_node = node
                 cfg_statements.append(node)
+        if prev_node_to_avoid:
+            self.prev_nodes_to_avoid.pop()
+        self.last_was_loop_stack.pop()
 
-        self.use_prev_node.pop()
         self.connect_nodes(cfg_statements)
 
         if cfg_statements:
@@ -334,8 +422,11 @@ class Visitor(ast.NodeVisitor):
                 first_statement = self.get_first_statement(cfg_statements[0])
 
             last_statements = self.get_last_statements(cfg_statements)
-            return ConnectStatements(first_statement=first_statement, last_statements=last_statements, break_statements=break_nodes)
-        else: # When body of module only contains ignored nodes
+
+            return ConnectStatements(first_statement=first_statement,
+                                     last_statements=last_statements,
+                                     break_statements=break_nodes)
+        else:  # When body of module only contains ignored nodes
             return IgnoredNode()
 
     def visit_Module(self, node):
@@ -361,7 +452,7 @@ class Visitor(ast.NodeVisitor):
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
-            else_connect_statements = self.stmt_star_handler(orelse, use_prev_node=False)
+            else_connect_statements = self.stmt_star_handler(orelse, prev_node_to_avoid=self.nodes[-1])
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
@@ -395,8 +486,7 @@ class Visitor(ast.NodeVisitor):
     def visit_NameConstant(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
-
-        return self.append_node(Node(label_visitor.result, node.__class__.__name__, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Raise(self, node):
         label = LabelVisitor()
@@ -482,13 +572,13 @@ class Visitor(ast.NodeVisitor):
                 new_ast_node = ast.Assign(target, value)
                 new_ast_node.lineno = node.lineno
 
-                new_assignment_nodes.append( self.assignment_call_node(label.result, new_ast_node))
+                new_assignment_nodes.append(self.assignment_call_node(label.result, new_ast_node))
 
             else:
                 label.result += ' = '
                 label.visit(value)
 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, None, line_number=node.lineno, path=self.filenames[-1])))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
 
 
         self.connect_nodes(new_assignment_nodes)
@@ -498,13 +588,12 @@ class Visitor(ast.NodeVisitor):
         new_assignment_nodes = list()
 
         for target in node.targets:
-                label = LabelVisitor()
-                label.visit(target)
-                left_hand_side = label.result
-                label.result += ' = '
-                label.visit(node.value)
-
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, None, line_number=node.lineno, path=self.filenames[-1])))
+            label = LabelVisitor()
+            label.visit(target)
+            left_hand_side = label.result
+            label.result += ' = '
+            label.visit(node.value)
+            new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
@@ -528,7 +617,7 @@ class Visitor(ast.NodeVisitor):
                 print('Assignment not properly handled.',
                       'Could result in not finding a vulnerability.',
                       'Assignment:', label.result)
-                return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
 
         elif len(node.targets) > 1:                #  x = y = 3
             return self.assign_multi_target(node, rhs_visitor.result)
@@ -540,37 +629,43 @@ class Visitor(ast.NodeVisitor):
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
-                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True # Used for handling functions in assignments
 
         call = self.visit(ast_node.value)
-
         call_label = ''
         call_assignment = None
-        if isinstance(call, AssignmentNode): #  assignment after returned nonbuiltin
-            call_label = call.left_hand_side
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, [call.left_hand_side], None, line_number=ast_node.lineno, path=self.filenames[-1])
-            call.connect(call_assignment)
-        else: #  assignment to builtin
-            call_label = call.label
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(ast_node.value)
 
-            # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-            vars_visitor = VarsVisitor()
-            vars_visitor.visit(ast_node.value)
+        # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+        vars_visitor = VarsVisitor()
+        vars_visitor.visit(ast_node.value)
 
-            call_assignment = AssignmentNode(left_hand_label + ' = ' + call_label, left_hand_label, ast_node, rhs_visitor.result, vars_visitor.result, line_number=ast_node.lineno, path=self.filenames[-1])
-
-        if call in self.blackbox_calls:
-            self.blackbox_assignments.add(call_assignment)
-            call_assignment.blackbox = True
+        call_label = call.left_hand_side
+        if isinstance(call, BBorBInode):
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
+                                                 left_hand_label,
+                                                 ast_node,
+                                                 [call.left_hand_side],
+                                                 vv_result=vars_visitor.result,
+                                                 line_number=ast_node.lineno,
+                                                 path=self.filenames[-1],
+                                                 call_node=call)
+        # Assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
+        elif isinstance(call, AssignmentNode):
+            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
+                                                 left_hand_label,
+                                                 ast_node,
+                                                 [call.left_hand_side],
+                                                 vv_result=[],
+                                                 line_number=ast_node.lineno,
+                                                 path=self.filenames[-1],
+                                                 call_node=call)
+        call.connect(call_assignment)
 
         self.nodes.append(call_assignment)
-
         self.undecided = False
 
         return call_assignment
@@ -582,11 +677,11 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
 
-        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, None, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
-        body_connect_stmts = self.stmt_star_handler(node.body)
+        body_connect_stmts = self.stmt_star_handler(node.body, prev_node_to_avoid=self.nodes[-1])
 
         test.connect(body_connect_stmts.first_statement)
         test.connect_predecessors(body_connect_stmts.last_statements)
@@ -597,7 +692,7 @@ class Visitor(ast.NodeVisitor):
         last_nodes.extend(body_connect_stmts.break_statements)
 
         if node.orelse:
-            orelse_connect_stmts = self.stmt_star_handler(node.orelse)
+            orelse_connect_stmts = self.stmt_star_handler(node.orelse, prev_node_to_avoid=self.nodes[-1])
 
             test.connect(orelse_connect_stmts.first_statement)
             last_nodes.extend(orelse_connect_stmts.last_statements)
@@ -623,7 +718,6 @@ class Visitor(ast.NodeVisitor):
     def visit_For(self, node):
         self.undecided = True  # Used for handling functions in for loops
 
-        #issue23
         iterator_label = LabelVisitor()
         iterator = iterator_label.visit(node.iter)
         self.undecided = False
@@ -642,28 +736,111 @@ class Visitor(ast.NodeVisitor):
     def visit_Expr(self, node):
         return self.visit(node.value)
 
-    def add_blackbox_call(self, node):
+    def add_blackbox_or_builtin_call(self, node, blackbox):
+        """Processes a blackbox or builtin function when it is called.
+        Nothing gets assigned to ret_func_foo in the builtin/blackbox case.
+
+        Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
+        Create e.g. ¤call_1 = ret_func_foo RestoreNode.
+
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument.
+        Visit the arguments if they're calls. (save_def_args_in_temp)
+
+        I do not think I care about this one actually -- Create e.g. def_arg1 = temp_N_def_arg1 for each argument.
+        (create_local_scope_from_def_args)
+
+        Add RestoreNode to the end of the Nodes.
+
+        Args:
+            node(ast.Call) : The node that calls the definition.
+            blackbox(bool): Whether or not it is a builtin or blackbox call.
+        Returns:
+            call_node(BBorBInode): The call node.
+        """
+        # Increment function_call_index
+        self.function_call_index += 1
+        saved_function_call_index = self.function_call_index
+        self.undecided = False
+
         label = LabelVisitor()
         label.visit(node)
 
-        blackbox_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-        if not self.undecided:
-            self.nodes.append(blackbox_call)
-        self.blackbox_calls.add(blackbox_call)
-        self.undecided = False
+        index = label.result.find('(')
+        if index == -1:
+            print("No ( in a call")
+            raise
 
-        return blackbox_call
+        # Create e.g. ¤call_1 = ret_func_foo
+        LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+        RHS = 'ret_' + label.result[:index] + '('
 
-    def add_builtin(self, node):
-        label = LabelVisitor()
-        label.visit(node)
+        call_node = BBorBInode("",
+                               LHS,
+                               [],
+                               line_number=node.lineno,
+                               path=self.filenames[-1])
+        visual_args = []
+        rhs_vars = []
+        last_return_value_of_nested_call = None
 
-        builtin_call = Node(label.result, node, line_number=node.lineno, path=self.filenames[-1])
-        if not self.undecided:
-            self.nodes.append(builtin_call)
-        self.undecided = False
+        for arg in itertools.chain(node.args, node.keywords):
+            if isinstance(arg, ast.Call):
+                return_value_of_nested_call = self.visit(arg)
 
-        return builtin_call
+                if last_return_value_of_nested_call:
+                    # connect inner to other_inner in e.g.
+                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    # I should probably loop to the inner most call of other_inner here.
+                    try:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+                    except AttributeError:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                else:
+                    # I should only set this once per loop, inner in e.g.
+                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
+                    call_node.inner_most_call = return_value_of_nested_call
+                last_return_value_of_nested_call = return_value_of_nested_call
+
+                visual_args.append(return_value_of_nested_call.left_hand_side)
+                rhs_vars.append(return_value_of_nested_call.left_hand_side)
+            else:
+                label = LabelVisitor()
+                label.visit(arg)
+                visual_args.append(label.result)
+
+                vv = VarsVisitor()
+                vv.visit(arg)
+                rhs_vars.extend(vv.result)
+        if last_return_value_of_nested_call:
+            # connect other_inner to outer in e.g.
+            # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+            last_return_value_of_nested_call.connect(call_node)
+
+        if len(visual_args) > 0:
+            for arg in visual_args:
+                RHS = RHS + arg + ", "
+            # Replace the last ", " with a )
+            RHS = RHS[:len(RHS)-2] + ')'
+        else:
+            RHS = RHS + ')'
+        call_node.label = LHS + " = " + RHS
+
+        # This is where we'll ask the user, then save the mapping or just use the pre-made mapping.
+        # Or perhaps we'll do that in vulnerabilities.py
+
+        call_node.right_hand_side_variables = rhs_vars
+
+        # Used in get_sink_args
+        call_node.args = rhs_vars
+
+        if blackbox:
+            self.blackbox_assignments.add(call_node)
+
+        self.connect_if_allowed(self.nodes[-1], call_node)
+        self.nodes.append(call_node)
+
+        return call_node
 
     def visit_Name(self, node):
         label = LabelVisitor()

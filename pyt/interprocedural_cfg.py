@@ -12,7 +12,9 @@ from .alias_helper import (
 )
 from .ast_helper import Arguments, generate_ast, get_call_names_as_string
 from .base_cfg import (
+    AssignmentCallNode,
     AssignmentNode,
+    BBorBInode,
     CALL_IDENTIFIER,
     CFG,
     ConnectToExitNode,
@@ -34,26 +36,27 @@ from .right_hand_side_visitor import RHSVisitor
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-NOT_A_BLACKBOX = set(['Flask',
-                      'run',
-                      'get',
-                      'replace',
-                      'read',
-                      'set_cookie',
-                      'make_response',
-                      'SQLAlchemy',
-                      'Column',
-                      'execute',
-                      'sessionmaker',
-                      'Session',
-                      'filter',
-                      'execute',
-                      'call',
-                      'render_template',
-                      'redirect',
-                      'url_for',
-                      'flash',
-                      'jsonify'])
+BUILTINS = set(['get',
+                'Flask',
+                'run',
+                'get',
+                'replace',
+                'read',
+                'set_cookie',
+                'make_response',
+                'SQLAlchemy',
+                'Column',
+                'execute',
+                'sessionmaker',
+                'Session',
+                'filter',
+                'execute',
+                'call',
+                'render_template',
+                'redirect',
+                'url_for',
+                'flash',
+                'jsonify'])
 
 
 class InterproceduralVisitor(Visitor):
@@ -64,14 +67,14 @@ class InterproceduralVisitor(Visitor):
         self.local_modules = local_modules
         self.filenames = [filename]
         self.blackbox_assignments = set()
-        self.blackbox_calls = set()
         self.nodes = list()
-        self.function_index = 0
+        self.function_call_index = 0
         self.undecided = False
         self.function_names = list()
         self.function_return_stack = list()
         self.module_definitions_stack = list()
-        self.use_prev_node = list()
+        self.prev_nodes_to_avoid = list()
+        self.last_was_loop_stack = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -189,15 +192,25 @@ class InterproceduralVisitor(Visitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function_name = self.function_return_stack[-1]
-
         try:
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(node.value)
         except AttributeError:
             rhs_visitor.result = 'EmptyReturn'
 
+        this_function_name = self.function_return_stack[-1]
         LHS = 'ret_' + this_function_name
+
+        if isinstance(node.value, ast.Call):
+            return_value_of_call = self.visit(node.value)
+            return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
+                                     LHS, return_value_of_call.left_hand_side,
+                                     node, line_number=node.lineno,
+                                     path=self.filenames[-1])
+            return_value_of_call.connect(return_node)
+            self.nodes.append(return_node)
+            return return_node
+
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
                                            node, line_number=node.lineno,
@@ -207,191 +220,356 @@ class InterproceduralVisitor(Visitor):
         label = LabelVisitor()
         label.visit(node)
 
-        this_function_name = self.function_return_stack[-1]
-
         try:
             rhs_visitor = RHSVisitor()
             rhs_visitor.visit(node.value)
         except AttributeError:
             rhs_visitor.result = 'EmptyYield'
 
+        this_function_name = self.function_return_stack[-1]
         LHS = 'yield_' + this_function_name
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
                                            node, line_number=node.lineno,
                                            path=self.filenames[-1]))
 
-    def save_local_scope(self, line_number, original_previous_node):
-        """Save the local scope before entering a function call."""
+    def save_local_scope(self, line_number, saved_function_call_index):
+        """Save the local scope before entering a function call by saving all the LHS's of assignments so far.
+
+        Args:
+            line_number(int): Of the def of the function call about to be entered into.
+            saved_function_call_index(int): Unique number for each call.
+
+        Returns:
+            saved_variables(list[SavedVariable])
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+        """
         saved_variables = list()
         saved_variables_so_far = set()
+        first_node = None
 
+        # Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode
         for assignment in [node for node in self.nodes
-                           if type(node) == AssignmentNode]:
-            if isinstance(assignment, RestoreNode):
-                continue
+                           if (type(node) == AssignmentNode or
+                               type(node) == AssignmentCallNode or
+                               type(Node) == BBorBInode)]:  # type() is used on purpose here
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
-            save_name = 'save_' + str(self.function_index) + '_' +\
+            save_name = 'save_' + str(saved_function_call_index) + '_' +\
                         assignment.left_hand_side
             previous_node = self.nodes[-1]
 
-            r = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
-                            save_name, [assignment.left_hand_side],
-                            line_number=line_number, path=self.filenames[-1])
-            saved_scope_node = self.append_node(r)
+            saved_scope_node = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
+                                           save_name, [assignment.left_hand_side],
+                                           line_number=line_number, path=self.filenames[-1])
+            if not first_node:
+                first_node = saved_scope_node
+
+            self.nodes.append(saved_scope_node)
+            # Save LHS
             saved_variables.append(SavedVariable(LHS=save_name,
                                                  RHS=assignment.left_hand_side))
-            self.connect_if_allowed(previous_node, saved_scope_node, original_previous_node)
+            self.connect_if_allowed(previous_node, saved_scope_node)
 
-        return saved_variables
+        return (saved_variables, first_node)
 
-    def connect_if_allowed(self, previous_node, node_to_connect_to, original_previous_node):
-        if self.use_prev_node[-1] or previous_node is not original_previous_node:
-            previous_node.connect(node_to_connect_to)
+    def connect_if_allowed(self, previous_node, node_to_connect_to):
+        try:
+            # Do not connect if last statement was a loop e.g.
+            # while x != 10:
+            #     if x > 0:
+            #         print(x)
+            #         break
+            #     else:
+            #         print('hest')
+            # print('next')         # self.nodes[-1] is print('hest')
+            if self.last_was_loop_stack[-1]:
+                return
+        except IndexError:
+            pass
+        try:
+            if previous_node is not self.prev_nodes_to_avoid[-1]:
+                previous_node.connect(node_to_connect_to)
+        except IndexError:
+            # If there are no prev_nodes_to_avoid, we just connect safely.
+            # Except in this case:
+            #
+            # if not image_name:
+            #     return 404
+            # print('foo')  # We do not want to connect this line with `return 404`
+            if not isinstance(previous_node, ReturnNode):
+                previous_node.connect(node_to_connect_to)
 
-    def save_actual_parameters_in_temp(self, args, arguments, line_number, original_previous_node):
-        """Save the actual parameters of a function call."""
-        parameters = dict()
-        for i, parameter in enumerate(args):
-            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
+    def save_def_args_in_temp(self,
+                              call_args,
+                              def_args,
+                              line_number,
+                              saved_function_call_index,
+                              first_node):
+        """Save the arguments of the definition being called. Visit the arguments if they're calls.
 
-            label_visitor = LabelVisitor()
-            label_visitor.visit(parameter)
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(parameter)
+        Args:
+            call_args(list[ast.Name]): Of the call being made.
+            def_args(ast_helper.Arguments): Of the definition being called.
+            line_number(int): Of the call being made.
+            saved_function_call_index(int): Unique number for each call.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
 
-            restore_node = RestoreNode(temp_name + ' = ' + label_visitor.result,
-                                       temp_name,
-                                       rhs_visitor.result,
-                                       line_number=line_number,
-                                       path=self.filenames[-1])
-            self.connect_if_allowed(self.nodes[-1], restore_node, original_previous_node)
+        Returns:
+            args_mapping(dict): A mapping of call argument to definition argument.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+        """
+        args_mapping = dict()
+        last_return_value_of_nested_call = None
 
+        # Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument
+        for i, call_arg in enumerate(call_args):
+            def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
+
+            return_value_of_nested_call = None
+            if isinstance(call_arg, ast.Call):
+                return_value_of_nested_call = self.visit(call_arg)
+                restore_node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
+                                           def_arg_temp_name,
+                                           return_value_of_nested_call.left_hand_side,
+                                           line_number=line_number,
+                                           path=self.filenames[-1])
+                if return_value_of_nested_call in self.blackbox_assignments:
+                    self.blackbox_assignments.add(restore_node)
+            else:
+                call_arg_label_visitor = LabelVisitor()
+                call_arg_label_visitor.visit(call_arg)
+                call_arg_rhs_visitor = RHSVisitor()
+                call_arg_rhs_visitor.visit(call_arg)
+                restore_node = RestoreNode(def_arg_temp_name + ' = ' + call_arg_label_visitor.result,
+                                           def_arg_temp_name,
+                                           call_arg_rhs_visitor.result,
+                                           line_number=line_number,
+                                           path=self.filenames[-1])
+
+            # If there are no saved variables, then this is the first node
+            if not first_node:
+                first_node = restore_node
+
+            if isinstance(call_arg, ast.Call):
+                if last_return_value_of_nested_call:
+                    # connect inner to other_inner in e.g. `outer(inner(image_name), other_inner(image_name))`
+                    if isinstance(return_value_of_nested_call, BBorBInode):
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                    else:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+                else:
+                    # I should only set this once per loop, inner in e.g. `outer(inner(image_name), other_inner(image_name))`
+                    # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
+                    if isinstance(return_value_of_nested_call, BBorBInode):
+                        first_node.inner_most_call = return_value_of_nested_call
+                    else:
+                        first_node.inner_most_call = return_value_of_nested_call.first_node
+                # We purposefully should not set this as the first_node of return_value_of_nested_call, last makes sense
+                last_return_value_of_nested_call = return_value_of_nested_call
+            self.connect_if_allowed(self.nodes[-1], restore_node)
             self.nodes.append(restore_node)
 
-            parameters[label_visitor.result] = arguments[i]
-        return parameters
+            if isinstance(call_arg, ast.Call):
+                args_mapping[return_value_of_nested_call.left_hand_side] = def_args[i]
+            else:
+                args_mapping[def_args[i]] = call_arg_label_visitor.result
 
-    def create_local_scope_from_actual_parameters(self, args, arguments,
-                                                  line_number):
-        """Create the local scope before entering
-        the body of a function call.
+        # After args loop
+        if last_return_value_of_nested_call:
+            # connect other_inner to outer in e.g. `outer(inner(image_name), other_inner(image_name))`
+            last_return_value_of_nested_call.connect(first_node)
 
-        Note: We do not need a check of original_previous_node because of the
-              preceding call to save_actual_parameters_in_temp.
+        return (args_mapping, first_node)
+
+    def create_local_scope_from_def_args(self,
+                                         call_args,
+                                         def_args,
+                                         line_number,
+                                         saved_function_call_index):
+        """Create the local scope before entering the body of a function call.
+
+        Args:
+            call_args(list[ast.Name]): Of the call being made.
+            def_args(ast_helper.Arguments): Of the definition being called.
+            line_number(int): Of the def of the function call about to be entered into.
+            saved_function_call_index(int): Unique number for each call.
+
+        Note: We do not need a connect_if_allowed because of the
+              preceding call to save_def_args_in_temp.
         """
+        # Create e.g. def_arg1 = temp_N_def_arg1 for each argument
+        for i in range(len(call_args)):
+            def_arg_local_name = def_args[i]
+            def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
+            local_scope_node = RestoreNode(def_arg_local_name + ' = ' + def_arg_temp_name,
+                                           def_arg_local_name,
+                                           [def_arg_temp_name],
+                                           line_number=line_number,
+                                           path=self.filenames[-1])
+            # Chain the local scope nodes together
+            self.nodes[-1].connect(local_scope_node)
+            self.nodes.append(local_scope_node)
 
-        for i in range(len(args)):
-            temp_name = 'temp_' + str(self.function_index) + '_' + arguments[i]
-            local_name = arguments[i]
-            previous_node = self.nodes[-1]
-            r = RestoreNode(local_name + ' = ' + temp_name,
-                            local_name, [temp_name],
-                            line_number=line_number,
-                            path=self.filenames[-1])
-            local_scope_node = self.append_node(r)
-            previous_node.connect(local_scope_node)
-
-    def restore_saved_local_scope(self, saved_variables, parameters,
+    def restore_saved_local_scope(self,
+                                  saved_variables,
+                                  args_mapping,
                                   line_number):
         """Restore the previously saved variables to their original values.
 
         Args:
-           saved_variables(list[SavedVariable]).
+           saved_variables(list[SavedVariable])
+           args_mapping(dict): A mapping of call argument to definition argument.
+           line_number(int): Of the def of the function call about to be entered into.
+
+        Note: We do not need connect_if_allowed because of the
+              preceding call to save_local_scope.
         """
         restore_nodes = list()
         for var in saved_variables:
-            if var.RHS in parameters:
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' +
-                                                 parameters[var.RHS],
-                                                 var.RHS, [var.LHS],
+            # Is var.RHS a call argument?
+            if var.RHS in args_mapping:
+                # If so, use the corresponding definition argument for the RHS of the label.
+                restore_nodes.append(RestoreNode(var.RHS + ' = ' + args_mapping[var.RHS],
+                                                 var.RHS,
+                                                 [var.LHS],
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
             else:
+                # Create a node for e.g. foo = save_1_foo
                 restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS,
-                                                 var.RHS, [var.LHS],
+                                                 var.RHS,
+                                                 [var.LHS],
                                                  line_number=line_number,
                                                  path=self.filenames[-1]))
 
-        for n, successor in zip(restore_nodes, restore_nodes[1:]):
-            n.connect(successor)
+        # Chain the restore nodes
+        for node, successor in zip(restore_nodes, restore_nodes[1:]):
+            node.connect(successor)
 
         if restore_nodes:
+            # Connect the last node to the first restore node
             self.nodes[-1].connect(restore_nodes[0])
             self.nodes.extend(restore_nodes)
 
         return restore_nodes
 
-    def return_handler(self, node, function_nodes):
-        """Handle the return from a function during a function call."""
-        call_node = None
-        for n in function_nodes:
-            if isinstance(n, ConnectToExitNode):
-                LHS = CALL_IDENTIFIER + 'call_' + str(self.function_index)
-                previous_node = self.nodes[-1]
-                if not call_node:
-                    RHS = 'ret_' + get_call_names_as_string(node.func)
-                    r = RestoreNode(LHS + ' = ' + RHS, LHS, [RHS],
-                                    line_number=node.lineno,
-                                    path=self.filenames[-1])
-                    call_node = self.append_node(r)
-                    previous_node.connect(call_node)
-            else:
-                # lave rigtig kobling
-                pass
+    def return_handler(self, call_node, function_nodes, saved_function_call_index, first_node):
+        """Handle the return from a function during a function call.
 
-    def add_function(self, call_node, definition):
-        try:
-            self.function_index += 1
-            def_node = definition.node
-            original_previous_node = self.nodes[-1]
-            saved_variables = self.save_local_scope(def_node.lineno, original_previous_node)
+        Args:
+            call_node(ast.Call) : The node that calls the definition.
+            function_nodes(list[Node]): List of nodes of the function being called.
+            saved_function_call_index(int): Unique number for each call.
+            first_node(EntryOrExitNode or RestoreNode): Used to connect previous statements to this function.
+        """
+        for node in function_nodes:
+            # Only `Return`s and `Raise`s can be of type ConnectToExitNode
+            if isinstance(node, ConnectToExitNode):
+                # Create e.g. ¤call_1 = ret_func_foo RestoreNode
+                LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+                RHS = 'ret_' + get_call_names_as_string(call_node.func)
+                return_node = RestoreNode(LHS + ' = ' + RHS,
+                                          LHS,
+                                          [RHS],
+                                          line_number=call_node.lineno,
+                                          path=self.filenames[-1])
+                return_node.first_node = first_node
 
-            parameters = self.save_actual_parameters_in_temp(call_node.args,
-                                                             Arguments(def_node.args),
-                                                             call_node.lineno,
-                                                             original_previous_node)
+                self.nodes[-1].connect(return_node)
+                self.nodes.append(return_node)
+                return
 
-            self.filenames.append(definition.path)
-            self.create_local_scope_from_actual_parameters(call_node.args,
-                                                           Arguments(def_node.args),
-                                                           def_node.lineno)
-            function_nodes = self.get_function_nodes(definition, original_previous_node)
-            self.filenames.pop()  # Maybe move after restore nodes
-            self.restore_saved_local_scope(saved_variables, parameters, def_node.lineno)
-            self.return_handler(call_node, function_nodes)
-            self.function_return_stack.pop()
+    def process_function(self, call_node, definition):
+        """Processes a user defined function when it is called.
 
-        except IndexError:
-            error_call = get_call_names_as_string(call_node.func)
-            print('Error: Possible nameclash in "{}".' +
-                  ' Call omitted!\n'.format(error_call))
+        Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
+        Make e.g. save_N_LHS = assignment.LHS for each AssignmentNode. (save_local_scope)
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument.
+            Visit the arguments if they're calls. (save_def_args_in_temp)
+        Create e.g. def_arg1 = temp_N_def_arg1 for each argument. (create_local_scope_from_def_args)
+        Visit and get function nodes. (visit_and_get_function_nodes)
+        Loop through each save_N_LHS node and create an e.g.
+            foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
+        Create e.g. ¤call_1 = ret_func_foo RestoreNode. (return_handler)
+
+        Notes:
+            Page 31 in the original thesis, but changed a little.
+            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler,
+                because it's the last node anyway, that we return in this function.
+            e.g. ret_func_foo gets assigned to visit_Return.
+
+        Args:
+            call_node(ast.Call) : The node that calls the definition.
+            definition(LocalModuleDefinition): Definition of the function being called.
+
+        Returns:
+            Last node in self.nodes, probably the return of the function appended to self.nodes in return_handler.
+        """
+        self.function_call_index += 1
+        saved_function_call_index = self.function_call_index
+
+        def_node = definition.node
+
+        saved_variables, first_node = self.save_local_scope(def_node.lineno,
+                                                            saved_function_call_index)
+
+        args_mapping, first_node = self.save_def_args_in_temp(call_node.args,
+                                                              Arguments(def_node.args),
+                                                              call_node.lineno,
+                                                              saved_function_call_index,
+                                                              first_node)
+        self.filenames.append(definition.path)
+        self.create_local_scope_from_def_args(call_node.args,
+                                              Arguments(def_node.args),
+                                              def_node.lineno,
+                                              saved_function_call_index)
+        function_nodes, first_node = self.visit_and_get_function_nodes(definition, first_node)
+        self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
+        self.restore_saved_local_scope(saved_variables,
+                                       args_mapping,
+                                       def_node.lineno)
+        self.return_handler(call_node,
+                            function_nodes,
+                            saved_function_call_index,
+                            first_node)
+        self.function_return_stack.pop()
 
         return self.nodes[-1]
 
-    def get_function_nodes(self, definition, original_previous_node):
-        length = len(self.nodes)
+    def visit_and_get_function_nodes(self, definition, first_node):
+        """Visits the nodes of a user defined function.
+
+        Args:
+            definition(LocalModuleDefinition): Definition of the function being added.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+
+        Returns:
+            the_new_nodes(list[Node]): The nodes added while visiting the function.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+        """
+        len_before_visiting_func = len(self.nodes)
         previous_node = self.nodes[-1]
         entry_node = self.append_node(EntryOrExitNode("Function Entry " +
                                                       definition.name))
-        self.connect_if_allowed(previous_node, entry_node, original_previous_node)
+        if not first_node:
+            first_node = entry_node
+        self.connect_if_allowed(previous_node, entry_node)
 
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
-
         entry_node.connect(function_body_connect_statements.first_statement)
 
         exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
-        self.return_connection_handler(self.nodes[length:], exit_node)
+        the_new_nodes = self.nodes[len_before_visiting_func:]
+        self.return_connection_handler(the_new_nodes, exit_node)
 
-        return self.nodes[length:]
+        return (the_new_nodes, first_node)
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
-
         local_definitions = self.module_definitions_stack[-1]
 
         alias = handle_aliases_in_calls(_id, local_definitions.import_alias_mapping)
@@ -402,49 +580,26 @@ class InterproceduralVisitor(Visitor):
 
         # e.g. "request.args.get" -> "get"
         last_attribute = _id.rpartition('.')[-1]
+
         if definition:
             if isinstance(definition.node, ast.ClassDef):
-                self.add_builtin(node)
+                self.add_blackbox_or_builtin_call(node, blackbox=False)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
                 self.function_return_stack.append(_id)
-                return self.add_function(node, definition)
+                return self.process_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
-        elif last_attribute not in NOT_A_BLACKBOX:
-            return self.add_blackbox_call(node)
-
-        return self.add_builtin(node)
-
-    def add_class(self, call_node, def_node):
-        label_visitor = LabelVisitor()
-        label_visitor.visit(call_node)
-
-        previous_node = self.nodes[-1]
-
-        entry_node = self.append_node(EntryOrExitNode("Class Entry " + def_node.name))
-
-        previous_node.connect(entry_node)
-
-        function_body_connect_statements = self.stmt_star_handler(def_node.body)
-
-        entry_node.connect(function_body_connect_statements.first_statement)
-
-        exit_node = self.append_node(EntryOrExitNode("Exit " + def_node.name))
-        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
-
-        return Node(label_visitor.result, call_node,
-                    line_number=call_node.lineno,
-                    path=self.filenames[-1])
+        elif last_attribute not in BUILTINS:
+            # Mark the call as a blackbox because we don't have the definition
+            return self.add_blackbox_or_builtin_call(node, blackbox=True)
+        return self.add_blackbox_or_builtin_call(node, blackbox=False)
 
     def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
         """
         Returns:
             The ExitNode that gets attached to the CFG of the class.
-
-        Open Question:
-            Are there times when the return value doesn't matter?
         """
         module_path = module[1]
 
@@ -463,7 +618,7 @@ class InterproceduralVisitor(Visitor):
         tree = generate_ast(module_path)
 
         # module[0] is None during e.g. "from . import foo", so we must str()
-        self.append_node(EntryOrExitNode('Module Entry ' + str(module[0])))
+        self.nodes.append(EntryOrExitNode('Module Entry ' + str(module[0])))
         self.visit(tree)
         exit_node = self.append_node(EntryOrExitNode('Module Exit ' + str(module[0])))
 

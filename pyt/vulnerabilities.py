@@ -3,8 +3,13 @@
 import ast
 from collections import namedtuple
 
-from .base_cfg import AssignmentNode
-from .framework_adaptor import TaintedNode
+from .base_cfg import (
+    AssignmentCallNode,
+    AssignmentNode,
+    BBorBInode,
+    RestoreNode,
+    TaintedNode
+)
 from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
@@ -107,25 +112,25 @@ def find_assignments(assignment_nodes, source, lattice):
     return new
 
 
-def update_assignments(l, assignment_nodes, source, lattice):
+def update_assignments(assignment_list, assignment_nodes, source, lattice):
     for node in assignment_nodes:
-        for other in l:
-            if node not in l:
-                append_if_reassigned(l, other, node, lattice)
+        for other in assignment_list:
+            if node not in assignment_list:
+                append_if_reassigned(assignment_list, other, node, lattice)
 
 
-def append_if_reassigned(l, secondary, node, lattice):
+def append_if_reassigned(assignment_list, secondary, node, lattice):
     try:
         reassigned = False
         # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        if node.vv_result and secondary.left_hand_side in node.vv_result:
+        if isinstance(node, AssignmentCallNode) and secondary.left_hand_side in node.vv_result:
             reassigned = True
         elif secondary.left_hand_side in node.right_hand_side_variables:
             reassigned = True
         elif secondary.left_hand_side == node.left_hand_side:
             reassigned = True
         if reassigned and lattice.in_constraint(secondary, node):
-            l.append(node)
+            assignment_list.append(node)
     except AttributeError:
         print(secondary)
         print('EXCEPT' + secondary)
@@ -133,19 +138,19 @@ def append_if_reassigned(l, secondary, node, lattice):
 
 
 def find_triggers(nodes, trigger_words):
-    """Find triggers from the trigger_word_list in the cfg.
+    """Find triggers from the trigger_word_list in the nodes.
 
     Args:
-        cfg(CFG): the CFG to find triggers in.
+        nodes(list[Node]): the nodes to find triggers in.
         trigger_word_list(list[string]): list of trigger words to look for.
 
     Returns:
         List of found TriggerNodes
     """
-    l = list()
+    trigger_nodes = list()
     for node in nodes:
-        l.extend(iter(label_contains(node, trigger_words)))
-    return l
+        trigger_nodes.extend(iter(label_contains(node, trigger_words)))
+    return trigger_nodes
 
 
 def label_contains(node, trigger_words):
@@ -232,19 +237,19 @@ class SinkArgsError(Exception):
 
 
 def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
-    """Check if vulnerability is unknown by seeing if a blackbox assignment is in trimmed_reassignment_nodes.
+    """Check if vulnerability is unknown by seeing if a blackbox
+        assignment is in trimmed_reassignment_nodes.
 
     Args:
-        trimmed_reassignment_nodes(list[AssignmentNode]): list of the reassignment nodes leading to the vulnerability.
+        trimmed_reassignment_nodes(list[AssignmentNode]): reassignments leading to the vulnerability.
         blackbox_assignments(set[AssignmentNode]): set of blackbox assignments.
 
     Returns:
         AssignmentNode or None
     """
-    for blackbox_assignment in blackbox_assignments:
-        for node in trimmed_reassignment_nodes:
-            if node == blackbox_assignment:
-                return blackbox_assignment
+    for node in trimmed_reassignment_nodes:
+        if node in blackbox_assignments:
+            return node
     return None
 
 
@@ -257,11 +262,21 @@ def get_sink_args(cfg_node):
         return cfg_node.right_hand_side_variables
 
     vv = VarsVisitor()
-    vv.visit(cfg_node.ast_node)
-    return vv.result
+    other_results = list()
+    if isinstance(cfg_node, BBorBInode):
+        other_results = cfg_node.args
+    else:
+        vv.visit(cfg_node.ast_node)
+
+    return vv.result + other_results
 
 
-def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, blackbox_assignments):
+def get_vulnerability(source,
+                      sink,
+                      triggers,
+                      lattice,
+                      trim_reassigned_in,
+                      blackbox_assignments):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers.
@@ -289,6 +304,7 @@ def get_vulnerability(source, sink, triggers, lattice, trim_reassigned_in, black
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
+
     secondary_node_in_sink_args = None
     if sink_args:
         for node in secondary_in_sink:
@@ -343,9 +359,11 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
     """Find vulnerabilities in a cfg.
 
     Args:
-        cfg(CFG): The CFG look find vulnerabilities in.
-        vulnerabilitiy_log: The log in which to place found vulnerabilities.
-        definitions: Source and sink definitions.
+        cfg(CFG): The CFG to find vulnerabilities in.
+        vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
+        definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
+        lattice(Lattice): The lattice we're analysing.
+        trim_reassigned_in(bool): Whether or not the trim option is set.
     """
     triggers = identify_triggers(cfg, definitions.sources, definitions.sinks, lattice)
     for sink in triggers.sinks:
@@ -366,7 +384,7 @@ def find_vulnerabilities(cfg_list, analysis_type,
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
-        cfg_list (list): the list of CFGs to scan.
+        cfg_list (list[CFG]): the list of CFGs to scan.
         trigger_word_file (string): file containing trigger words.
         Defaults to the flask trigger word file.
 

@@ -2,8 +2,15 @@ import ast
 
 from .analysis_base import AnalysisBase
 from .ast_helper import get_call_names_as_string
-from .base_cfg import AssignmentNode, EntryOrExitNode
-from .constraint_table import constraint_join, constraint_table
+from .base_cfg import (
+    AssignmentNode,
+    BBorBInode,
+    EntryOrExitNode
+)
+from .constraint_table import (
+    constraint_join,
+    constraint_table
+)
 from .lattice import Lattice
 from .vars_visitor import VarsVisitor
 
@@ -35,16 +42,19 @@ class LivenessAnalysis(AnalysisBase):
 
     def remove_id_assignment(self, JOIN, cfg_node):
         lvars = list()
-        try:
-            for expr in cfg_node.ast_node.targets:
-                vv = VarsVisitor()
-                vv.visit(expr)
-                lvars.extend(vv.result)
-        except AttributeError:  # If it is AugAssign
-            vv = VarsVisitor()
-            vv.visit(cfg_node.ast_node.target)
-            lvars.extend(vv.result)
 
+        if isinstance(cfg_node, BBorBInode):
+            lvars.append(cfg_node.left_hand_side)
+        else:
+            try:
+                for expr in cfg_node.ast_node.targets:
+                    vv = VarsVisitor()
+                    vv.visit(expr)
+                    lvars.extend(vv.result)
+            except AttributeError:  # If it is AugAssign
+                vv = VarsVisitor()
+                vv.visit(cfg_node.ast_node.target)
+                lvars.extend(vv.result)
         for var in lvars:
             if var in self.lattice.get_elements(JOIN):
                 # Remove var from JOIN
@@ -53,10 +63,13 @@ class LivenessAnalysis(AnalysisBase):
 
     def add_vars_assignment(self, JOIN, cfg_node):
         rvars = list()
-        vv = VarsVisitor()
-        vv.visit(cfg_node.ast_node.value)
-        rvars.extend(vv.result)
-
+        if isinstance(cfg_node, BBorBInode):
+            # A conscience decision was made not to include e.g. ¤call_N's in RHS vars
+            rvars.extend(cfg_node.right_hand_side_variables)
+        else:
+            vv = VarsVisitor()
+            vv.visit(cfg_node.ast_node.value)
+            rvars.extend(vv.result)
         for var in rvars:
             # Add var to JOIN
             JOIN = JOIN | self.lattice.el2bv[var]
