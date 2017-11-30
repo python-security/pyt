@@ -1,7 +1,8 @@
 """Provides helper functions that help with determining if a function is a route function."""
 import ast
 
-from .ast_helper import get_call_names
+from pyt.base_cfg import Function
+from .ast_helper import get_call_names, Arguments
 
 
 def is_function(function):
@@ -15,6 +16,13 @@ def is_flask_route_function(ast_node):
         if isinstance(decorator, ast.Call):
             if _get_last_of_iterable(get_call_names(decorator.func)) == 'route':
                 return True
+    return False
+
+
+def is_django_view_function(ast_node):
+    arguments = Arguments(ast_node.args)
+    if 'request' in arguments:
+        return True
     return False
 
 
