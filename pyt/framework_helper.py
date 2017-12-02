@@ -20,9 +20,9 @@ def is_flask_route_function(ast_node):
 
 
 def is_django_view_function(ast_node):
-    arguments = Arguments(ast_node.args)
-    if 'request' in arguments:
-        return True
+    if len(ast_node.args.args):
+        first_arg_name = ast_node.args.args[0].arg
+        return first_arg_name == 'request'
     return False
 
 

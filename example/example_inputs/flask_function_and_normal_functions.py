@@ -8,4 +8,7 @@ def _hidden_foo():
 def flask_function(x):
     return x
 
+def django_function(request, x):
+    return x
+
 print('nothing')
