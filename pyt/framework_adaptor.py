@@ -47,9 +47,7 @@ class FrameworkAdaptor():
                 function_entry_node.connect(tainted_node)
                 # 1 and not 0 so that Entry Node remains first in the list
                 func_cfg.nodes.insert(1, tainted_node)
-
-            first_arg = func_cfg.nodes[len(args)]
-            first_arg.connect(first_node_after_args)
+                tainted_node.connect(first_node_after_args)
 
         return func_cfg
 

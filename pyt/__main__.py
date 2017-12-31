@@ -15,8 +15,8 @@ from .framework_adaptor import FrameworkAdaptor
 from .framework_helper import (
     is_flask_route_function,
     is_function,
-    is_function_without_leading_
-)
+    is_function_without_leading_,
+    is_django_view_function)
 from .github_search import scan_github, set_github_api_token
 from .interprocedural_cfg import interprocedural
 from .intraprocedural_cfg import intraprocedural
@@ -83,7 +83,7 @@ def parse_args(args):
                         help='Choose logging level: CRITICAL, ERROR,' +
                         ' WARNING(Default), INFO, DEBUG, NOTSET.', type=str)
     parser.add_argument('-a', '--adaptor',
-                        help='Choose an adaptor: Flask(Default) or Every or Pylons.',
+                        help='Choose an adaptor: Flask(Default) or Every or Pylons or Django.',
                         type=str)
     parser.add_argument('-db', '--create-database',
                         help='Creates a sql file that can be used to' +
@@ -226,6 +226,8 @@ def main(command_line_args=sys.argv[1:]):
             framework_route_criteria = is_function
         elif args.adaptor and args.adaptor.lower().startswith('p'):
             framework_route_criteria = is_function_without_leading_
+        elif args.adaptor and args.adaptor.lower().startswith('d'):
+            framework_route_criteria = is_django_view_function
         else:
             framework_route_criteria = is_flask_route_function
         # Add all the route functions to the cfg_list

@@ -6,7 +6,7 @@ from pyt.base_cfg import Node
 from pyt.constraint_table import constraint_table, initialize_constraint_table
 from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
-from pyt.framework_helper import is_flask_route_function
+from pyt.framework_helper import is_flask_route_function, is_django_view_function
 from pyt.lattice import Lattice
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
@@ -318,7 +318,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_url.py
-             > User input at line 4, trigger word "Flask function URL parameter": 
+             > User input at line 4, trigger word "Framework function URL parameter": 
                 url
             Reassigned in: 
                 File: example/vulnerable_code/XSS_url.py
@@ -453,4 +453,40 @@ class EngineTest(BaseTestCase):
                 ¤call_4 = ret_html.replace('{{ param }}', another_one)
         """
 
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
+
+class EngineDjangoTest(BaseTestCase):
+    def run_empty(self):
+        return
+
+    def run_analysis(self, path):
+        self.cfg_create_from_file(path)
+        cfg_list = [self.cfg]
+
+        FrameworkAdaptor(cfg_list, [], [], is_django_view_function)
+        initialize_constraint_table(cfg_list)
+
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        trigger_word_file = os.path.join('pyt', 'trigger_definitions', 'django_trigger_words.pyt')
+
+        return vulnerabilities.find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis, trigger_word_file=trigger_word_file)
+
+    def test_django_view_param(self):
+        vulnerability_log = self.run_analysis('example/vulnerable_code/django_XSS.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=2)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/vulnerable_code/django_XSS.py
+             > User input at line 4, trigger word "Framework function URL parameter": 
+                param
+            Reassigned in: 
+                File: example/vulnerable_code/django_XSS.py
+                 > Line 5: ret_xss1 = ¤call_1
+            File: example/vulnerable_code/django_XSS.py
+             > reaches line 5, trigger word "render(": 
+                ¤call_1 = ret_render(request, 'templates/xss.html', 'param'param)
+        """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))

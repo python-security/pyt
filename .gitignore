@@ -65,3 +65,6 @@ target/
 .ipynb_checkpoints
 *~
 *#
+
+#IDE
+.idea/

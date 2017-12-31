@@ -68,7 +68,7 @@ def identify_triggers(cfg, sources, sinks, lattice):
     """
     assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
     tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
-    tainted_trigger_nodes = [TriggerNode('Flask function URL parameter', None,
+    tainted_trigger_nodes = [TriggerNode('Framework function URL parameter', None,
                                          node) for node in tainted_nodes]
     sources_in_file = find_triggers(assignment_nodes, sources)
     sources_in_file.extend(tainted_trigger_nodes)
