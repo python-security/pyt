@@ -1,8 +1,7 @@
 """Provides helper functions that help with determining if a function is a route function."""
 import ast
 
-from pyt.base_cfg import Function
-from .ast_helper import get_call_names, Arguments
+from .ast_helper import get_call_names
 
 
 def is_function(function):
