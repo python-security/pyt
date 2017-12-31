@@ -6,7 +6,7 @@ from pyt.base_cfg import Node
 from pyt.constraint_table import constraint_table, initialize_constraint_table
 from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
-from pyt.framework_helper import is_flask_route_function, is_django_view_function
+from pyt.framework_helper import is_django_view_function, is_flask_route_function
 from pyt.lattice import Lattice
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
@@ -318,7 +318,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_url.py
-             > User input at line 4, trigger word "Framework function URL parameter": 
+             > User input at line 4, trigger word "Framework function URL parameter":
                 url
             Reassigned in: 
                 File: example/vulnerable_code/XSS_url.py
@@ -480,13 +480,13 @@ class EngineDjangoTest(BaseTestCase):
 
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/django_XSS.py
-             > User input at line 4, trigger word "Framework function URL parameter": 
+             > User input at line 4, trigger word "Framework function URL parameter":
                 param
-            Reassigned in: 
+            Reassigned in:
                 File: example/vulnerable_code/django_XSS.py
                  > Line 5: ret_xss1 = ¤call_1
             File: example/vulnerable_code/django_XSS.py
-             > reaches line 5, trigger word "render(": 
+             > reaches line 5, trigger word "render(":
                 ¤call_1 = ret_render(request, 'templates/xss.html', 'param'param)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
