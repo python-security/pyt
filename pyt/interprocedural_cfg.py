@@ -36,27 +36,27 @@ from .right_hand_side_visitor import RHSVisitor
 
 
 SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-BUILTINS = set(['get',
-                'Flask',
-                'run',
-                'get',
-                'replace',
-                'read',
-                'set_cookie',
-                'make_response',
-                'SQLAlchemy',
-                'Column',
-                'execute',
-                'sessionmaker',
-                'Session',
-                'filter',
-                'execute',
-                'call',
-                'render_template',
-                'redirect',
-                'url_for',
-                'flash',
-                'jsonify'])
+BUILTINS = (
+    'get',
+    'Flask',
+    'run',
+    'replace',
+    'read',
+    'set_cookie',
+    'make_response',
+    'SQLAlchemy',
+    'Column',
+    'execute',
+    'sessionmaker',
+    'Session',
+    'filter',
+    'call',
+    'render_template',
+    'redirect',
+    'url_for',
+    'flash',
+    'jsonify'
+)
 
 
 class InterproceduralVisitor(Visitor):
