@@ -161,21 +161,27 @@ class InterproceduralVisitor(Visitor):
         parent_definitions = self.get_parent_definitions()
 
         if parent_definitions:
-            parent_qualified_name = '.'.join(parent_definitions.classes +
-                                             [node.name])
-            parent_definition = ModuleDefinition(parent_definitions,
-                                                 parent_qualified_name,
-                                                 local_definitions.module_name,
-                                                 self.filenames[-1])
+            parent_qualified_name = '.'.join(
+                parent_definitions.classes +
+                [node.name]
+            )
+            parent_definition = ModuleDefinition(
+                parent_definitions,
+                parent_qualified_name,
+                local_definitions.module_name,
+                self.filenames[-1]
+            )
             parent_definition.node = node
             parent_definitions.append_if_local_or_in_imports(parent_definition)
 
         local_qualified_name = '.'.join(local_definitions.classes +
                                         [node.name])
-        local_definition = LocalModuleDefinition(local_definitions,
-                                                 local_qualified_name,
-                                                 None,
-                                                 self.filenames[-1])
+        local_definition = LocalModuleDefinition(
+            local_definitions,
+            local_qualified_name,
+            None,
+            self.filenames[-1]
+        )
         local_definition.node = node
         local_definitions.append_if_local_or_in_imports(local_definition)
 
@@ -203,18 +209,22 @@ class InterproceduralVisitor(Visitor):
 
         if isinstance(node.value, ast.Call):
             return_value_of_call = self.visit(node.value)
-            return_node = ReturnNode(LHS + ' = ' + return_value_of_call.left_hand_side,
-                                     LHS, return_value_of_call.left_hand_side,
-                                     node, line_number=node.lineno,
-                                     path=self.filenames[-1])
+            return_node = ReturnNode(
+                LHS + ' = ' + return_value_of_call.left_hand_side,
+                LHS, return_value_of_call.left_hand_side,
+                node, line_number=node.lineno,
+                path=self.filenames[-1]
+            )
             return_value_of_call.connect(return_node)
             self.nodes.append(return_node)
             return return_node
 
-        return self.append_node(ReturnNode(LHS + ' = ' + label.result,
-                                           LHS, rhs_visitor.result,
-                                           node, line_number=node.lineno,
-                                           path=self.filenames[-1]))
+        return self.append_node(ReturnNode(
+            LHS + ' = ' + label.result,
+            LHS, rhs_visitor.result,
+            node, line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Yield(self, node):
         label = LabelVisitor()
@@ -228,10 +238,12 @@ class InterproceduralVisitor(Visitor):
 
         this_function_name = self.function_return_stack[-1]
         LHS = 'yield_' + this_function_name
-        return self.append_node(ReturnNode(LHS + ' = ' + label.result,
-                                           LHS, rhs_visitor.result,
-                                           node, line_number=node.lineno,
-                                           path=self.filenames[-1]))
+        return self.append_node(ReturnNode(
+            LHS + ' = ' + label.result,
+            LHS, rhs_visitor.result,
+            node, line_number=node.lineno,
+            path=self.filenames[-1])
+        )
 
     def save_local_scope(self, line_number, saved_function_call_index):
         """Save the local scope before entering a function call by saving all the LHS's of assignments so far.
@@ -260,9 +272,11 @@ class InterproceduralVisitor(Visitor):
                         assignment.left_hand_side
             previous_node = self.nodes[-1]
 
-            saved_scope_node = RestoreNode(save_name + ' = ' + assignment.left_hand_side,
-                                           save_name, [assignment.left_hand_side],
-                                           line_number=line_number, path=self.filenames[-1])
+            saved_scope_node = RestoreNode(
+                save_name + ' = ' + assignment.left_hand_side,
+                save_name, [assignment.left_hand_side],
+                line_number=line_number, path=self.filenames[-1]
+            )
             if not first_node:
                 first_node = saved_scope_node
 
@@ -330,11 +344,13 @@ class InterproceduralVisitor(Visitor):
             return_value_of_nested_call = None
             if isinstance(call_arg, ast.Call):
                 return_value_of_nested_call = self.visit(call_arg)
-                restore_node = RestoreNode(def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
-                                           def_arg_temp_name,
-                                           return_value_of_nested_call.left_hand_side,
-                                           line_number=line_number,
-                                           path=self.filenames[-1])
+                restore_node = RestoreNode(
+                    def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
+                    def_arg_temp_name,
+                    return_value_of_nested_call.left_hand_side,
+                    line_number=line_number,
+                    path=self.filenames[-1]
+                )
                 if return_value_of_nested_call in self.blackbox_assignments:
                     self.blackbox_assignments.add(restore_node)
             else:
@@ -342,11 +358,13 @@ class InterproceduralVisitor(Visitor):
                 call_arg_label_visitor.visit(call_arg)
                 call_arg_rhs_visitor = RHSVisitor()
                 call_arg_rhs_visitor.visit(call_arg)
-                restore_node = RestoreNode(def_arg_temp_name + ' = ' + call_arg_label_visitor.result,
-                                           def_arg_temp_name,
-                                           call_arg_rhs_visitor.result,
-                                           line_number=line_number,
-                                           path=self.filenames[-1])
+                restore_node = RestoreNode(
+                    def_arg_temp_name + ' = ' + call_arg_label_visitor.result,
+                    def_arg_temp_name,
+                    call_arg_rhs_visitor.result,
+                    line_number=line_number,
+                    path=self.filenames[-1]
+                )
 
             # If there are no saved variables, then this is the first node
             if not first_node:
@@ -403,11 +421,13 @@ class InterproceduralVisitor(Visitor):
         for i in range(len(call_args)):
             def_arg_local_name = def_args[i]
             def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
-            local_scope_node = RestoreNode(def_arg_local_name + ' = ' + def_arg_temp_name,
-                                           def_arg_local_name,
-                                           [def_arg_temp_name],
-                                           line_number=line_number,
-                                           path=self.filenames[-1])
+            local_scope_node = RestoreNode(
+                def_arg_local_name + ' = ' + def_arg_temp_name,
+                def_arg_local_name,
+                [def_arg_temp_name],
+                line_number=line_number,
+                path=self.filenames[-1]
+            )
             # Chain the local scope nodes together
             self.nodes[-1].connect(local_scope_node)
             self.nodes.append(local_scope_node)
@@ -431,18 +451,22 @@ class InterproceduralVisitor(Visitor):
             # Is var.RHS a call argument?
             if var.RHS in args_mapping:
                 # If so, use the corresponding definition argument for the RHS of the label.
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + args_mapping[var.RHS],
-                                                 var.RHS,
-                                                 [var.LHS],
-                                                 line_number=line_number,
-                                                 path=self.filenames[-1]))
+                restore_nodes.append(RestoreNode(
+                    var.RHS + ' = ' + args_mapping[var.RHS],
+                    var.RHS,
+                    [var.LHS],
+                    line_number=line_number,
+                    path=self.filenames[-1]
+                ))
             else:
                 # Create a node for e.g. foo = save_1_foo
-                restore_nodes.append(RestoreNode(var.RHS + ' = ' + var.LHS,
-                                                 var.RHS,
-                                                 [var.LHS],
-                                                 line_number=line_number,
-                                                 path=self.filenames[-1]))
+                restore_nodes.append(RestoreNode(
+                    var.RHS + ' = ' + var.LHS,
+                    var.RHS,
+                    [var.LHS],
+                    line_number=line_number,
+                    path=self.filenames[-1]
+                ))
 
         # Chain the restore nodes
         for node, successor in zip(restore_nodes, restore_nodes[1:]):
@@ -470,11 +494,13 @@ class InterproceduralVisitor(Visitor):
                 # Create e.g. ¤call_1 = ret_func_foo RestoreNode
                 LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
                 RHS = 'ret_' + get_call_names_as_string(call_node.func)
-                return_node = RestoreNode(LHS + ' = ' + RHS,
-                                          LHS,
-                                          [RHS],
-                                          line_number=call_node.lineno,
-                                          path=self.filenames[-1])
+                return_node = RestoreNode(
+                    LHS + ' = ' + RHS,
+                    LHS,
+                    [RHS],
+                    line_number=call_node.lineno,
+                    path=self.filenames[-1]
+                )
                 return_node.first_node = first_node
 
                 self.nodes[-1].connect(return_node)
@@ -512,28 +538,41 @@ class InterproceduralVisitor(Visitor):
 
         def_node = definition.node
 
-        saved_variables, first_node = self.save_local_scope(def_node.lineno,
-                                                            saved_function_call_index)
+        saved_variables, first_node = self.save_local_scope(
+            def_node.lineno,
+            saved_function_call_index
+        )
 
-        args_mapping, first_node = self.save_def_args_in_temp(call_node.args,
-                                                              Arguments(def_node.args),
-                                                              call_node.lineno,
-                                                              saved_function_call_index,
-                                                              first_node)
+        args_mapping, first_node = self.save_def_args_in_temp(
+            call_node.args,
+            Arguments(def_node.args),
+            call_node.lineno,
+            saved_function_call_index,
+            first_node
+        )
         self.filenames.append(definition.path)
-        self.create_local_scope_from_def_args(call_node.args,
-                                              Arguments(def_node.args),
-                                              def_node.lineno,
-                                              saved_function_call_index)
-        function_nodes, first_node = self.visit_and_get_function_nodes(definition, first_node)
+        self.create_local_scope_from_def_args(
+            call_node.args,
+            Arguments(def_node.args),
+            def_node.lineno,
+            saved_function_call_index
+        )
+        function_nodes, first_node = self.visit_and_get_function_nodes(
+            definition,
+            first_node
+        )
         self.filenames.pop()  # Should really probably move after restore_saved_local_scope!!!
-        self.restore_saved_local_scope(saved_variables,
-                                       args_mapping,
-                                       def_node.lineno)
-        self.return_handler(call_node,
-                            function_nodes,
-                            saved_function_call_index,
-                            first_node)
+        self.restore_saved_local_scope(
+            saved_variables,
+            args_mapping,
+            def_node.lineno
+        )
+        self.return_handler(
+            call_node,
+            function_nodes,
+            saved_function_call_index,
+            first_node
+        )
         self.function_return_stack.pop()
 
         return self.nodes[-1]
@@ -628,10 +667,14 @@ class InterproceduralVisitor(Visitor):
 
         if new_module_definitions.is_init:
             for def_ in new_module_definitions.definitions:
-                module_def_alias = handle_aliases_in_init_files(def_.name,
-                                                                new_module_definitions.import_alias_mapping)
-                parent_def_alias = handle_aliases_in_init_files(def_.name,
-                                                                parent_definitions.import_alias_mapping)
+                module_def_alias = handle_aliases_in_init_files(
+                    def_.name,
+                    new_module_definitions.import_alias_mapping
+                )
+                parent_def_alias = handle_aliases_in_init_files(
+                    def_.name,
+                    parent_definitions.import_alias_mapping
+                )
                 # They should never both be set
                 assert not (module_def_alias and parent_def_alias)
 
@@ -655,29 +698,37 @@ class InterproceduralVisitor(Visitor):
                             alias = handle_fdid_aliases(module_or_package_name, import_alias_mapping)
                             if alias:
                                 module_or_package_name = alias
-                            parent_definition = ModuleDefinition(parent_definitions,
-                                                                 qualified_name,
-                                                                 module_or_package_name,
-                                                                 self.filenames[-1])
+                            parent_definition = ModuleDefinition(
+                                parent_definitions,
+                                qualified_name,
+                                module_or_package_name,
+                                self.filenames[-1]
+                            )
                         else:
-                            parent_definition = ModuleDefinition(parent_definitions,
-                                                                 qualified_name,
-                                                                 None,
-                                                                 self.filenames[-1])
+                            parent_definition = ModuleDefinition(
+                                parent_definitions,
+                                qualified_name,
+                                None,
+                                self.filenames[-1]
+                            )
                     else:
                         qualified_name = '.'.join([module_or_package_name,
                                                           def_name])
-                        parent_definition = ModuleDefinition(parent_definitions,
-                                                             qualified_name,
-                                                             parent_definitions.module_name,
-                                                             self.filenames[-1])
+                        parent_definition = ModuleDefinition(
+                            parent_definitions,
+                            qualified_name,
+                            parent_definitions.module_name,
+                            self.filenames[-1]
+                        )
                     parent_definition.node = def_.node
                     parent_definitions.definitions.append(parent_definition)
                 else:
-                    parent_definition = ModuleDefinition(parent_definitions,
-                                                         def_name,
-                                                         parent_definitions.module_name,
-                                                         self.filenames[-1])
+                    parent_definition = ModuleDefinition(
+                        parent_definitions,
+                        def_name,
+                        parent_definitions.module_name,
+                        self.filenames[-1]
+                    )
                     parent_definition.node = def_.node
                     parent_definitions.definitions.append(parent_definition)
 
@@ -694,40 +745,52 @@ class InterproceduralVisitor(Visitor):
 
         if init_exists and not skip_init:
             package_name = os.path.split(module_path)[1]
-            return self.add_module((module[0], init_file_location),
-                                   package_name,
-                                   local_names,
-                                   import_alias_mapping,
-                                   is_init=True,
-                                   from_from=True)
+            return self.add_module(
+                (module[0], init_file_location),
+                package_name,
+                local_names,
+                import_alias_mapping,
+                is_init=True,
+                from_from=True
+            )
         for real_name in real_names:
             full_name = os.path.join(module_path, real_name)
             if os.path.isdir(full_name):
                 new_init_file_location = os.path.join(full_name, '__init__.py')
                 if os.path.isfile(new_init_file_location):
-                    self.add_module((real_name, new_init_file_location),
-                                    real_name,
-                                    local_names,
-                                    import_alias_mapping,
-                                    is_init=True,
-                                    from_from=True,
-                                    from_fdid=True)
+                    self.add_module(
+                        (real_name, new_init_file_location),
+                        real_name,
+                        local_names,
+                        import_alias_mapping,
+                        is_init=True,
+                        from_from=True,
+                        from_fdid=True
+                    )
                 else:
                     raise Exception("from anything import directory needs an __init__.py file in directory")
             else:
                 file_module = (real_name, full_name + '.py')
-                self.add_module(file_module, real_name, local_names, import_alias_mapping, from_from=True)
+                self.add_module(
+                    file_module,
+                    real_name,
+                    local_names,
+                    import_alias_mapping,
+                    from_from=True
+                )
 
     def import_package(self, module, module_name, local_name, import_alias_mapping):
         module_path = module[1]
         init_file_location = os.path.join(module_path, '__init__.py')
         init_exists = os.path.isfile(init_file_location)
         if init_exists:
-            return self.add_module((module[0], init_file_location),
-                                   module_name,
-                                   local_name,
-                                   import_alias_mapping,
-                                   is_init=True)
+            return self.add_module(
+                (module[0], init_file_location),
+                module_name,
+                local_name,
+                import_alias_mapping,
+                is_init=True
+            )
         else:
             raise Exception("import directory needs an __init__.py file")
 
@@ -736,25 +799,33 @@ class InterproceduralVisitor(Visitor):
             for module in self.local_modules:
                 if name.name == module[0]:
                     if os.path.isdir(module[1]):
-                        return self.import_package(module,
-                                                   name,
-                                                   name.asname,
-                                                   retrieve_import_alias_mapping(node.names))
-                    return self.add_module(module,
-                                           name.name,
-                                           name.asname,
-                                           retrieve_import_alias_mapping(node.names))
+                        return self.import_package(
+                            module,
+                            name,
+                            name.asname,
+                            retrieve_import_alias_mapping(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        name.name,
+                        name.asname,
+                        retrieve_import_alias_mapping(node.names)
+                    )
             for module in self.project_modules:
                 if name.name == module[0]:
                     if os.path.isdir(module[1]):
-                        return self.import_package(module,
-                                                   name,
-                                                   name.asname,
-                                                   retrieve_import_alias_mapping(node.names))
-                    return self.add_module(module,
-                                           name.name,
-                                           name.asname,
-                                           retrieve_import_alias_mapping(node.names))
+                        return self.import_package(
+                            module,
+                            name,
+                            name.asname,
+                            retrieve_import_alias_mapping(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        name.name,
+                        name.asname,
+                        retrieve_import_alias_mapping(node.names)
+                    )
         return IgnoredNode()
 
     def handle_relative_import(self, node):
@@ -793,15 +864,20 @@ class InterproceduralVisitor(Visitor):
 
         # Is it a file?
         if name_with_dir.endswith('.py'):
-            return self.add_module((node.module, name_with_dir), None,
-                                   as_alias_handler(node.names),
-                                   retrieve_import_alias_mapping(node.names),
-                                   from_from=True)
-        return self.from_directory_import((node.module, name_with_dir),
-                                          not_as_alias_handler(node.names),
-                                          as_alias_handler(node.names),
-                                          retrieve_import_alias_mapping(node.names),
-                                          skip_init=skip_init)
+            return self.add_module(
+                (node.module, name_with_dir),
+                None,
+                as_alias_handler(node.names),
+                retrieve_import_alias_mapping(node.names),
+                from_from=True
+            )
+        return self.from_directory_import(
+            (node.module, name_with_dir),
+            not_as_alias_handler(node.names),
+            as_alias_handler(node.names),
+            retrieve_import_alias_mapping(node.names),
+            skip_init=skip_init
+        )
 
     def visit_ImportFrom(self, node):
         # Is it relative?
@@ -811,25 +887,35 @@ class InterproceduralVisitor(Visitor):
             for module in self.local_modules:
                 if node.module == module[0]:
                     if os.path.isdir(module[1]):
-                        return self.from_directory_import(module,
-                                                          not_as_alias_handler(node.names),
-                                                          as_alias_handler(node.names))
-                    return self.add_module(module, None,
-                                           as_alias_handler(node.names),
-                                           retrieve_import_alias_mapping(node.names),
-                                           from_from=True)
+                        return self.from_directory_import(
+                            module,
+                            not_as_alias_handler(node.names),
+                            as_alias_handler(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        None,
+                        as_alias_handler(node.names),
+                        retrieve_import_alias_mapping(node.names),
+                        from_from=True
+                    )
             for module in self.project_modules:
                 name = module[0]
                 if node.module == name:
                     if os.path.isdir(module[1]):
-                        return self.from_directory_import(module,
-                                                          not_as_alias_handler(node.names),
-                                                          as_alias_handler(node.names),
-                                                          retrieve_import_alias_mapping(node.names))
-                    return self.add_module(module, None,
-                                           as_alias_handler(node.names),
-                                           retrieve_import_alias_mapping(node.names),
-                                           from_from=True)
+                        return self.from_directory_import(
+                            module,
+                            not_as_alias_handler(node.names),
+                            as_alias_handler(node.names),
+                            retrieve_import_alias_mapping(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        None,
+                        as_alias_handler(node.names),
+                        retrieve_import_alias_mapping(node.names),
+                        from_from=True
+                    )
         return IgnoredNode()
 
 
