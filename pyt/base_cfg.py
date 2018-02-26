@@ -180,7 +180,7 @@ class BBorBInode(AssignmentNode):
             path(string): Current filename.
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
-        self.args = []
+        self.args = list()
         self.inner_most_call = self
 
 
@@ -512,7 +512,12 @@ class Visitor(ast.NodeVisitor):
                 name = handler.type.id
             except AttributeError:
                 name = ''
-            handler_node = self.append_node(Node('except ' + name + ':', handler, line_number=handler.lineno, path=self.filenames[-1]))
+            handler_node = self.append_node(Node(
+                'except ' + name + ':',
+                handler,
+                line_number=handler.lineno,
+                path=self.filenames[-1]
+            ))
             for body_node in body.last_statements:
                 body_node.connect(handler_node)
             handler_body = self.stmt_star_handler(handler.body)
@@ -578,7 +583,13 @@ class Visitor(ast.NodeVisitor):
                 label.result += ' = '
                 label.visit(value)
 
-                new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(target), ast.Assign(target, value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
+                new_assignment_nodes.append(self.append_node(AssignmentNode(
+                    label.result,
+                    self.extract_left_hand_side(target),
+                    ast.Assign(target, value),
+                    right_hand_side_variables,
+                    line_number=node.lineno, path=self.filenames[-1]
+                )))
 
 
         self.connect_nodes(new_assignment_nodes)
@@ -593,7 +604,13 @@ class Visitor(ast.NodeVisitor):
             left_hand_side = label.result
             label.result += ' = '
             label.visit(node.value)
-            new_assignment_nodes.append(self.append_node(AssignmentNode(label.result, left_hand_side, ast.Assign(target, node.value), right_hand_side_variables, line_number=node.lineno, path=self.filenames[-1])))
+            new_assignment_nodes.append(self.append_node(AssignmentNode(
+                label.result,
+                left_hand_side,
+                ast.Assign(target, node.value),
+                right_hand_side_variables,
+                line_number=node.lineno, path=self.filenames[-1]
+            )))
 
         self.connect_nodes(new_assignment_nodes)
         return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
@@ -617,7 +634,14 @@ class Visitor(ast.NodeVisitor):
                 print('Assignment not properly handled.',
                       'Could result in not finding a vulnerability.',
                       'Assignment:', label.result)
-                return self.append_node(AssignmentNode(label.result, label.result, node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(
+                    label.result,
+                    label.result,
+                    node,
+                    rhs_visitor.result,
+                    line_number=node.lineno,
+                    path=self.filenames[-1]
+                ))
 
         elif len(node.targets) > 1:                #  x = y = 3
             return self.assign_multi_target(node, rhs_visitor.result)
@@ -629,7 +653,14 @@ class Visitor(ast.NodeVisitor):
             else:                                  #  x = 4
                 label = LabelVisitor()
                 label.visit(node)
-                return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.targets[0]), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+                return self.append_node(AssignmentNode(
+                    label.result,
+                    self.extract_left_hand_side(node.targets[0]),
+                    node,
+                    rhs_visitor.result,
+                    line_number=node.lineno,
+                    path=self.filenames[-1]
+                ))
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
@@ -645,24 +676,28 @@ class Visitor(ast.NodeVisitor):
 
         call_label = call.left_hand_side
         if isinstance(call, BBorBInode):
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
-                                                 left_hand_label,
-                                                 ast_node,
-                                                 [call.left_hand_side],
-                                                 vv_result=vars_visitor.result,
-                                                 line_number=ast_node.lineno,
-                                                 path=self.filenames[-1],
-                                                 call_node=call)
+            call_assignment = AssignmentCallNode(
+                left_hand_label + ' = ' + call_label,
+                left_hand_label,
+                ast_node,
+                [call.left_hand_side],
+                vv_result=vars_visitor.result,
+                line_number=ast_node.lineno,
+                path=self.filenames[-1],
+                call_node=call
+            )
         # Assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
         elif isinstance(call, AssignmentNode):
-            call_assignment = AssignmentCallNode(left_hand_label + ' = ' + call_label,
-                                                 left_hand_label,
-                                                 ast_node,
-                                                 [call.left_hand_side],
-                                                 vv_result=[],
-                                                 line_number=ast_node.lineno,
-                                                 path=self.filenames[-1],
-                                                 call_node=call)
+            call_assignment = AssignmentCallNode(
+                left_hand_label + ' = ' + call_label,
+                left_hand_label,
+                ast_node,
+                [call.left_hand_side],
+                vv_result=[],
+                line_number=ast_node.lineno,
+                path=self.filenames[-1],
+                call_node=call
+            )
         call.connect(call_assignment)
 
         self.nodes.append(call_assignment)
@@ -677,7 +712,14 @@ class Visitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
 
-        return self.append_node(AssignmentNode(label.result, self.extract_left_hand_side(node.target), node, rhs_visitor.result, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(AssignmentNode(
+            label.result,
+            self.extract_left_hand_side(node.target),
+            node,
+            rhs_visitor.result,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def loop_node_skeleton(self, test, node):
         """Common handling of looped structures, while and for."""
@@ -709,7 +751,12 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        test = self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
         self.add_while_label(test)
 
@@ -725,7 +772,12 @@ class Visitor(ast.NodeVisitor):
         target_label = LabelVisitor()
         target = target_label.visit(node.target)
 
-        for_node = self.append_node(Node("for " + target_label.result + " in " + iterator_label.result + ':', node, line_number=node.lineno, path=self.filenames[-1]))
+        for_node = self.append_node(Node(
+            "for " + target_label.result + " in " + iterator_label.result + ':',
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
         if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func) in self.function_names:
             last_node = self.visit(node.iter)
@@ -774,13 +826,15 @@ class Visitor(ast.NodeVisitor):
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + label.result[:index] + '('
 
-        call_node = BBorBInode("",
-                               LHS,
-                               [],
-                               line_number=node.lineno,
-                               path=self.filenames[-1])
-        visual_args = []
-        rhs_vars = []
+        call_node = BBorBInode(
+            label="",
+            left_hand_side=LHS,
+            right_hand_side_variables=[],
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        )
+        visual_args = list()
+        rhs_vars = list()
         last_return_value_of_nested_call = None
 
         for arg in itertools.chain(node.args, node.keywords):
@@ -852,7 +906,12 @@ class Visitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.items[0])
 
-        with_node = self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        with_node = self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
         connect_statements = self.stmt_star_handler(node.body)
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(with_node, connect_statements.last_statements, connect_statements.break_statements)
@@ -864,43 +923,83 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(BreakNode(node, line_number=node.lineno, path=self.filenames[-1]))
 
     def visit_Pass(self, node):
-        return self.append_node(Node('pass', node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            'pass',
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Continue(self, node):
-        return self.append_node(Node('continue', node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            'continue',
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Delete(self, node):
         labelVisitor = LabelVisitor()
         for expr in node.targets:
             labelVisitor.visit(expr)
-        return self.append_node(Node('del ' + labelVisitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            'del ' + labelVisitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Assert(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Attribute(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Global(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Subscript(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))
 
     def visit_Tuple(self, node):
         label_visitor = LabelVisitor()
         label_visitor.visit(node)
 
-        return self.append_node(Node(label_visitor.result, node, line_number=node.lineno, path=self.filenames[-1]))
+        return self.append_node(Node(
+            label_visitor.result,
+            node,
+            line_number=node.lineno,
+            path=self.filenames[-1]
+        ))

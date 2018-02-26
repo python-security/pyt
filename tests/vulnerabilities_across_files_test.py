@@ -52,7 +52,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code_across_files/blackbox_library_call.py
-             > User input at line 12, trigger word "get(": 
+             > User input at line 12, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('suggestion')
             Reassigned in:
                 File: example/vulnerable_code_across_files/blackbox_library_call.py

@@ -171,7 +171,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS.py
-             > User input at line 6, trigger word "get(":
+             > User input at line 6, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/XSS.py
@@ -213,7 +213,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/path_traversal.py
-             > User input at line 15, trigger word "get(":
+             > User input at line 15, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('image_name')
             Reassigned in: 
                 File: example/vulnerable_code/path_traversal.py
@@ -251,7 +251,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/path_traversal_sanitised.py
-             > User input at line 8, trigger word "get(":
+             > User input at line 8, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('image_name')
             Reassigned in: 
                 File: example/vulnerable_code/path_traversal_sanitised.py
@@ -276,7 +276,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/sql/sqli.py
-             > User input at line 26, trigger word "get(":
+             > User input at line 26, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/sql/sqli.py
@@ -346,7 +346,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_reassign.py
-             > User input at line 6, trigger word "get(":
+             > User input at line 6, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/XSS_reassign.py
@@ -372,7 +372,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_sanitised.py
-             > User input at line 7, trigger word "get(":
+             > User input at line 7, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/XSS_sanitised.py
@@ -405,7 +405,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_variable_assign.py
-             > User input at line 6, trigger word "get(":
+             > User input at line 6, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/XSS_variable_assign.py
@@ -431,7 +431,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_variable_multiple_assign.py
-             > User input at line 6, trigger word "get(":
+             > User input at line 6, trigger word "request.args.get(":
                 ¤call_1 = ret_request.args.get('param', 'not set')
             Reassigned in: 
                 File: example/vulnerable_code/XSS_variable_multiple_assign.py
