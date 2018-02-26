@@ -42,8 +42,9 @@ Install
 =======
 
        1. git clone https://github.com/python-security/pyt.git
-       2. python setup.py install
-       3. pyt -h
+       2. cd pyt/
+       3. python setup.py install
+       4. pyt -h
 
 
 Usage from Source
