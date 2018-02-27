@@ -54,7 +54,7 @@ BUILTINS = set(['get',
                 'call',
                 'render_template',
                 'redirect',
-                'url_for',
+                # 'url_for',
                 'flash',
                 'jsonify'])
 

@@ -62,7 +62,7 @@ def get_urls(filename):
 
 if __name__ == '__main__':
     filename = 'scan_results/archived_26_10_scan.pyt'
-    filename = 'scan_results/test.pyt'
+    # filename = 'scan_results/test.pyt'
     repos = get_repos(filename)
     print([b.url for b in repos])
     print(len(repos))
