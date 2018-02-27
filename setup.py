@@ -29,7 +29,7 @@ setup(
     ],
     install_requires=[
         'graphviz==0.4.10',
-        'requests==2.10.0',
+        'requests~=2.12',
         'GitPython==2.0.8'
     ],
     include_package_data=True,
