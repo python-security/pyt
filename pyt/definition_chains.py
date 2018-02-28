@@ -9,19 +9,15 @@ from .vars_visitor import VarsVisitor
 
 def get_vars(node):
     vv = VarsVisitor()
-    if isinstance(node.ast_node, ast.While)\
-       or isinstance(node.ast_node, ast.If):
+    if isinstance(node.ast_node, (ast.If, ast.While)):
         vv.visit(node.ast_node.test)
-    elif isinstance(node.ast_node, ast.FunctionDef) or\
-         isinstance(node.ast_node, ast.ClassDef):
-        return list()
+    elif isinstance(node.ast_node, (ast.ClassDef, ast.FunctionDef)):
+        return set()
     else:
         try:
             vv.visit(node.ast_node)
         except AttributeError:  # If no ast_node
-            vv.result = list()
-
-    # remove duplicates:
+            vv.result = set()
     vv.result = set(vv.result)
 
     # Filter out lvars:
@@ -58,11 +54,9 @@ def build_use_def_chain(cfg_nodes):
 
 def varse(node):
     vv = VarsVisitor()
-    if isinstance(node.ast_node, ast.FunctionDef) or\
-       isinstance(node.ast_node, ast.ClassDef):
+    if isinstance(node.ast_node, (ast.ClassDef, ast.FunctionDef)):
         return list()
-    elif isinstance(node.ast_node, ast.While)\
-            or isinstance(node.ast_node, ast.If):
+    elif isinstance(node.ast_node, (ast.If, ast.While)):
         vv.visit(node.ast_node.test)
     else:
         try:
@@ -84,11 +78,13 @@ def build_def_use_chain(cfg_nodes):
     def_use = dict()
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
 
+    # Make an empty list for each def
     for node in cfg_nodes:
         if isinstance(node, AssignmentNode):
             def_use[node] = list()
 
     for node in cfg_nodes:
+        # Rename varse
         for var in varse(node):
             for cnode in get_constraint_nodes(node, lattice):
                 if var in cnode.left_hand_side:
