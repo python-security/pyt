@@ -814,17 +814,17 @@ class Visitor(ast.NodeVisitor):
         saved_function_call_index = self.function_call_index
         self.undecided = False
 
-        label = LabelVisitor()
-        label.visit(node)
+        call_label = LabelVisitor()
+        call_label.visit(node)
 
-        index = label.result.find('(')
+        index = call_label.result.find('(')
         if index == -1:
             print("No ( in a call")
             raise
 
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
-        RHS = 'ret_' + label.result[:index] + '('
+        RHS = 'ret_' + call_label.result[:index] + '('
 
         call_node = BBorBInode(
             label="",
@@ -880,11 +880,7 @@ class Visitor(ast.NodeVisitor):
             RHS = RHS + ')'
         call_node.label = LHS + " = " + RHS
 
-        # This is where we'll ask the user, then save the mapping or just use the pre-made mapping.
-        # Or perhaps we'll do that in vulnerabilities.py
-
         call_node.right_hand_side_variables = rhs_vars
-
         # Used in get_sink_args
         call_node.args = rhs_vars
 

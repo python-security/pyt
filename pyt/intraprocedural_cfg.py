@@ -82,7 +82,8 @@ class IntraproceduralVisitor(Visitor):
         arguments = Arguments(node.args)
         return self.append_node(Node('def ' + node.name + '(' +
                                      ','.join(arguments) + '):',
-                                     node, line_number=node.lineno,
+                                     node,
+                                     line_number=node.lineno,
                                      path=self.filenames[-1]))
 
     def visit_Return(self, node):
@@ -97,8 +98,10 @@ class IntraproceduralVisitor(Visitor):
 
         LHS = 'ret_' + 'MAYBE_FUNCTION_NAME'
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
-                                           LHS, rhs_visitor.result,
-                                           node, line_number=node.lineno,
+                                           LHS,
+                                           rhs_visitor.result,
+                                           node,
+                                           line_number=node.lineno,
                                            path=self.filenames[-1]))
 
     def visit_Yield(self, node):
@@ -114,7 +117,8 @@ class IntraproceduralVisitor(Visitor):
         LHS = 'yield_' + 'MAYBE_FUNCTION_NAME'
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS, rhs_visitor.result,
-                                           node, line_number=node.lineno,
+                                           node,
+                                           line_number=node.lineno,
                                            path=self.filenames[-1]))
 
     def visit_Call(self, node):
@@ -134,7 +138,8 @@ class IntraproceduralVisitor(Visitor):
             from_import = ''
         return self.append_node(Node(from_import + 'import ' +
                                      ', '.join(names),
-                                     node, line_number=node.lineno,
+                                     node,
+                                     line_number=node.lineno,
                                      path=self.filenames[-1]))
 
 
