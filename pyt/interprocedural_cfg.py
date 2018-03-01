@@ -212,8 +212,8 @@ class InterproceduralVisitor(Visitor):
             return_node = ReturnNode(
                 LHS + ' = ' + return_value_of_call.left_hand_side,
                 LHS,
-                [return_value_of_call.left_hand_side],
                 node,
+                [return_value_of_call.left_hand_side],
                 line_number=node.lineno,
                 path=self.filenames[-1]
             )
@@ -224,8 +224,8 @@ class InterproceduralVisitor(Visitor):
         return self.append_node(ReturnNode(
             LHS + ' = ' + label.result,
             LHS,
-            rhs_visitor.result,
             node,
+            rhs_visitor.result,
             line_number=node.lineno,
             path=self.filenames[-1]
         ))
@@ -245,8 +245,8 @@ class InterproceduralVisitor(Visitor):
         return self.append_node(ReturnNode(
             LHS + ' = ' + label.result,
             LHS,
-            rhs_visitor.result,
             node,
+            rhs_visitor.result,
             line_number=node.lineno,
             path=self.filenames[-1])
         )

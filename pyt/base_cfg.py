@@ -30,7 +30,7 @@ class Node():
         """Create a Node that can be used in a CFG.
 
         Args:
-            label (str): The label of the node, describing its expression.
+            label(str): The label of the node, describing its expression.
             line_number(Optional[int]): The line of the expression of the Node.
         """
         self.label = label
@@ -157,7 +157,7 @@ class RestoreNode(AssignmentNode):
         """Create a Restore node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
@@ -217,11 +217,11 @@ class AssignmentCallNode(AssignmentNode):
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, ast_node, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
         """Create a CallReturn node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.

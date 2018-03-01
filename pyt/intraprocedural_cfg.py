@@ -99,8 +99,8 @@ class IntraproceduralVisitor(Visitor):
         LHS = 'ret_' + 'MAYBE_FUNCTION_NAME'
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
                                            LHS,
-                                           rhs_visitor.result,
                                            node,
+                                           rhs_visitor.result,
                                            line_number=node.lineno,
                                            path=self.filenames[-1]))
 
@@ -116,8 +116,9 @@ class IntraproceduralVisitor(Visitor):
 
         LHS = 'yield_' + 'MAYBE_FUNCTION_NAME'
         return self.append_node(ReturnNode(LHS + ' = ' + label.result,
-                                           LHS, rhs_visitor.result,
+                                           LHS,
                                            node,
+                                           rhs_visitor.result,
                                            line_number=node.lineno,
                                            path=self.filenames[-1]))
 
