@@ -21,7 +21,6 @@ def get_vars(node):
         except AttributeError:  # If no ast_node
             vv.result = list()
 
-    # remove duplicates:
     vv.result = set(vv.result)
 
     # Filter out lvars:
