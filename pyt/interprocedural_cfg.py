@@ -211,8 +211,10 @@ class InterproceduralVisitor(Visitor):
             return_value_of_call = self.visit(node.value)
             return_node = ReturnNode(
                 LHS + ' = ' + return_value_of_call.left_hand_side,
-                LHS, return_value_of_call.left_hand_side,
-                node, line_number=node.lineno,
+                LHS,
+                node,
+                [return_value_of_call.left_hand_side],
+                line_number=node.lineno,
                 path=self.filenames[-1]
             )
             return_value_of_call.connect(return_node)
@@ -221,8 +223,10 @@ class InterproceduralVisitor(Visitor):
 
         return self.append_node(ReturnNode(
             LHS + ' = ' + label.result,
-            LHS, rhs_visitor.result,
-            node, line_number=node.lineno,
+            LHS,
+            node,
+            rhs_visitor.result,
+            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -240,8 +244,10 @@ class InterproceduralVisitor(Visitor):
         LHS = 'yield_' + this_function_name
         return self.append_node(ReturnNode(
             LHS + ' = ' + label.result,
-            LHS, rhs_visitor.result,
-            node, line_number=node.lineno,
+            LHS,
+            node,
+            rhs_visitor.result,
+            line_number=node.lineno,
             path=self.filenames[-1])
         )
 
@@ -268,13 +274,14 @@ class InterproceduralVisitor(Visitor):
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
-            save_name = 'save_' + str(saved_function_call_index) + '_' +\
-                        assignment.left_hand_side
+            save_name = f'save_{saved_function_call_index}_{assignment.left_hand_side}'
+
             previous_node = self.nodes[-1]
 
             saved_scope_node = RestoreNode(
                 save_name + ' = ' + assignment.left_hand_side,
-                save_name, [assignment.left_hand_side],
+                save_name,
+                [assignment.left_hand_side],
                 line_number=line_number, path=self.filenames[-1]
             )
             if not first_node:
@@ -347,7 +354,7 @@ class InterproceduralVisitor(Visitor):
                 restore_node = RestoreNode(
                     def_arg_temp_name + ' = ' + return_value_of_nested_call.left_hand_side,
                     def_arg_temp_name,
-                    return_value_of_nested_call.left_hand_side,
+                    [return_value_of_nested_call.left_hand_side],
                     line_number=line_number,
                     path=self.filenames[-1]
                 )

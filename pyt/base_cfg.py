@@ -30,7 +30,7 @@ class Node():
         """Create a Node that can be used in a CFG.
 
         Args:
-            label (str): The label of the node, describing its expression.
+            label(str): The label of the node, describing its expression.
             line_number(Optional[int]): The line of the expression of the Node.
         """
         self.label = label
@@ -157,7 +157,7 @@ class RestoreNode(AssignmentNode):
         """Create a Restore node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
@@ -217,11 +217,11 @@ class AssignmentCallNode(AssignmentNode):
 class ReturnNode(AssignmentNode, ConnectToExitNode):
     """CFG node that represents a return from a call."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, ast_node, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
         """Create a CallReturn node.
 
         Args:
-            label (str): The label of the node, describing the expression it represents.
+            label(str): The label of the node, describing the expression it represents.
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
@@ -814,17 +814,17 @@ class Visitor(ast.NodeVisitor):
         saved_function_call_index = self.function_call_index
         self.undecided = False
 
-        label = LabelVisitor()
-        label.visit(node)
+        call_label = LabelVisitor()
+        call_label.visit(node)
 
-        index = label.result.find('(')
+        index = call_label.result.find('(')
         if index == -1:
             print("No ( in a call")
             raise
 
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
-        RHS = 'ret_' + label.result[:index] + '('
+        RHS = 'ret_' + call_label.result[:index] + '('
 
         call_node = BBorBInode(
             label="",
@@ -880,11 +880,7 @@ class Visitor(ast.NodeVisitor):
             RHS = RHS + ')'
         call_node.label = LHS + " = " + RHS
 
-        # This is where we'll ask the user, then save the mapping or just use the pre-made mapping.
-        # Or perhaps we'll do that in vulnerabilities.py
-
         call_node.right_hand_side_variables = rhs_vars
-
         # Used in get_sink_args
         call_node.args = rhs_vars
 
