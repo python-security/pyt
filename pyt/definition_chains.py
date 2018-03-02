@@ -53,14 +53,10 @@ def build_use_def_chain(cfg_nodes):
 
 def get_uses(node):
     if isinstance(node, AssignmentNode):
-        # TKTK: Merge in master, then remove this `if`
         result = list()
-        if isinstance(node.right_hand_side_variables, str):
-            result.append(node.right_hand_side_variables)
-        else:
-            for var in node.right_hand_side_variables:
-                if var not in node.left_hand_side:
-                    result.append(var)
+        for var in node.right_hand_side_variables:
+            if var not in node.left_hand_side:
+                result.append(var)
         return result
     elif isinstance(node, EntryOrExitNode):
         return []
