@@ -10,6 +10,7 @@ from .base_cfg import (
     RestoreNode,
     TaintedNode
 )
+from .definition_chains import build_def_use_chain
 from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
@@ -27,8 +28,7 @@ Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
 
 
 class TriggerNode():
-    def __init__(self, trigger_word, sanitisers, cfg_node,
-                 secondary_nodes=None):
+    def __init__(self, trigger_word, sanitisers, cfg_node, secondary_nodes=None):
         self.trigger_word = trigger_word
         self.sanitisers = sanitisers
         self.cfg_node = cfg_node
@@ -271,12 +271,27 @@ def get_sink_args(cfg_node):
     return vv.result + other_results
 
 
+def get_vulnerability_chains(current_node, sink, def_use, chain):
+    for use in def_use[current_node]:
+        if use == sink:
+            yield chain
+        else:
+            vuln_chain = list(chain)
+            vuln_chain.append(use)
+            yield from get_vulnerability_chains(
+                use,
+                sink,
+                def_use,
+                vuln_chain
+            )
+
+
 def get_vulnerability(source,
                       sink,
                       triggers,
                       lattice,
                       trim_reassigned_in,
-                      blackbox_assignments):
+                      cfg):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers.
@@ -287,7 +302,7 @@ def get_vulnerability(source,
         triggers(Triggers): Triggers of the CFG.
         lattice(Lattice): The lattice we're analysing.
         trim_reassigned_in(bool): Whether or not the trim option is set.
-        blackbox_assignments(set[AssignmentNode]): used in is_unknown.
+        cfg(CFG): .blackbox_assignments used in is_unknown, .nodes used in build_def_use_chain
 
     Returns:
         A Vulnerability if it exists, else None
@@ -295,12 +310,16 @@ def get_vulnerability(source,
     source_in_sink = lattice.in_constraint(source.cfg_node, sink.cfg_node)
 
     secondary_in_sink = list()
-
     if source.secondary_nodes:
+        # When this is True and source_in_sink is not
+        # It is due to the secondary being a function call
         secondary_in_sink = [secondary for secondary in source.secondary_nodes
                              if lattice.in_constraint(secondary,
                                                       sink.cfg_node)]
 
+    if not source_in_sink:
+        if secondary_in_sink:
+            raise
     trigger_node_in_sink = source_in_sink or secondary_in_sink
 
     sink_args = get_sink_args(sink.cfg_node)
@@ -312,7 +331,20 @@ def get_vulnerability(source,
                 secondary_node_in_sink_args = node
 
     trimmed_reassignment_nodes = list()
+
     if secondary_node_in_sink_args:
+        # TKTK: if interactive_mode
+        def_use = build_def_use_chain(cfg.nodes)
+        for chain in get_vulnerability_chains(
+            source.cfg_node,
+            sink.cfg_node,
+            def_use,
+            chain=[source.cfg_node]
+        ):
+            for node in chain:
+                if isinstance(node, BBorBInode):
+                    print(f'Is {node.label} with tainted arg ??? vulnerable?')
+
         trimmed_reassignment_nodes.append(secondary_node_in_sink_args)
         node_in_the_vulnerability_chain = secondary_node_in_sink_args
         # Here is where we do backwards slicing to traceback which nodes led to the vulnerability
@@ -334,7 +366,7 @@ def get_vulnerability(source,
                                          triggers.sanitiser_dict,
                                          lattice)
         blackbox_assignment_in_chain = is_unknown(trimmed_reassignment_nodes,
-                                                  blackbox_assignments)
+                                                  cfg.blackbox_assignments)
         reassignment_nodes = source.secondary_nodes
         if trim_reassigned_in:
             reassignment_nodes = trimmed_reassignment_nodes
@@ -373,7 +405,7 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
                                               triggers,
                                               lattice,
                                               trim_reassigned_in,
-                                              cfg.blackbox_assignments)
+                                              cfg)
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
