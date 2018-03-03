@@ -1,5 +1,6 @@
 from argparse import ArgumentTypeError
 from datetime import datetime
+from enum import Enum
 
 
 def valid_date(s):
@@ -9,3 +10,9 @@ def valid_date(s):
     except ValueError:
         msg = "Not a valid date: '{0}'. Format: {1}".format(s, date_format)
         raise ArgumentTypeError(msg)
+
+
+class UImode(Enum):
+    NORMAL = 0
+    INTERACTIVE = 1
+    TRIM = 2

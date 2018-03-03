@@ -3,6 +3,7 @@
 import ast
 from collections import namedtuple
 
+from .argument_helpers import UImode
 from .base_cfg import (
     AssignmentCallNode,
     AssignmentNode,
@@ -286,12 +287,14 @@ def get_vulnerability_chains(current_node, sink, def_use, chain):
             )
 
 
-def get_vulnerability(source,
-                      sink,
-                      triggers,
-                      lattice,
-                      trim_reassigned_in,
-                      cfg):
+def get_vulnerability(
+    source,
+    sink,
+    triggers,
+    lattice,
+    cfg,
+    ui_mode
+):
     """Get vulnerability between source and sink if it exists.
 
     Uses triggers to find sanitisers.
@@ -301,8 +304,8 @@ def get_vulnerability(source,
         sink(TriggerNode): TriggerNode of the sink.
         triggers(Triggers): Triggers of the CFG.
         lattice(Lattice): The lattice we're analysing.
-        trim_reassigned_in(bool): Whether or not the trim option is set.
         cfg(CFG): .blackbox_assignments used in is_unknown, .nodes used in build_def_use_chain
+        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
 
     Returns:
         A Vulnerability if it exists, else None
@@ -332,17 +335,17 @@ def get_vulnerability(source,
     trimmed_reassignment_nodes = list()
 
     if secondary_node_in_sink_args:
-        # TKTK: if interactive_mode
-        def_use = build_def_use_chain(cfg.nodes)
-        for chain in get_vulnerability_chains(
-            source.cfg_node,
-            sink.cfg_node,
-            def_use,
-            chain=[source.cfg_node]
-        ):
-            for node in chain:
-                if isinstance(node, BBorBInode):
-                    print(f'Is {node.label} with tainted arg ??? vulnerable?')
+        if ui_mode == UImode.INTERACTIVE:
+            def_use = build_def_use_chain(cfg.nodes)
+            for chain in get_vulnerability_chains(
+                source.cfg_node,
+                sink.cfg_node,
+                def_use,
+                chain=[source.cfg_node]
+            ):
+                for node in chain:
+                    if isinstance(node, BBorBInode):
+                        print(f'Is {node.label} with tainted arg ??? vulnerable?')
 
         trimmed_reassignment_nodes.append(secondary_node_in_sink_args)
         node_in_the_vulnerability_chain = secondary_node_in_sink_args
@@ -372,7 +375,7 @@ def get_vulnerability(source,
             cfg.blackbox_assignments
         )
         reassignment_nodes = source.secondary_nodes
-        if trim_reassigned_in:
+        if ui_mode == UImode.TRIM:
             reassignment_nodes = trimmed_reassignment_nodes
         if sink_is_sanitised:
             return SanitisedVulnerability(
@@ -397,7 +400,13 @@ def get_vulnerability(source,
     return None
 
 
-def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, trim_reassigned_in):
+def find_vulnerabilities_in_cfg(
+    cfg,
+    vulnerability_log,
+    definitions,
+    lattice,
+    ui_mode
+):
     """Find vulnerabilities in a cfg.
 
     Args:
@@ -405,9 +414,14 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
         vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
         lattice(Lattice): The lattice we're analysing.
-        trim_reassigned_in(bool): Whether or not the trim option is set.
+        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
     """
-    triggers = identify_triggers(cfg, definitions.sources, definitions.sinks, lattice)
+    triggers = identify_triggers(
+        cfg,
+        definitions.sources,
+        definitions.sinks,
+        lattice
+    )
     for sink in triggers.sinks:
         for source in triggers.sources:
             vulnerability = get_vulnerability(
@@ -415,23 +429,26 @@ def find_vulnerabilities_in_cfg(cfg, vulnerability_log, definitions, lattice, tr
                 sink,
                 triggers,
                 lattice,
-                trim_reassigned_in,
-                cfg
+                cfg,
+                ui_mode
             )
             if vulnerability:
                 vulnerability_log.append(vulnerability)
 
 
-def find_vulnerabilities(cfg_list,
-                         analysis_type,
-                         trim_reassigned_in=False,
-                         trigger_word_file=default_trigger_word_file):
+def find_vulnerabilities(
+    cfg_list,
+    analysis_type,
+    trigger_word_file,
+    ui_mode
+):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
-        cfg_list (list[CFG]): the list of CFGs to scan.
-        trigger_word_file (string): file containing trigger words.
-        Defaults to the flask trigger word file.
+        cfg_list(list[CFG]): the list of CFGs to scan.
+        analysis_type(AnalysisBase): analysis object used to create lattice.
+        trigger_word_file(string): file containing trigger words.
+        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
 
     Returns:
         A VulnerabilityLog with found vulnerabilities.
@@ -445,6 +462,6 @@ def find_vulnerabilities(cfg_list,
             vulnerability_log,
             definitions,
             Lattice(cfg.nodes, analysis_type),
-            trim_reassigned_in
+            ui_mode
         )
     return vulnerability_log
