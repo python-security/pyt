@@ -187,21 +187,24 @@ class BBorBInode(AssignmentNode):
 class AssignmentCallNode(AssignmentNode):
     """Node used for X."""
 
-    def __init__(self,
-                 label,
-                 left_hand_side,
-                 ast_node,
-                 right_hand_side_variables,
-                 vv_result,
-                 *,
-                 line_number,
-                 path,
-                 call_node):
+    def __init__(
+        self,
+        label,
+        left_hand_side,
+        ast_node,
+        right_hand_side_variables,
+        vv_result,
+        *,
+        line_number,
+        path,
+        call_node
+    ):
         """Create a X.
 
         Args:
             label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
@@ -223,6 +226,7 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
         Args:
             label(str): The label of the node, describing the expression it represents.
             restore_nodes(list[Node]): List of nodes that were restored in the function call.
+            ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.

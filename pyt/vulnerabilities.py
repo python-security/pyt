@@ -46,16 +46,24 @@ class TriggerNode():
         output = 'TriggerNode('
 
         if self.trigger_word:
-            output = output + 'trigger_word is ' + str(self.trigger_word) + ', '
+            output = '{} trigger_word is {}, '.format(
+                      output,
+                      self.trigger_word
+            )
 
         return (
             output +
-            'sanitisers are ' + str(self.sanitisers) + ', '
-            'cfg_node is ' + str(self.cfg_node) + ')\n'
+            'sanitisers are {}, '.format(self.sanitisers) +
+            'cfg_node is {})\n'.format(self.cfg_node)
         )
 
 
-def identify_triggers(cfg, sources, sinks, lattice):
+def identify_triggers(
+    cfg,
+    sources,
+    sinks,
+    lattice
+):
     """Identify sources, sinks and sanitisers in a CFG.
 
     Args:
@@ -83,23 +91,35 @@ def identify_triggers(cfg, sources, sinks, lattice):
     return Triggers(sources_in_file, sinks_in_file, sanitiser_node_dict)
 
 
-def filter_cfg_nodes(cfg, cfg_node_type):
+def filter_cfg_nodes(
+    cfg,
+    cfg_node_type
+):
     return [node for node in cfg.nodes if isinstance(node, cfg_node_type)]
 
 
-def find_secondary_sources(assignment_nodes, sources, lattice):
+def find_secondary_sources(
+    assignment_nodes,
+    sources,
+    lattice
+):
     """
         Sets the secondary_nodes attribute of each source in the sources list.
 
         Args:
             assignment_nodes([AssignmentNode])
             sources([tuple])
+            lattice(Lattice): The lattice we're analysing.
     """
     for source in sources:
         source.secondary_nodes = find_assignments(assignment_nodes, source, lattice)
 
 
-def find_assignments(assignment_nodes, source, lattice):
+def find_assignments(
+    assignment_nodes,
+    source,
+    lattice
+):
     old = list()
 
     # added in order to propagate reassignments of the source node
@@ -113,14 +133,24 @@ def find_assignments(assignment_nodes, source, lattice):
     return new
 
 
-def update_assignments(assignment_list, assignment_nodes, source, lattice):
+def update_assignments(
+    assignment_list,
+    assignment_nodes,
+    source,
+    lattice
+):
     for node in assignment_nodes:
         for other in assignment_list:
             if node not in assignment_list:
                 append_if_reassigned(assignment_list, other, node, lattice)
 
 
-def append_if_reassigned(assignment_list, secondary, node, lattice):
+def append_if_reassigned(
+    assignment_list,
+    secondary,
+    node,
+    lattice
+):
     try:
         reassigned = False
         # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
@@ -138,7 +168,10 @@ def append_if_reassigned(assignment_list, secondary, node, lattice):
         exit(0)
 
 
-def find_triggers(nodes, trigger_words):
+def find_triggers(
+    nodes,
+    trigger_words
+):
     """Find triggers from the trigger_word_list in the nodes.
 
     Args:
@@ -154,7 +187,10 @@ def find_triggers(nodes, trigger_words):
     return trigger_nodes
 
 
-def label_contains(node, trigger_words):
+def label_contains(
+    node,
+    trigger_words
+):
     """Determine if node contains any of the trigger_words provided.
 
     Args:
@@ -172,7 +208,10 @@ def label_contains(node, trigger_words):
             yield TriggerNode(trigger_word, sanitisers, node)
 
 
-def build_sanitiser_node_dict(cfg, sinks_in_file):
+def build_sanitiser_node_dict(
+    cfg,
+    sinks_in_file
+):
     """Build a dict of string -> TriggerNode pairs, where the string
        is the sanitiser and the TriggerNode is a TriggerNode of the sanitiser.
 
@@ -201,7 +240,10 @@ def build_sanitiser_node_dict(cfg, sinks_in_file):
     return sanitiser_node_dict
 
 
-def find_sanitiser_nodes(sanitiser, sanitisers_in_file):
+def find_sanitiser_nodes(
+    sanitiser,
+    sanitisers_in_file
+):
     """Find nodes containing a particular sanitiser.
 
     Args:
@@ -216,15 +258,17 @@ def find_sanitiser_nodes(sanitiser, sanitisers_in_file):
             yield sanitiser_tuple.cfg_node
 
 
-def is_sanitised(sink, sanitiser_dict, lattice):
+def is_sanitised(
+    sink,
+    sanitiser_dict,
+    lattice
+):
     """Check if sink is sanitised by any santiser in the sanitiser_dict.
 
     Args:
         sink(TriggerNode): TriggerNode of the sink.
         sanitiser_dict(dict): dictionary of sink sanitiser pairs.
-
-    Returns:
-        True or False
+        lattice(Lattice): The lattice we're analysing.
     """
     for sanitiser in sink.sanitisers:
         for cfg_node in sanitiser_dict[sanitiser]:
@@ -237,7 +281,10 @@ class SinkArgsError(Exception):
     pass
 
 
-def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
+def is_unknown(
+    trimmed_reassignment_nodes,
+    blackbox_assignments
+):
     """Check if vulnerability is unknown by seeing if a blackbox
         assignment is in trimmed_reassignment_nodes.
 
@@ -254,7 +301,9 @@ def is_unknown(trimmed_reassignment_nodes, blackbox_assignments):
     return None
 
 
-def get_sink_args(cfg_node):
+def get_sink_args(
+    cfg_node
+):
     if isinstance(cfg_node.ast_node, ast.Call):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(cfg_node.ast_node)
@@ -272,7 +321,12 @@ def get_sink_args(cfg_node):
     return vv.result + other_results
 
 
-def get_vulnerability_chains(current_node, sink, def_use, chain):
+def get_vulnerability_chains(
+    current_node,
+    sink,
+    def_use,
+    chain
+):
     for use in def_use[current_node]:
         if use == sink:
             yield chain
@@ -285,6 +339,21 @@ def get_vulnerability_chains(current_node, sink, def_use, chain):
                 def_use,
                 vuln_chain
             )
+
+
+def is_actually_vulnerable(
+    chain
+):
+    for i in range(len(chain)):
+        if isinstance(chain[i], BBorBInode):
+            user_says = input(
+                'Is the return value of {} '.format(chain[i].label) +
+                'with tainted argument "{}" vulnerable? (Y/n)'.format(chain[i-1].left_hand_side)
+            ).lower()
+            print(f'The user says {user_says}')
+            if user_says.startswith('n'):
+                return False
+    return True
 
 
 def get_vulnerability(
@@ -341,11 +410,12 @@ def get_vulnerability(
                 source.cfg_node,
                 sink.cfg_node,
                 def_use,
-                chain=[source.cfg_node]
+                [source.cfg_node]
             ):
-                for node in chain:
-                    if isinstance(node, BBorBInode):
-                        print(f'Is {node.label} with tainted arg ??? vulnerable?')
+                if is_actually_vulnerable(chain):
+                    print('We have a vulnerability!')
+
+
 
         trimmed_reassignment_nodes.append(secondary_node_in_sink_args)
         node_in_the_vulnerability_chain = secondary_node_in_sink_args
@@ -370,6 +440,7 @@ def get_vulnerability(
             triggers.sanitiser_dict,
             lattice
         )
+        # TKTK: We do not have to call is_unknown if interactive mode is on
         blackbox_assignment_in_chain = is_unknown(
             trimmed_reassignment_nodes,
             cfg.blackbox_assignments
