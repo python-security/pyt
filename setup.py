@@ -4,7 +4,7 @@ long_description = """"""
 
 setup(
     name='python-taint',
-    version='0.1',
+    version='0.11',
     description='Find security vulnerabilities in Python web applications'
     ' using static analysis.',
     long_description=long_description,
