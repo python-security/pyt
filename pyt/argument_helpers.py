@@ -1,6 +1,19 @@
 from argparse import ArgumentTypeError
+from collections import namedtuple
 from datetime import datetime
 from enum import Enum
+
+
+default_blackbox_mapping_file = os.path.join(
+    os.path.dirname(__file__)
+)
+
+
+default_trigger_word_file = os.path.join(
+    os.path.dirname(__file__),
+    'trigger_definitions',
+    'flask_trigger_words.pyt'
+)
 
 
 def valid_date(s):
@@ -16,3 +29,12 @@ class UImode(Enum):
     NORMAL = 0
     INTERACTIVE = 1
     TRIM = 2
+
+
+VulnerabilityFiles = namedtuple(
+	'VulnerabilityFiles',
+	[
+		'triggers',
+		'blackbox_mapping'
+	]
+)

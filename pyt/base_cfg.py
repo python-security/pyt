@@ -8,13 +8,22 @@ from .right_hand_side_visitor import RHSVisitor
 from .vars_visitor import VarsVisitor
 
 
-ControlFlowNode = namedtuple('ControlFlowNode',
-                             'test last_nodes break_statements')
-
-ConnectStatements = namedtuple('ConnectStatements',
-                               'first_statement' +
-                               ' last_statements' +
-                               ' break_statements')
+ControlFlowNode = namedtuple(
+    'ControlFlowNode',
+    [
+        'test',
+        'last_nodes',
+        'break_statements'
+    ]
+)
+ConnectStatements = namedtuple(
+    'ConnectStatements',
+    [
+        'first_statement',
+        'last_statements',
+        'break_statements'
+    ]
+)
 CALL_IDENTIFIER = '¤'
 
 
@@ -169,7 +178,7 @@ class RestoreNode(AssignmentNode):
 class BBorBInode(AssignmentNode):
     """Node used for handling restore nodes returning from blackbox or builtin function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path, func_name):
         """Create a Restore node.
 
         Args:
@@ -182,6 +191,7 @@ class BBorBInode(AssignmentNode):
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
         self.args = list()
         self.inner_most_call = self
+        self.func_name = func_name
 
 
 class AssignmentCallNode(AssignmentNode):
@@ -835,7 +845,8 @@ class Visitor(ast.NodeVisitor):
             left_hand_side=LHS,
             right_hand_side_variables=[],
             line_number=node.lineno,
-            path=self.filenames[-1]
+            path=self.filenames[-1],
+            func_name=call_label.result[:index]
         )
         visual_args = list()
         rhs_vars = list()

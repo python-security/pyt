@@ -6,7 +6,13 @@ import sys
 from datetime import date
 from pprint import pprint
 
-from .argument_helpers import valid_date, UImode
+from .argument_helpers import (
+    default_blackbox_mapping_file,
+    default_trigger_word_file,
+    valid_date,
+    VulnerabilityFiles,
+    UImode
+)
 from .ast_helper import generate_ast
 from .draw import draw_cfgs, draw_lattices
 from .constraint_table import initialize_constraint_table, print_table
@@ -37,7 +43,6 @@ from .save import (
     verbose_cfg_to_file,
     vulnerabilities_to_file
 )
-from .trigger_definitions_parser import default_trigger_word_file
 from .vulnerabilities import find_vulnerabilities
 
 
@@ -86,6 +91,10 @@ def parse_args(args):
                         help='Input trigger word file.',
                         type=str,
                         default=default_trigger_word_file)
+    parser.add_argument('-b', '--blackbox-mapping-file',
+                        help='Input blackbox mapping file.',
+                        type=str,
+                        default=default_blackbox_mapping_file)
     parser.add_argument('-py2', '--python-2',
                         help='[WARNING, EXPERIMENTAL] Turns on Python 2 mode,' +
                         ' needed when target file(s) are written in Python 2.', action='store_true')
@@ -175,8 +184,11 @@ def analyse_repo(github_repo, analysis_type, ui_mode):
     vulnerability_log = find_vulnerabilities(
         cfg_list,
         analysis_type,
-        args.trigger_word_file,
-        ui_mode
+        ui_mode,
+        VulnerabilityFiles(
+            args.trigger_word_file,
+            args.blackbox_mapping_file
+        )
     )
     return vulnerability_log
 
@@ -271,8 +283,11 @@ def main(command_line_args=sys.argv[1:]):
     vulnerability_log = find_vulnerabilities(
         cfg_list,
         analysis,
-        args.trigger_word_file,
-        ui_mode
+        ui_mode,
+        VulnerabilityFiles(
+            args.trigger_word_file,
+            arg.blackbox_mapping_file
+        )
     )
     vulnerability_log.print_report()
 

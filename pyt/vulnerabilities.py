@@ -1,6 +1,7 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
 import ast
+import json
 from collections import namedtuple
 
 from .argument_helpers import UImode
@@ -14,7 +15,7 @@ from .base_cfg import (
 from .definition_chains import build_def_use_chain
 from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
-from .trigger_definitions_parser import default_trigger_word_file, parse
+from .trigger_definitions_parser import parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_log import (
     SanitisedVulnerability,
@@ -24,8 +25,21 @@ from .vulnerability_log import (
 )
 
 
-Sanitiser = namedtuple('Sanitiser', 'trigger_word cfg_node')
-Triggers = namedtuple('Triggers', 'sources sinks sanitiser_dict')
+Sanitiser = namedtuple(
+    'Sanitiser',
+    [
+        'trigger_word',
+        'cfg_node'
+    ]
+)
+Triggers = namedtuple(
+    'Triggers',
+    [
+        'sources',
+        'sinks',
+        'sanitiser_dict'
+    ]
+)
 
 
 class TriggerNode():
@@ -352,7 +366,9 @@ def is_actually_vulnerable(
             ).lower()
             print(f'The user says {user_says}')
             if user_says.startswith('n'):
+                print(f'\n\n\n\nThe user said {chain[i].func_name} DOES NOT ret a tainted val')
                 return False
+            print(f'\n\n\n\nThe user said {chain[i].func_name} DOES ret a tainted val')
     return True
 
 
@@ -510,21 +526,26 @@ def find_vulnerabilities_in_cfg(
 def find_vulnerabilities(
     cfg_list,
     analysis_type,
+    ui_mode,
     trigger_word_file,
-    ui_mode
+    blackbox_mapping_file
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
         cfg_list(list[CFG]): the list of CFGs to scan.
         analysis_type(AnalysisBase): analysis object used to create lattice.
-        trigger_word_file(string): file containing trigger words.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
+        trigger_word_file(string): file containing trigger words.
+        blackbox_mapping_file(string): file containing whether or not a blackbox function returns a tainted value.
 
     Returns:
         A VulnerabilityLog with found vulnerabilities.
     """
+    # TKTK: change to tuple^
     definitions = parse(trigger_word_file)
+    with open(blackbox_mapping_file) as f:
+        blackbox_mapping = json.load(f)
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:
@@ -535,4 +556,8 @@ def find_vulnerabilities(
             Lattice(cfg.nodes, analysis_type),
             ui_mode
         )
+    with open(filename, 'w') as f:
+        json.dump(blackbox_mapping, f)
+
+
     return vulnerability_log

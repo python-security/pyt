@@ -35,7 +35,13 @@ from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
 
 
-SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
+SavedVariable = namedtuple(
+    'SavedVariable',
+    [
+        'LHS',
+        'RHS'
+    ]
+)
 BUILTINS = (
     'get',
     'Flask',

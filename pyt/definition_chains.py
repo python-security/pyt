@@ -58,10 +58,14 @@ def get_uses(node):
             if var not in node.left_hand_side:
                 result.append(var)
         return result
-    elif isinstance(node, EntryOrExitNode):
-        return []
     else:
-        raise
+        return []
+    # elif isinstance(node, EntryOrExitNode):
+    #     return []
+    # else:
+    #     print(f'\n\n\ntype(node) is {type(node)}')
+    #     print(f'node is {node}\n\n\n')
+    #     raise
 
 
 def build_def_use_chain(cfg_nodes):
