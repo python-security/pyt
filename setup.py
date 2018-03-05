@@ -11,7 +11,7 @@ setup(
     url='https://github.com/python-security/pyt',
     author='python-security',
     author_email='mr.thalmann@gmail.com',
-    download_url='https://github.com/python-security/pyt/archive/0.1.tar.gz',
+    download_url='https://github.com/python-security/pyt/archive/0.11.tar.gz',
     license='GPLv2',
     classifiers=[
         'Development Status :: 3 - Alpha',
