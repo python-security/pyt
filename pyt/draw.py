@@ -2,7 +2,7 @@
 import argparse
 from graphviz import Digraph
 from itertools import permutations
-from subprocess import run
+from subprocess import call
 
 from .base_cfg import AssignmentNode
 
@@ -169,7 +169,7 @@ def add_anchor(filename):
 
 def run_dot(filename):
     filename += '.dot'
-    run(['dot', '-Tpdf', filename, '-o', filename.replace('.dot', '.pdf')])
+    call(['dot', '-Tpdf', filename, '-o', filename.replace('.dot', '.pdf')])
 
 def draw_lattice(cfg, output_filename='output'):
     """Draw CFG and output as pdf."""
