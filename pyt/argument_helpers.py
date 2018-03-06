@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentTypeError
 from collections import namedtuple
 from datetime import datetime
@@ -5,13 +6,15 @@ from enum import Enum
 
 
 default_blackbox_mapping_file = os.path.join(
-    os.path.dirname(__file__)
+    os.path.dirname(__file__),
+    'vulnerability_definitions',
+    'blackbox_mapping.json'
 )
 
 
 default_trigger_word_file = os.path.join(
     os.path.dirname(__file__),
-    'trigger_definitions',
+    'vulnerability_definitions',
     'flask_trigger_words.pyt'
 )
 

@@ -40,7 +40,7 @@ def parse_section(iterator):
         return
 
 
-def parse(trigger_word_file=default_trigger_word_file):
+def parse(trigger_word_file):
     """Parse the file for source and sink definitions.
 
     Returns:

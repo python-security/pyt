@@ -171,7 +171,9 @@ def parse_args(args):
 
     search_parser.add_argument('-sd', '--start-date',
                                help='Start date for repo search. '
-                               'Criteria used is Created Date.', type=valid_date)
+                               'Criteria used is Created Date.',
+                               type=valid_date,
+                               default=date(2010, 1, 1))
     return parser.parse_args(args)
 
 
@@ -221,24 +223,14 @@ def main(command_line_args=sys.argv[1:]):
 
     if args.which == 'search':
         set_github_api_token()
-        if args.start_date:
-            scan_github(
-                args.search_string,
-                args.start_date,
-                analysis,
-                analyse_repo,
-                args.csv_path,
-                ui_mode
-            )
-        else:
-            scan_github(
-                args.search_string,
-                date(2010, 1, 1),
-                analysis,
-                analyse_repo,
-                args.csv_path,
-                ui_mode
-            )
+        scan_github(
+            args.search_string,
+            args.start_date,
+            analysis,
+            analyse_repo,
+            args.csv_path,
+            ui_mode
+        )
         exit()
 
     path = os.path.normpath(args.filepath)
@@ -286,7 +278,7 @@ def main(command_line_args=sys.argv[1:]):
         ui_mode,
         VulnerabilityFiles(
             args.trigger_word_file,
-            arg.blackbox_mapping_file
+            args.blackbox_mapping_file
         )
     )
     vulnerability_log.print_report()
