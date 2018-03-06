@@ -356,19 +356,29 @@ def get_vulnerability_chains(
 
 
 def is_actually_vulnerable(
-    chain
+    chain,
+    blackbox_mapping
 ):
     for i in range(len(chain)):
         if isinstance(chain[i], BBorBInode):
-            user_says = input(
-                'Is the return value of {} '.format(chain[i].label) +
-                'with tainted argument "{}" vulnerable? (Y/n)'.format(chain[i-1].left_hand_side)
-            ).lower()
-            print(f'The user says {user_says}')
-            if user_says.startswith('n'):
-                print(f'\n\n\n\nThe user said {chain[i].func_name} DOES NOT ret a tainted val')
+            if chain[i].func_name in blackbox_mapping['propagates']:
+                print(f'so {chain[i].func_name} does propagate')
+            elif chain[i].func_name in blackbox_mapping['does_not_propagate']:
+                print(f'so {chain[i].func_name} does not propagate')
                 return False
-            print(f'\n\n\n\nThe user said {chain[i].func_name} DOES ret a tainted val')
+            else:
+                # TKTK: move if interactive mode all the way up here?
+                user_says = input(
+                    'Is the return value of {} '.format(chain[i].label) +
+                    'with tainted argument "{}" vulnerable? (Y/n)'.format(chain[i-1].left_hand_side)
+                ).lower()
+                print(f'The user says {user_says}')
+                if user_says.startswith('n'):
+                    print(f'\n\n\n\nThe user said {chain[i].func_name} DOES NOT ret a tainted val')
+                    blackbox_mapping['does_not_propagate'].append(chain[i].func_name)
+                    return False
+                blackbox_mapping['propagates'].append(chain[i].func_name)
+                print(f'\n\n\n\nThe user said {chain[i].func_name} DOES ret a tainted val')
     return True
 
 
@@ -378,7 +388,8 @@ def get_vulnerability(
     triggers,
     lattice,
     cfg,
-    ui_mode
+    ui_mode,
+    blackbox_mapping
 ):
     """Get vulnerability between source and sink if it exists.
 
@@ -391,6 +402,7 @@ def get_vulnerability(
         lattice(Lattice): The lattice we're analysing.
         cfg(CFG): .blackbox_assignments used in is_unknown, .nodes used in build_def_use_chain
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
+        blackbox_mapping(dict): TODO
 
     Returns:
         A Vulnerability if it exists, else None
@@ -428,8 +440,13 @@ def get_vulnerability(
                 def_use,
                 [source.cfg_node]
             ):
-                if is_actually_vulnerable(chain):
-                    print('We have a vulnerability!')
+                if is_actually_vulnerable(chain, blackbox_mapping):
+                    # print(f'\n\n\n\nWe have a vulnerability {chain}!')
+                    print(f'\n\n\n\nWe have a vulnerability !')
+                else:
+                    # print(f'\n\n\n\nWe DO NOT have a vulnerability {chain}!')
+                    print(f'\n\n\n\nWe DO NOT have a vulnerability !')
+
 
 
 
@@ -471,6 +488,9 @@ def get_vulnerability(
                 sink.sanitisers,
                 reassignment_nodes
             )
+        elif ui_mode == UImode.INTERACTIVE:
+            print('figure stuff out')
+            print('figure stuff out')
         elif blackbox_assignment_in_chain:
             return UnknownVulnerability(
                 source.cfg_node, source_trigger_word,
@@ -492,7 +512,8 @@ def find_vulnerabilities_in_cfg(
     vulnerability_log,
     definitions,
     lattice,
-    ui_mode
+    ui_mode,
+    blackbox_mapping
 ):
     """Find vulnerabilities in a cfg.
 
@@ -502,6 +523,7 @@ def find_vulnerabilities_in_cfg(
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
         lattice(Lattice): The lattice we're analysing.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
+        blackbox_mapping(dict): TODO
     """
     triggers = identify_triggers(
         cfg,
@@ -517,7 +539,8 @@ def find_vulnerabilities_in_cfg(
                 triggers,
                 lattice,
                 cfg,
-                ui_mode
+                ui_mode,
+                blackbox_mapping
             )
             if vulnerability:
                 vulnerability_log.append(vulnerability)
@@ -527,8 +550,7 @@ def find_vulnerabilities(
     cfg_list,
     analysis_type,
     ui_mode,
-    trigger_word_file,
-    blackbox_mapping_file
+    vulnerability_files
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
@@ -536,16 +558,15 @@ def find_vulnerabilities(
         cfg_list(list[CFG]): the list of CFGs to scan.
         analysis_type(AnalysisBase): analysis object used to create lattice.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
-        trigger_word_file(string): file containing trigger words.
-        blackbox_mapping_file(string): file containing whether or not a blackbox function returns a tainted value.
+        vulnerability_files(VulnerabilityFiles): contains trigger words and blackbox_mapping files
 
     Returns:
         A VulnerabilityLog with found vulnerabilities.
     """
-    # TKTK: change to tuple^
-    definitions = parse(trigger_word_file)
-    with open(blackbox_mapping_file) as f:
+    definitions = parse(vulnerability_files.triggers)
+    with open(vulnerability_files.blackbox_mapping) as f:
         blackbox_mapping = json.load(f)
+    print(f'BEFORE blackbox_mapping is {blackbox_mapping}')
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:
@@ -554,10 +575,11 @@ def find_vulnerabilities(
             vulnerability_log,
             definitions,
             Lattice(cfg.nodes, analysis_type),
-            ui_mode
+            ui_mode,
+            blackbox_mapping
         )
-    with open(filename, 'w') as f:
-        json.dump(blackbox_mapping, f)
-
+    print(f'AFTER blackbox_mapping is {blackbox_mapping}')
+    with open(vulnerability_files.blackbox_mapping, 'w') as f:
+        json.dump(blackbox_mapping, f, indent=4)
 
     return vulnerability_log
