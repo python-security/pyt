@@ -4,14 +4,14 @@ long_description = """"""
 
 setup(
     name='python-taint',
-    version='0.11',
+    version='0.12',
     description='Find security vulnerabilities in Python web applications'
     ' using static analysis.',
     long_description=long_description,
     url='https://github.com/python-security/pyt',
     author='python-security',
     author_email='mr.thalmann@gmail.com',
-    download_url='https://github.com/python-security/pyt/archive/0.11.tar.gz',
+    download_url='https://github.com/python-security/pyt/archive/0.12.tar.gz',
     license='GPLv2',
     classifiers=[
         'Development Status :: 3 - Alpha',
