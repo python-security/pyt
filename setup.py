@@ -3,14 +3,15 @@ from setuptools import setup
 long_description = """"""
 
 setup(
-    name='pyt',
-    version='1.0.0a20 ',
+    name='python-taint',
+    version='0.12',
     description='Find security vulnerabilities in Python web applications'
     ' using static analysis.',
     long_description=long_description,
     url='https://github.com/python-security/pyt',
     author='python-security',
     author_email='mr.thalmann@gmail.com',
+    download_url='https://github.com/python-security/pyt/archive/0.12.tar.gz',
     license='GPLv2',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -23,7 +24,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Programming Language :: Python :: 3.5'
     ],
-    keywords='security vulnerability web flask django pyt static analysis',
+    keywords=['security', 'vulnerability', 'web', 'flask', 'django', 'pyt', 'static', 'analysis'],
     packages=[
         'pyt'
     ],

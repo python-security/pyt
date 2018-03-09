@@ -280,7 +280,7 @@ class InterproceduralVisitor(Visitor):
             if assignment.left_hand_side in saved_variables_so_far:
                 continue
             saved_variables_so_far.add(assignment.left_hand_side)
-            save_name = f'save_{saved_function_call_index}_{assignment.left_hand_side}'
+            save_name = 'save_{}_{}'.format(saved_function_call_index, assignment.left_hand_side)
 
             previous_node = self.nodes[-1]
 

@@ -17,7 +17,8 @@ def get_vars(node):
         try:
             vv.visit(node.ast_node)
         except AttributeError:  # If no ast_node
-            vv.result = set()
+            vv.result = list()
+
     vv.result = set(vv.result)
 
     # Filter out lvars:
