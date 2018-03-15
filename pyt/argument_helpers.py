@@ -29,8 +29,8 @@ def valid_date(s):
 
 
 class UImode(Enum):
-    NORMAL = 0
-    INTERACTIVE = 1
+    INTERACTIVE = 0
+    NORMAL = 1
     TRIM = 2
 
 

@@ -17,11 +17,10 @@ from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import parse
 from .vars_visitor import VarsVisitor
-from .vulnerability_log import (
-    SanitisedVulnerability,
-    UnknownVulnerability,
-    Vulnerability,
-    VulnerabilityLog
+from .vulnerability_helper import (
+    vuln_factory,
+    VulnerabilityLog,
+    VulnerabilityType
 )
 
 
@@ -272,67 +271,19 @@ def find_sanitiser_nodes(
             yield sanitiser_tuple.cfg_node
 
 
-def is_sanitised(
-    sink,
-    sanitiser_dict,
-    lattice
-):
-    """Check if sink is sanitised by any santiser in the sanitiser_dict.
-
-    Args:
-        sink(TriggerNode): TriggerNode of the sink.
-        sanitiser_dict(dict): dictionary of sink sanitiser pairs.
-        lattice(Lattice): The lattice we're analysing.
-    """
-    for sanitiser in sink.sanitisers:
-        for cfg_node in sanitiser_dict[sanitiser]:
-            if lattice.in_constraint(cfg_node, sink.cfg_node):
-                return True
-    return False
-
-
-class SinkArgsError(Exception):
-    pass
-
-
-def is_unknown(
-    trimmed_reassignment_nodes,
-    blackbox_assignments
-):
-    """Check if vulnerability is unknown by seeing if a blackbox
-        assignment is in trimmed_reassignment_nodes.
-
-    Args:
-        trimmed_reassignment_nodes(list[AssignmentNode]): reassignments leading to the vulnerability.
-        blackbox_assignments(set[AssignmentNode]): set of blackbox assignments.
-
-    Returns:
-        AssignmentNode or None
-    """
-    for node in trimmed_reassignment_nodes:
-        if node in blackbox_assignments:
-            return node
-    return None
-
-
-def get_sink_args(
-    cfg_node
-):
+def get_sink_args(cfg_node):
     if isinstance(cfg_node.ast_node, ast.Call):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(cfg_node.ast_node)
         return rhs_visitor.result
     elif isinstance(cfg_node.ast_node, ast.Assign):
         return cfg_node.right_hand_side_variables
-
-    vv = VarsVisitor()
-    other_results = list()
-    if isinstance(cfg_node, BBorBInode):
-        other_results = cfg_node.args
+    elif isinstance(cfg_node, BBorBInode):
+        return cfg_node.args
     else:
+        vv = VarsVisitor()
         vv.visit(cfg_node.ast_node)
-
-    return vv.result + other_results
+        return vv.result
 
 
 def get_vulnerability_chains(
@@ -341,6 +292,14 @@ def get_vulnerability_chains(
     def_use,
     chain
 ):
+    """Traverses the def-use graph to find all paths from source to sink that cause a vulnerability.
+
+    Args:
+        current_node()
+        sink()
+        def_use(dict):
+        chain(list(Node)):
+    """
     for use in def_use[current_node]:
         if use == sink:
             yield chain
@@ -355,31 +314,64 @@ def get_vulnerability_chains(
             )
 
 
-def is_actually_vulnerable(
+def how_vulnerable(
     chain,
-    blackbox_mapping
+    blackbox_mapping,
+    sanitiser_nodes,
+    blackbox_assignments,
+    ui_mode,
+    vuln_deets
 ):
-    for i in range(len(chain)):
-        if isinstance(chain[i], BBorBInode):
-            if chain[i].func_name in blackbox_mapping['propagates']:
-                print(f'so {chain[i].func_name} does propagate')
-            elif chain[i].func_name in blackbox_mapping['does_not_propagate']:
-                print(f'so {chain[i].func_name} does not propagate')
-                return False
-            else:
-                # TKTK: move if interactive mode all the way up here?
+    """Iterates through the chain of nodes and checks the blackbox nodes against the blackbox mapping and sanitiser dictionary.
+
+    Args:
+        chain(list(Node)): TODO
+        blackbox_mapping(dict):
+        sanitiser_nodes(set):
+        blackbox_assignments(set[AssignmentNode]): set of blackbox assignments, includes the ReturnNode's of BBorBInode's.
+        ui_mode(UImode): determines if we interact with the user when we don't already have a blackbox mapping available.
+        vuln_deets(dict): vulnerability details.
+
+    Returns:
+        A VulnerabilityType depending on how vulnerable the chain is.
+    """
+    for i, current_node in enumerate(chain):
+        if current_node in sanitiser_nodes:
+            vuln_deets['sanitiser'] = current_node
+            return Vulnerability.SANITISED
+
+        if isinstance(current_node, BBorBInode):
+            if current_node.func_name in blackbox_mapping['propagates']:
+                continue
+            elif current_node.func_name in blackbox_mapping['does_not_propagate']:
+                return VulnerabilityType.FALSE
+            elif ui_mode == UImode.INTERACTIVE:
                 user_says = input(
-                    'Is the return value of {} '.format(chain[i].label) +
-                    'with tainted argument "{}" vulnerable? (Y/n)'.format(chain[i-1].left_hand_side)
+                    'Is the return value of {} with tainted argument "{}" vulnerable? (Y/n)'.format(
+                        current_node.label,
+                        chain[i-1].left_hand_side
+                    )
                 ).lower()
-                print(f'The user says {user_says}')
                 if user_says.startswith('n'):
-                    print(f'\n\n\n\nThe user said {chain[i].func_name} DOES NOT ret a tainted val')
-                    blackbox_mapping['does_not_propagate'].append(chain[i].func_name)
-                    return False
-                blackbox_mapping['propagates'].append(chain[i].func_name)
-                print(f'\n\n\n\nThe user said {chain[i].func_name} DOES ret a tainted val')
-    return True
+                    blackbox_mapping['does_not_propagate'].append(current_node.func_name)
+                    return VulnerabilityType.FALSE
+                blackbox_mapping['propagates'].append(current_node.func_name)
+            else:
+                vuln_deets['unknown_assignment'] = current_node
+                return VulnerabilityType.UNKNOWN
+    return VulnerabilityType.TRUE
+
+
+def get_tainted_node_in_sink_args(
+    sink_args,
+    nodes_in_constaint
+):
+    if not sink_args:
+        return None
+    # Starts with the node closest to the sink
+    for node in nodes_in_constaint:
+        if node.left_hand_side in sink_args:
+            return node
 
 
 def get_vulnerability(
@@ -411,83 +403,58 @@ def get_vulnerability(
     Returns:
         A Vulnerability if it exists, else None
     """
-    secondary_nodes_in_sink = [secondary for secondary in source.secondary_nodes
-                               if lattice.in_constraint(secondary,
-                                                        sink.cfg_node)]
+    nodes_in_constaint = [secondary for secondary in reversed(source.secondary_nodes)
+                          if lattice.in_constraint(secondary,
+                                                   sink.cfg_node)]
+    nodes_in_constaint.append(source.cfg_node)
+
     sink_args = get_sink_args(sink.cfg_node)
-    tainted_node_in_sink_arg = None
-    if sink_args:
-        if source.cfg_node.left_hand_side in sink_args:
-            tainted_node_in_sink_arg = source.cfg_node
-        for node in secondary_nodes_in_sink:
-            if node.left_hand_side in sink_args:
-                tainted_node_in_sink_arg = node
+    tainted_node_in_sink_arg = get_tainted_node_in_sink_args(
+        sink_args,
+        nodes_in_constaint
+    )
 
     if tainted_node_in_sink_arg:
-        if ui_mode == UImode.INTERACTIVE:
-            def_use = build_def_use_chain(cfg.nodes)
-            for chain in get_vulnerability_chains(
-                source.cfg_node,
-                sink.cfg_node,
-                def_use,
-                [source.cfg_node]
-            ):
-                if is_actually_vulnerable(chain, blackbox_mapping):
-                    # print(f'\n\n\n\nWe have a vulnerability {chain}!')
-                    print(f'\n\n\n\nWe have a vulnerability !')
-                else:
-                    # print(f'\n\n\n\nWe DO NOT have a vulnerability {chain}!')
-                    print(f'\n\n\n\nWe DO NOT have a vulnerability !')
+        vuln_deets = {
+            'source': source.cfg_node,
+            'source_trigger_word': source.trigger_word,
+            'sink': sink.cfg_node,
+            'sink_trigger_word': sink.trigger_word,
+            'reassignment_nodes': source.secondary_nodes
+        }
 
-        trimmed_reassignment_nodes = list()
-        trimmed_reassignment_nodes.append(tainted_node_in_sink_arg)
-        node_in_the_vulnerability_chain = tainted_node_in_sink_arg
-        # Here is where we do backwards slicing to traceback which nodes led to the vulnerability
-        for secondary in reversed(source.secondary_nodes):
-            if lattice.in_constraint(secondary, sink.cfg_node):
-                if secondary.left_hand_side in node_in_the_vulnerability_chain.right_hand_side_variables:
-                    node_in_the_vulnerability_chain = secondary
-                    trimmed_reassignment_nodes.insert(0, node_in_the_vulnerability_chain)
+        # Imma get this working and then see if there is a better way
+        # Maybe using blackbox_mapping.json, maybe not.
+        sanitiser_nodes = set()
+        if sink.sanitisers:
+            print(f'so sink.sanitisers is {sink.sanitisers}')
+            for sanitiser in sink.sanitisers:
+                print(f'so triggers.sanitiser_dict[sanitiser] is {triggers.sanitiser_dict[sanitiser]}')
+                for cfg_node in triggers.sanitiser_dict[sanitiser]:
+                    sanitiser_nodes.append(cfg_node)
 
-        source_trigger_word = source.trigger_word
-        sink_trigger_word = sink.trigger_word
+        def_use = build_def_use_chain(cfg.nodes)
+        for chain in get_vulnerability_chains(
+            source.cfg_node,
+            sink.cfg_node,
+            def_use,
+            [source.cfg_node]
+        ):
+            vulnerability_type = how_vulnerable(
+                chain,
+                blackbox_mapping,
+                sanitiser_nodes,
+                cfg.blackbox_assignments,
+                ui_mode,
+                vuln_deets
+            )
+            if vulnerability_type == VulnerabilityType.FALSE:
+                continue
+            if ui_mode != UImode.NORMAL:
+                vuln_deets['reassignment_nodes'] = chain
 
-        sink_is_sanitised = is_sanitised(
-            sink,
-            triggers.sanitiser_dict,
-            lattice
-        )
-        # TKTK: We do not have to call is_unknown if interactive mode is on
-        blackbox_assignment_in_chain = is_unknown(
-            trimmed_reassignment_nodes,
-            cfg.blackbox_assignments
-        )
-        reassignment_nodes = source.secondary_nodes
-        if ui_mode == UImode.TRIM:
-            reassignment_nodes = trimmed_reassignment_nodes
-        if sink_is_sanitised:
-            return SanitisedVulnerability(
-                source.cfg_node, source_trigger_word,
-                sink.cfg_node, sink_trigger_word,
-                sink.sanitisers,
-                reassignment_nodes
-            )
-        elif ui_mode == UImode.INTERACTIVE:
-            print('figure stuff out')
-            print('figure stuff out')
-        elif blackbox_assignment_in_chain:
-            return UnknownVulnerability(
-                source.cfg_node, source_trigger_word,
-                sink.cfg_node, sink_trigger_word,
-                blackbox_assignment_in_chain,
-                reassignment_nodes
-            )
-        else:
-            return Vulnerability(
-                source.cfg_node, source_trigger_word,
-                sink.cfg_node, sink_trigger_word,
-                reassignment_nodes
-            )
+            return vuln_factory(vulnerability_type)(**vuln_deets)
+
     return None
 
 
@@ -550,7 +517,6 @@ def find_vulnerabilities(
     definitions = parse(vulnerability_files.triggers)
     with open(vulnerability_files.blackbox_mapping) as f:
         blackbox_mapping = json.load(f)
-    print(f'BEFORE blackbox_mapping is {blackbox_mapping}')
     vulnerability_log = VulnerabilityLog()
 
     for cfg in cfg_list:
@@ -562,7 +528,6 @@ def find_vulnerabilities(
             ui_mode,
             blackbox_mapping
         )
-    print(f'AFTER blackbox_mapping is {blackbox_mapping}')
     with open(vulnerability_files.blackbox_mapping, 'w') as f:
         json.dump(blackbox_mapping, f, indent=4)
 

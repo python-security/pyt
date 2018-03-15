@@ -195,7 +195,7 @@ class BBorBInode(AssignmentNode):
 
 
 class AssignmentCallNode(AssignmentNode):
-    """Node used for X."""
+    """Node used for when a call happens inside of an assignment."""
 
     def __init__(
         self,
@@ -209,7 +209,7 @@ class AssignmentCallNode(AssignmentNode):
         path,
         call_node
     ):
-        """Create a X.
+        """Create an Assignment Call node.
 
         Args:
             label(str): The label of the node, describing the expression it represents.
@@ -400,7 +400,7 @@ class Visitor(ast.NodeVisitor):
             if node and not first_node: # (Make sure first_node isn't already set.)
                 # first_node is always a "node_to_connect", because it won't have ingoing otherwise
                 # If we have e.g.
-                #   import os # An ignored node
+                #   import os  # An ignored node
                 #   value = None
                 # first_node will be `value = None`
                 if hasattr(node, 'ingoing'):
@@ -491,7 +491,7 @@ class Visitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, test)
             body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
-            body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
+            body_connect_stmts.last_statements.append(test)  # if there is no orelse, test needs an edge to the next_node
 
         last_statements = self.remove_breaks(body_connect_stmts.last_statements)
 
@@ -575,7 +575,7 @@ class Visitor(ast.NodeVisitor):
         left_hand_side.replace('*', '')
         if '[' in left_hand_side:
             index = left_hand_side.index('[')
-            left_hand_side = target[0:index]
+            left_hand_side = target[:index]
 
         return left_hand_side
 
@@ -607,7 +607,7 @@ class Visitor(ast.NodeVisitor):
 
 
         self.connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
 
     def assign_multi_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
@@ -627,12 +627,12 @@ class Visitor(ast.NodeVisitor):
             )))
 
         self.connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
 
     def visit_Assign(self, node):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
-        if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
+        if isinstance(node.targets[0], ast.Tuple):  #  x,y = [1,2]
             if isinstance(node.value, ast.Tuple):
                 return self.assign_tuple_target(node, rhs_visitor.result)
             elif isinstance(node.value, ast.Call):
@@ -678,40 +678,30 @@ class Visitor(ast.NodeVisitor):
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
-        self.undecided = True # Used for handling functions in assignments
+        self.undecided = True  # Used for handling functions in assignments
 
         call = self.visit(ast_node.value)
-        call_label = ''
-        call_assignment = None
-
-        # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        vars_visitor = VarsVisitor()
-        vars_visitor.visit(ast_node.value)
-
         call_label = call.left_hand_side
+
         if isinstance(call, BBorBInode):
-            call_assignment = AssignmentCallNode(
-                left_hand_label + ' = ' + call_label,
-                left_hand_label,
-                ast_node,
-                [call.left_hand_side],
-                vv_result=vars_visitor.result,
-                line_number=ast_node.lineno,
-                path=self.filenames[-1],
-                call_node=call
-            )
+            # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+            vars_visitor = VarsVisitor()
+            vars_visitor.visit(ast_node.value)
+            vv_result = vars_visitor.result
         # Assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
         elif isinstance(call, AssignmentNode):
-            call_assignment = AssignmentCallNode(
-                left_hand_label + ' = ' + call_label,
-                left_hand_label,
-                ast_node,
-                [call.left_hand_side],
-                vv_result=[],
-                line_number=ast_node.lineno,
-                path=self.filenames[-1],
-                call_node=call
-            )
+            vv_result = list()
+
+        call_assignment = AssignmentCallNode(
+            left_hand_label + ' = ' + call_label,
+            left_hand_label,
+            ast_node,
+            [call.left_hand_side],
+            vv_result=vv_result,
+            line_number=ast_node.lineno,
+            path=self.filenames[-1],
+            call_node=call
+        )
         call.connect(call_assignment)
 
         self.nodes.append(call_assignment)

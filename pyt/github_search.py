@@ -8,7 +8,6 @@ from . import repo_runner
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .repo_runner import add_repo_to_csv, NoEntryPathError
 from .save import save_repo_scan
-from .vulnerabilities import SinkArgsError
 
 
 DEFAULT_TIMEOUT_IN_SECONDS = 60
@@ -228,8 +227,6 @@ def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv
                     else:
                         save_repo_scan(repo, r.path, vulnerability_log=None)
                     r.clean_up()
-                except SinkArgsError as err:
-                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except SyntaxError as err:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except IOError as err:
