@@ -880,7 +880,7 @@ class Visitor(ast.NodeVisitor):
         call_node.label = LHS + " = " + RHS
 
         call_node.right_hand_side_variables = rhs_vars
-        # Used in get_sink_args, not using right_hand_side_variables because it is extended in AssignmentCallNode
+        # Used in get_sink_args, not using right_hand_side_variables because it is extended in assignment_call_node
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node)
         call_node.args = rhs_visitor.result

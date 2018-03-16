@@ -281,7 +281,7 @@ def get_vulnerability_chains(
     current_node,
     sink,
     def_use,
-    chain
+    chain=[]
 ):
     """Traverses the def-use graph to find all paths from source to sink that cause a vulnerability.
 
@@ -424,8 +424,7 @@ def get_vulnerability(
         for chain in get_vulnerability_chains(
             source.cfg_node,
             sink.cfg_node,
-            def_use,
-            []
+            def_use
         ):
             vulnerability_type = how_vulnerable(
                 chain,

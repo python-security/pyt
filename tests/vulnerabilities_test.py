@@ -127,44 +127,6 @@ class EngineTest(BaseTestCase):
 
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[3])
 
-    # def test_is_sanitised_false(self):
-    #     cfg_node_1 = Node('Not sanitising at all', None, line_number=None, path=None)
-    #     cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
-    #     sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
-    #     sanitiser_dict = {'escape': [cfg_node_1]}
-
-    #     # We should use mock instead
-    #     orginal_get_lattice_elements = ReachingDefinitionsTaintAnalysis.get_lattice_elements
-    #     ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
-    #     lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
-
-    #     constraint_table[cfg_node_1] = 0b0
-    #     constraint_table[cfg_node_2] = 0b0
-
-    #     result = vulnerabilities.is_sanitised(sinks_in_file[0], sanitiser_dict, lattice)
-    #     self.assertEqual(result, False)
-    #     # Clean up
-    #     ReachingDefinitionsTaintAnalysis.get_lattice_elements = orginal_get_lattice_elements
-
-
-    # def test_is_sanitised_true(self):
-    #     cfg_node_1 = Node('Awesome sanitiser', None,  line_number=None, path=None)
-    #     cfg_node_2 = Node('something.replace("this", "with this")', None, line_number=None, path=None)
-    #     sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node_2)]
-    #     sanitiser_dict = {'escape': [cfg_node_1]}
-
-    #     # We should use mock instead
-    #     orginal_get_lattice_elements = ReachingDefinitionsTaintAnalysis.get_lattice_elements
-    #     ReachingDefinitionsTaintAnalysis.get_lattice_elements = self.get_lattice_elements
-
-    #     lattice = Lattice([cfg_node_1, cfg_node_2], analysis_type=ReachingDefinitionsTaintAnalysis)
-    #     constraint_table[cfg_node_2] = 0b1
-
-    #     result = vulnerabilities.is_sanitised(sinks_in_file[0], sanitiser_dict, lattice)
-    #     self.assertEqual(result, True)
-    #     # Clean up
-    #     ReachingDefinitionsTaintAnalysis.get_lattice_elements = orginal_get_lattice_elements
-
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
