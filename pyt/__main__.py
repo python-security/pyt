@@ -188,8 +188,8 @@ def analyse_repo(github_repo, analysis_type, ui_mode):
         analysis_type,
         ui_mode,
         VulnerabilityFiles(
-            args.trigger_word_file,
-            args.blackbox_mapping_file
+            args.blackbox_mapping_file,
+            args.trigger_word_file
         )
     )
     return vulnerability_log
@@ -277,8 +277,8 @@ def main(command_line_args=sys.argv[1:]):
         analysis,
         ui_mode,
         VulnerabilityFiles(
-            args.trigger_word_file,
-            args.blackbox_mapping_file
+            args.blackbox_mapping_file,
+            args.trigger_word_file
         )
     )
     vulnerability_log.print_report()

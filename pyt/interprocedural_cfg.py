@@ -648,7 +648,16 @@ class InterproceduralVisitor(Visitor):
             return self.add_blackbox_or_builtin_call(node, blackbox=True)
         return self.add_blackbox_or_builtin_call(node, blackbox=False)
 
-    def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
+    def add_module(
+        self,
+        module,
+        module_or_package_name,
+        local_names,
+        import_alias_mapping,
+        is_init=False,
+        from_from=False,
+        from_fdid=False
+    ):
         """
         Returns:
             The ExitNode that gets attached to the CFG of the class.

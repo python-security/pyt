@@ -1,6 +1,11 @@
 import ast
 
-from .base_cfg import AssignmentNode, EntryOrExitNode
+from .base_cfg import (
+    AssignmentNode,
+    AssignmentCallNode,
+    BBorBInode,
+    EntryOrExitNode
+)
 from .constraint_table import constraint_table
 from .lattice import Lattice
 from .reaching_definitions import ReachingDefinitionsAnalysis
@@ -52,38 +57,24 @@ def build_use_def_chain(cfg_nodes):
     return use_def
 
 
-def get_uses(node):
-    if isinstance(node, AssignmentNode):
-        result = list()
-        for var in node.right_hand_side_variables:
-            if var not in node.left_hand_side:
-                result.append(var)
-        return result
-    else:
-        return []
-    # elif isinstance(node, EntryOrExitNode):
-    #     return []
-    # else:
-    #     print(f'\n\n\ntype(node) is {type(node)}')
-    #     print(f'node is {node}\n\n\n')
-    #     raise
-
-
 def build_def_use_chain(cfg_nodes):
     def_use = dict()
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
 
     # For every node
     for node in cfg_nodes:
-        # Make an empty list for each def
+        # That's a definition
         if isinstance(node, AssignmentNode):
+            # Make an empty list for it in def_use dict
             def_use[node] = list()
-        # Get its uses
-        for variable in get_uses(node):
-            # Loop through all the nodes before it
-            for earlier_node in get_constraint_nodes(node, lattice):
-                # and add to the 'uses list' of each earlier node, when applicable
-                if variable in earlier_node.left_hand_side:
-                    def_use[earlier_node].append(node)
+
+            # Get its uses
+            for variable in node.right_hand_side_variables:
+                # Loop through most of the nodes before it
+                for earlier_node in get_constraint_nodes(node, lattice):
+                    # and add to the 'uses list' of each earlier node, when applicable
+                    # 'earlier node' here being a simplification
+                    if variable in earlier_node.left_hand_side:
+                        def_use[earlier_node].append(node)
 
     return def_use

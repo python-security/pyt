@@ -16,7 +16,7 @@ def cat_picture():
     if not image_name:
         image_name = 'foo'
         return 404
-    foo = outer(inner(), image_name) # Nested call after if caused the problem
+    foo = outer(inner(), image_name)  # Nested call after if caused the problem
     send_file(foo)
     return 'idk'
 

@@ -203,7 +203,6 @@ class AssignmentCallNode(AssignmentNode):
         left_hand_side,
         ast_node,
         right_hand_side_variables,
-        vv_result,
         *,
         line_number,
         path,
@@ -216,13 +215,11 @@ class AssignmentCallNode(AssignmentNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
             call_node(BBorBInode or RestoreNode): Used in connect_control_flow_node.
         """
         super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
-        self.vv_result = vv_result
         self.call_node = call_node
         self.blackbox = False
 
@@ -314,8 +311,7 @@ class Visitor(ast.NodeVisitor):
         """Determine if node should be in the final CFG."""
         if isinstance(node, (FunctionNode, IgnoredNode)):
             return False
-        else:
-            return True
+        return True
 
     def get_inner_most_function_call(self, call_node):
         # Loop to inner most function call
@@ -684,20 +680,18 @@ class Visitor(ast.NodeVisitor):
         call_label = call.left_hand_side
 
         if isinstance(call, BBorBInode):
-            # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
+            # Necessary to know e.g.
+            # `image_name = image_name.replace('..', '')`
+            # is a reassignment.
             vars_visitor = VarsVisitor()
             vars_visitor.visit(ast_node.value)
-            vv_result = vars_visitor.result
-        # Assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
-        elif isinstance(call, AssignmentNode):
-            vv_result = list()
+            call.right_hand_side_variables.extend(vars_visitor.result)
 
         call_assignment = AssignmentCallNode(
             left_hand_label + ' = ' + call_label,
             left_hand_label,
             ast_node,
             [call.left_hand_side],
-            vv_result=vv_result,
             line_number=ast_node.lineno,
             path=self.filenames[-1],
             call_node=call
@@ -886,8 +880,10 @@ class Visitor(ast.NodeVisitor):
         call_node.label = LHS + " = " + RHS
 
         call_node.right_hand_side_variables = rhs_vars
-        # Used in get_sink_args
-        call_node.args = rhs_vars
+        # Used in get_sink_args, not using right_hand_side_variables because it is extended in AssignmentCallNode
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node)
+        call_node.args = rhs_visitor.result
 
         if blackbox:
             self.blackbox_assignments.add(call_node)

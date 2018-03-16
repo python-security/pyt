@@ -154,31 +154,20 @@ def update_assignments(
 ):
     for node in assignment_nodes:
         for other in assignment_list:
-            if node not in assignment_list:
-                append_if_reassigned(assignment_list, other, node, lattice)
+            if node not in assignment_list and lattice.in_constraint(other, node):
+                append_node_if_reassigned(assignment_list, other, node)
 
 
-def append_if_reassigned(
+def append_node_if_reassigned(
     assignment_list,
     secondary,
-    node,
-    lattice
+    node
 ):
-    try:
-        reassigned = False
-        # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        if isinstance(node, AssignmentCallNode) and secondary.left_hand_side in node.vv_result:
-            reassigned = True
-        elif secondary.left_hand_side in node.right_hand_side_variables:
-            reassigned = True
-        elif secondary.left_hand_side == node.left_hand_side:
-            reassigned = True
-        if reassigned and lattice.in_constraint(secondary, node):
-            assignment_list.append(node)
-    except AttributeError:
-        print(secondary)
-        print('EXCEPT' + secondary)
-        exit(0)
+    if (
+        secondary.left_hand_side in node.right_hand_side_variables or
+        secondary.left_hand_side == node.left_hand_side
+    ):
+        assignment_list.append(node)
 
 
 def find_triggers(
@@ -248,8 +237,10 @@ def build_sanitiser_node_dict(
 
     sanitiser_node_dict = dict()
     for sanitiser in sanitisers:
-        sanitiser_node_dict[sanitiser] = list(find_sanitiser_nodes(sanitiser,
-                                                                   sanitisers_in_file))
+        sanitiser_node_dict[sanitiser] = list(find_sanitiser_nodes(
+            sanitiser,
+            sanitisers_in_file
+        ))
     return sanitiser_node_dict
 
 
@@ -338,7 +329,7 @@ def how_vulnerable(
     for i, current_node in enumerate(chain):
         if current_node in sanitiser_nodes:
             vuln_deets['sanitiser'] = current_node
-            return Vulnerability.SANITISED
+            return VulnerabilityType.SANITISED
 
         if isinstance(current_node, BBorBInode):
             if current_node.func_name in blackbox_mapping['propagates']:
@@ -423,22 +414,18 @@ def get_vulnerability(
             'reassignment_nodes': source.secondary_nodes
         }
 
-        # Imma get this working and then see if there is a better way
-        # Maybe using blackbox_mapping.json, maybe not.
         sanitiser_nodes = set()
         if sink.sanitisers:
-            print(f'so sink.sanitisers is {sink.sanitisers}')
             for sanitiser in sink.sanitisers:
-                print(f'so triggers.sanitiser_dict[sanitiser] is {triggers.sanitiser_dict[sanitiser]}')
                 for cfg_node in triggers.sanitiser_dict[sanitiser]:
-                    sanitiser_nodes.append(cfg_node)
+                    sanitiser_nodes.add(cfg_node)
 
         def_use = build_def_use_chain(cfg.nodes)
         for chain in get_vulnerability_chains(
             source.cfg_node,
             sink.cfg_node,
             def_use,
-            [source.cfg_node]
+            []
         ):
             vulnerability_type = how_vulnerable(
                 chain,

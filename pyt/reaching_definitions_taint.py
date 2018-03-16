@@ -1,7 +1,4 @@
-from .base_cfg import (
-    AssignmentCallNode,
-    AssignmentNode
-)
+from .base_cfg import AssignmentNode
 from .constraint_table import constraint_table
 from .reaching_definitions_base import ReachingDefinitionsAnalysisBase
 
@@ -15,14 +12,8 @@ class ReachingDefinitionsTaintAnalysis(ReachingDefinitionsAnalysisBase):
         if isinstance(cfg_node, AssignmentNode):
             arrow_result = JOIN
 
-            # There are two if statements on purpose
-            if isinstance(cfg_node, AssignmentCallNode):
-                # vv_result is necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-                if cfg_node.left_hand_side not in cfg_node.vv_result:
-                    # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
-                    arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
-            # Other reassignment check
-            elif cfg_node.left_hand_side not in cfg_node.right_hand_side_variables:
+            # Reassignment check
+            if cfg_node.left_hand_side not in cfg_node.right_hand_side_variables:
                 # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
                 arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
 

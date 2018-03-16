@@ -36,8 +36,8 @@ class UImode(Enum):
 
 VulnerabilityFiles = namedtuple(
 	'VulnerabilityFiles',
-	[
-		'triggers',
-		'blackbox_mapping'
-	]
+    [
+        'blackbox_mapping',
+        'triggers'
+    ]
 )

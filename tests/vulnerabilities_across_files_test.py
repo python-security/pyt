@@ -3,6 +3,12 @@ import os
 
 from .base_test_case import BaseTestCase
 from pyt import trigger_definitions_parser, vulnerabilities
+from pyt.argument_helpers import (
+    default_blackbox_mapping_file,
+    default_trigger_word_file,
+    UImode,
+    VulnerabilityFiles
+)
 from pyt.ast_helper import get_call_names_as_string
 from pyt.base_cfg import Node
 from pyt.constraint_table import constraint_table, initialize_constraint_table
@@ -31,7 +37,15 @@ class EngineTest(BaseTestCase):
 
         analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
 
-        return vulnerabilities.find_vulnerabilities(cfg_list, ReachingDefinitionsTaintAnalysis)
+        return vulnerabilities.find_vulnerabilities(
+            cfg_list,
+            ReachingDefinitionsTaintAnalysis,
+            UImode.NORMAL,
+            VulnerabilityFiles(
+                default_blackbox_mapping_file,
+                default_trigger_word_file
+            )
+        )
 
     def test_find_vulnerabilities_absolute_from_file_command_injection(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code_across_files/absolute_from_file_command_injection.py')
