@@ -92,7 +92,6 @@ class InterproceduralVisitor(Visitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
