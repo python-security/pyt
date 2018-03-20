@@ -53,7 +53,6 @@ class Visitor(ast.NodeVisitor):
         node_not_to_step_past = self.nodes[-1]
 
         for stmt in stmts:
-            # stmt is 203
             node = self.visit(stmt)
             if isinstance(stmt, (ast.For, ast.While)):
                 self.last_was_loop_stack.append(True)

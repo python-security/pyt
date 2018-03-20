@@ -81,19 +81,20 @@ class InterproceduralVisitor(Visitor):
             raise Exception('Empty module. It seems that your file is empty,' +
                             'there is nothing to analyse.')
 
-        if not isinstance(module_statements, IgnoredNode):
-            first_node = module_statements.first_statement
+        exit_node = self.append_node(EntryOrExitNode("Exit module"))
 
-            if CALL_IDENTIFIER not in first_node.label:
-                entry_node.connect(first_node)
-
-            exit_node = self.append_node(EntryOrExitNode("Exit module"))
-
-            last_nodes = module_statements.last_statements
-            exit_node.connect_predecessors(last_nodes)
-        else:
-            exit_node = self.append_node(EntryOrExitNode("Exit module"))
+        if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
+            return
+
+        first_node = module_statements.first_statement
+
+        if CALL_IDENTIFIER not in first_node.label:
+            entry_node.connect(first_node)
+
+
+        last_nodes = module_statements.last_statements
+        exit_node.connect_predecessors(last_nodes)
 
     def init_function_cfg(self, node, module_definitions):
         self.module_definitions_stack.append(module_definitions)
@@ -114,8 +115,6 @@ class InterproceduralVisitor(Visitor):
 
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
-
-        exit_node = self.append_node(EntryOrExitNode("Exit function"))
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
