@@ -4,12 +4,12 @@ import os
 from .base_test_case import BaseTestCase
 from pyt import trigger_definitions_parser, vulnerabilities
 from pyt.ast_helper import get_call_names_as_string
-from pyt.base_cfg import Node
 from pyt.constraint_table import constraint_table, initialize_constraint_table
 from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.lattice import Lattice
+from pyt.node_types import Node
 from pyt.project_handler import get_directory_modules, get_modules
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 

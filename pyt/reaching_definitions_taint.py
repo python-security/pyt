@@ -1,8 +1,8 @@
-from .base_cfg import (
+from .constraint_table import constraint_table
+from .node_types import (
     AssignmentCallNode,
     AssignmentNode
 )
-from .constraint_table import constraint_table
 from .reaching_definitions_base import ReachingDefinitionsAnalysisBase
 
 

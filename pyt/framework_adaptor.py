@@ -2,12 +2,12 @@
 import ast
 
 from .ast_helper import Arguments
-from .base_cfg import (
+from .interprocedural_cfg import interprocedural
+from .module_definitions import project_definitions
+from .node_types import (
     AssignmentNode,
     TaintedNode
 )
-from .interprocedural_cfg import interprocedural
-from .module_definitions import project_definitions
 
 
 class FrameworkAdaptor():
