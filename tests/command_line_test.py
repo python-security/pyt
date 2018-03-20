@@ -27,7 +27,7 @@ class CommandLineTest(BaseTestCase):
                      [-p | -vp | -trim] [-t TRIGGER_WORD_FILE] [-py2]
                      [-l LOG_LEVEL] [-a ADAPTOR] [-db]
                      [-dl DRAW_LATTICE [DRAW_LATTICE ...]] [-li | -re | -rt]
-                     [-intra] [-ppm]
+                     [-ppm]
                      {save,github_search} ...\n""" + \
                      "python -m pyt: error: one of the arguments " + \
                      "-f/--filepath -gr/--git-repos is required\n"

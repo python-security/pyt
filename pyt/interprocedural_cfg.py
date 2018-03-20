@@ -1,6 +1,5 @@
 import ast
 import os.path
-from collections import namedtuple
 
 from .alias_helper import (
     as_alias_handler,
@@ -10,20 +9,22 @@ from .alias_helper import (
     not_as_alias_handler,
     retrieve_import_alias_mapping
 )
-from .ast_helper import Arguments, generate_ast, get_call_names_as_string
+from .ast_helper import (
+    Arguments,
+    generate_ast,
+    get_call_names_as_string
+)
 from .base_cfg import (
-    AssignmentCallNode,
-    AssignmentNode,
-    BBorBInode,
-    CALL_IDENTIFIER,
-    CFG,
-    ConnectToExitNode,
-    EntryOrExitNode,
-    IgnoredNode,
-    Node,
-    RestoreNode,
-    ReturnNode,
     Visitor
+)
+from .base_cfg_helper import (
+    CALL_IDENTIFIER
+)
+from .interprocedural_cfg_helper import (
+    BUILTINS,
+    CFG,
+    return_connection_handler,
+    SavedVariable
 )
 from .label_visitor import LabelVisitor
 from .module_definitions import (
@@ -31,32 +32,19 @@ from .module_definitions import (
     ModuleDefinition,
     ModuleDefinitions
 )
+from .node_types import (
+    AssignmentCallNode,
+    AssignmentNode,
+    BBorBInode,
+    ConnectToExitNode,
+    EntryOrExitNode,
+    IgnoredNode,
+    Node,
+    RestoreNode,
+    ReturnNode
+)
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
-
-
-SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
-BUILTINS = (
-    'get',
-    'Flask',
-    'run',
-    'replace',
-    'read',
-    'set_cookie',
-    'make_response',
-    'SQLAlchemy',
-    'Column',
-    'execute',
-    'sessionmaker',
-    'Session',
-    'filter',
-    'call',
-    'render_template',
-    'redirect',
-    'url_for',
-    'flash',
-    'jsonify'
-)
 
 
 class InterproceduralVisitor(Visitor):
@@ -116,6 +104,11 @@ class InterproceduralVisitor(Visitor):
         entry_node = self.append_node(EntryOrExitNode("Entry function"))
 
         module_statements = self.stmt_star_handler(node.body)
+        exit_node = self.append_node(EntryOrExitNode("Exit function"))
+
+        if isinstance(module_statements, IgnoredNode):
+            entry_node.connect(exit_node)
+            return
 
         first_node = module_statements.first_statement
 
@@ -127,34 +120,11 @@ class InterproceduralVisitor(Visitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
-    def visit_ClassDef(self, node):
-        self.add_to_definitions(node)
-
-        local_definitions = self.module_definitions_stack[-1]
-        local_definitions.classes.append(node.name)
-
-        parent_definitions = self.get_parent_definitions()
-        if parent_definitions:
-            parent_definitions.classes.append(node.name)
-
-        self.stmt_star_handler(node.body)
-
-        local_definitions.classes.pop()
-        if parent_definitions:
-            parent_definitions.classes.pop()
-
-        return IgnoredNode()
-
     def get_parent_definitions(self):
         parent_definitions = None
         if len(self.module_definitions_stack) > 1:
             parent_definitions = self.module_definitions_stack[-2]
         return parent_definitions
-
-    def visit_FunctionDef(self, node):
-        self.add_to_definitions(node)
-
-        return IgnoredNode()
 
     def add_to_definitions(self, node):
         local_definitions = self.module_definitions_stack[-1]
@@ -187,12 +157,28 @@ class InterproceduralVisitor(Visitor):
 
         self.function_names.append(node.name)
 
-    def return_connection_handler(self, nodes, exit_node):
-        """Connect all return statements to the Exit node."""
-        for function_body_node in nodes:
-            if isinstance(function_body_node, ConnectToExitNode):
-                if exit_node not in function_body_node.outgoing:
-                    function_body_node.connect(exit_node)
+    def visit_ClassDef(self, node):
+        self.add_to_definitions(node)
+
+        local_definitions = self.module_definitions_stack[-1]
+        local_definitions.classes.append(node.name)
+
+        parent_definitions = self.get_parent_definitions()
+        if parent_definitions:
+            parent_definitions.classes.append(node.name)
+
+        self.stmt_star_handler(node.body)
+
+        local_definitions.classes.pop()
+        if parent_definitions:
+            parent_definitions.classes.pop()
+
+        return IgnoredNode()
+
+    def visit_FunctionDef(self, node):
+        self.add_to_definitions(node)
+
+        return IgnoredNode()
 
     def visit_Return(self, node):
         label = LabelVisitor()
@@ -322,12 +308,14 @@ class InterproceduralVisitor(Visitor):
             if not isinstance(previous_node, ReturnNode):
                 previous_node.connect(node_to_connect_to)
 
-    def save_def_args_in_temp(self,
-                              call_args,
-                              def_args,
-                              line_number,
-                              saved_function_call_index,
-                              first_node):
+    def save_def_args_in_temp(
+        self,
+        call_args,
+        def_args,
+        line_number,
+        saved_function_call_index,
+        first_node
+    ):
         """Save the arguments of the definition being called. Visit the arguments if they're calls.
 
         Args:
@@ -346,6 +334,7 @@ class InterproceduralVisitor(Visitor):
 
         # Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument
         for i, call_arg in enumerate(call_args):
+            # If this results in an IndexError it is invalid Python
             def_arg_temp_name = 'temp_' + str(saved_function_call_index) + '_' + def_args[i]
 
             return_value_of_nested_call = None
@@ -408,11 +397,13 @@ class InterproceduralVisitor(Visitor):
 
         return (args_mapping, first_node)
 
-    def create_local_scope_from_def_args(self,
-                                         call_args,
-                                         def_args,
-                                         line_number,
-                                         saved_function_call_index):
+    def create_local_scope_from_def_args(
+        self,
+        call_args,
+        def_args,
+        line_number,
+        saved_function_call_index
+    ):
         """Create the local scope before entering the body of a function call.
 
         Args:
@@ -439,10 +430,42 @@ class InterproceduralVisitor(Visitor):
             self.nodes[-1].connect(local_scope_node)
             self.nodes.append(local_scope_node)
 
-    def restore_saved_local_scope(self,
-                                  saved_variables,
-                                  args_mapping,
-                                  line_number):
+    def visit_and_get_function_nodes(self, definition, first_node):
+        """Visits the nodes of a user defined function.
+
+        Args:
+            definition(LocalModuleDefinition): Definition of the function being added.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+
+        Returns:
+            the_new_nodes(list[Node]): The nodes added while visiting the function.
+            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
+        """
+        len_before_visiting_func = len(self.nodes)
+        previous_node = self.nodes[-1]
+        entry_node = self.append_node(EntryOrExitNode("Function Entry " +
+                                                      definition.name))
+        if not first_node:
+            first_node = entry_node
+        self.connect_if_allowed(previous_node, entry_node)
+
+        function_body_connect_statements = self.stmt_star_handler(definition.node.body)
+        entry_node.connect(function_body_connect_statements.first_statement)
+
+        exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
+        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
+
+        the_new_nodes = self.nodes[len_before_visiting_func:]
+        return_connection_handler(the_new_nodes, exit_node)
+
+        return (the_new_nodes, first_node)
+
+    def restore_saved_local_scope(
+        self,
+        saved_variables,
+        args_mapping,
+        line_number
+    ):
         """Restore the previously saved variables to their original values.
 
         Args:
@@ -584,36 +607,6 @@ class InterproceduralVisitor(Visitor):
 
         return self.nodes[-1]
 
-    def visit_and_get_function_nodes(self, definition, first_node):
-        """Visits the nodes of a user defined function.
-
-        Args:
-            definition(LocalModuleDefinition): Definition of the function being added.
-            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
-
-        Returns:
-            the_new_nodes(list[Node]): The nodes added while visiting the function.
-            first_node(EntryOrExitNode or None or RestoreNode): Used to connect previous statements to this function.
-        """
-        len_before_visiting_func = len(self.nodes)
-        previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryOrExitNode("Function Entry " +
-                                                      definition.name))
-        if not first_node:
-            first_node = entry_node
-        self.connect_if_allowed(previous_node, entry_node)
-
-        function_body_connect_statements = self.stmt_star_handler(definition.node.body)
-        entry_node.connect(function_body_connect_statements.first_statement)
-
-        exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
-        exit_node.connect_predecessors(function_body_connect_statements.last_statements)
-
-        the_new_nodes = self.nodes[len_before_visiting_func:]
-        self.return_connection_handler(the_new_nodes, exit_node)
-
-        return (the_new_nodes, first_node)
-
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
         local_definitions = self.module_definitions_stack[-1]
@@ -741,7 +734,14 @@ class InterproceduralVisitor(Visitor):
 
         return exit_node
 
-    def from_directory_import(self, module, real_names, local_names, import_alias_mapping, skip_init=False):
+    def from_directory_import(
+        self,
+        module,
+        real_names,
+        local_names,
+        import_alias_mapping,
+        skip_init=False
+    ):
         """
             Directories don't need to be packages.
         """
@@ -785,6 +785,7 @@ class InterproceduralVisitor(Visitor):
                     import_alias_mapping,
                     from_from=True
                 )
+        return IgnoredNode()
 
     def import_package(self, module, module_name, local_name, import_alias_mapping):
         module_path = module[1]
@@ -800,40 +801,6 @@ class InterproceduralVisitor(Visitor):
             )
         else:
             raise Exception("import directory needs an __init__.py file")
-
-    def visit_Import(self, node):
-        for name in node.names:
-            for module in self.local_modules:
-                if name.name == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.import_package(
-                            module,
-                            name,
-                            name.asname,
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
-                    )
-            for module in self.project_modules:
-                if name.name == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.import_package(
-                            module,
-                            name,
-                            name.asname,
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
-                    )
-        return IgnoredNode()
 
     def handle_relative_import(self, node):
         """
@@ -886,6 +853,40 @@ class InterproceduralVisitor(Visitor):
             skip_init=skip_init
         )
 
+    def visit_Import(self, node):
+        for name in node.names:
+            for module in self.local_modules:
+                if name.name == module[0]:
+                    if os.path.isdir(module[1]):
+                        return self.import_package(
+                            module,
+                            name,
+                            name.asname,
+                            retrieve_import_alias_mapping(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        name.name,
+                        name.asname,
+                        retrieve_import_alias_mapping(node.names)
+                    )
+            for module in self.project_modules:
+                if name.name == module[0]:
+                    if os.path.isdir(module[1]):
+                        return self.import_package(
+                            module,
+                            name,
+                            name.asname,
+                            retrieve_import_alias_mapping(node.names)
+                        )
+                    return self.add_module(
+                        module,
+                        name.name,
+                        name.asname,
+                        retrieve_import_alias_mapping(node.names)
+                    )
+        return IgnoredNode()
+
     def visit_ImportFrom(self, node):
         # Is it relative?
         if node.level > 0:
@@ -926,11 +927,20 @@ class InterproceduralVisitor(Visitor):
         return IgnoredNode()
 
 
-def interprocedural(node, project_modules, local_modules, filename,
-                    module_definitions=None):
-
-    visitor = InterproceduralVisitor(node,
-                                     project_modules,
-                                     local_modules, filename,
-                                     module_definitions)
-    return CFG(visitor.nodes, visitor.blackbox_assignments)
+def interprocedural(
+    node,
+    project_modules,
+    local_modules,
+    filename,
+    module_definitions=None
+):
+    visitor = InterproceduralVisitor(
+        node,
+        project_modules,
+        local_modules, filename,
+        module_definitions
+    )
+    return CFG(
+        visitor.nodes,
+        visitor.blackbox_assignments
+    )

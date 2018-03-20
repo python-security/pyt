@@ -10,6 +10,7 @@ def as_alias_handler(alias_list):
             list_.append(alias.name)
     return list_
 
+
 def handle_aliases_in_calls(name, import_alias_mapping):
     """Returns either None or the handled alias.
     Used in add_module.
@@ -25,6 +26,7 @@ def handle_aliases_in_calls(name, import_alias_mapping):
             #   "from .nested_folder import StarbucksVisitor as Eataly"
             return name.replace(key, val)
     return None
+
 
 def handle_aliases_in_init_files(name, import_alias_mapping):
     """Returns either None or the handled alias.
@@ -42,6 +44,7 @@ def handle_aliases_in_init_files(name, import_alias_mapping):
             return name.replace(val, key)
     return None
 
+
 def handle_fdid_aliases(module_or_package_name, import_alias_mapping):
     """Returns either None or the handled alias.
     Used in add_module.
@@ -52,6 +55,7 @@ def handle_fdid_aliases(module_or_package_name, import_alias_mapping):
             return key
     return None
 
+
 def not_as_alias_handler(names_list):
     """Returns a list of names ignoring any aliases."""
     list_ = list()
@@ -59,10 +63,11 @@ def not_as_alias_handler(names_list):
         list_.append(alias.name)
     return list_
 
+
 def retrieve_import_alias_mapping(names_list):
     """Creates a dictionary mapping aliases to their respective name.
     import_alias_names is used in module_definitions.py and visit_Call"""
-    import_alias_names = {}
+    import_alias_names = dict()
 
     for alias in names_list:
         if alias.asname:

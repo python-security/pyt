@@ -20,7 +20,6 @@ from .framework_helper import (
 )
 from .github_search import scan_github, set_github_api_token
 from .interprocedural_cfg import interprocedural
-from .intraprocedural_cfg import intraprocedural
 from .lattice import print_lattice
 from .liveness import LivenessAnalysis
 from .project_handler import get_directory_modules, get_modules
@@ -106,8 +105,6 @@ def parse_args(args):
                                 ' reaching definitions tainted version.',
                                 action='store_true')
 
-    parser.add_argument('-intra', '--intraprocedural-analysis',
-                        help='Run intraprocedural analysis.', action='store_true')
     parser.add_argument('-ppm', '--print-project-modules',
                         help='Print project modules.', action='store_true')
 
@@ -159,8 +156,18 @@ def parse_args(args):
 
 def analyse_repo(github_repo, analysis_type):
     cfg_list = list()
-    project_modules = get_modules(os.path.dirname(github_repo.path))
-    intraprocedural(project_modules, cfg_list)
+    directory = os.path.dirname(github_repo.path)
+    project_modules = get_modules(directory)
+    local_modules = get_directory_modules(directory)
+    tree = generate_ast(github_repo.path, python_2=args.python_2)
+    interprocedural_cfg = interprocedural(
+        tree,
+        project_modules,
+        local_modules,
+        github_repo.path
+    )
+    cfg_list.append(interprocedural_cfg)
+
     initialize_constraint_table(cfg_list)
     analyse(cfg_list, analysis_type=analysis_type)
     vulnerability_log = find_vulnerabilities(cfg_list, analysis_type)
@@ -214,25 +221,23 @@ def main(command_line_args=sys.argv[1:]):
     tree = generate_ast(path, python_2=args.python_2)
 
     cfg_list = list()
-
-    if args.intraprocedural_analysis:
-        intraprocedural(project_modules, cfg_list)
-    else:
-        interprocedural_cfg = interprocedural(tree,
-                                              project_modules,
-                                              local_modules,
-                                              path)
-        cfg_list.append(interprocedural_cfg)
-        framework_route_criteria = is_flask_route_function
-        if args.adaptor:
-            if args.adaptor.lower().startswith('e'):
-                framework_route_criteria = is_function
-            elif args.adaptor.lower().startswith('p'):
-                framework_route_criteria = is_function_without_leading_
-            elif args.adaptor.lower().startswith('d'):
-                framework_route_criteria = is_django_view_function
-        # Add all the route functions to the cfg_list
-        FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
+    interprocedural_cfg = interprocedural(
+        tree,
+        project_modules,
+        local_modules,
+        path
+    )
+    cfg_list.append(interprocedural_cfg)
+    framework_route_criteria = is_flask_route_function
+    if args.adaptor:
+        if args.adaptor.lower().startswith('e'):
+            framework_route_criteria = is_function
+        elif args.adaptor.lower().startswith('p'):
+            framework_route_criteria = is_function_without_leading_
+        elif args.adaptor.lower().startswith('d'):
+            framework_route_criteria = is_django_view_function
+    # Add all the route functions to the cfg_list
+    FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
     initialize_constraint_table(cfg_list)
 

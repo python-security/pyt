@@ -1,7 +1,7 @@
 from .analysis_base import AnalysisBase
-from .base_cfg import AssignmentNode
 from .constraint_table import constraint_join
 from .lattice import Lattice
+from .node_types import AssignmentNode
 
 
 class ReachingDefinitionsAnalysisBase(AnalysisBase):

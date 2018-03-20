@@ -3,14 +3,14 @@
 import ast
 from collections import namedtuple
 
-from .base_cfg import (
+from .lattice import Lattice
+from .node_types import (
     AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
     RestoreNode,
     TaintedNode
 )
-from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import default_trigger_word_file, parse
 from .vars_visitor import VarsVisitor

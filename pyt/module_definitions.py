@@ -62,7 +62,7 @@ class ModuleDefinitions():
         self.filename = filename
         self.definitions = list()
         self.classes = list()
-        self.import_alias_mapping = {}
+        self.import_alias_mapping = dict()
 
     def append_if_local_or_in_imports(self, definition):
         """Add definition to list.
