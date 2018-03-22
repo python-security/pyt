@@ -122,7 +122,7 @@ def find_secondary_sources(
         Args:
             assignment_nodes([AssignmentNode])
             sources([tuple])
-            lattice(Lattice): The lattice we're analysing.
+            lattice(Lattice): the lattice we're analysing.
     """
     for source in sources:
         source.secondary_nodes = find_assignments(assignment_nodes, source, lattice)
@@ -134,15 +134,16 @@ def find_assignments(
     lattice
 ):
     old = list()
-
-    # added in order to propagate reassignments of the source node
+    # propagate reassignments of the source node
     new = [source.cfg_node]
 
-    update_assignments(new, assignment_nodes, source.cfg_node, lattice)
     while new != old:
-        old = new
         update_assignments(new, assignment_nodes, source.cfg_node, lattice)
-    new.remove(source.cfg_node)  # remove source node from result
+        old = new
+
+    # remove source node from result
+    del new[0]
+
     return new
 
 
@@ -289,7 +290,7 @@ def get_vulnerability_chains(
         current_node()
         sink()
         def_use(dict):
-        chain(list(Node)):
+        chain(list(Node)): A path of nodes between source to sink.
     """
     for use in def_use[current_node]:
         if use == sink:
@@ -309,16 +310,21 @@ def how_vulnerable(
     chain,
     blackbox_mapping,
     sanitiser_nodes,
+    potential_sanitiser,
     blackbox_assignments,
     ui_mode,
     vuln_deets
 ):
     """Iterates through the chain of nodes and checks the blackbox nodes against the blackbox mapping and sanitiser dictionary.
 
+    Note: potential_sanitiser is the only hack here, it is because we do not take p-use's into account yet.
+    e.g. we can only say potentially instead of definitely sanitised in the path_traversal_sanitised_2.py test.
+
     Args:
-        chain(list(Node)): TODO
-        blackbox_mapping(dict):
-        sanitiser_nodes(set):
+        chain(list(Node)): A path of nodes between source to sink.
+        blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
+        sanitiser_nodes(set): A set of nodes that are sanitisers for the sink.
+        potential_sanitiser(Node): An if or elif node that can potentially cause sanitisation.
         blackbox_assignments(set[AssignmentNode]): set of blackbox assignments, includes the ReturnNode's of BBorBInode's.
         ui_mode(UImode): determines if we interact with the user when we don't already have a blackbox mapping available.
         vuln_deets(dict): vulnerability details.
@@ -329,6 +335,7 @@ def how_vulnerable(
     for i, current_node in enumerate(chain):
         if current_node in sanitiser_nodes:
             vuln_deets['sanitiser'] = current_node
+            vuln_deets['definite'] = True
             return VulnerabilityType.SANITISED
 
         if isinstance(current_node, BBorBInode):
@@ -350,6 +357,12 @@ def how_vulnerable(
             else:
                 vuln_deets['unknown_assignment'] = current_node
                 return VulnerabilityType.UNKNOWN
+
+    if potential_sanitiser:
+        vuln_deets['sanitiser'] = potential_sanitiser
+        vuln_deets['definite'] = False
+        return VulnerabilityType.SANITISED
+
     return VulnerabilityType.TRUE
 
 
@@ -386,10 +399,10 @@ def get_vulnerability(
         source(TriggerNode): TriggerNode of the source.
         sink(TriggerNode): TriggerNode of the sink.
         triggers(Triggers): Triggers of the CFG.
-        lattice(Lattice): The lattice we're analysing.
+        lattice(Lattice): the lattice we're analysing.
         cfg(CFG): .blackbox_assignments used in is_unknown, .nodes used in build_def_use_chain
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
-        blackbox_mapping(dict): TODO
+        blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
 
     Returns:
         A Vulnerability if it exists, else None
@@ -415,10 +428,13 @@ def get_vulnerability(
         }
 
         sanitiser_nodes = set()
+        potential_sanitiser = None
         if sink.sanitisers:
             for sanitiser in sink.sanitisers:
                 for cfg_node in triggers.sanitiser_dict[sanitiser]:
                     sanitiser_nodes.add(cfg_node)
+                    if 'if' in cfg_node.label and cfg_node.label.endswith(':'):
+                        potential_sanitiser = cfg_node
 
         def_use = build_def_use_chain(cfg.nodes)
         for chain in get_vulnerability_chains(
@@ -430,12 +446,14 @@ def get_vulnerability(
                 chain,
                 blackbox_mapping,
                 sanitiser_nodes,
+                potential_sanitiser,
                 cfg.blackbox_assignments,
                 ui_mode,
                 vuln_deets
             )
             if vulnerability_type == VulnerabilityType.FALSE:
                 continue
+
             if ui_mode != UImode.NORMAL:
                 vuln_deets['reassignment_nodes'] = chain
 
@@ -458,9 +476,9 @@ def find_vulnerabilities_in_cfg(
         cfg(CFG): The CFG to find vulnerabilities in.
         vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
-        lattice(Lattice): The lattice we're analysing.
+        lattice(Lattice): the lattice we're analysing.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
-        blackbox_mapping(dict): TODO
+        blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
     """
     triggers = identify_triggers(
         cfg,

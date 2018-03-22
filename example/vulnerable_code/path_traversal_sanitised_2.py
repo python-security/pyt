@@ -7,7 +7,7 @@ app = Flask(__name__)
 def cat_picture():
     image_name = request.args.get('image_name')
 
-    if not '..' in image_name:
+    if '..' in image_name:
         return 404
     return send_file(os.path.join(os.getcwd(), image_name))
 

@@ -41,7 +41,6 @@ def get_constraint_nodes(node, lattice):
             yield n
 
 
-# TKTK: Clean up use-def too
 def build_use_def_chain(cfg_nodes):
     use_def = dict()
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)

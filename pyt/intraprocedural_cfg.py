@@ -32,7 +32,7 @@ class IntraproceduralVisitor(Visitor):
             self.init_module_cfg(node)
 
     def init_module_cfg(self, node):
-        entry_node = self.append_node(EntryOrExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode('Entry module'))
 
         module_statements = self.visit(node)
 
@@ -46,21 +46,21 @@ class IntraproceduralVisitor(Visitor):
             if CALL_IDENTIFIER not in first_node.label:
                 entry_node.connect(first_node)
 
-            exit_node = self.append_node(EntryOrExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode('Exit module'))
 
             last_nodes = module_statements.last_statements
             exit_node.connect_predecessors(last_nodes)
         else:
-            exit_node = self.append_node(EntryOrExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode('Exit module'))
             entry_node.connect(exit_node)
 
     def init_function_cfg(self, node):
 
-        entry_node = self.append_node(EntryOrExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode('Entry module'))
 
         module_statements = self.stmt_star_handler(node.body)
         if isinstance(module_statements, IgnoredNode):
-            exit_node = self.append_node(EntryOrExitNode("Exit module"))
+            exit_node = self.append_node(EntryOrExitNode('Exit module'))
             entry_node.connect(exit_node)
             return
 
@@ -68,7 +68,7 @@ class IntraproceduralVisitor(Visitor):
         if CALL_IDENTIFIER not in first_node.label:
             entry_node.connect(first_node)
 
-        exit_node = self.append_node(EntryOrExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode('Exit module'))
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
