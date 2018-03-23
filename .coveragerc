@@ -9,7 +9,9 @@ exclude_lines =
     def __str__
 
 [run]
+source = ./pyt
 omit =
+    pyt/__main__.py
     pyt/definition_chains.py
     pyt/draw.py
     pyt/github_search.py
