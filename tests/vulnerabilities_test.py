@@ -24,6 +24,7 @@ from pyt.framework_helper import(
     is_flask_route_function
 )
 from pyt.lattice import Lattice
+from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 

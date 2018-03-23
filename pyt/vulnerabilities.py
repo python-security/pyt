@@ -5,15 +5,15 @@ import json
 from collections import namedtuple
 
 from .argument_helpers import UImode
-from .base_cfg import (
+from .definition_chains import build_def_use_chain
+from .lattice import Lattice
+from .node_types import (
     AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
     RestoreNode,
     TaintedNode
 )
-from .definition_chains import build_def_use_chain
-from .lattice import Lattice
 from .right_hand_side_visitor import RHSVisitor
 from .trigger_definitions_parser import parse
 from .vars_visitor import VarsVisitor

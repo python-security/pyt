@@ -1,6 +1,5 @@
 from .base_test_case import BaseTestCase
-from pyt.base_cfg import EntryOrExitNode, Node
-# from pyt.project_handler import get_modules
+from pyt.node_types import EntryOrExitNode, Node
 
 
 class CFGGeneralTest(BaseTestCase):
@@ -1084,9 +1083,6 @@ class CFGFunctionNodeTest(BaseTestCase):
     def test_function_line_numbers_2(self):
         path = 'example/example_inputs/simple_function_with_return.py'
         self.cfg_create_from_file(path)
-        # self.cfg = CFG(get_modules(path))
-        # tree = generate_ast(path)
-        # self.cfg.create(tree)
 
         assignment_with_function = self.cfg.nodes[1]
 

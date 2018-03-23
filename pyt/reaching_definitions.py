@@ -1,5 +1,5 @@
-from .base_cfg import AssignmentNode
 from .constraint_table import constraint_table
+from .node_types import AssignmentNode
 from .reaching_definitions_base import ReachingDefinitionsAnalysisBase
 
 

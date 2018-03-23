@@ -1,13 +1,8 @@
 import ast
 
-from .base_cfg import (
-    AssignmentNode,
-    AssignmentCallNode,
-    BBorBInode,
-    EntryOrExitNode
-)
 from .constraint_table import constraint_table
 from .lattice import Lattice
+from .node_types import AssignmentNode
 from .reaching_definitions import ReachingDefinitionsAnalysis
 from .vars_visitor import VarsVisitor
 
