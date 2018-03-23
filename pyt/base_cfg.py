@@ -129,7 +129,6 @@ class Visitor(ast.NodeVisitor):
         test = self.append_node(IfNode(
             node.test,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -155,7 +154,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Raise(self, node):
         return self.append_node(RaiseNode(
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -173,7 +171,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Try(self, node):
         try_node = self.append_node(TryNode(
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
         body = self.stmt_star_handler(node.body)
@@ -548,7 +545,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Break(self, node):
         return self.append_node(BreakNode(
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 

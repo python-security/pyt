@@ -27,7 +27,7 @@ class Node():
     """A Control Flow Graph node that contains a list of
     ingoing and outgoing nodes and a list of its variables."""
 
-    def __init__(self, label, ast_node, *, line_number, path):
+    def __init__(self, label, ast_node, *, line_number=None, path):
         """Create a Node that can be used in a CFG.
 
         Args:
@@ -36,7 +36,12 @@ class Node():
         """
         self.label = label
         self.ast_node = ast_node
-        self.line_number = line_number
+        if line_number:
+            self.line_number = line_number
+        elif ast_node:
+            self.line_number = ast_node.lineno
+        else:
+            self.line_number = None
         self.path = path
         self.ingoing = list()
         self.outgoing = list()
@@ -82,11 +87,10 @@ class Node():
 class BreakNode(Node):
     """CFG Node that represents a Break statement."""
 
-    def __init__(self, ast_node, *, line_number, path):
+    def __init__(self, ast_node, *, path):
         super().__init__(
             self.__class__.__name__,
             ast_node,
-            line_number=line_number,
             path=path
         )
 
@@ -94,14 +98,13 @@ class BreakNode(Node):
 class IfNode(Node):
     """CFG Node that represents an If statement."""
 
-    def __init__(self, test_node, ast_node, *, line_number, path):
+    def __init__(self, test_node, ast_node, *, path):
         label_visitor = LabelVisitor()
         label_visitor.visit(test_node)
 
         super().__init__(
             'if ' + label_visitor.result + ':',
             ast_node,
-            line_number=line_number,
             path=path
         )
 
@@ -109,11 +112,10 @@ class IfNode(Node):
 class TryNode(Node):
     """CFG Node that represents a Try statement."""
 
-    def __init__(self, ast_node, *, line_number, path):
+    def __init__(self, ast_node, *, path):
         super().__init__(
             'try:',
             ast_node,
-            line_number=line_number,
             path=path
         )
 
@@ -253,7 +255,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
         ast_node,
         right_hand_side_variables,
         *,
-        line_number,
         path
     ):
         """Create a return from a call node.
@@ -263,7 +264,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
         """
         super().__init__(
@@ -271,6 +271,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             left_hand_side,
             ast_node,
             right_hand_side_variables,
-            line_number=line_number,
+            line_number=ast_node.lineno,
             path=path
         )

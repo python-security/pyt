@@ -198,7 +198,6 @@ class InterproceduralVisitor(Visitor):
                 LHS,
                 node,
                 [return_value_of_call.left_hand_side],
-                line_number=node.lineno,
                 path=self.filenames[-1]
             )
             return_value_of_call.connect(return_node)
@@ -210,7 +209,6 @@ class InterproceduralVisitor(Visitor):
             LHS,
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -231,7 +229,6 @@ class InterproceduralVisitor(Visitor):
             LHS,
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1])
         )
 
@@ -266,7 +263,8 @@ class InterproceduralVisitor(Visitor):
                 save_name + ' = ' + assignment.left_hand_side,
                 save_name,
                 [assignment.left_hand_side],
-                line_number=line_number, path=self.filenames[-1]
+                line_number=line_number,
+                path=self.filenames[-1]
             )
             if not first_node:
                 first_node = saved_scope_node
