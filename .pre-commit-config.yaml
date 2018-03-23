@@ -6,6 +6,8 @@
     -   id: autopep8-wrapper
     -   id: check-docstring-first
     -   id: debug-statements
+    -   id: check-ast
+    -   id: check-symlinks
     -   id: name-tests-test
         exclude: tests/util
     -   id: flake8
