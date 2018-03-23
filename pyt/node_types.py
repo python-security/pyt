@@ -1,6 +1,8 @@
 """This module contains all of the CFG nodes types."""
 from collections import namedtuple
 
+from .label_visitor import LabelVisitor
+
 
 ControlFlowNode = namedtuple(
     'ControlFlowNode',
@@ -58,7 +60,6 @@ class Node():
         """Print the label of the node."""
         return ''.join((' Label: ', self.label))
 
-
     def __repr__(self):
         """Print a representation of the node."""
         label = ' '.join(('Label: ', self.label))
@@ -78,19 +79,43 @@ class Node():
         return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
-class RaiseNode(Node, ConnectToExitNode):
-    """CFG Node that represents a Raise statement."""
-
-    def __init__(self, label, ast_node, *, line_number, path):
-        """Create a Raise node."""
-        super().__init__(label, ast_node, line_number=line_number, path=path)
-
-
 class BreakNode(Node):
-    """CFG Node that represents a Break node."""
+    """CFG Node that represents a Break statement."""
 
     def __init__(self, ast_node, *, line_number, path):
-        super().__init__(self.__class__.__name__, ast_node, line_number=line_number, path=path)
+        super().__init__(
+            self.__class__.__name__,
+            ast_node,
+            line_number=line_number,
+            path=path
+        )
+
+
+class IfNode(Node):
+    """CFG Node that represents an If statement."""
+
+    def __init__(self, test_node, ast_node, *, line_number, path):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(test_node)
+
+        super().__init__(
+            'if ' + label_visitor.result + ':',
+            ast_node,
+            line_number=line_number,
+            path=path
+        )
+
+
+class TryNode(Node):
+    """CFG Node that represents a Try statement."""
+
+    def __init__(self, ast_node, *, line_number, path):
+        super().__init__(
+            'try:',
+            ast_node,
+            line_number=line_number,
+            path=path
+        )
 
 
 class EntryOrExitNode(Node):
@@ -98,6 +123,21 @@ class EntryOrExitNode(Node):
 
     def __init__(self, label):
         super().__init__(label, None, line_number=None, path=None)
+
+
+class RaiseNode(Node, ConnectToExitNode):
+    """CFG Node that represents a Raise statement."""
+
+    def __init__(self, ast_node, *, line_number, path):
+        label = LabelVisitor()
+        label.visit(ast_node)
+
+        super().__init__(
+            label_visitor.result,
+            ast_node,
+            line_number=line_number,
+            path=path
+        )
 
 
 class AssignmentNode(Node):

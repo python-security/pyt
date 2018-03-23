@@ -11,6 +11,7 @@ from .node_types import (
     AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
+    IfNode,
     RestoreNode,
     TaintedNode
 )
@@ -290,7 +291,7 @@ def get_vulnerability_chains(
         current_node()
         sink()
         def_use(dict):
-        chain(list(Node)): A path of nodes between source to sink.
+        chain(list(Node)): A path of nodes between source and sink.
     """
     for use in def_use[current_node]:
         if use == sink:
@@ -321,7 +322,7 @@ def how_vulnerable(
     e.g. we can only say potentially instead of definitely sanitised in the path_traversal_sanitised_2.py test.
 
     Args:
-        chain(list(Node)): A path of nodes between source to sink.
+        chain(list(Node)): A path of nodes between source and sink.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
         sanitiser_nodes(set): A set of nodes that are sanitisers for the sink.
         potential_sanitiser(Node): An if or elif node that can potentially cause sanitisation.
@@ -432,8 +433,9 @@ def get_vulnerability(
         if sink.sanitisers:
             for sanitiser in sink.sanitisers:
                 for cfg_node in triggers.sanitiser_dict[sanitiser]:
-                    sanitiser_nodes.add(cfg_node)
-                    if 'if' in cfg_node.label and cfg_node.label.endswith(':'):
+                    if isinstance(cfg_node, AssignmentNode):
+                        sanitiser_nodes.add(cfg_node)
+                    elif isinstance(cfg_node, IfNode):
                         potential_sanitiser = cfg_node
 
         def_use = build_def_use_chain(cfg.nodes)

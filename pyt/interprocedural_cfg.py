@@ -81,7 +81,7 @@ class InterproceduralVisitor(Visitor):
             raise Exception('Empty module. It seems that your file is empty,' +
                             'there is nothing to analyse.')
 
-        exit_node = self.append_node(EntryOrExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode('Exit module'))
 
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
@@ -104,7 +104,7 @@ class InterproceduralVisitor(Visitor):
         entry_node = self.append_node(EntryOrExitNode('Entry function'))
 
         module_statements = self.stmt_star_handler(node.body)
-        exit_node = self.append_node(EntryOrExitNode("Exit function"))
+        exit_node = self.append_node(EntryOrExitNode('Exit function'))
 
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)

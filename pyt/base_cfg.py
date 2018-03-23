@@ -21,9 +21,11 @@ from .node_types import (
     BBorBInode,
     BreakNode,
     ControlFlowNode,
+    IfNode,
     IgnoredNode,
     Node,
-    RestoreNode
+    RestoreNode,
+    TryNode
 )
 from .right_hand_side_visitor import RHSVisitor
 from .vars_visitor import VarsVisitor
@@ -55,7 +57,7 @@ class Visitor(ast.NodeVisitor):
         for stmt in stmts:
             node = self.visit(stmt)
 
-            if isinstance(node, ControlFlowNode) and node.test.label != 'Try':
+            if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
                 self.last_control_flow_nodes.append(node.test)
             else:
                 self.last_control_flow_nodes.append(None)
@@ -110,6 +112,7 @@ class Visitor(ast.NodeVisitor):
         """
         if isinstance(orelse[0], ast.If):
             control_flow_node = self.visit(orelse[0])
+            # Prefix the if label with 'el'
             control_flow_node.test.label = 'el' + control_flow_node.test.label
 
             test.connect(control_flow_node.test)
@@ -123,11 +126,8 @@ class Visitor(ast.NodeVisitor):
             return else_connect_statements.last_statements
 
     def visit_If(self, node):
-        label_visitor = LabelVisitor()
-        label_visitor.visit(node.test)
-
-        test = self.append_node(Node(
-            'if ' + label_visitor.result + ':',
+        test = self.append_node(IfNode(
+            node.test,
             node,
             line_number=node.lineno,
             path=self.filenames[-1]
@@ -153,11 +153,7 @@ class Visitor(ast.NodeVisitor):
         return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
 
     def visit_Raise(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
         return self.append_node(RaiseNode(
-            label.result,
             node,
             line_number=node.lineno,
             path=self.filenames[-1]
@@ -175,8 +171,7 @@ class Visitor(ast.NodeVisitor):
         return body
 
     def visit_Try(self, node):
-        try_node = self.append_node(Node(
-            'Try',
+        try_node = self.append_node(TryNode(
             node,
             line_number=node.lineno,
             path=self.filenames[-1]
@@ -243,7 +238,8 @@ class Visitor(ast.NodeVisitor):
                     extract_left_hand_side(target),
                     ast.Assign(target, value),
                     right_hand_side_variables,
-                    line_number=node.lineno, path=self.filenames[-1]
+                    line_number=node.lineno,
+                    path=self.filenames[-1]
                 )))
 
         connect_nodes(new_assignment_nodes)
@@ -263,7 +259,8 @@ class Visitor(ast.NodeVisitor):
                 left_hand_side,
                 ast.Assign(target, node.value),
                 right_hand_side_variables,
-                line_number=node.lineno, path=self.filenames[-1]
+                line_number=node.lineno,
+                path=self.filenames[-1]
             )))
 
         connect_nodes(new_assignment_nodes)
@@ -448,7 +445,6 @@ class Visitor(ast.NodeVisitor):
         Returns:
             call_node(BBorBInode): The call node.
         """
-        # Increment function_call_index
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
         self.undecided = False

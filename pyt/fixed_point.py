@@ -26,7 +26,7 @@ class FixedPointAnalysis():
                 for node in self.analysis.dep(q[0]):  # for (v in dep(v_i))
                     q.append(node)  # q.append(v):
                 constraint_table[q[0]] = y  # q[0].old_constraint = q[0].new_constraint # x_i = y
-            q = q[1:]  # q = q.tail() # The list minus the head
+            q = q[1:]  # q = q.tail()  # The list minus the head
 
 
 def analyse(cfg_list, *, analysis_type):
