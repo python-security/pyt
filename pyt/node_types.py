@@ -145,7 +145,7 @@ class RaiseNode(Node, ConnectToExitNode):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number=None, path):
         """Create an Assignment node.
 
         Args:

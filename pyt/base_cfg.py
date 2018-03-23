@@ -287,7 +287,6 @@ class Visitor(ast.NodeVisitor):
                     label.result,
                     node,
                     rhs_visitor.result,
-                    line_number=node.lineno,
                     path=self.filenames[-1]
                 ))
 
@@ -306,7 +305,6 @@ class Visitor(ast.NodeVisitor):
                     extract_left_hand_side(node.targets[0]),
                     node,
                     rhs_visitor.result,
-                    line_number=node.lineno,
                     path=self.filenames[-1]
                 ))
 
@@ -353,7 +351,6 @@ class Visitor(ast.NodeVisitor):
             extract_left_hand_side(node.target),
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -398,7 +395,6 @@ class Visitor(ast.NodeVisitor):
         for_node = self.append_node(Node(
             "for " + target_label.result + " in " + iterator_label.result + ':',
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -415,7 +411,6 @@ class Visitor(ast.NodeVisitor):
         test = self.append_node(Node(
             'while ' + label_visitor.result + ':',
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -531,7 +526,6 @@ class Visitor(ast.NodeVisitor):
         with_node = self.append_node(Node(
             label_visitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
         connect_statements = self.stmt_star_handler(node.body)
@@ -555,7 +549,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             'del ' + labelVisitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -566,7 +559,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             label_visitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -627,7 +619,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             label,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
