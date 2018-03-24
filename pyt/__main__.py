@@ -129,8 +129,8 @@ def parse_args(args):
                              help='Output the verbose CFGs to file.',
                              action='store_true')
     save_parser.add_argument('-an', '--analysis',
-                             help='Output analysis results to file'
-                             + ' in form of a constraint table.',
+                             help='Output analysis results to file' +
+                             ' in form of a constraint table.',
                              action='store_true')
     save_parser.add_argument('-la', '--lattice', help='Output lattice(s) to file.',
                              action='store_true')
@@ -162,7 +162,7 @@ def analyse_repo(github_repo, analysis_type):
     directory = os.path.dirname(github_repo.path)
     project_modules = get_modules(directory)
     local_modules = get_directory_modules(directory)
-    tree = generate_ast(github_repo.path, python_2=args.python_2)
+    tree = generate_ast(github_repo.path)
     interprocedural_cfg = interprocedural(
         tree,
         project_modules,
