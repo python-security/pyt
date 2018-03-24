@@ -127,12 +127,12 @@ class ModuleDefinitions():
         else:
             if isinstance(module, ast.alias):
                 return (
-                    'import_names is '+ str(self.import_names) +
+                    'import_names is ' + str(self.import_names) +
                     ' No Definitions, module_name: ' + str(module.name) +
-                    ' and filename: ' + str(self.filename)  +
+                    ' and filename: ' + str(self.filename) +
                     ' and is_init: ' + str(self.is_init) + '\n')
             return (
-                'import_names is '+ str(self.import_names) +
+                'import_names is ' + str(self.import_names) +
                 ' No Definitions, module_name: ' + str(module) +
                 ' and filename: ' + str(self.filename) +
                 ' and is_init: ' + str(self.is_init) + '\n')

@@ -8,8 +8,11 @@ from pprint import pprint
 
 from .argument_helpers import valid_date
 from .ast_helper import generate_ast
+from .constraint_table import (
+    initialize_constraint_table,
+    print_table
+)
 from .draw import draw_cfgs, draw_lattices
-from .constraint_table import initialize_constraint_table, print_table
 from .fixed_point import analyse
 from .framework_adaptor import FrameworkAdaptor
 from .framework_helper import (

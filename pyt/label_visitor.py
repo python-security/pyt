@@ -50,7 +50,7 @@ class LabelVisitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         for target in node.targets:
             self.visit(target)
-        self.result = ' '.join((self.result,'='))
+        self.result = ' '.join((self.result, '='))
         self.insert_space()
 
         self.visit(node.value)
@@ -64,11 +64,11 @@ class LabelVisitor(ast.NodeVisitor):
         self.insert_space()
         self.visit(node.value)
 
-    def visit_Compare(self,node):
+    def visit_Compare(self, node):
         self.visit(node.left)
         self.insert_space()
 
-        for op,com in zip(node.ops,node.comparators):
+        for op, com in zip(node.ops, node.comparators):
             self.visit(op)
             self.insert_space()
             self.visit(com)
@@ -121,7 +121,6 @@ class LabelVisitor(ast.NodeVisitor):
         self.comprehensions(node)
         self.result += '}'
 
-
     def visit_DictComp(self, node):
         self.result += '{'
 
@@ -136,6 +135,7 @@ class LabelVisitor(ast.NodeVisitor):
             self.visit(expression.iter)
 
         self.result += '}'
+
     def visit_Attribute(self, node):
         self.visit(node.value)
         self.result += '.'
@@ -229,7 +229,6 @@ class LabelVisitor(ast.NodeVisitor):
     def visit_FloorDiv(self, node):
         self.result += '//'
 
-
     # cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
     def visit_Eq(self, node):
         self.result += '=='
@@ -240,26 +239,26 @@ class LabelVisitor(ast.NodeVisitor):
     def visit_Lt(self, node):
         self.result += '<'
 
-    def visit_NotEq(self,node):
+    def visit_NotEq(self, node):
         self.result += '!='
 
-    def visit_GtE(self,node):
+    def visit_GtE(self, node):
         self.result += '>='
 
-    def visit_LtE(self,node):
+    def visit_LtE(self, node):
         self.result += '<='
 
-    def visit_Is(self,node):
+    def visit_Is(self, node):
         self.result += 'is'
 
-    def visit_IsNot(self,node):
+    def visit_IsNot(self, node):
         self.result += 'is not'
 
-    def visit_In(self,node):
+    def visit_In(self, node):
         self.result += 'in'
 
-    def visit_NotIn(self,node):
-        self.result +='not in'
+    def visit_NotIn(self, node):
+        self.result += 'not in'
 
     # unaryop = Invert | Not | UAdd | USub
     def visit_Invert(self, node):
@@ -277,14 +276,15 @@ class LabelVisitor(ast.NodeVisitor):
     # boolop = And | Or
     def visit_And(self, node):
         self.result += ' and '
+
     def visit_Or(self, node):
         self.result += ' or '
 
     def visit_Num(self, node):
         self.result += str(node.n)
 
-    def visit_Name(self,node):
+    def visit_Name(self, node):
         self.result += node.id
 
-    def visit_Str(self,node):
+    def visit_Str(self, node):
         self.result += "'" + node.s + "'"
