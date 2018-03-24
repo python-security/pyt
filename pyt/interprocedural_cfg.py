@@ -232,7 +232,39 @@ class InterproceduralVisitor(Visitor):
             path=self.filenames[-1])
         )
 
-    def save_local_scope(self, line_number, saved_function_call_index):
+    def connect_if_allowed(
+        self,
+        previous_node,
+        node_to_connect_to
+    ):
+        # e.g.
+        # while x != 10:
+        #     if x > 0:
+        #         print(x)
+        #         break
+        #     else:
+        #         print('hest')
+        # print('next')  # self.nodes[-1] is print('hest')
+        #
+        # So we connect to `while x!= 10` instead
+        if self.last_control_flow_nodes[-1]:
+            self.last_control_flow_nodes[-1].connect(node_to_connect_to)
+            self.last_control_flow_nodes[-1] = None
+            return
+
+        # Except in this case:
+        #
+        # if not image_name:
+        #     return 404
+        # print('foo')  # We do not want to connect this line with `return 404`
+        if previous_node is not self.prev_nodes_to_avoid[-1] and not isinstance(previous_node, ReturnNode):
+            previous_node.connect(node_to_connect_to)
+
+    def save_local_scope(
+        self,
+        line_number,
+        saved_function_call_index
+    ):
         """Save the local scope before entering a function call by saving all the LHS's of assignments so far.
 
         Args:
@@ -276,30 +308,6 @@ class InterproceduralVisitor(Visitor):
             self.connect_if_allowed(previous_node, saved_scope_node)
 
         return (saved_variables, first_node)
-
-    def connect_if_allowed(self, previous_node, node_to_connect_to):
-        # e.g.
-        # while x != 10:
-        #     if x > 0:
-        #         print(x)
-        #         break
-        #     else:
-        #         print('hest')
-        # print('next')  # self.nodes[-1] is print('hest')
-        #
-        # So we connect to `while x!= 10` instead
-        if self.last_control_flow_nodes[-1]:
-            self.last_control_flow_nodes[-1].connect(node_to_connect_to)
-            self.last_control_flow_nodes[-1] = None
-            return
-
-        # Except in this case:
-        #
-        # if not image_name:
-        #     return 404
-        # print('foo')  # We do not want to connect this line with `return 404`
-        if previous_node is not self.prev_nodes_to_avoid[-1] and not isinstance(previous_node, ReturnNode):
-            previous_node.connect(node_to_connect_to)
 
     def save_def_args_in_temp(
         self,
@@ -418,7 +426,11 @@ class InterproceduralVisitor(Visitor):
             self.nodes[-1].connect(local_scope_node)
             self.nodes.append(local_scope_node)
 
-    def visit_and_get_function_nodes(self, definition, first_node):
+    def visit_and_get_function_nodes(
+        self,
+        definition,
+        first_node
+    ):
         """Visits the nodes of a user defined function.
 
         Args:
@@ -497,7 +509,13 @@ class InterproceduralVisitor(Visitor):
 
         return restore_nodes
 
-    def return_handler(self, call_node, function_nodes, saved_function_call_index, first_node):
+    def return_handler(
+        self,
+        call_node,
+        function_nodes,
+        saved_function_call_index,
+        first_node
+    ):
         """Handle the return from a function during a function call.
 
         Args:
