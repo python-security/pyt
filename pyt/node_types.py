@@ -20,7 +20,7 @@ class IgnoredNode():
 
 
 class ConnectToExitNode():
-    """A common type between raise's and return's, used in return_handler"""
+    """A common type between raise's and return's, used in return_handler."""
     pass
 
 
