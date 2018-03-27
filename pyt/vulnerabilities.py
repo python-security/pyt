@@ -27,18 +27,18 @@ from .vulnerability_helper import (
 
 Sanitiser = namedtuple(
     'Sanitiser',
-    [
+    (
         'trigger_word',
         'cfg_node'
-    ]
+    )
 )
 Triggers = namedtuple(
     'Triggers',
-    [
+    (
         'sources',
         'sinks',
         'sanitiser_dict'
-    ]
+    )
 )
 
 

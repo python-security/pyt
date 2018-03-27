@@ -13,11 +13,11 @@ from .node_types import (
 CALL_IDENTIFIER = '¤'
 ConnectStatements = namedtuple(
     'ConnectStatements',
-    [
+    (
         'first_statement',
         'last_statements',
         'break_statements'
-    ]
+    )
 )
 
 

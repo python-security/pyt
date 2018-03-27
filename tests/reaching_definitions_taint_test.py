@@ -1,5 +1,3 @@
-from collections import namedtuple, OrderedDict
-
 from .analysis_base_test_case import AnalysisBaseTestCase
 from pyt.constraint_table import constraint_table
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis

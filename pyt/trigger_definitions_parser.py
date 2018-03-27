@@ -8,10 +8,10 @@ SINKS_KEYWORD = 'sinks:'
 
 Definitions = namedtuple(
     'Definitions',
-    [
+    (
         'sources',
         'sinks'
-    ]
+    )
 )
 
 

@@ -8,7 +8,13 @@ from pyt.lattice import Lattice
 
 
 class AnalysisBaseTestCase(BaseTestCase):
-    connection = namedtuple('connection', 'constraintset element')
+    connection = namedtuple(
+        'connection',
+        (
+            'constraintset',
+            'element'
+        )
+    )
     def setUp(self):
         self.cfg = None
 
