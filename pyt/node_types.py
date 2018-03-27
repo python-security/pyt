@@ -1,15 +1,26 @@
 """This module contains all of the CFG nodes types."""
 from collections import namedtuple
 
+from .label_visitor import LabelVisitor
 
-ControlFlowNode = namedtuple('ControlFlowNode',
-                             'test last_nodes break_statements')
+
+ControlFlowNode = namedtuple(
+    'ControlFlowNode',
+    (
+        'test',
+        'last_nodes',
+        'break_statements'
+    )
+)
+
 
 class IgnoredNode():
     """Ignored Node sent from an ast node that should not return anything."""
     pass
 
+
 class ConnectToExitNode():
+    """A common type between raise's and return's, used in return_handler."""
     pass
 
 
@@ -17,7 +28,7 @@ class Node():
     """A Control Flow Graph node that contains a list of
     ingoing and outgoing nodes and a list of its variables."""
 
-    def __init__(self, label, ast_node, *, line_number, path):
+    def __init__(self, label, ast_node, *, line_number=None, path):
         """Create a Node that can be used in a CFG.
 
         Args:
@@ -26,7 +37,12 @@ class Node():
         """
         self.label = label
         self.ast_node = ast_node
-        self.line_number = line_number
+        if line_number:
+            self.line_number = line_number
+        elif ast_node:
+            self.line_number = ast_node.lineno
+        else:
+            self.line_number = None
         self.path = path
         self.ingoing = list()
         self.outgoing = list()
@@ -50,7 +66,6 @@ class Node():
         """Print the label of the node."""
         return ''.join((' Label: ', self.label))
 
-
     def __repr__(self):
         """Print a representation of the node."""
         label = ' '.join(('Label: ', self.label))
@@ -70,19 +85,40 @@ class Node():
         return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
-class RaiseNode(Node, ConnectToExitNode):
-    """CFG Node that represents a Raise statement."""
-
-    def __init__(self, label, ast_node, *, line_number, path):
-        """Create a Raise node."""
-        super().__init__(label, ast_node, line_number=line_number, path=path)
-
-
 class BreakNode(Node):
-    """CFG Node that represents a Break node."""
+    """CFG Node that represents a Break statement."""
 
-    def __init__(self, ast_node, *, line_number, path):
-        super().__init__(self.__class__.__name__, ast_node, line_number=line_number, path=path)
+    def __init__(self, ast_node, *, path):
+        super().__init__(
+            self.__class__.__name__,
+            ast_node,
+            path=path
+        )
+
+
+class IfNode(Node):
+    """CFG Node that represents an If statement."""
+
+    def __init__(self, test_node, ast_node, *, path):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(test_node)
+
+        super().__init__(
+            'if ' + label_visitor.result + ':',
+            ast_node,
+            path=path
+        )
+
+
+class TryNode(Node):
+    """CFG Node that represents a Try statement."""
+
+    def __init__(self, ast_node, *, path):
+        super().__init__(
+            'try:',
+            ast_node,
+            path=path
+        )
 
 
 class EntryOrExitNode(Node):
@@ -92,10 +128,25 @@ class EntryOrExitNode(Node):
         super().__init__(label, None, line_number=None, path=None)
 
 
+class RaiseNode(Node, ConnectToExitNode):
+    """CFG Node that represents a Raise statement."""
+
+    def __init__(self, ast_node, *, line_number, path):
+        label = LabelVisitor()
+        label.visit(ast_node)
+
+        super().__init__(
+            label_visitor.result,
+            ast_node,
+            line_number=line_number,
+            path=path
+        )
+
+
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number=None, path):
         """Create an Assignment node.
 
         Args:
@@ -141,7 +192,7 @@ class RestoreNode(AssignmentNode):
 class BBorBInode(AssignmentNode):
     """Node used for handling restore nodes returning from blackbox or builtin function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path, func_name):
         """Create a Restore node.
 
         Args:
@@ -150,14 +201,16 @@ class BBorBInode(AssignmentNode):
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
+            func_name(string): The string we will compare with the blackbox_mapping in vulnerabilities.py
         """
         super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
         self.args = list()
         self.inner_most_call = self
+        self.func_name = func_name
 
 
 class AssignmentCallNode(AssignmentNode):
-    """Node used for X."""
+    """Node used for when a call happens inside of an assignment."""
 
     def __init__(
         self,
@@ -165,19 +218,18 @@ class AssignmentCallNode(AssignmentNode):
         left_hand_side,
         ast_node,
         right_hand_side_variables,
-        vv_result,
         *,
         line_number,
         path,
         call_node
     ):
-        """Create a X.
+        """Create an Assignment Call node.
 
         Args:
             label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
+            ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            vv_result(list[str]): Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
             line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
             call_node(BBorBInode or RestoreNode): Used in connect_control_flow_node.
@@ -190,7 +242,6 @@ class AssignmentCallNode(AssignmentNode):
             line_number=line_number,
             path=path
         )
-        self.vv_result = vv_result
         self.call_node = call_node
         self.blackbox = False
 
@@ -205,7 +256,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
         ast_node,
         right_hand_side_variables,
         *,
-        line_number,
         path
     ):
         """Create a return from a call node.
@@ -215,7 +265,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
             ast_node
             right_hand_side_variables(list[str]): A list of variables on the right hand side.
-            line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
         """
         super().__init__(
@@ -223,6 +272,6 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             left_hand_side,
             ast_node,
             right_hand_side_variables,
-            line_number=line_number,
+            line_number=ast_node.lineno,
             path=path
         )

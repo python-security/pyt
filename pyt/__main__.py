@@ -6,7 +6,13 @@ import sys
 from datetime import date
 from pprint import pprint
 
-from .argument_helpers import valid_date
+from .argument_helpers import (
+    default_blackbox_mapping_file,
+    default_trigger_word_file,
+    valid_date,
+    VulnerabilityFiles,
+    UImode
+)
 from .ast_helper import generate_ast
 from .draw import draw_cfgs, draw_lattices
 from .constraint_table import initialize_constraint_table, print_table
@@ -72,10 +78,22 @@ def parse_args(args):
     print_group.add_argument('-vp', '--verbose-print',
                              help='Verbose printing of -p.', action='store_true')
     print_group.add_argument('-trim', '--trim-reassigned-in',
-                             help='Trims the reassigned list to the vulnerability chain.', action='store_true')
+                             help='Trims the reassigned list to the vulnerability chain.',
+                             action='store_true',
+                             default=False)
+    print_group.add_argument('-i', '--interactive',
+                             help='Will ask you about each vulnerability chain and blackbox nodes.',
+                             action='store_true',
+                             default=False)
 
     parser.add_argument('-t', '--trigger-word-file',
-                        help='Input trigger word file.', type=str)
+                        help='Input trigger word file.',
+                        type=str,
+                        default=default_trigger_word_file)
+    parser.add_argument('-b', '--blackbox-mapping-file',
+                        help='Input blackbox mapping file.',
+                        type=str,
+                        default=default_blackbox_mapping_file)
     parser.add_argument('-py2', '--python-2',
                         help='[WARNING, EXPERIMENTAL] Turns on Python 2 mode,' +
                         ' needed when target file(s) are written in Python 2.', action='store_true')
@@ -150,11 +168,13 @@ def parse_args(args):
 
     search_parser.add_argument('-sd', '--start-date',
                                help='Start date for repo search. '
-                               'Criteria used is Created Date.', type=valid_date)
+                               'Criteria used is Created Date.',
+                               type=valid_date,
+                               default=date(2010, 1, 1))
     return parser.parse_args(args)
 
 
-def analyse_repo(github_repo, analysis_type):
+def analyse_repo(github_repo, analysis_type, ui_mode):
     cfg_list = list()
     directory = os.path.dirname(github_repo.path)
     project_modules = get_modules(directory)
@@ -170,29 +190,39 @@ def analyse_repo(github_repo, analysis_type):
 
     initialize_constraint_table(cfg_list)
     analyse(cfg_list, analysis_type=analysis_type)
-    vulnerability_log = find_vulnerabilities(cfg_list, analysis_type)
+    vulnerability_log = find_vulnerabilities(
+        cfg_list,
+        analysis_type,
+        ui_mode,
+        VulnerabilityFiles(
+            args.blackbox_mapping_file,
+            args.trigger_word_file
+        )
+    )
     return vulnerability_log
 
 
 def main(command_line_args=sys.argv[1:]):
     args = parse_args(command_line_args)
 
-    analysis = None
+    analysis = ReachingDefinitionsTaintAnalysis
     if args.liveness:
         analysis = LivenessAnalysis
     elif args.reaching:
         analysis = ReachingDefinitionsAnalysis
-    elif args.reaching_taint:
-        analysis = ReachingDefinitionsTaintAnalysis
-    else:
-        analysis = ReachingDefinitionsTaintAnalysis
+
+    ui_mode = UImode.NORMAL
+    if args.interactive:
+        ui_mode = UImode.INTERACTIVE
+    elif args.trim_reassigned_in:
+        ui_mode = UImode.TRIM
 
     cfg_list = list()
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
             repo.clone()
-            vulnerability_log = analyse_repo(repo, analysis)
+            vulnerability_log = analyse_repo(repo, analysis, ui_mode)
             vulnerability_log.print_report()
             if not vulnerability_log.vulnerabilities:
                 repo.clean_up()
@@ -200,12 +230,14 @@ def main(command_line_args=sys.argv[1:]):
 
     if args.which == 'search':
         set_github_api_token()
-        if args.start_date:
-            scan_github(args.search_string, args.start_date,
-                        analysis, analyse_repo, args.csv_path)
-        else:
-            scan_github(args.search_string, date(2010, 1, 1),
-                        analysis, analyse_repo, args.csv_path)
+        scan_github(
+            args.search_string,
+            args.start_date,
+            analysis,
+            analyse_repo,
+            args.csv_path,
+            ui_mode
+        )
         exit()
 
     path = os.path.normpath(args.filepath)
@@ -221,6 +253,7 @@ def main(command_line_args=sys.argv[1:]):
     tree = generate_ast(path, python_2=args.python_2)
 
     cfg_list = list()
+
     interprocedural_cfg = interprocedural(
         tree,
         project_modules,
@@ -243,17 +276,15 @@ def main(command_line_args=sys.argv[1:]):
 
     analyse(cfg_list, analysis_type=analysis)
 
-    vulnerability_log = None
-    if args.trigger_word_file:
-        vulnerability_log = find_vulnerabilities(cfg_list,
-                                                 analysis,
-                                                 args.trim_reassigned_in,
-                                                 args.trigger_word_file)
-    else:
-        vulnerability_log = find_vulnerabilities(cfg_list,
-                                                 analysis,
-                                                 args.trim_reassigned_in)
-
+    vulnerability_log = find_vulnerabilities(
+        cfg_list,
+        analysis,
+        ui_mode,
+        VulnerabilityFiles(
+            args.blackbox_mapping_file,
+            args.trigger_word_file
+        )
+    )
     vulnerability_log.print_report()
 
     if args.draw_cfg:

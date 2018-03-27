@@ -62,7 +62,7 @@ class InterproceduralVisitor(Visitor):
         self.function_return_stack = list()
         self.module_definitions_stack = list()
         self.prev_nodes_to_avoid = list()
-        self.last_was_loop_stack = list()
+        self.last_control_flow_nodes = list()
 
         # Are we already in a module?
         if module_definitions:
@@ -73,7 +73,7 @@ class InterproceduralVisitor(Visitor):
     def init_cfg(self, node):
         self.module_definitions_stack.append(ModuleDefinitions(filename=self.filenames[-1]))
 
-        entry_node = self.append_node(EntryOrExitNode("Entry module"))
+        entry_node = self.append_node(EntryOrExitNode('Entry module'))
 
         module_statements = self.visit(node)
 
@@ -81,7 +81,7 @@ class InterproceduralVisitor(Visitor):
             raise Exception('Empty module. It seems that your file is empty,' +
                             'there is nothing to analyse.')
 
-        exit_node = self.append_node(EntryOrExitNode("Exit module"))
+        exit_node = self.append_node(EntryOrExitNode('Exit module'))
 
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
@@ -101,10 +101,10 @@ class InterproceduralVisitor(Visitor):
         self.function_names.append(node.name)
         self.function_return_stack.append(node.name)
 
-        entry_node = self.append_node(EntryOrExitNode("Entry function"))
+        entry_node = self.append_node(EntryOrExitNode('Entry function'))
 
         module_statements = self.stmt_star_handler(node.body)
-        exit_node = self.append_node(EntryOrExitNode("Exit function"))
+        exit_node = self.append_node(EntryOrExitNode('Exit function'))
 
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
@@ -198,7 +198,6 @@ class InterproceduralVisitor(Visitor):
                 LHS,
                 node,
                 [return_value_of_call.left_hand_side],
-                line_number=node.lineno,
                 path=self.filenames[-1]
             )
             return_value_of_call.connect(return_node)
@@ -210,7 +209,6 @@ class InterproceduralVisitor(Visitor):
             LHS,
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -231,11 +229,42 @@ class InterproceduralVisitor(Visitor):
             LHS,
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1])
         )
 
-    def save_local_scope(self, line_number, saved_function_call_index):
+    def connect_if_allowed(
+        self,
+        previous_node,
+        node_to_connect_to
+    ):
+        # e.g.
+        # while x != 10:
+        #     if x > 0:
+        #         print(x)
+        #         break
+        #     else:
+        #         print('hest')
+        # print('next')  # self.nodes[-1] is print('hest')
+        #
+        # So we connect to `while x!= 10` instead
+        if self.last_control_flow_nodes[-1]:
+            self.last_control_flow_nodes[-1].connect(node_to_connect_to)
+            self.last_control_flow_nodes[-1] = None
+            return
+
+        # Except in this case:
+        #
+        # if not image_name:
+        #     return 404
+        # print('foo')  # We do not want to connect this line with `return 404`
+        if previous_node is not self.prev_nodes_to_avoid[-1] and not isinstance(previous_node, ReturnNode):
+            previous_node.connect(node_to_connect_to)
+
+    def save_local_scope(
+        self,
+        line_number,
+        saved_function_call_index
+    ):
         """Save the local scope before entering a function call by saving all the LHS's of assignments so far.
 
         Args:
@@ -266,7 +295,8 @@ class InterproceduralVisitor(Visitor):
                 save_name + ' = ' + assignment.left_hand_side,
                 save_name,
                 [assignment.left_hand_side],
-                line_number=line_number, path=self.filenames[-1]
+                line_number=line_number,
+                path=self.filenames[-1]
             )
             if not first_node:
                 first_node = saved_scope_node
@@ -278,33 +308,6 @@ class InterproceduralVisitor(Visitor):
             self.connect_if_allowed(previous_node, saved_scope_node)
 
         return (saved_variables, first_node)
-
-    def connect_if_allowed(self, previous_node, node_to_connect_to):
-        try:
-            # Do not connect if last statement was a loop e.g.
-            # while x != 10:
-            #     if x > 0:
-            #         print(x)
-            #         break
-            #     else:
-            #         print('hest')
-            # print('next')         # self.nodes[-1] is print('hest')
-            if self.last_was_loop_stack[-1]:
-                return
-        except IndexError:
-            pass
-        try:
-            if previous_node is not self.prev_nodes_to_avoid[-1]:
-                previous_node.connect(node_to_connect_to)
-        except IndexError:
-            # If there are no prev_nodes_to_avoid, we just connect safely.
-            # Except in this case:
-            #
-            # if not image_name:
-            #     return 404
-            # print('foo')  # We do not want to connect this line with `return 404`
-            if not isinstance(previous_node, ReturnNode):
-                previous_node.connect(node_to_connect_to)
 
     def save_def_args_in_temp(
         self,
@@ -388,11 +391,6 @@ class InterproceduralVisitor(Visitor):
             else:
                 args_mapping[def_args[i]] = call_arg_label_visitor.result
 
-        # After args loop
-        if last_return_value_of_nested_call:
-            # connect other_inner to outer in e.g. `outer(inner(image_name), other_inner(image_name))`
-            last_return_value_of_nested_call.connect(first_node)
-
         return (args_mapping, first_node)
 
     def create_local_scope_from_def_args(
@@ -428,7 +426,11 @@ class InterproceduralVisitor(Visitor):
             self.nodes[-1].connect(local_scope_node)
             self.nodes.append(local_scope_node)
 
-    def visit_and_get_function_nodes(self, definition, first_node):
+    def visit_and_get_function_nodes(
+        self,
+        definition,
+        first_node
+    ):
         """Visits the nodes of a user defined function.
 
         Args:
@@ -441,7 +443,7 @@ class InterproceduralVisitor(Visitor):
         """
         len_before_visiting_func = len(self.nodes)
         previous_node = self.nodes[-1]
-        entry_node = self.append_node(EntryOrExitNode("Function Entry " +
+        entry_node = self.append_node(EntryOrExitNode('Function Entry ' +
                                                       definition.name))
         if not first_node:
             first_node = entry_node
@@ -450,7 +452,7 @@ class InterproceduralVisitor(Visitor):
         function_body_connect_statements = self.stmt_star_handler(definition.node.body)
         entry_node.connect(function_body_connect_statements.first_statement)
 
-        exit_node = self.append_node(EntryOrExitNode("Exit " + definition.name))
+        exit_node = self.append_node(EntryOrExitNode('Exit ' + definition.name))
         exit_node.connect_predecessors(function_body_connect_statements.last_statements)
 
         the_new_nodes = self.nodes[len_before_visiting_func:]
@@ -507,7 +509,13 @@ class InterproceduralVisitor(Visitor):
 
         return restore_nodes
 
-    def return_handler(self, call_node, function_nodes, saved_function_call_index, first_node):
+    def return_handler(
+        self,
+        call_node,
+        function_nodes,
+        saved_function_call_index,
+        first_node
+    ):
         """Handle the return from a function during a function call.
 
         Args:
@@ -633,7 +641,16 @@ class InterproceduralVisitor(Visitor):
             return self.add_blackbox_or_builtin_call(node, blackbox=True)
         return self.add_blackbox_or_builtin_call(node, blackbox=False)
 
-    def add_module(self, module, module_or_package_name, local_names, import_alias_mapping, is_init=False, from_from=False, from_fdid=False):
+    def add_module(
+        self,
+        module,
+        module_or_package_name,
+        local_names,
+        import_alias_mapping,
+        is_init=False,
+        from_from=False,
+        from_fdid=False
+    ):
         """
         Returns:
             The ExitNode that gets attached to the CFG of the class.
@@ -773,7 +790,7 @@ class InterproceduralVisitor(Visitor):
                         from_fdid=True
                     )
                 else:
-                    raise Exception("from anything import directory needs an __init__.py file in directory")
+                    raise Exception('from anything import directory needs an __init__.py file in directory')
             else:
                 file_module = (real_name, full_name + '.py')
                 self.add_module(
@@ -798,7 +815,7 @@ class InterproceduralVisitor(Visitor):
                 is_init=True
             )
         else:
-            raise Exception("import directory needs an __init__.py file")
+            raise Exception('import directory needs an __init__.py file')
 
     def handle_relative_import(self, node):
         """

@@ -21,9 +21,11 @@ from .node_types import (
     BBorBInode,
     BreakNode,
     ControlFlowNode,
+    IfNode,
     IgnoredNode,
     Node,
-    RestoreNode
+    RestoreNode,
+    TryNode
 )
 from .right_hand_side_visitor import RHSVisitor
 from .vars_visitor import VarsVisitor
@@ -46,18 +48,19 @@ class Visitor(ast.NodeVisitor):
         break_nodes = list()
         cfg_statements = list()
 
-        if prev_node_to_avoid:
-            self.prev_nodes_to_avoid.append(prev_node_to_avoid)
+        self.prev_nodes_to_avoid.append(prev_node_to_avoid)
+        self.last_control_flow_nodes.append(None)
 
         first_node = None
         node_not_to_step_past = self.nodes[-1]
 
         for stmt in stmts:
             node = self.visit(stmt)
-            if isinstance(stmt, (ast.For, ast.While)):
-                self.last_was_loop_stack.append(True)
+
+            if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
+                self.last_control_flow_nodes.append(node.test)
             else:
-                self.last_was_loop_stack.append(False)
+                self.last_control_flow_nodes.append(None)
 
             if isinstance(node, ControlFlowNode):
                 break_nodes.extend(node.break_statements)
@@ -74,9 +77,9 @@ class Visitor(ast.NodeVisitor):
                             node, 
                             node_not_to_step_past
                         )
-        if prev_node_to_avoid:
-            self.prev_nodes_to_avoid.pop()
-        self.last_was_loop_stack.pop()
+
+        self.prev_nodes_to_avoid.pop()
+        self.last_control_flow_nodes.pop()
 
         connect_nodes(cfg_statements)
 
@@ -100,28 +103,32 @@ class Visitor(ast.NodeVisitor):
     def handle_or_else(self, orelse, test):
         """Handle the orelse part of an if or try node.
 
+        Args:
+            orelse(list[Node])
+            test(Node)
+
         Returns:
             The last nodes of the orelse branch.
         """
         if isinstance(orelse[0], ast.If):
             control_flow_node = self.visit(orelse[0])
+            # Prefix the if label with 'el'
             control_flow_node.test.label = 'el' + control_flow_node.test.label
 
             test.connect(control_flow_node.test)
             return control_flow_node.last_nodes
         else:
-            else_connect_statements = self.stmt_star_handler(orelse, prev_node_to_avoid=self.nodes[-1])
+            else_connect_statements = self.stmt_star_handler(
+                orelse,
+                prev_node_to_avoid=self.nodes[-1]
+            )
             test.connect(else_connect_statements.first_statement)
             return else_connect_statements.last_statements
 
     def visit_If(self, node):
-        label_visitor = LabelVisitor()
-        label_visitor.visit(node.test)
-
-        test = self.append_node(Node(
-            'if ' + label_visitor.result + ':',
+        test = self.append_node(IfNode(
+            node.test,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -138,20 +145,15 @@ class Visitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, test)
             body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
-            body_connect_stmts.last_statements.append(test) # if there is no orelse, test needs an edge to the next_node
+            body_connect_stmts.last_statements.append(test)  # if there is no orelse, test needs an edge to the next_node
 
         last_statements = remove_breaks(body_connect_stmts.last_statements)
 
         return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
 
     def visit_Raise(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
         return self.append_node(RaiseNode(
-            label.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -167,10 +169,8 @@ class Visitor(ast.NodeVisitor):
         return body
 
     def visit_Try(self, node):
-        try_node = self.append_node(Node(
-            'Try',
+        try_node = self.append_node(TryNode(
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
         body = self.stmt_star_handler(node.body)
@@ -235,12 +235,12 @@ class Visitor(ast.NodeVisitor):
                     extract_left_hand_side(target),
                     ast.Assign(target, value),
                     right_hand_side_variables,
-                    line_number=node.lineno, path=self.filenames[-1]
+                    line_number=node.lineno,
+                    path=self.filenames[-1]
                 )))
 
-
         connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
 
     def assign_multi_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
@@ -256,16 +256,17 @@ class Visitor(ast.NodeVisitor):
                 left_hand_side,
                 ast.Assign(target, node.value),
                 right_hand_side_variables,
-                line_number=node.lineno, path=self.filenames[-1]
+                line_number=node.lineno,
+                path=self.filenames[-1]
             )))
 
         connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], []) # return the last added node
+        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
 
     def visit_Assign(self, node):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
-        if isinstance(node.targets[0], ast.Tuple): #  x,y = [1,2]
+        if isinstance(node.targets[0], ast.Tuple):  #  x,y = [1,2]
             if isinstance(node.value, ast.Tuple):
                 return self.assign_tuple_target(node, rhs_visitor.result)
             elif isinstance(node.value, ast.Call):
@@ -286,7 +287,6 @@ class Visitor(ast.NodeVisitor):
                     label.result,
                     node,
                     rhs_visitor.result,
-                    line_number=node.lineno,
                     path=self.filenames[-1]
                 ))
 
@@ -305,46 +305,33 @@ class Visitor(ast.NodeVisitor):
                     extract_left_hand_side(node.targets[0]),
                     node,
                     rhs_visitor.result,
-                    line_number=node.lineno,
                     path=self.filenames[-1]
                 ))
 
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
-        self.undecided = True # Used for handling functions in assignments
+        self.undecided = True  # Used for handling functions in assignments
 
         call = self.visit(ast_node.value)
-        call_label = ''
-        call_assignment = None
-
-        # Necessary to know `image_name = image_name.replace('..', '')` is a reassignment.
-        vars_visitor = VarsVisitor()
-        vars_visitor.visit(ast_node.value)
-
         call_label = call.left_hand_side
+
         if isinstance(call, BBorBInode):
-            call_assignment = AssignmentCallNode(
-                left_hand_label + ' = ' + call_label,
-                left_hand_label,
-                ast_node,
-                [call.left_hand_side],
-                vv_result=vars_visitor.result,
-                line_number=ast_node.lineno,
-                path=self.filenames[-1],
-                call_node=call
-            )
-        # Assignment after returned user-defined function call e.g. RestoreNode ¤call_1 = ret_outer
-        elif isinstance(call, AssignmentNode):
-            call_assignment = AssignmentCallNode(
-                left_hand_label + ' = ' + call_label,
-                left_hand_label,
-                ast_node,
-                [call.left_hand_side],
-                vv_result=[],
-                line_number=ast_node.lineno,
-                path=self.filenames[-1],
-                call_node=call
-            )
+            # Necessary to know e.g.
+            # `image_name = image_name.replace('..', '')`
+            # is a reassignment.
+            vars_visitor = VarsVisitor()
+            vars_visitor.visit(ast_node.value)
+            call.right_hand_side_variables.extend(vars_visitor.result)
+
+        call_assignment = AssignmentCallNode(
+            left_hand_label + ' = ' + call_label,
+            left_hand_label,
+            ast_node,
+            [call.left_hand_side],
+            line_number=ast_node.lineno,
+            path=self.filenames[-1],
+            call_node=call
+        )
         call.connect(call_assignment)
 
         self.nodes.append(call_assignment)
@@ -364,9 +351,36 @@ class Visitor(ast.NodeVisitor):
             extract_left_hand_side(node.target),
             node,
             rhs_visitor.result,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
+
+    def loop_node_skeleton(self, test, node):
+        """Common handling of looped structures, while and for."""
+        body_connect_stmts = self.stmt_star_handler(
+            node.body,
+            prev_node_to_avoid=self.nodes[-1]
+        )
+
+        test.connect(body_connect_stmts.first_statement)
+        test.connect_predecessors(body_connect_stmts.last_statements)
+
+        # last_nodes is used for making connections to the next node in the parent node
+        # this is handled in stmt_star_handler
+        last_nodes = list()
+        last_nodes.extend(body_connect_stmts.break_statements)
+
+        if node.orelse:
+            orelse_connect_stmts = self.stmt_star_handler(
+                node.orelse,
+                prev_node_to_avoid=self.nodes[-1]
+            )
+
+            test.connect(orelse_connect_stmts.first_statement)
+            last_nodes.extend(orelse_connect_stmts.last_statements)
+        else:
+            last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
+
+        return ControlFlowNode(test, last_nodes, list())
 
     def visit_For(self, node):
         self.undecided = True  # Used for handling functions in for loops
@@ -381,7 +395,6 @@ class Visitor(ast.NodeVisitor):
         for_node = self.append_node(Node(
             "for " + target_label.result + " in " + iterator_label.result + ':',
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -398,33 +411,10 @@ class Visitor(ast.NodeVisitor):
         test = self.append_node(Node(
             'while ' + label_visitor.result + ':',
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
         return self.loop_node_skeleton(test, node)
-
-    def loop_node_skeleton(self, test, node):
-        """Common handling of looped structures, while and for."""
-        body_connect_stmts = self.stmt_star_handler(node.body, prev_node_to_avoid=self.nodes[-1])
-
-        test.connect(body_connect_stmts.first_statement)
-        test.connect_predecessors(body_connect_stmts.last_statements)
-
-        # last_nodes is used for making connections to the next node in the parent node
-        # this is handled in stmt_star_handler
-        last_nodes = list()
-        last_nodes.extend(body_connect_stmts.break_statements)
-
-        if node.orelse:
-            orelse_connect_stmts = self.stmt_star_handler(node.orelse, prev_node_to_avoid=self.nodes[-1])
-
-            test.connect(orelse_connect_stmts.first_statement)
-            last_nodes.extend(orelse_connect_stmts.last_statements)
-        else:
-            last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
-
-        return ControlFlowNode(test, last_nodes, list())
 
     def add_blackbox_or_builtin_call(self, node, blackbox):
         """Processes a blackbox or builtin function when it is called.
@@ -447,7 +437,6 @@ class Visitor(ast.NodeVisitor):
         Returns:
             call_node(BBorBInode): The call node.
         """
-        # Increment function_call_index
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
         self.undecided = False
@@ -456,20 +445,18 @@ class Visitor(ast.NodeVisitor):
         call_label.visit(node)
 
         index = call_label.result.find('(')
-        if index == -1:
-            print("No ( in a call")
-            raise
 
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + call_label.result[:index] + '('
 
         call_node = BBorBInode(
-            label="",
+            label='',
             left_hand_side=LHS,
             right_hand_side_variables=[],
             line_number=node.lineno,
-            path=self.filenames[-1]
+            path=self.filenames[-1],
+            func_name=call_label.result[:index]
         )
         visual_args = list()
         rhs_vars = list()
@@ -519,8 +506,10 @@ class Visitor(ast.NodeVisitor):
         call_node.label = LHS + " = " + RHS
 
         call_node.right_hand_side_variables = rhs_vars
-        # Used in get_sink_args
-        call_node.args = rhs_vars
+        # Used in get_sink_args, not using right_hand_side_variables because it is extended in assignment_call_node
+        rhs_visitor = RHSVisitor()
+        rhs_visitor.visit(node)
+        call_node.args = rhs_visitor.result
 
         if blackbox:
             self.blackbox_assignments.add(call_node)
@@ -537,7 +526,6 @@ class Visitor(ast.NodeVisitor):
         with_node = self.append_node(Node(
             label_visitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
         connect_statements = self.stmt_star_handler(node.body)
@@ -551,7 +539,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Break(self, node):
         return self.append_node(BreakNode(
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -562,7 +549,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             'del ' + labelVisitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -573,7 +559,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             label_visitor.result,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 
@@ -634,7 +619,6 @@ class Visitor(ast.NodeVisitor):
         return self.append_node(Node(
             label,
             node,
-            line_number=node.lineno,
             path=self.filenames[-1]
         ))
 

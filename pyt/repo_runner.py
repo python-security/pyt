@@ -27,7 +27,7 @@ class Repo:
 
         r = self.URL.split('/')[-1].split('.')
         if len(r) > 1:
-            self.directory = '.'.join(r[0:-1])
+            self.directory = '.'.join(r[:-1])
         else:
             self.directory = r[0]
 

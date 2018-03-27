@@ -9,12 +9,10 @@ from .vars_visitor import VarsVisitor
 
 def get_vars(node):
     vv = VarsVisitor()
-    if isinstance(node.ast_node, ast.While)\
-       or isinstance(node.ast_node, ast.If):
+    if isinstance(node.ast_node, (ast.If, ast.While)):
         vv.visit(node.ast_node.test)
-    elif isinstance(node.ast_node, ast.FunctionDef) or\
-         isinstance(node.ast_node, ast.ClassDef):
-        return list()
+    elif isinstance(node.ast_node, (ast.ClassDef, ast.FunctionDef)):
+        return set()
     else:
         try:
             vv.visit(node.ast_node)
@@ -25,9 +23,7 @@ def get_vars(node):
 
     # Filter out lvars:
     for var in vv.result:
-        try:  # if assignment node
-            # print('r', node.right_hand_side_variables)
-            # if var not in node.left_hand_side:
+        try:
             if var in node.right_hand_side_variables:
                 yield var
         except AttributeError:
@@ -46,50 +42,33 @@ def build_use_def_chain(cfg_nodes):
 
     for node in cfg_nodes:
         definitions = list()
-        for cnode in get_constraint_nodes(node, lattice):
+        for constraint_node in get_constraint_nodes(node, lattice):
             for var in get_vars(node):
-                if var in cnode.left_hand_side:
-                    definitions.append((var, cnode))
+                if var in constraint_node.left_hand_side:
+                    definitions.append((var, constraint_node))
         use_def[node] = definitions
 
     return use_def
-
-
-def varse(node):
-    vv = VarsVisitor()
-    if isinstance(node.ast_node, ast.FunctionDef) or\
-       isinstance(node.ast_node, ast.ClassDef):
-        return list()
-    elif isinstance(node.ast_node, ast.While)\
-            or isinstance(node.ast_node, ast.If):
-        vv.visit(node.ast_node.test)
-    else:
-        try:
-            vv.visit(node.ast_node)
-        except AttributeError:
-            return list()
-
-    if isinstance(node, AssignmentNode):
-        result = list()
-        for var in vv.result:
-            if var not in node.left_hand_side:
-                result.append(var)
-        return result
-    else:
-        return vv.result
 
 
 def build_def_use_chain(cfg_nodes):
     def_use = dict()
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
 
+    # For every node
     for node in cfg_nodes:
+        # That's a definition
         if isinstance(node, AssignmentNode):
+            # Make an empty list for it in def_use dict
             def_use[node] = list()
 
-    for node in cfg_nodes:
-        for var in varse(node):
-            for cnode in get_constraint_nodes(node, lattice):
-                if var in cnode.left_hand_side:
-                    def_use[cnode].append(node)
+            # Get its uses
+            for variable in node.right_hand_side_variables:
+                # Loop through most of the nodes before it
+                for earlier_node in get_constraint_nodes(node, lattice):
+                    # and add to the 'uses list' of each earlier node, when applicable
+                    # 'earlier node' here being a simplification
+                    if variable in earlier_node.left_hand_side:
+                        def_use[earlier_node].append(node)
+
     return def_use

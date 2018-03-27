@@ -11,12 +11,14 @@ from .node_types import (
 
 
 CALL_IDENTIFIER = '¤'
-
-
-ConnectStatements = namedtuple('ConnectStatements',
-                               'first_statement' +
-                               ' last_statements' +
-                               ' break_statements')
+ConnectStatements = namedtuple(
+    'ConnectStatements',
+    (
+        'first_statement',
+        'last_statements',
+        'break_statements'
+    )
+)
 
 
 def _get_inner_most_function_call(call_node):
@@ -29,21 +31,22 @@ def _get_inner_most_function_call(call_node):
             call_node = call_node.inner_most_call
         else:
             try:
-                call_node = call_node.first_node.inner_most_call
+                # e.g. save_2_blah, even when there is a save_3_blah
+                call_node = call_node.first_node
             except AttributeError:
-                try:
-                    call_node = call_node.first_node
-                except AttributeError:
-                    # No inner calls
-                    # Possible improvement: Make new node for RestoreNode's made in process_function
-                    #                       and make `self.inner_most_call = self`
-                    pass
+                # No inner calls
+                # Possible improvement: Make new node for RestoreNode's made in process_function
+                #                       and make `self.inner_most_call = self`
+                # So that we can duck type and not catch an exception when there are no inner calls.
+                # This is what we do in BBorBInode
+                pass
+
     return call_node
 
 
 def _connect_control_flow_node(control_flow_node, next_node):
     """Connect a ControlFlowNode properly to the next_node."""
-    for last in control_flow_node[1]:  # list of last nodes in ifs and elifs
+    for last in control_flow_node.last_nodes:
         if isinstance(next_node, ControlFlowNode):
             last.connect(next_node.test)  # connect to next if test case
         elif isinstance(next_node, AssignmentCallNode):
@@ -57,10 +60,10 @@ def _connect_control_flow_node(control_flow_node, next_node):
 def connect_nodes(nodes):
     """Connect the nodes in a list linearly."""
     for n, next_node in zip(nodes, nodes[1:]):
-        if isinstance(n, ControlFlowNode):  # case for if
+        if isinstance(n, ControlFlowNode):
             _connect_control_flow_node(n, next_node)
-        elif isinstance(next_node, ControlFlowNode):  # case for if
-            n.connect(next_node[0])
+        elif isinstance(next_node, ControlFlowNode):
+            n.connect(next_node.test)
         elif isinstance(next_node, RestoreNode):
             continue
         elif CALL_IDENTIFIER in next_node.label:
@@ -89,7 +92,7 @@ def extract_left_hand_side(target):
     left_hand_side.replace('*', '')
     if '[' in left_hand_side:
         index = left_hand_side.index('[')
-        left_hand_side = target[0:index]
+        left_hand_side = target[:index]
 
     return left_hand_side
 

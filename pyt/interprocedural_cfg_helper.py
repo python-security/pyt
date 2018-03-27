@@ -4,7 +4,13 @@ from .node_types import (
     ConnectToExitNode
 )
 
-SavedVariable = namedtuple('SavedVariable', 'LHS RHS')
+SavedVariable = namedtuple(
+    'SavedVariable',
+    (
+        'LHS',
+        'RHS'
+    )
+)
 BUILTINS = (
     'get',
     'Flask',

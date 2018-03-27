@@ -6,10 +6,13 @@ SANITISER_SEPARATOR = '->'
 SOURCES_KEYWORD = 'sources:'
 SINKS_KEYWORD = 'sinks:'
 
-Definitions = namedtuple('Definitions', 'sources sinks')
-default_trigger_word_file = os.path.join(os.path.dirname(__file__),
-                                         'trigger_definitions',
-                                         'flask_trigger_words.pyt')
+Definitions = namedtuple(
+    'Definitions',
+    (
+        'sources',
+        'sinks'
+    )
+)
 
 
 def parse_section(iterator):
@@ -37,7 +40,7 @@ def parse_section(iterator):
         return
 
 
-def parse(trigger_word_file=default_trigger_word_file):
+def parse(trigger_word_file):
     """Parse the file for source and sink definitions.
 
     Returns:

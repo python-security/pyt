@@ -81,28 +81,28 @@ class Output():
 
 def def_use_chain_to_file(cfg_list):
     with Output('def-use_chain.pyt') as fd:
-            for i, cfg in enumerate(cfg_list):
-                fd.write('##### Def-use chain for CFG {} #####{}'
-                         .format(i, os.linesep))
-                def_use = build_def_use_chain(cfg.nodes)
-                for k, v in def_use.items():
-                    fd.write('Def: {} -> Use: [{}]{}'
-                             .format(k.label,
-                                     ', '.join([n.label for n in v]),
-                                     os.linesep))
+        for i, cfg in enumerate(cfg_list):
+            fd.write('##### Def-use chain for CFG {} #####{}'
+                     .format(i, os.linesep))
+            def_use = build_def_use_chain(cfg.nodes)
+            for k, v in def_use.items():
+                fd.write('Def: {} -> Use: [{}]{}'
+                         .format(k.label,
+                                 ', '.join([n.label for n in v]),
+                                 os.linesep))
 
 
 def use_def_chain_to_file(cfg_list):
     with Output('use-def_chain.pyt') as fd:
-            for i, cfg in enumerate(cfg_list):
-                fd.write('##### Use-def chain for CFG {} #####{}'
-                         .format(i, os.linesep))
-                def_use = build_use_def_chain(cfg.nodes)
-                for k, v in def_use.items():
-                    fd.write('Use: {} -> Def: [{}]{}'
-                             .format(k.label,
-                                     ', '.join([n[1].label for n in v]),
-                                     os.linesep))
+        for i, cfg in enumerate(cfg_list):
+            fd.write('##### Use-def chain for CFG {} #####{}'
+                     .format(i, os.linesep))
+            def_use = build_use_def_chain(cfg.nodes)
+            for k, v in def_use.items():
+                fd.write('Use: {} -> Def: [{}]{}'
+                         .format(k.label,
+                                 ', '.join([n[1].label for n in v]),
+                                 os.linesep))
 
 
 def cfg_to_file(cfg_list):

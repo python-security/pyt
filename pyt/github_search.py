@@ -8,7 +8,6 @@ from . import repo_runner
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .repo_runner import add_repo_to_csv, NoEntryPathError
 from .save import save_repo_scan
-from .vulnerabilities import SinkArgsError
 
 
 DEFAULT_TIMEOUT_IN_SECONDS = 60
@@ -198,7 +197,7 @@ def get_dates(start_date, end_date=date.today(), interval=7):
                                       delta.days % interval))
 
 
-def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv_path):
+def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv_path, ui_mode):
     analyse_repo = analyse_repo_func
     for d in get_dates(start_date, interval=7):
         q = Query(SEARCH_REPO_URL, search_string,
@@ -221,15 +220,13 @@ def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv
                     save_repo_scan(repo, r.path, vulnerability_log=None, error='Other Error Unknown while cloning :-(')
                     continue
                 try:
-                    vulnerability_log = analyse_repo(r, analysis_type)
+                    vulnerability_log = analyse_repo(r, analysis_type, ui_mode)
                     if vulnerability_log.vulnerabilities:
                         save_repo_scan(repo, r.path, vulnerability_log)
                         add_repo_to_csv(csv_path, r)
                     else:
                         save_repo_scan(repo, r.path, vulnerability_log=None)
                     r.clean_up()
-                except SinkArgsError as err:
-                    save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except SyntaxError as err:
                     save_repo_scan(repo, r.path, vulnerability_log=None, error=err)
                 except IOError as err:

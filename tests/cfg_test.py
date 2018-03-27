@@ -787,16 +787,17 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 7
         _exit = 8
 
-        self.assertInCfg([(ret_request, entry),
-                          (image_name_equals_call_1, ret_request),
-                          (_if, image_name_equals_call_1),
-                          (image_name_equals_foo, _if),
-                          (blackbox_call, _if),
-                          (blackbox_call, image_name_equals_foo),
-                          (foo_equals_call_2, blackbox_call),
-                          (ret_send_file, foo_equals_call_2),
-                          (_exit, ret_send_file)
-                          ])
+        self.assertInCfg([
+            (ret_request, entry),
+            (image_name_equals_call_1, ret_request),
+            (_if, image_name_equals_call_1),
+            (image_name_equals_foo, _if),
+            (blackbox_call, _if),
+            (blackbox_call, image_name_equals_foo),
+            (foo_equals_call_2, blackbox_call),
+            (ret_send_file, foo_equals_call_2),
+            (_exit, ret_send_file)
+        ])
 
     def test_multiple_nested_user_defined_calls_after_if(self):
         path = 'example/vulnerable_code/multiple_nested_user_defined_calls_after_if.py'
@@ -849,53 +850,50 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 37
         _exit = 38
 
-        self.assertInCfg([(ret_request, entry),
-                          (image_name_equals_call_1, ret_request),
-                          (_if, image_name_equals_call_1),
-                          (image_name_equals_foo, _if),
-                          # (call_2_equals_ret_outer, _if), ## (Before) NO NO NO
-                          # (call_2_equals_ret_outer, image_name_equals_foo), ## (Before) NO NO NO
-                          (save_3_image_name, _if), ## (After) Aww yeah, feels so good
-                          (save_3_image_name, image_name_equals_foo), ## (After) Aww yeah, feels so good
-                          (save_2_image_name, image_name_equals_foo),
+        self.assertInCfg([
+            (ret_request, entry),
+            (image_name_equals_call_1, ret_request),
+            (_if, image_name_equals_call_1),
+            (image_name_equals_foo, _if),
+            (save_2_image_name, _if),
+            (save_2_image_name, image_name_equals_foo),
 
-                          (save_3_image_name, save_2_image_name),
-                          (temp_3_first_inner_arg, save_3_image_name),
-                          (inner_arg_equals_temp_3, temp_3_first_inner_arg),
-                          (function_entry_first_inner, inner_arg_equals_temp_3),
-                          (first_inner_ret_val_assign_1st, function_entry_first_inner),
-                          (ret_first_inner, first_inner_ret_val_assign_1st),
-                          (function_exit_first_inner, ret_first_inner),
-                          (image_name_equals_first_inner_arg, function_exit_first_inner),
-                          (call_3_equals_ret_first_inner, image_name_equals_first_inner_arg),
-                          (save_4_image_name, call_3_equals_ret_first_inner),
-                          (temp_2_first_arg_equals_call_3, call_3_equals_ret_first_inner),
-                          (save_4_image_name, temp_2_first_arg_equals_call_3),
-                          (save_4_inner_ret_val, save_4_image_name),
-                          (temp_4_inner_arg, save_4_inner_ret_val),
-                          (inner_arg_equals_temp_4, temp_4_inner_arg),
-                          (function_entry_second_inner, inner_arg_equals_temp_4),
-                          (second_inner_ret_val_assign_2nd, function_entry_second_inner),
-                          (ret_second_inner, second_inner_ret_val_assign_2nd),
-                          (function_exit_second_inner, ret_second_inner),
-                          (image_name_equals_second_inner_arg, function_exit_second_inner),
-                          (first_inner_ret_val_equals_save_4, image_name_equals_second_inner_arg),
-                          (call_4_equals_ret_second_inner, first_inner_ret_val_equals_save_4),
-                          (save_2_image_name, call_4_equals_ret_second_inner),
-                          (temp_2_second_arg_equals_call_4, call_4_equals_ret_second_inner),
-                          (first_arg_equals_temp, temp_2_second_arg_equals_call_4),
-                          (second_arg_equals_temp, first_arg_equals_temp),
-                          (function_entry_outer, second_arg_equals_temp),
-                          (outer_ret_val_assignment, function_entry_outer),
-                          (ret_outer, outer_ret_val_assignment),
-                          (function_exit_outer, ret_outer),
-                          (image_name_restore, function_exit_outer),
-                          (call_2_equals_ret_outer, image_name_restore),
-                          
-                          (foo_equals_call_2, call_2_equals_ret_outer),
-                          (ret_send_file, foo_equals_call_2),
-                          (_exit, ret_send_file)
-                          ])
+            (save_3_image_name, save_2_image_name),
+            (temp_3_first_inner_arg, save_3_image_name),
+            (inner_arg_equals_temp_3, temp_3_first_inner_arg),
+            (function_entry_first_inner, inner_arg_equals_temp_3),
+            (first_inner_ret_val_assign_1st, function_entry_first_inner),
+            (ret_first_inner, first_inner_ret_val_assign_1st),
+            (function_exit_first_inner, ret_first_inner),
+            (image_name_equals_first_inner_arg, function_exit_first_inner),
+            (call_3_equals_ret_first_inner, image_name_equals_first_inner_arg),
+            (save_4_image_name, call_3_equals_ret_first_inner),
+            (temp_2_first_arg_equals_call_3, call_3_equals_ret_first_inner),
+            (save_4_image_name, temp_2_first_arg_equals_call_3),
+            (save_4_inner_ret_val, save_4_image_name),
+            (temp_4_inner_arg, save_4_inner_ret_val),
+            (inner_arg_equals_temp_4, temp_4_inner_arg),
+            (function_entry_second_inner, inner_arg_equals_temp_4),
+            (second_inner_ret_val_assign_2nd, function_entry_second_inner),
+            (ret_second_inner, second_inner_ret_val_assign_2nd),
+            (function_exit_second_inner, ret_second_inner),
+            (image_name_equals_second_inner_arg, function_exit_second_inner),
+            (first_inner_ret_val_equals_save_4, image_name_equals_second_inner_arg),
+            (call_4_equals_ret_second_inner, first_inner_ret_val_equals_save_4),
+            (temp_2_second_arg_equals_call_4, call_4_equals_ret_second_inner),
+            (first_arg_equals_temp, temp_2_second_arg_equals_call_4),
+            (second_arg_equals_temp, first_arg_equals_temp),
+            (function_entry_outer, second_arg_equals_temp),
+            (outer_ret_val_assignment, function_entry_outer),
+            (ret_outer, outer_ret_val_assignment),
+            (function_exit_outer, ret_outer),
+            (image_name_restore, function_exit_outer),
+            (call_2_equals_ret_outer, image_name_restore),
+
+            (foo_equals_call_2, call_2_equals_ret_outer),
+            (ret_send_file, foo_equals_call_2),
+            (_exit, ret_send_file)
+        ])
 
     def test_multiple_nested_blackbox_calls_after_for(self):
         path = 'example/vulnerable_code/multiple_nested_blackbox_calls_after_for.py'
@@ -915,18 +913,19 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 9
         _exit = 10
 
-        self.assertInCfg([(ret_request, entry),
-                          (image_name_equals_call_1, ret_request),
-                          (_for, image_name_equals_call_1),
-                          (ret_print, _for),
-                          (_for, ret_print),
-                          (inner_blackbox_call, _for),
-                          (second_inner_blackbox_call, inner_blackbox_call),
-                          (outer_blackbox_call, second_inner_blackbox_call),
-                          (foo_equals_call_3, outer_blackbox_call),
-                          (ret_send_file, foo_equals_call_3),
-                          (_exit, ret_send_file)
-                          ])
+        self.assertInCfg([
+            (ret_request, entry),
+            (image_name_equals_call_1, ret_request),
+            (_for, image_name_equals_call_1),
+            (ret_print, _for),
+            (_for, ret_print),
+            (inner_blackbox_call, _for),
+            (second_inner_blackbox_call, inner_blackbox_call),
+            (outer_blackbox_call, second_inner_blackbox_call),
+            (foo_equals_call_3, outer_blackbox_call),
+            (ret_send_file, foo_equals_call_3),
+            (_exit, ret_send_file)
+        ])
 
     def test_multiple_blackbox_calls_in_user_defined_call_after_if(self):
         path = 'example/vulnerable_code/multiple_blackbox_calls_in_user_defined_call_after_if.py'
@@ -971,43 +970,42 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 30
         _exit = 31
 
-        self.assertInCfg([(save_2_image_name, ret_scrypt_third),  # Makes sense
-                          (ret_scrypt_first, _if),  # Makes sense
-                          (ret_scrypt_first, image_name_equals_foo),  # Makes sense
-                          (save_4_image_name, ret_scrypt_first),  # Makes sense
-                          (ret_scrypt_third, call_4_equals_ret_second_inner),  # Makes sense
-                          (ret_request, entry),
-                          (image_name_equals_call_1, ret_request),
-                          (_if, image_name_equals_call_1),
-                          (image_name_equals_foo, _if),
-                          (save_2_image_name, image_name_equals_foo),
-                          (ret_scrypt_first, save_2_image_name),
-                          (temp_2_first_arg, ret_scrypt_first),
-                          (save_4_image_name, temp_2_first_arg),
-                          (temp_4_inner_arg, save_4_image_name),
-                          (inner_arg_equals_temp_4, temp_4_inner_arg),
-                          (function_entry_second_inner, inner_arg_equals_temp_4),
-                          (inner_ret_val_equals_inner_arg_2nd, function_entry_second_inner),
-                          (ret_second_inner, inner_ret_val_equals_inner_arg_2nd),
-                          (function_exit_second_inner, ret_second_inner),
-                          (image_name_equals_save_4, function_exit_second_inner),
-                          (call_4_equals_ret_second_inner, image_name_equals_save_4),
-                          (temp_2_second_arg, call_4_equals_ret_second_inner),
-                          (ret_scrypt_third, temp_2_second_arg),
-                          (temp_2_third_arg_equals_call_5, ret_scrypt_third),
-                          (first_arg_equals_temp, temp_2_third_arg_equals_call_5),
-                          (second_arg_equals_temp, first_arg_equals_temp),
-                          (third_arg_equals_temp, second_arg_equals_temp),
-                          (function_entry_outer, third_arg_equals_temp),
-                          (outer_ret_val, function_entry_outer),
-                          (ret_outer, outer_ret_val),
-                          (exit_outer, ret_outer),
-                          (image_name_equals_save_2, exit_outer),
-                          (call_2_equals_ret_outer, image_name_equals_save_2),
-                          (foo_equals_call_2, call_2_equals_ret_outer),
-                          (ret_send_file, foo_equals_call_2),
-                          (_exit, ret_send_file)
-                          ])
+        self.assertInCfg([
+            (save_2_image_name, _if),
+            (save_4_image_name, ret_scrypt_first),
+            (ret_scrypt_third, call_4_equals_ret_second_inner),
+            (ret_request, entry),
+            (image_name_equals_call_1, ret_request),
+            (_if, image_name_equals_call_1),
+            (image_name_equals_foo, _if),
+            (save_2_image_name, image_name_equals_foo),
+            (ret_scrypt_first, save_2_image_name),
+            (temp_2_first_arg, ret_scrypt_first),
+            (save_4_image_name, temp_2_first_arg),
+            (temp_4_inner_arg, save_4_image_name),
+            (inner_arg_equals_temp_4, temp_4_inner_arg),
+            (function_entry_second_inner, inner_arg_equals_temp_4),
+            (inner_ret_val_equals_inner_arg_2nd, function_entry_second_inner),
+            (ret_second_inner, inner_ret_val_equals_inner_arg_2nd),
+            (function_exit_second_inner, ret_second_inner),
+            (image_name_equals_save_4, function_exit_second_inner),
+            (call_4_equals_ret_second_inner, image_name_equals_save_4),
+            (temp_2_second_arg, call_4_equals_ret_second_inner),
+            (ret_scrypt_third, temp_2_second_arg),
+            (temp_2_third_arg_equals_call_5, ret_scrypt_third),
+            (first_arg_equals_temp, temp_2_third_arg_equals_call_5),
+            (second_arg_equals_temp, first_arg_equals_temp),
+            (third_arg_equals_temp, second_arg_equals_temp),
+            (function_entry_outer, third_arg_equals_temp),
+            (outer_ret_val, function_entry_outer),
+            (ret_outer, outer_ret_val),
+            (exit_outer, ret_outer),
+            (image_name_equals_save_2, exit_outer),
+            (call_2_equals_ret_outer, image_name_equals_save_2),
+            (foo_equals_call_2, call_2_equals_ret_outer),
+            (ret_send_file, foo_equals_call_2),
+            (_exit, ret_send_file)
+        ])
 
 
 
@@ -1050,7 +1048,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         ret_send_file = 28
         _exit = 29
 
-        self.assertInCfg([(save_3_image_name, _if), # Makes sense
+        self.assertInCfg([(save_3_image_name, _if),
                           (ret_request, entry),
                           (image_name_equals_call_1, ret_request),
                           (_if, image_name_equals_call_1),
