@@ -19,7 +19,7 @@ class LivenessAnalysis(AnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
     def __init__(self, cfg):
-        super().__init__(cfg, None)
+        super().__init__(cfg)
 
     def join(self, cfg_node):
         """Joins all constraints of the ingoing nodes and returns them.
