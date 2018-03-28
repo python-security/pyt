@@ -1,8 +1,9 @@
 """Draws CFG."""
 import argparse
-from graphviz import Digraph
 from itertools import permutations
 from subprocess import call
+
+from graphviz import Digraph
 
 from .node_types import AssignmentNode
 
@@ -16,7 +17,7 @@ cfg_styles = {
         'bgcolor': 'transparent',
         'rankdir': 'TB',
         'splines': 'ortho',
-        'margin' : '0.01',
+        'margin': '0.01',
     },
     'nodes': {
         'fontname': 'Gotham',
@@ -43,7 +44,7 @@ lattice_styles = {
         'bgcolor': 'transparent',
         'rankdir': 'TB',
         'splines': 'line',
-        'margin' : '0.01',
+        'margin': '0.01',
         'ranksep': '1',
     },
     'nodes': {
@@ -64,6 +65,7 @@ lattice_styles = {
     }
 }
 
+
 def apply_styles(graph, styles):
     """Apply styles to graph."""
     graph.graph_attr.update(
@@ -77,7 +79,8 @@ def apply_styles(graph, styles):
     )
     return graph
 
-def draw_cfg(cfg, output_filename = 'output'):
+
+def draw_cfg(cfg, output_filename='output'):
     """Draw CFG and output as pdf."""
     graph = Digraph(format='pdf')
 
@@ -92,10 +95,11 @@ def draw_cfg(cfg, output_filename = 'output'):
             graph.node(stripped_label, stripped_label)
 
         for ingoing_node in node.ingoing:
-            graph.edge(ingoing_node.label.replace(IGNORED_LABEL_NAME_CHARACHTERS, ''), stripped_label)
+            graph.edge(ingoing_node.label.replace(
+                IGNORED_LABEL_NAME_CHARACHTERS, ''), stripped_label)
 
     graph = apply_styles(graph, cfg_styles)
-    graph.render(filename = output_filename)
+    graph.render(filename=output_filename)
 
 
 class Node():
@@ -123,10 +127,12 @@ def draw_node(l, graph, node):
             l.append((node_label, child_label))
         draw_node(l, graph, child)
 
+
 def make_lattice(s, length):
     p = Node(s, None)
     p.children = get_children(p, s, length)
     return p
+
 
 def get_children(p, s, length):
     children = set()
@@ -144,6 +150,7 @@ def get_children(p, s, length):
             n.children = get_children(n, setsubset, length-1)
             children.add(n)
     return children
+
 
 def add_anchor(filename):
     filename += '.dot'
@@ -167,24 +174,27 @@ def add_anchor(filename):
         for line in out:
             fd.write(line)
 
+
 def run_dot(filename):
     filename += '.dot'
     call(['dot', '-Tpdf', filename, '-o', filename.replace('.dot', '.pdf')])
+
 
 def draw_lattice(cfg, output_filename='output'):
     """Draw CFG and output as pdf."""
     graph = Digraph(format='pdf')
 
     ll = [s.label for s in cfg.nodes if isinstance(s, AssignmentNode)]
-    root = make_lattice(ll,len(ll)-1)
+    root = make_lattice(ll, len(ll)-1)
     l = list()
     draw_node(l, graph, root)
 
     graph = apply_styles(graph, lattice_styles)
-    graph.render(filename = output_filename+'.dot')
+    graph.render(filename=output_filename+'.dot')
 
     add_anchor(output_filename)
     run_dot(output_filename)
+
 
 def draw_lattice_from_labels(labels, output_filename):
     graph = Digraph(format='pdf')
@@ -194,21 +204,25 @@ def draw_lattice_from_labels(labels, output_filename):
     draw_node(l, graph, root)
 
     graph = apply_styles(graph, lattice_styles)
-    graph.render(filename = output_filename+'.dot')
+    graph.render(filename=output_filename+'.dot')
 
     add_anchor(output_filename)
     run_dot(output_filename)
+
 
 def draw_lattices(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):
         draw_lattice(cfg, output_prefix + '_' + str(i))
 
+
 def draw_cfgs(cfg_list, output_prefix='output'):
     for i, cfg in enumerate(cfg_list):
         draw_cfg(cfg, output_prefix + '_' + str(i))
 
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-l', '--labels', nargs='+', help='Set of labels in lattice.')
+parser.add_argument('-l', '--labels', nargs='+',
+                    help='Set of labels in lattice.')
 parser.add_argument('-n', '--name', help='Specify filename.', type=str)
 if __name__ == '__main__':
     args = parser.parse_args()

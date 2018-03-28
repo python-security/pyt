@@ -1,7 +1,8 @@
 """This modules runs PyT on a CSV file of git repos."""
-import git
 import os
 import shutil
+
+import git
 
 
 DEFAULT_CSV_PATH = 'flask_open_source_apps.csv'
@@ -14,6 +15,7 @@ class NoEntryPathError(Exception):
 class Repo:
     """Holder for a repo with git URL and
     a path to where the analysis should start"""
+
     def __init__(self, URL, path=None):
         self.URL = URL.strip()
         if path:
