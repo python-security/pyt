@@ -177,7 +177,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS.py
                  > Line 10: ret_XSS1 = resp
             File: example/vulnerable_code/XSS.py
-             > reaches line 9, trigger word "replace(": 
+             > reaches line 9, trigger word "replace(":
                 ¤call_4 = ret_html.replace('{{ param }}', param)
         """
 
@@ -189,13 +189,13 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/command_injection.py
-             > User input at line 15, trigger word "form[": 
+             > User input at line 15, trigger word "form[":
                 param = request.form['suggestion']
             Reassigned in:
                 File: example/vulnerable_code/command_injection.py
                  > Line 16: command = 'echo ' + param + ' >> ' + 'menu.txt'
             File: example/vulnerable_code/command_injection.py
-             > reaches line 18, trigger word "subprocess.call(": 
+             > reaches line 18, trigger word "subprocess.call(":
                 ¤call_1 = ret_subprocess.call(command, shell=True)
         """
 
@@ -341,7 +341,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/sql/sqli.py
                  > Line 27: result = ¤call_2
             File: example/vulnerable_code/sql/sqli.py
-             > reaches line 27, trigger word "execute(": 
+             > reaches line 27, trigger word "execute(":
                 ¤call_2 = ret_db.engine.execute(param)
         """
 
@@ -353,7 +353,7 @@ class EngineTest(BaseTestCase):
         vulnerability_description = str(vulnerability_log.vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: example/vulnerable_code/XSS_form.py
-             > User input at line 14, trigger word "form[": 
+             > User input at line 14, trigger word "form[":
                 data = request.form['my_text']
             Reassigned in:
                 File: example/vulnerable_code/XSS_form.py
@@ -363,7 +363,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS_form.py
                  > Line 17: ret_example2_action = resp
             File: example/vulnerable_code/XSS_form.py
-             > reaches line 15, trigger word "replace(": 
+             > reaches line 15, trigger word "replace(":
                 ¤call_2 = ret_html1.replace('{{ data }}', data)
         """
 
@@ -387,7 +387,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS_url.py
                  > Line 10: ret_XSS1 = resp
             File: example/vulnerable_code/XSS_url.py
-             > reaches line 9, trigger word "replace(": 
+             > reaches line 9, trigger word "replace(":
                 ¤call_3 = ret_html.replace('{{ param }}', param)
         """
 
@@ -417,7 +417,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS_reassign.py
                  > Line 12: ret_XSS1 = resp
             File: example/vulnerable_code/XSS_reassign.py
-             > reaches line 11, trigger word "replace(": 
+             > reaches line 11, trigger word "replace(":
                 ¤call_4 = ret_html.replace('{{ param }}', param)
         """
 
@@ -476,7 +476,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS_variable_assign.py
                  > Line 12: ret_XSS1 = resp
             File: example/vulnerable_code/XSS_variable_assign.py
-             > reaches line 11, trigger word "replace(": 
+             > reaches line 11, trigger word "replace(":
                 ¤call_4 = ret_html.replace('{{ param }}', other_var)
         """
 
@@ -506,7 +506,7 @@ class EngineTest(BaseTestCase):
                 File: example/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 17: ret_XSS1 = resp
             File: example/vulnerable_code/XSS_variable_multiple_assign.py
-             > reaches line 15, trigger word "replace(": 
+             > reaches line 15, trigger word "replace(":
                 ¤call_4 = ret_html.replace('{{ param }}', another_one)
         """
 

@@ -74,7 +74,7 @@ class Visitor(ast.NodeVisitor):
                         first_node = node.test
                     else:
                         first_node = get_first_node(
-                            node, 
+                            node,
                             node_not_to_step_past
                         )
 
