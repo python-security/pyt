@@ -43,7 +43,7 @@ from .stmt_visitor import Visitor
 from .stmt_visitor_helper import CALL_IDENTIFIER
 
 
-class InterproceduralVisitor(Visitor):
+class ExprVisitor(Visitor):
     def __init__(
         self,
         node,
@@ -944,14 +944,14 @@ class InterproceduralVisitor(Visitor):
         return IgnoredNode()
 
 
-def interprocedural(
+def make_cfg(
     node,
     project_modules,
     local_modules,
     filename,
     module_definitions=None
 ):
-    visitor = InterproceduralVisitor(
+    visitor = ExprVisitor(
         node,
         project_modules,
         local_modules, filename,

@@ -2,7 +2,7 @@
 import unittest
 
 from pyt.ast_helper import generate_ast
-from pyt.expr_visitor import interprocedural
+from pyt.expr_visitor import make_cfg
 from pyt.module_definitions import project_definitions
 
 
@@ -67,7 +67,7 @@ class BaseTestCase(unittest.TestCase):
     def cfg_create_from_file(self, filename, project_modules=list(), local_modules=list()):
         project_definitions.clear()
         tree = generate_ast(filename)
-        self.cfg = interprocedural(tree, project_modules, local_modules, filename)
+        self.cfg = make_cfg(tree, project_modules, local_modules, filename)
 
     def string_compare_alpha(self, output, expected_string):
         return [char for char in output if char.isalpha()] \
