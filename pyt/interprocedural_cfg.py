@@ -48,8 +48,14 @@ from .right_hand_side_visitor import RHSVisitor
 
 
 class InterproceduralVisitor(Visitor):
-    def __init__(self, node, project_modules, local_modules,
-                 filename, module_definitions=None):
+    def __init__(
+        self,
+        node,
+        project_modules,
+        local_modules,
+        filename,
+        module_definitions=None
+    ):
         """Create an empty CFG."""
         self.project_modules = project_modules
         self.local_modules = local_modules

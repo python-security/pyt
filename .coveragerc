@@ -1,12 +1,15 @@
 [report]
 exclude_lines =
-    if __name__ == .__main__.:
-    raise NotImplementedError
-    pass
     def print_lattice
+    def print_report
     def print_table
+    def valid_date
     def __repr__
     def __str__
+    if __name__ == .__main__.:
+    pass
+    pragma: no cover
+    raise NotImplementedError
 
 [run]
 source = ./pyt
@@ -15,6 +18,6 @@ omit =
     pyt/definition_chains.py
     pyt/draw.py
     pyt/github_search.py
-    pyt/intraprocedural_cfg.py
+    pyt/liveness.py
     pyt/repo_runner.py
     pyt/save.py

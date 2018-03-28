@@ -10,7 +10,7 @@ recursive = False
 python_2_mode = False
 
 
-def convert_to_3(path):
+def convert_to_3(path):  # pragma: no cover
     """Convert python 2 file to python 3."""
     try:
         print('##### Trying to convert file to Python 3. #####')
@@ -30,13 +30,13 @@ def generate_ast(path, python_2=False):
     """
     # If set, it stays set.
     global python_2_mode
-    if python_2:
+    if python_2:  # pragma: no cover
         python_2_mode = True
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:
                 return ast.parse(f.read())
-            except SyntaxError:
+            except SyntaxError:  # pragma: no cover
                 global recursive
                 if not recursive:
                     if not python_2_mode:

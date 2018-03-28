@@ -6,15 +6,14 @@ import os
 
 
 local_modules = list()
-def get_directory_modules(directory, flush_local_modules=False):
+
+
+def get_directory_modules(directory):
     """Return a list containing tuples of
     e.g. ('__init__', 'example/import_test_project/__init__.py')
     """
     if local_modules and os.path.dirname(local_modules[0][1]) == directory:
         return local_modules
-
-    if flush_local_modules:
-        del local_modules[:]
 
     if not os.path.isdir(directory):
         # example/import_test_project/A.py -> example/import_test_project
@@ -30,6 +29,7 @@ def get_directory_modules(directory, flush_local_modules=False):
             local_modules.append((module_name, os.path.join(directory, path)))
 
     return local_modules
+
 
 def get_modules(path):
     """Return a list containing tuples of
@@ -48,6 +48,7 @@ def get_modules(path):
                     modules.append(('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename)))
 
     return modules
+
 
 def get_modules_and_packages(path):
     """Return a list containing tuples of
@@ -75,6 +76,7 @@ def get_modules_and_packages(path):
                     modules.append(('.'.join((module_root, filename.replace('.py', ''))), full_path))
 
     return modules
+
 
 def is_python_file(path):
     if os.path.splitext(path)[1] == '.py':
