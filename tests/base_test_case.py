@@ -2,7 +2,7 @@
 import unittest
 
 from pyt.ast_helper import generate_ast
-from pyt.interprocedural_cfg import interprocedural
+from pyt.expr_visitor import interprocedural
 from pyt.module_definitions import project_definitions
 
 

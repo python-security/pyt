@@ -14,8 +14,12 @@ from .argument_helpers import (
     UImode
 )
 from .ast_helper import generate_ast
+from .constraint_table import (
+    initialize_constraint_table,
+    print_table
+)
 from .draw import draw_cfgs, draw_lattices
-from .constraint_table import initialize_constraint_table, print_table
+from .expr_visitor import interprocedural
 from .fixed_point import analyse
 from .framework_adaptor import FrameworkAdaptor
 from .framework_helper import (
@@ -25,7 +29,6 @@ from .framework_helper import (
     is_function_without_leading_
 )
 from .github_search import scan_github, set_github_api_token
-from .interprocedural_cfg import interprocedural
 from .lattice import print_lattice
 from .liveness import LivenessAnalysis
 from .project_handler import get_directory_modules, get_modules

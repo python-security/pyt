@@ -394,7 +394,7 @@ def get_vulnerability(
 
     Note: When a secondary node is in_constraint with the sink
               but not the source, the secondary is a save_N_LHS
-              node made in process_function in interprocedural_cfg.
+              node made in process_function in expr_visitor.
 
     Args:
         source(TriggerNode): TriggerNode of the source.

@@ -12,7 +12,6 @@ from pyt.argument_helpers import (
     UImode,
     VulnerabilityFiles
 )
-from pyt.base_cfg import Node
 from pyt.constraint_table import(
     constraint_table,
     initialize_constraint_table

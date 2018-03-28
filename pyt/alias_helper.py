@@ -1,4 +1,4 @@
-"""This module contains helper functions for the interprocedural_cfg module."""
+"""This module contains alias helper functions for the expr_visitor module."""
 
 def as_alias_handler(alias_list):
     """Returns a list of all the names that will be called."""

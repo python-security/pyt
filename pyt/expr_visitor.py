@@ -14,13 +14,7 @@ from .ast_helper import (
     generate_ast,
     get_call_names_as_string
 )
-from .base_cfg import (
-    Visitor
-)
-from .base_cfg_helper import (
-    CALL_IDENTIFIER
-)
-from .interprocedural_cfg_helper import (
+from .expr_visitor_helper import (
     BUILTINS,
     CFG,
     return_connection_handler,
@@ -45,6 +39,8 @@ from .node_types import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
+from .stmt_visitor import Visitor
+from .stmt_visitor_helper import CALL_IDENTIFIER
 
 
 class InterproceduralVisitor(Visitor):

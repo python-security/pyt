@@ -2,7 +2,7 @@
 import ast
 
 from .ast_helper import Arguments
-from .interprocedural_cfg import interprocedural
+from .expr_visitor import interprocedural
 from .module_definitions import project_definitions
 from .node_types import (
     AssignmentNode,

@@ -4,16 +4,6 @@ import itertools
 from .ast_helper import (
     get_call_names_as_string
 )
-from .base_cfg_helper import (
-    CALL_IDENTIFIER,
-    ConnectStatements,
-    connect_nodes,
-    extract_left_hand_side,
-    get_first_node,
-    get_first_statement,
-    get_last_statements,
-    remove_breaks
-)
 from .label_visitor import LabelVisitor
 from .node_types import (
     AssignmentNode,
@@ -28,6 +18,16 @@ from .node_types import (
     TryNode
 )
 from .right_hand_side_visitor import RHSVisitor
+from .stmt_visitor_helper import (
+    CALL_IDENTIFIER,
+    ConnectStatements,
+    connect_nodes,
+    extract_left_hand_side,
+    get_first_node,
+    get_first_statement,
+    get_last_statements,
+    remove_breaks
+)
 from .vars_visitor import VarsVisitor
 
 
