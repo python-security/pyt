@@ -39,11 +39,11 @@ from .node_types import (
 )
 from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
-from .stmt_visitor import Visitor
+from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import CALL_IDENTIFIER
 
 
-class ExprVisitor(Visitor):
+class ExprVisitor(StmtVisitor):
     def __init__(
         self,
         node,

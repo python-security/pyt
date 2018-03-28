@@ -31,7 +31,7 @@ from .stmt_visitor_helper import (
 from .vars_visitor import VarsVisitor
 
 
-class Visitor(ast.NodeVisitor):
+class StmtVisitor(ast.NodeVisitor):
 
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
