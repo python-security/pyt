@@ -149,63 +149,6 @@ class ExprVisitor(StmtVisitor):
 
         self.function_names.append(node.name)
 
-    def visit_ClassDef(self, node):
-        self.add_to_definitions(node)
-
-        local_definitions = self.module_definitions_stack[-1]
-        local_definitions.classes.append(node.name)
-
-        parent_definitions = self.get_parent_definitions()
-        if parent_definitions:
-            parent_definitions.classes.append(node.name)
-
-        self.stmt_star_handler(node.body)
-
-        local_definitions.classes.pop()
-        if parent_definitions:
-            parent_definitions.classes.pop()
-
-        return IgnoredNode()
-
-    def visit_FunctionDef(self, node):
-        self.add_to_definitions(node)
-
-        return IgnoredNode()
-
-    def visit_Return(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
-        try:
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(node.value)
-        except AttributeError:
-            rhs_visitor.result = 'EmptyReturn'
-
-        this_function_name = self.function_return_stack[-1]
-        LHS = 'ret_' + this_function_name
-
-        if isinstance(node.value, ast.Call):
-            return_value_of_call = self.visit(node.value)
-            return_node = ReturnNode(
-                LHS + ' = ' + return_value_of_call.left_hand_side,
-                LHS,
-                node,
-                [return_value_of_call.left_hand_side],
-                path=self.filenames[-1]
-            )
-            return_value_of_call.connect(return_node)
-            self.nodes.append(return_node)
-            return return_node
-
-        return self.append_node(ReturnNode(
-            LHS + ' = ' + label.result,
-            LHS,
-            node,
-            rhs_visitor.result,
-            path=self.filenames[-1]
-        ))
-
     def visit_Yield(self, node):
         label = LabelVisitor()
         label.visit(node)
