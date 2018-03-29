@@ -15,6 +15,7 @@ from .ast_helper import (
 )
 from .label_visitor import LabelVisitor
 from .module_definitions import (
+    LocalModuleDefinition,
     ModuleDefinition,
     ModuleDefinitions
 )
@@ -115,6 +116,66 @@ class StmtVisitor(ast.NodeVisitor):
         else:  # When body of module only contains ignored nodes
             return IgnoredNode()
 
+    def get_parent_definitions(self):
+        parent_definitions = None
+        if len(self.module_definitions_stack) > 1:
+            parent_definitions = self.module_definitions_stack[-2]
+        return parent_definitions
+
+    def add_to_definitions(self, node):
+        local_definitions = self.module_definitions_stack[-1]
+        parent_definitions = self.get_parent_definitions()
+
+        if parent_definitions:
+            parent_qualified_name = '.'.join(
+                parent_definitions.classes +
+                [node.name]
+            )
+            parent_definition = ModuleDefinition(
+                parent_definitions,
+                parent_qualified_name,
+                local_definitions.module_name,
+                self.filenames[-1]
+            )
+            parent_definition.node = node
+            parent_definitions.append_if_local_or_in_imports(parent_definition)
+
+        local_qualified_name = '.'.join(local_definitions.classes +
+                                        [node.name])
+        local_definition = LocalModuleDefinition(
+            local_definitions,
+            local_qualified_name,
+            None,
+            self.filenames[-1]
+        )
+        local_definition.node = node
+        local_definitions.append_if_local_or_in_imports(local_definition)
+
+        self.function_names.append(node.name)
+
+    def visit_ClassDef(self, node):
+        self.add_to_definitions(node)
+
+        local_definitions = self.module_definitions_stack[-1]
+        local_definitions.classes.append(node.name)
+
+        parent_definitions = self.get_parent_definitions()
+        if parent_definitions:
+            parent_definitions.classes.append(node.name)
+
+        self.stmt_star_handler(node.body)
+
+        local_definitions.classes.pop()
+        if parent_definitions:
+            parent_definitions.classes.pop()
+
+        return IgnoredNode()
+
+    def visit_FunctionDef(self, node):
+        self.add_to_definitions(node)
+
+        return IgnoredNode()
+
     def handle_or_else(self, orelse, test):
         """Handle the orelse part of an if or try node.
 
@@ -165,29 +226,6 @@ class StmtVisitor(ast.NodeVisitor):
         last_statements = remove_breaks(body_connect_stmts.last_statements)
 
         return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
-
-    def visit_ClassDef(self, node):
-        self.add_to_definitions(node)
-
-        local_definitions = self.module_definitions_stack[-1]
-        local_definitions.classes.append(node.name)
-
-        parent_definitions = self.get_parent_definitions()
-        if parent_definitions:
-            parent_definitions.classes.append(node.name)
-
-        self.stmt_star_handler(node.body)
-
-        local_definitions.classes.pop()
-        if parent_definitions:
-            parent_definitions.classes.pop()
-
-        return IgnoredNode()
-
-    def visit_FunctionDef(self, node):
-        self.add_to_definitions(node)
-
-        return IgnoredNode()
 
     def visit_Raise(self, node):
         return self.append_node(RaiseNode(
@@ -632,11 +670,6 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-    def visit_Attribute(self, node):
-        return self.visit_miscelleaneous_node(
-            node
-        )
-
     def visit_Continue(self, node):
         return self.visit_miscelleaneous_node(
             node,
@@ -648,30 +681,10 @@ class StmtVisitor(ast.NodeVisitor):
             node
         )
 
-    def visit_Name(self, node):
-        return self.visit_miscelleaneous_node(
-            node
-        )
-
-    def visit_NameConstant(self, node):
-        return self.visit_miscelleaneous_node(
-            node
-        )
-
     def visit_Pass(self, node):
         return self.visit_miscelleaneous_node(
             node,
             custom_label='pass'
-        )
-
-    def visit_Subscript(self, node):
-        return self.visit_miscelleaneous_node(
-            node
-        )
-
-    def visit_Tuple(self, node):
-        return self.visit_miscelleaneous_node(
-            node
         )
 
     def visit_miscelleaneous_node(
@@ -691,9 +704,6 @@ class StmtVisitor(ast.NodeVisitor):
             node,
             path=self.filenames[-1]
         ))
-
-    def visit_Str(self, node):
-        return IgnoredNode()
 
     def visit_Expr(self, node):
         return self.visit(node.value)

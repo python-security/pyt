@@ -14,11 +14,7 @@ from .expr_visitor_helper import (
     SavedVariable
 )
 from .label_visitor import LabelVisitor
-from .module_definitions import (
-    LocalModuleDefinition,
-    ModuleDefinition,
-    ModuleDefinitions
-)
+from .module_definitions import ModuleDefinitions
 from .node_types import (
     AssignmentCallNode,
     AssignmentNode,
@@ -112,43 +108,6 @@ class ExprVisitor(StmtVisitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
-    def get_parent_definitions(self):
-        parent_definitions = None
-        if len(self.module_definitions_stack) > 1:
-            parent_definitions = self.module_definitions_stack[-2]
-        return parent_definitions
-
-    def add_to_definitions(self, node):
-        local_definitions = self.module_definitions_stack[-1]
-        parent_definitions = self.get_parent_definitions()
-
-        if parent_definitions:
-            parent_qualified_name = '.'.join(
-                parent_definitions.classes +
-                [node.name]
-            )
-            parent_definition = ModuleDefinition(
-                parent_definitions,
-                parent_qualified_name,
-                local_definitions.module_name,
-                self.filenames[-1]
-            )
-            parent_definition.node = node
-            parent_definitions.append_if_local_or_in_imports(parent_definition)
-
-        local_qualified_name = '.'.join(local_definitions.classes +
-                                        [node.name])
-        local_definition = LocalModuleDefinition(
-            local_definitions,
-            local_qualified_name,
-            None,
-            self.filenames[-1]
-        )
-        local_definition.node = node
-        local_definitions.append_if_local_or_in_imports(local_definition)
-
-        self.function_names.append(node.name)
-
     def visit_Yield(self, node):
         label = LabelVisitor()
         label.visit(node)
@@ -167,6 +126,34 @@ class ExprVisitor(StmtVisitor):
             node,
             rhs_visitor.result,
             path=self.filenames[-1])
+        )
+
+    def visit_Attribute(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Name(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_NameConstant(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Str(self, node):
+        return IgnoredNode()
+
+    def visit_Subscript(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Tuple(self, node):
+        return self.visit_miscelleaneous_node(
+            node
         )
 
     def connect_if_allowed(
