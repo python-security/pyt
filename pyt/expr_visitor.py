@@ -1,37 +1,20 @@
 import ast
-import os.path
 
 from .alias_helper import (
-    as_alias_handler,
-    handle_aliases_in_calls,
-    handle_aliases_in_init_files,
-    handle_fdid_aliases,
-    not_as_alias_handler,
-    retrieve_import_alias_mapping
+    handle_aliases_in_calls
 )
 from .ast_helper import (
     Arguments,
-    generate_ast,
     get_call_names_as_string
 )
-from .base_cfg import (
-    Visitor
-)
-from .base_cfg_helper import (
-    CALL_IDENTIFIER
-)
-from .interprocedural_cfg_helper import (
+from .expr_visitor_helper import (
     BUILTINS,
     CFG,
     return_connection_handler,
     SavedVariable
 )
 from .label_visitor import LabelVisitor
-from .module_definitions import (
-    LocalModuleDefinition,
-    ModuleDefinition,
-    ModuleDefinitions
-)
+from .module_definitions import ModuleDefinitions
 from .node_types import (
     AssignmentCallNode,
     AssignmentNode,
@@ -43,13 +26,20 @@ from .node_types import (
     RestoreNode,
     ReturnNode
 )
-from .project_handler import get_directory_modules
 from .right_hand_side_visitor import RHSVisitor
+from .stmt_visitor import StmtVisitor
+from .stmt_visitor_helper import CALL_IDENTIFIER
 
 
-class InterproceduralVisitor(Visitor):
-    def __init__(self, node, project_modules, local_modules,
-                 filename, module_definitions=None):
+class ExprVisitor(StmtVisitor):
+    def __init__(
+        self,
+        node,
+        project_modules,
+        local_modules,
+        filename,
+        module_definitions=None
+    ):
         """Create an empty CFG."""
         self.project_modules = project_modules
         self.local_modules = local_modules
@@ -118,100 +108,6 @@ class InterproceduralVisitor(Visitor):
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
 
-    def get_parent_definitions(self):
-        parent_definitions = None
-        if len(self.module_definitions_stack) > 1:
-            parent_definitions = self.module_definitions_stack[-2]
-        return parent_definitions
-
-    def add_to_definitions(self, node):
-        local_definitions = self.module_definitions_stack[-1]
-        parent_definitions = self.get_parent_definitions()
-
-        if parent_definitions:
-            parent_qualified_name = '.'.join(
-                parent_definitions.classes +
-                [node.name]
-            )
-            parent_definition = ModuleDefinition(
-                parent_definitions,
-                parent_qualified_name,
-                local_definitions.module_name,
-                self.filenames[-1]
-            )
-            parent_definition.node = node
-            parent_definitions.append_if_local_or_in_imports(parent_definition)
-
-        local_qualified_name = '.'.join(local_definitions.classes +
-                                        [node.name])
-        local_definition = LocalModuleDefinition(
-            local_definitions,
-            local_qualified_name,
-            None,
-            self.filenames[-1]
-        )
-        local_definition.node = node
-        local_definitions.append_if_local_or_in_imports(local_definition)
-
-        self.function_names.append(node.name)
-
-    def visit_ClassDef(self, node):
-        self.add_to_definitions(node)
-
-        local_definitions = self.module_definitions_stack[-1]
-        local_definitions.classes.append(node.name)
-
-        parent_definitions = self.get_parent_definitions()
-        if parent_definitions:
-            parent_definitions.classes.append(node.name)
-
-        self.stmt_star_handler(node.body)
-
-        local_definitions.classes.pop()
-        if parent_definitions:
-            parent_definitions.classes.pop()
-
-        return IgnoredNode()
-
-    def visit_FunctionDef(self, node):
-        self.add_to_definitions(node)
-
-        return IgnoredNode()
-
-    def visit_Return(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-
-        try:
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(node.value)
-        except AttributeError:
-            rhs_visitor.result = 'EmptyReturn'
-
-        this_function_name = self.function_return_stack[-1]
-        LHS = 'ret_' + this_function_name
-
-        if isinstance(node.value, ast.Call):
-            return_value_of_call = self.visit(node.value)
-            return_node = ReturnNode(
-                LHS + ' = ' + return_value_of_call.left_hand_side,
-                LHS,
-                node,
-                [return_value_of_call.left_hand_side],
-                path=self.filenames[-1]
-            )
-            return_value_of_call.connect(return_node)
-            self.nodes.append(return_node)
-            return return_node
-
-        return self.append_node(ReturnNode(
-            LHS + ' = ' + label.result,
-            LHS,
-            node,
-            rhs_visitor.result,
-            path=self.filenames[-1]
-        ))
-
     def visit_Yield(self, node):
         label = LabelVisitor()
         label.visit(node)
@@ -230,6 +126,34 @@ class InterproceduralVisitor(Visitor):
             node,
             rhs_visitor.result,
             path=self.filenames[-1])
+        )
+
+    def visit_Attribute(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Name(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_NameConstant(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Str(self, node):
+        return IgnoredNode()
+
+    def visit_Subscript(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_Tuple(self, node):
+        return self.visit_miscelleaneous_node(
+            node
         )
 
     def connect_if_allowed(
@@ -641,315 +565,15 @@ class InterproceduralVisitor(Visitor):
             return self.add_blackbox_or_builtin_call(node, blackbox=True)
         return self.add_blackbox_or_builtin_call(node, blackbox=False)
 
-    def add_module(
-        self,
-        module,
-        module_or_package_name,
-        local_names,
-        import_alias_mapping,
-        is_init=False,
-        from_from=False,
-        from_fdid=False
-    ):
-        """
-        Returns:
-            The ExitNode that gets attached to the CFG of the class.
-        """
-        module_path = module[1]
 
-        parent_definitions = self.module_definitions_stack[-1]
-        # The only place the import_alias_mapping is updated
-        parent_definitions.import_alias_mapping.update(import_alias_mapping)
-        parent_definitions.import_names = local_names
-
-        new_module_definitions = ModuleDefinitions(local_names, module_or_package_name)
-        new_module_definitions.is_init = is_init
-        self.module_definitions_stack.append(new_module_definitions)
-
-        # Analyse the file
-        self.filenames.append(module_path)
-        self.local_modules = get_directory_modules(module_path)
-        tree = generate_ast(module_path)
-
-        # module[0] is None during e.g. "from . import foo", so we must str()
-        self.nodes.append(EntryOrExitNode('Module Entry ' + str(module[0])))
-        self.visit(tree)
-        exit_node = self.append_node(EntryOrExitNode('Module Exit ' + str(module[0])))
-
-        # Done analysing, pop the module off
-        self.module_definitions_stack.pop()
-        self.filenames.pop()
-
-        if new_module_definitions.is_init:
-            for def_ in new_module_definitions.definitions:
-                module_def_alias = handle_aliases_in_init_files(
-                    def_.name,
-                    new_module_definitions.import_alias_mapping
-                )
-                parent_def_alias = handle_aliases_in_init_files(
-                    def_.name,
-                    parent_definitions.import_alias_mapping
-                )
-                # They should never both be set
-                assert not (module_def_alias and parent_def_alias)
-
-                def_name = def_.name
-                if parent_def_alias:
-                    def_name = parent_def_alias
-                if module_def_alias:
-                    def_name = module_def_alias
-
-                local_definitions = self.module_definitions_stack[-1]
-                if local_definitions != parent_definitions:
-                    raise
-                if not isinstance(module_or_package_name, str):
-                    module_or_package_name = module_or_package_name.name
-
-                if module_or_package_name:
-                    if from_from:
-                        qualified_name = def_name
-
-                        if from_fdid:
-                            alias = handle_fdid_aliases(module_or_package_name, import_alias_mapping)
-                            if alias:
-                                module_or_package_name = alias
-                            parent_definition = ModuleDefinition(
-                                parent_definitions,
-                                qualified_name,
-                                module_or_package_name,
-                                self.filenames[-1]
-                            )
-                        else:
-                            parent_definition = ModuleDefinition(
-                                parent_definitions,
-                                qualified_name,
-                                None,
-                                self.filenames[-1]
-                            )
-                    else:
-                        qualified_name = '.'.join([module_or_package_name,
-                                                          def_name])
-                        parent_definition = ModuleDefinition(
-                            parent_definitions,
-                            qualified_name,
-                            parent_definitions.module_name,
-                            self.filenames[-1]
-                        )
-                    parent_definition.node = def_.node
-                    parent_definitions.definitions.append(parent_definition)
-                else:
-                    parent_definition = ModuleDefinition(
-                        parent_definitions,
-                        def_name,
-                        parent_definitions.module_name,
-                        self.filenames[-1]
-                    )
-                    parent_definition.node = def_.node
-                    parent_definitions.definitions.append(parent_definition)
-
-        return exit_node
-
-    def from_directory_import(
-        self,
-        module,
-        real_names,
-        local_names,
-        import_alias_mapping,
-        skip_init=False
-    ):
-        """
-            Directories don't need to be packages.
-        """
-        module_path = module[1]
-
-        init_file_location = os.path.join(module_path, '__init__.py')
-        init_exists = os.path.isfile(init_file_location)
-
-        if init_exists and not skip_init:
-            package_name = os.path.split(module_path)[1]
-            return self.add_module(
-                (module[0], init_file_location),
-                package_name,
-                local_names,
-                import_alias_mapping,
-                is_init=True,
-                from_from=True
-            )
-        for real_name in real_names:
-            full_name = os.path.join(module_path, real_name)
-            if os.path.isdir(full_name):
-                new_init_file_location = os.path.join(full_name, '__init__.py')
-                if os.path.isfile(new_init_file_location):
-                    self.add_module(
-                        (real_name, new_init_file_location),
-                        real_name,
-                        local_names,
-                        import_alias_mapping,
-                        is_init=True,
-                        from_from=True,
-                        from_fdid=True
-                    )
-                else:
-                    raise Exception('from anything import directory needs an __init__.py file in directory')
-            else:
-                file_module = (real_name, full_name + '.py')
-                self.add_module(
-                    file_module,
-                    real_name,
-                    local_names,
-                    import_alias_mapping,
-                    from_from=True
-                )
-        return IgnoredNode()
-
-    def import_package(self, module, module_name, local_name, import_alias_mapping):
-        module_path = module[1]
-        init_file_location = os.path.join(module_path, '__init__.py')
-        init_exists = os.path.isfile(init_file_location)
-        if init_exists:
-            return self.add_module(
-                (module[0], init_file_location),
-                module_name,
-                local_name,
-                import_alias_mapping,
-                is_init=True
-            )
-        else:
-            raise Exception('import directory needs an __init__.py file')
-
-    def handle_relative_import(self, node):
-        """
-            from A means node.level == 0
-            from . import B means node.level == 1
-            from .A means node.level == 1
-        """
-        no_file = os.path.abspath(os.path.join(self.filenames[-1], os.pardir))
-        skip_init = False
-
-        if node.level == 1:
-            # Same directory as current file
-            if node.module:
-                name_with_dir = os.path.join(no_file, node.module.replace('.', '/'))
-                if not os.path.isdir(name_with_dir):
-                    name_with_dir = name_with_dir + '.py'
-            # e.g. from . import X
-            else:
-                name_with_dir = no_file
-                # We do not want to analyse the init file of the current directory
-                skip_init = True
-        else:
-            parent = os.path.abspath(os.path.join(no_file, os.pardir))
-            if node.level > 2:
-                # Perform extra `cd ..` however many times
-                for _ in range(0, node.level - 2):
-                    parent = os.path.abspath(os.path.join(parent, os.pardir))
-            if node.module:
-                name_with_dir = os.path.join(parent, node.module.replace('.', '/'))
-                if not os.path.isdir(name_with_dir):
-                    name_with_dir = name_with_dir + '.py'
-            # e.g. from .. import X
-            else:
-                name_with_dir = parent
-
-        # Is it a file?
-        if name_with_dir.endswith('.py'):
-            return self.add_module(
-                (node.module, name_with_dir),
-                None,
-                as_alias_handler(node.names),
-                retrieve_import_alias_mapping(node.names),
-                from_from=True
-            )
-        return self.from_directory_import(
-            (node.module, name_with_dir),
-            not_as_alias_handler(node.names),
-            as_alias_handler(node.names),
-            retrieve_import_alias_mapping(node.names),
-            skip_init=skip_init
-        )
-
-    def visit_Import(self, node):
-        for name in node.names:
-            for module in self.local_modules:
-                if name.name == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.import_package(
-                            module,
-                            name,
-                            name.asname,
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
-                    )
-            for module in self.project_modules:
-                if name.name == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.import_package(
-                            module,
-                            name,
-                            name.asname,
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
-                    )
-        return IgnoredNode()
-
-    def visit_ImportFrom(self, node):
-        # Is it relative?
-        if node.level > 0:
-            return self.handle_relative_import(node)
-        else:
-            for module in self.local_modules:
-                if node.module == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.from_directory_import(
-                            module,
-                            not_as_alias_handler(node.names),
-                            as_alias_handler(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        None,
-                        as_alias_handler(node.names),
-                        retrieve_import_alias_mapping(node.names),
-                        from_from=True
-                    )
-            for module in self.project_modules:
-                name = module[0]
-                if node.module == name:
-                    if os.path.isdir(module[1]):
-                        return self.from_directory_import(
-                            module,
-                            not_as_alias_handler(node.names),
-                            as_alias_handler(node.names),
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
-                        module,
-                        None,
-                        as_alias_handler(node.names),
-                        retrieve_import_alias_mapping(node.names),
-                        from_from=True
-                    )
-        return IgnoredNode()
-
-
-def interprocedural(
+def make_cfg(
     node,
     project_modules,
     local_modules,
     filename,
     module_definitions=None
 ):
-    visitor = InterproceduralVisitor(
+    visitor = ExprVisitor(
         node,
         project_modules,
         local_modules, filename,

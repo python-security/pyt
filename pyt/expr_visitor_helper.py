@@ -1,8 +1,7 @@
 from collections import namedtuple
 
-from .node_types import (
-    ConnectToExitNode
-)
+from .node_types import ConnectToExitNode
+
 
 SavedVariable = namedtuple(
     'SavedVariable',

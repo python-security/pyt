@@ -2,7 +2,7 @@
 import ast
 
 from .ast_helper import Arguments
-from .interprocedural_cfg import interprocedural
+from .expr_visitor import make_cfg
 from .module_definitions import project_definitions
 from .node_types import (
     AssignmentNode,
@@ -24,9 +24,13 @@ class FrameworkAdaptor():
 
     def get_func_cfg_with_tainted_args(self, definition):
         """Build a function cfg and return it, with all arguments tainted."""
-        func_cfg = interprocedural(definition.node, self.project_modules,
-                                   self.local_modules, definition.path,
-                                   definition.module_definitions)
+        func_cfg = make_cfg(
+            definition.node,
+            self.project_modules,
+            self.local_modules,
+            definition.path,
+            definition.module_definitions
+        )
 
         args = Arguments(definition.node.args)
         if args:

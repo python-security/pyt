@@ -9,14 +9,18 @@ project_definitions = dict()
 
 class ModuleDefinition():
     """Handling of a definition."""
-
+    module_definitions = None
     name = None
     node = None
     path = None
-    module_definitions = None
 
-    def __init__(self, local_module_definitions,
-                 name, parent_module_name, path):
+    def __init__(
+        self,
+        local_module_definitions,
+        name,
+        parent_module_name,
+        path
+    ):
         self.module_definitions = local_module_definitions
         self.parent_module_name = parent_module_name
         self.path = path
@@ -84,14 +88,6 @@ class ModuleDefinitions():
 
         if definition.node not in project_definitions:
             project_definitions[definition.node] = definition
-
-    def is_import(self):
-        """Return whether it is a normal import statement and not a from import.
-
-        This can be checked by checking the module name as it is only set
-        when it is a normal import.
-        """
-        return self.module_name
 
     def get_definition(self, name):
         """Get definitions by name."""
