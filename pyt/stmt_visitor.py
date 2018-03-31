@@ -423,7 +423,11 @@ class StmtVisitor(ast.NodeVisitor):
         self.undecided = True  # Used for handling functions in assignments
 
         call = self.visit(ast_node.value)
-        call_label = call.left_hand_side
+        try:
+            call_label = call.left_hand_side
+        except AttributeError:
+            print('Assigning from a void function is invalid Python')
+            exit(0)
 
         if isinstance(call, BBorBInode):
             # Necessary to know e.g.

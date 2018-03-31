@@ -1,4 +1,5 @@
 import ast
+import random
 from collections import namedtuple
 
 from .node_types import (
@@ -101,16 +102,24 @@ def get_first_node(
     node,
     node_not_to_step_past
 ):
+    """
+        This is a super hacky way of getting the first node after a statement.
+        We do this because we visit a statement and keep on visiting and get something in return that is rarely the first node.
+        So we loop and loop backwards until we hit the statement or there is nothing to step back to.
+    """
     ingoing = None
+    i = 0
     current_node = node
     while current_node.ingoing:
+        # This is used because there may be multiple ingoing and loop will cause an infinite loop if we did [0]
+        i = random.randrange(len(current_node.ingoing))
         # e.g. We don't want to step past the Except of an Except basic block
-        if current_node.ingoing[0] == node_not_to_step_past:
+        if current_node.ingoing[i] == node_not_to_step_past:
             break
         ingoing = current_node.ingoing
-        current_node = current_node.ingoing[0]
+        current_node = current_node.ingoing[i]
     if ingoing:
-        return ingoing[0]
+        return ingoing[i]
     return current_node
 
 
