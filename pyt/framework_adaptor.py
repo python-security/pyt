@@ -1,13 +1,11 @@
 """A generic framework adaptor that leaves route criteria to the caller."""
+
 import ast
 
 from .ast_helper import Arguments
 from .expr_visitor import make_cfg
 from .module_definitions import project_definitions
-from .node_types import (
-    AssignmentNode,
-    TaintedNode
-)
+from .node_types import TaintedNode
 
 
 class FrameworkAdaptor():

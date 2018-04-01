@@ -451,7 +451,7 @@ class ExprVisitor(StmtVisitor):
         for node in function_nodes:
             # Only `Return`s and `Raise`s can be of type ConnectToExitNode
             if isinstance(node, ConnectToExitNode):
-                # Create e.g. ¤call_1 = ret_func_foo RestoreNode
+                # Create e.g. ~call_1 = ret_func_foo RestoreNode
                 LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
                 RHS = 'ret_' + get_call_names_as_string(call_node.func)
                 return_node = RestoreNode(
@@ -478,11 +478,11 @@ class ExprVisitor(StmtVisitor):
         Visit and get function nodes. (visit_and_get_function_nodes)
         Loop through each save_N_LHS node and create an e.g.
             foo = save_1_foo or, if foo was a call arg, foo = arg_mapping[foo]. (restore_saved_local_scope)
-        Create e.g. ¤call_1 = ret_func_foo RestoreNode. (return_handler)
+        Create e.g. ~call_1 = ret_func_foo RestoreNode. (return_handler)
 
         Notes:
             Page 31 in the original thesis, but changed a little.
-            We don't have to return the ¤call_1 = ret_func_foo RestoreNode made in return_handler,
+            We don't have to return the ~call_1 = ret_func_foo RestoreNode made in return_handler,
                 because it's the last node anyway, that we return in this function.
             e.g. ret_func_foo gets assigned to visit_Return.
 

@@ -25,8 +25,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry B",
                     "ret_B = s",
                     "Exit B",
-                    "¤call_1 = ret_B",
-                    "b = ¤call_1",
+                    "~call_1 = ret_B",
+                    "b = ~call_1",
                     "save_2_b = b",
                     "temp_2_s = 'sss'",
                     "s = temp_2_s",
@@ -34,8 +34,8 @@ class ImportTest(BaseTestCase):
                     "ret_A.B = s",
                     "Exit A.B",
                     "b = save_2_b",
-                    "¤call_2 = ret_A.B",
-                    "c = ¤call_2",
+                    "~call_2 = ret_A.B",
+                    "c = ~call_2",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -59,8 +59,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry B",
                     "ret_B = s",
                     "Exit B",
-                    "¤call_1 = ret_B",
-                    "b = ¤call_1",
+                    "~call_1 = ret_B",
+                    "b = ~call_1",
                     "save_2_b = b",
                     "temp_2_s = 'sss'",
                     "s = temp_2_s",
@@ -68,8 +68,8 @@ class ImportTest(BaseTestCase):
                     "ret_foo.B = s",
                     "Exit A.B",
                     "b = save_2_b",
-                    "¤call_2 = ret_foo.B",
-                    "c = ¤call_2",
+                    "~call_2 = ret_foo.B",
+                    "c = ~call_2",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -91,19 +91,19 @@ class ImportTest(BaseTestCase):
                     "Function Entry B",
                     "ret_B = s",
                     "Exit B",
-                    "¤call_1 = ret_B",
+                    "~call_1 = ret_B",
                     "temp_2_s = 'minute'",
                     "s = temp_2_s",
                     "Function Entry C",
                     "ret_C = s + 'see'",
                     "Exit C",
-                    "¤call_2 = ret_C",
+                    "~call_2 = ret_C",
                     "temp_3_s = 'IPA'",
                     "s = temp_3_s",
                     "Function Entry D",
                     "ret_D = s + 'dee'",
                     "Exit D",
-                    "¤call_3 = ret_D",
+                    "~call_3 = ret_D",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -129,13 +129,13 @@ class ImportTest(BaseTestCase):
                     "Module Exit folder",
                     "Module Exit package_star",
                     "Function Entry A.cobia",
-                    "¤call_2 = ret_print('A')",
+                    "~call_2 = ret_print('A')",
                     "Exit A.cobia",
                     "Function Entry B.al",
-                    "¤call_4 = ret_print('B')",
+                    "~call_4 = ret_print('B')",
                     "Exit B.al",
                     "Function Entry folder.C.pastor",
-                    "¤call_6 = ret_print('C')",
+                    "~call_6 = ret_print('C')",
                     "Exit folder.C.pastor",
                     "Exit module"]
 
@@ -162,13 +162,13 @@ class ImportTest(BaseTestCase):
                     "Module Exit folder",
                     "Module Exit package_star_with_alias",
                     "Function Entry husk.cobia",
-                    "¤call_2 = ret_print('A')",
+                    "~call_2 = ret_print('A')",
                     "Exit husk.cobia",
                     "Function Entry meringue.al",
-                    "¤call_4 = ret_print('B')",
+                    "~call_4 = ret_print('B')",
                     "Exit meringue.al",
                     "Function Entry corn.mousse.pastor",
-                    "¤call_6 = ret_print('C')",
+                    "~call_6 = ret_print('C')",
                     "Exit corn.mousse.pastor",
                     "Exit module"]
 
@@ -193,7 +193,7 @@ class ImportTest(BaseTestCase):
                     "Function Entry bar.H",
                     "ret_bar.H = s + 'end'",
                     "Exit bar.H",
-                    "¤call_1 = ret_bar.H",
+                    "~call_1 = ret_bar.H",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -217,8 +217,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry B",
                     "ret_B = s",
                     "Exit B",
-                    "¤call_1 = ret_B",
-                    "b = ¤call_1",
+                    "~call_1 = ret_B",
+                    "b = ~call_1",
                     "save_2_b = b",
                     "temp_2_s = 'sss'",
                     "s = temp_2_s",
@@ -226,8 +226,8 @@ class ImportTest(BaseTestCase):
                     "ret_A.B = s",
                     "Exit A.B",
                     "b = save_2_b",
-                    "¤call_2 = ret_A.B",
-                    "c = ¤call_2",
+                    "~call_2 = ret_A.B",
+                    "c = ~call_2",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -262,8 +262,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry H",
                     "ret_H = s + 'end'",
                     "Exit H",
-                    "¤call_1 = ret_H",
-                    "result = ¤call_1",
+                    "~call_1 = ret_H",
+                    "result = ~call_1",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -286,7 +286,7 @@ class ImportTest(BaseTestCase):
                     "Function Entry bar.H",
                     "ret_bar.H = s + 'end'",
                     "Exit bar.H",
-                    "¤call_1 = ret_bar.H",
+                    "~call_1 = ret_bar.H",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -309,8 +309,8 @@ class ImportTest(BaseTestCase):
                     'Function Entry A.B',
                     'ret_A.B = s',
                     'Exit A.B',
-                    '¤call_1 = ret_A.B',
-                    'c = ¤call_1',
+                    '~call_1 = ret_A.B',
+                    'c = ~call_1',
                     'Exit module']
 
 
@@ -334,8 +334,8 @@ class ImportTest(BaseTestCase):
                     'Function Entry A.B',
                     'ret_A.B = s',
                     'Exit A.B',
-                    '¤call_1 = ret_A.B',
-                    'c = ¤call_1',
+                    '~call_1 = ret_A.B',
+                    'c = ~call_1',
                     'Exit module']
 
 
@@ -365,8 +365,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry A.cosme",
                     "ret_A.cosme = s + 'aaa'",
                     "Exit A.cosme",
-                    "¤call_1 = ret_A.cosme",
-                    "a = ¤call_1",
+                    "~call_1 = ret_A.cosme",
+                    "a = ~call_1",
                     "save_2_a = a",
                     "temp_2_s = 'mutton'",
                     "s = temp_2_s",
@@ -374,8 +374,8 @@ class ImportTest(BaseTestCase):
                     "ret_keens.foo = s + 'bee'",
                     "Exit B.foo",
                     "a = save_2_a",
-                    "¤call_2 = ret_keens.foo",
-                    "b = ¤call_2",
+                    "~call_2 = ret_keens.foo",
+                    "b = ~call_2",
                     "save_3_a = a",
                     "save_3_b = b",
                     "temp_3_s = 'tasting'",
@@ -385,8 +385,8 @@ class ImportTest(BaseTestCase):
                     "Exit C.foo",
                     "a = save_3_a",
                     "b = save_3_b",
-                    "¤call_3 = ret_per_se.foo",
-                    "c = ¤call_3",
+                    "~call_3 = ret_per_se.foo",
+                    "c = ~call_3",
                     "save_4_a = a",
                     "save_4_b = b",
                     "save_4_c = c",
@@ -398,8 +398,8 @@ class ImportTest(BaseTestCase):
                     "a = save_4_a",
                     "b = save_4_b",
                     "c = save_4_c",
-                    "¤call_4 = ret_duck_house.foo",
-                    "d = ¤call_4",
+                    "~call_4 = ret_duck_house.foo",
+                    "d = ~call_4",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
@@ -422,8 +422,8 @@ class ImportTest(BaseTestCase):
                     "Function Entry B",
                     "ret_keens = s",
                     "Exit B",
-                    "¤call_1 = ret_keens",
-                    "a = ¤call_1",
+                    "~call_1 = ret_keens",
+                    "a = ~call_1",
                     "save_2_a = a",
                     "temp_2_s = 'tasting'",
                     "s = temp_2_s",
@@ -431,8 +431,8 @@ class ImportTest(BaseTestCase):
                     "ret_C = s + 'see'",
                     "Exit C",
                     "a = save_2_a",
-                    "¤call_2 = ret_C",
-                    "b = ¤call_2",
+                    "~call_2 = ret_C",
+                    "b = ~call_2",
                     "save_3_a = a",
                     "save_3_b = b",
                     "temp_3_s = 'peking'",
@@ -442,8 +442,8 @@ class ImportTest(BaseTestCase):
                     "Exit D",
                     "a = save_3_a",
                     "b = save_3_b",
-                    "¤call_3 = ret_duck_house",
-                    "c = ¤call_3",
+                    "~call_3 = ret_duck_house",
+                    "c = ~call_3",
                     "Exit module"]
 
 
@@ -467,7 +467,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function",
                     "Function Entry package_with_function.StarbucksVisitor",
-                    "¤call_2 = ret_print('Iced Mocha')",
+                    "~call_2 = ret_print('Iced Mocha')",
                     "Exit package_with_function.StarbucksVisitor",
                     "Exit module"]
 
@@ -491,7 +491,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function_and_alias",
                     "Function Entry package_with_function_and_alias.EatalyVisitor",
-                    "¤call_2 = ret_print('Iced Mocha')",
+                    "~call_2 = ret_print('Iced Mocha')",
                     "Exit package_with_function_and_alias.EatalyVisitor",
                     "Exit module"]
 
@@ -513,7 +513,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file",
                     "Function Entry package_with_file.Starbucks.Tea",
-                    "¤call_2 = ret_print('Teavana Green')",
+                    "~call_2 = ret_print('Teavana Green')",
                     "Exit package_with_file.Starbucks.Tea",
                     "Exit module"]
 
@@ -535,7 +535,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file_and_alias",
                     "Function Entry package_with_file_and_alias.Eataly.Tea",
-                    "¤call_2 = ret_print('Teavana Green')",
+                    "~call_2 = ret_print('Teavana Green')",
                     "Exit package_with_file_and_alias.Eataly.Tea",
                     "Exit module"]
 
@@ -559,7 +559,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_folder",
                     "Function Entry package_with_folder.nested_folder_with_init.moose.fast",
-                    "¤call_2 = ret_print('real fast')",
+                    "~call_2 = ret_print('real fast')",
                     "Exit package_with_folder.nested_folder_with_init.moose.fast",
                     "Exit module"]
 
@@ -583,7 +583,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_folder_and_alias",
                     "Function Entry package_with_folder_and_alias.heyo.moose.fast",
-                    "¤call_2 = ret_print('real fast')",
+                    "~call_2 = ret_print('real fast')",
                     "Exit package_with_folder_and_alias.heyo.moose.fast",
                     "Exit module"]
 
@@ -607,7 +607,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function",
                     "Function Entry StarbucksVisitor",
-                    "¤call_2 = ret_print('Iced Mocha')",
+                    "~call_2 = ret_print('Iced Mocha')",
                     "Exit StarbucksVisitor",
                     "Exit module"]
 
@@ -631,7 +631,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit nested_folder_with_init",
                     "Module Exit package_with_function_and_alias",
                     "Function Entry EatalyVisitor",
-                    "¤call_2 = ret_print('Iced Mocha')",
+                    "~call_2 = ret_print('Iced Mocha')",
                     "Exit EatalyVisitor",
                     "Exit module"]
 
@@ -653,7 +653,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file",
                     "Function Entry Starbucks.Tea",
-                    "¤call_2 = ret_print('Teavana Green')",
+                    "~call_2 = ret_print('Teavana Green')",
                     "Exit Starbucks.Tea",
                     "Exit module"]
 
@@ -675,7 +675,7 @@ class ImportTest(BaseTestCase):
                     "Module Exit Starbucks",
                     "Module Exit package_with_file_and_alias",
                     "Function Entry Eataly.Tea",
-                    "¤call_2 = ret_print('Teavana Green')",
+                    "~call_2 = ret_print('Teavana Green')",
                     "Exit Eataly.Tea",
                     "Exit module"]
 

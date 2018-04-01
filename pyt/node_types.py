@@ -47,6 +47,13 @@ class Node():
         self.ingoing = list()
         self.outgoing = list()
 
+    def as_dict(self):
+        return {
+            'label': self.label.encode('utf-8').decode('utf-8'),
+            'line_number': self.line_number,
+            'path': self.path,
+        }
+
     def connect(self, successor):
         """Connect this node to its successor node by
         setting its outgoing and the successors ingoing."""
@@ -132,8 +139,8 @@ class RaiseNode(Node, ConnectToExitNode):
     """CFG Node that represents a Raise statement."""
 
     def __init__(self, ast_node, *, line_number, path):
-        label = LabelVisitor()
-        label.visit(ast_node)
+        label_visitor = LabelVisitor()
+        label_visitor.visit(ast_node)
 
         super().__init__(
             label_visitor.result,

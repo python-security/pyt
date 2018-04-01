@@ -21,6 +21,10 @@ from .constraint_table import (
 from .draw import draw_cfgs, draw_lattices
 from .expr_visitor import make_cfg
 from .fixed_point import analyse
+from .formatters import (
+    json,
+    text
+)
 from .framework_adaptor import FrameworkAdaptor
 from .framework_helper import (
     is_django_view_function,
@@ -93,7 +97,7 @@ def parse_args(args):
                         help='Input trigger word file.',
                         type=str,
                         default=default_trigger_word_file)
-    parser.add_argument('-b', '--blackbox-mapping-file',
+    parser.add_argument('-m', '--blackbox-mapping-file',
                         help='Input blackbox mapping file.',
                         type=str,
                         default=default_blackbox_mapping_file)
@@ -111,6 +115,10 @@ def parse_args(args):
                         ' create a database.', action='store_true')
     parser.add_argument('-dl', '--draw-lattice',
                         nargs='+', help='Draws a lattice.')
+    parser.add_argument('-j', '--json',
+                        help='Prints JSON instead of report.',
+                        action='store_true',
+                        default=False)
 
     analysis_group = parser.add_mutually_exclusive_group()
     analysis_group.add_argument('-li', '--liveness',
@@ -177,7 +185,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def analyse_repo(github_repo, analysis_type, ui_mode):
+def analyse_repo(args, github_repo, analysis_type, ui_mode):
     cfg_list = list()
     directory = os.path.dirname(github_repo.path)
     project_modules = get_modules(directory)
@@ -193,7 +201,7 @@ def analyse_repo(github_repo, analysis_type, ui_mode):
 
     initialize_constraint_table(cfg_list)
     analyse(cfg_list, analysis_type=analysis_type)
-    vulnerability_log = find_vulnerabilities(
+    vulnerabilities = find_vulnerabilities(
         cfg_list,
         analysis_type,
         ui_mode,
@@ -202,7 +210,7 @@ def analyse_repo(github_repo, analysis_type, ui_mode):
             args.trigger_word_file
         )
     )
-    return vulnerability_log
+    return vulnerabilities
 
 
 def main(command_line_args=sys.argv[1:]):
@@ -225,9 +233,12 @@ def main(command_line_args=sys.argv[1:]):
         repos = get_repos(args.git_repos)
         for repo in repos:
             repo.clone()
-            vulnerability_log = analyse_repo(repo, analysis, ui_mode)
-            vulnerability_log.print_report()
-            if not vulnerability_log.vulnerabilities:
+            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode)
+            if args.json:
+                json.report(vulnerabilities, sys.stdout)
+            else:
+                text.report(vulnerabilities, sys.stdout)
+            if not vulnerabilities:
                 repo.clean_up()
         exit()
 
@@ -239,7 +250,8 @@ def main(command_line_args=sys.argv[1:]):
             analysis,
             analyse_repo,
             args.csv_path,
-            ui_mode
+            ui_mode,
+            args
         )
         exit()
 
@@ -278,7 +290,7 @@ def main(command_line_args=sys.argv[1:]):
 
     analyse(cfg_list, analysis_type=analysis)
 
-    vulnerability_log = find_vulnerabilities(
+    vulnerabilities = find_vulnerabilities(
         cfg_list,
         analysis,
         ui_mode,
@@ -287,7 +299,10 @@ def main(command_line_args=sys.argv[1:]):
             args.trigger_word_file
         )
     )
-    vulnerability_log.print_report()
+    if args.json:
+        json.report(vulnerabilities, sys.stdout)
+    else:
+        text.report(vulnerabilities, sys.stdout)
 
     if args.draw_cfg:
         if args.output_filename:
@@ -295,9 +310,9 @@ def main(command_line_args=sys.argv[1:]):
         else:
             draw_cfgs(cfg_list)
     if args.print:
-        l = print_lattice(cfg_list, analysis)
+        lattice = print_lattice(cfg_list, analysis)
 
-        print_table(l)
+        print_table(lattice)
         for i, e in enumerate(cfg_list):
             print('############## CFG number: ', i)
             print(e)
@@ -311,7 +326,7 @@ def main(command_line_args=sys.argv[1:]):
         pprint(project_modules)
 
     if args.create_database:
-        create_database(cfg_list, vulnerability_log)
+        create_database(cfg_list, vulnerabilities)
     if args.draw_lattice:
         draw_lattices(cfg_list)
 
@@ -325,7 +340,7 @@ def main(command_line_args=sys.argv[1:]):
             cfg_to_file(cfg_list)
             verbose_cfg_to_file(cfg_list)
             lattice_to_file(cfg_list, analysis)
-            vulnerabilities_to_file(vulnerability_log)
+            vulnerabilities_to_file(vulnerabilities)
         else:
             if args.def_use_chain:
                 def_use_chain_to_file(cfg_list)
@@ -338,7 +353,7 @@ def main(command_line_args=sys.argv[1:]):
             if args.lattice:
                 lattice_to_file(cfg_list, analysis)
             if args.vulnerabilities:
-                vulnerabilities_to_file(vulnerability_log)
+                vulnerabilities_to_file(vulnerabilities)
 
 
 if __name__ == '__main__':

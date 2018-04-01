@@ -20,14 +20,14 @@ class Counter(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         if node.name in functions:
-            node.name += '¤'
+            node.name += '~'
         functions[node.name] = len(node.body)
         for n in node.body:
             self.visit(n)
 
     def visit_ClassDef(self, node):
         if node.name in classes:
-            node.name += '¤'
+            node.name += '~'
         classes[node.name] = len(node.body)
         for n in node.body:
             self.visit(n)

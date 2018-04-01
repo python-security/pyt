@@ -1,7 +1,11 @@
 import os
 from datetime import datetime
 
-from .definition_chains import build_def_use_chain, build_use_def_chain
+from .definition_chains import (
+    build_def_use_chain,
+    build_use_def_chain
+)
+from .formatters import text
 from .lattice import Lattice
 from .node_types import Node
 
@@ -52,13 +56,13 @@ def insert_node(node):
             fd.write('NULL')
         fd.write(');')
 
-def create_database(cfg_list, vulnerability_log):
+def create_database(cfg_list, vulnerabilities):
     create_nodes_table()
     for cfg in cfg_list:
         for node in cfg.nodes:
             insert_node(node)
     create_vulnerabilities_table()
-    for vulnerability in vulnerability_log.vulnerabilities:
+    for vulnerability in vulnerabilities:
         insert_vulnerability(vulnerability)
 
 
@@ -136,33 +140,19 @@ def lattice_to_file(cfg_list, analysis_type):
                 fd.write('{} -> {}{}'.format(bin(v), str(k), os.linesep))
 
 
-def write_vlog_to_file(fd, vulnerability_log):
-    for i, vulnerability in enumerate(vulnerability_log.vulnerabilities,
-                                      start=1):
-        fd.write('Vulnerability {}:\n{}{}{}'
-                 .format(i, vulnerability, os.linesep, os.linesep))
-
-
-def vulnerabilities_to_file(vulnerability_log):
+def vulnerabilities_to_file(vulnerabilities):
     with Output('vulnerabilities.pyt') as fd:
-        number_of_vulnerabilities = len(vulnerability_log.vulnerabilities)
-        if number_of_vulnerabilities == 1:
-            fd.write('{} vulnerability found:{}'
-                     .format(number_of_vulnerabilities, os.linesep))
-        else:
-            fd.write('{} vulnerabilities found:{}'
-                     .format(number_of_vulnerabilities, os.linesep))
-        write_vlog_to_file(fd, vulnerability_log)
+        text.report(vulnerabilities, fd)
 
 
-def save_repo_scan(repo, entry_path, vulnerability_log, error=None):
+def save_repo_scan(repo, entry_path, vulnerabilities, error=None):
     with open('scan.pyt', 'a') as fd:
         fd.write('{}{}'.format(repo.name, os.linesep))
         fd.write('{}{}'.format(repo.url, os.linesep))
         fd.write('Entry file: {}{}'.format(entry_path, os.linesep))
         fd.write('Scanned: {}{}'.format(datetime.now(), os.linesep))
-        if vulnerability_log:
-            write_vlog_to_file(fd, vulnerability_log)
+        if vulnerabilities:
+            text.report(vulnerabilities, fd)
         else:
             fd.write('No vulnerabilities found.{}'.format(os.linesep))
         if error:

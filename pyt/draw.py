@@ -1,4 +1,5 @@
 """Draws CFG."""
+
 import argparse
 from itertools import permutations
 from subprocess import call
@@ -103,7 +104,6 @@ def draw_cfg(cfg, output_filename='output'):
 
 
 class Node():
-
     def __init__(self, s, parent, children=None):
         self.s = s
         self.parent = parent
