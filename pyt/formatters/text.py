@@ -22,4 +22,4 @@ def report(
             fileobj.write('%s vulnerabilities found:\n' % number_of_vulnerabilities)
 
         for i, vulnerability in enumerate(vulnerabilities, start=1):
-            fileobj.write('Vulnerability {}:\n{}\n'.format(i, vulnerability))
+            fileobj.write('Vulnerability {}:\n{}\n\n'.format(i, vulnerability))
