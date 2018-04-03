@@ -10,11 +10,11 @@ class ReachingDefinitionsTest(AnalysisBaseTestCase):
 
         EXPECTED = [
                     "Label: Entry module: ",
-                    "Label: ¤call_1 = ret_input():  Label: ¤call_1 = ret_input()",
-                    "Label: x = ¤call_1:  Label: x = ¤call_1, Label: ¤call_1 = ret_input()",
-                    "Label: y = x - 1:  Label: y = x - 1, Label: x = ¤call_1, Label: ¤call_1 = ret_input()",
-                    "Label: ¤call_2 = ret_print(x):  Label: ¤call_2 = ret_print(x), Label: y = x - 1, Label: x = ¤call_1, Label: ¤call_1 = ret_input()",
-                    "Label: Exit module:  Label: ¤call_2 = ret_print(x), Label: y = x - 1, Label: x = ¤call_1, Label: ¤call_1 = ret_input()",                    
+                    "Label: ~call_1 = ret_input():  Label: ~call_1 = ret_input()",
+                    "Label: x = ~call_1:  Label: x = ~call_1, Label: ~call_1 = ret_input()",
+                    "Label: y = x - 1:  Label: y = x - 1, Label: x = ~call_1, Label: ~call_1 = ret_input()",
+                    "Label: ~call_2 = ret_print(x):  Label: ~call_2 = ret_print(x), Label: y = x - 1, Label: x = ~call_1, Label: ~call_1 = ret_input()",
+                    "Label: Exit module:  Label: ~call_2 = ret_print(x), Label: y = x - 1, Label: x = ~call_1, Label: ~call_1 = ret_input()",
                    ]
         i = 0
         for k, v in constraint_table.items():
@@ -28,20 +28,20 @@ class ReachingDefinitionsTest(AnalysisBaseTestCase):
 
         EXPECTED = [
                     "Label: Entry module: ",
-                    "Label: ¤call_1 = ret_input():  Label: ¤call_1 = ret_input()",
-                    "Label: x = ¤call_1:  Label: x = ¤call_1, Label: ¤call_1 = ret_input()",
-                    "Label: ¤call_2 = ret_int(x):  Label: ¤call_2 = ret_int(x), Label: x = ¤call_1, Label: ¤call_1 = ret_input()",
-                    "Label: x = ¤call_2:  Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: while x > 1::  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: y = x / 2:  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: if y > 3::  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: x = x - y:  Label: z = z - 1, Label: x = x - y, Label: y = x / 2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: z = x - 4:  Label: x = x / 2, Label: z = x - 4, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: if z > 0::  Label: x = x / 2, Label: z = x - 4, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: x = x / 2:  Label: x = x / 2, Label: z = x - 4, Label: y = x / 2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: z = z - 1:  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: ¤call_3 = ret_print(x):  Label: ¤call_3 = ret_print(x), Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
-                    "Label: Exit module:  Label: ¤call_3 = ret_print(x), Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ¤call_2, Label: ¤call_2 = ret_int(x), Label: ¤call_1 = ret_input()",
+                    "Label: ~call_1 = ret_input():  Label: ~call_1 = ret_input()",
+                    "Label: x = ~call_1:  Label: x = ~call_1, Label: ~call_1 = ret_input()",
+                    "Label: ~call_2 = ret_int(x):  Label: ~call_2 = ret_int(x), Label: x = ~call_1, Label: ~call_1 = ret_input()",
+                    "Label: x = ~call_2:  Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: while x > 1::  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: y = x / 2:  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: if y > 3::  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: x = x - y:  Label: z = z - 1, Label: x = x - y, Label: y = x / 2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: z = x - 4:  Label: x = x / 2, Label: z = x - 4, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: if z > 0::  Label: x = x / 2, Label: z = x - 4, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: x = x / 2:  Label: x = x / 2, Label: z = x - 4, Label: y = x / 2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: z = z - 1:  Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: ~call_3 = ret_print(x):  Label: ~call_3 = ret_print(x), Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
+                    "Label: Exit module:  Label: ~call_3 = ret_print(x), Label: z = z - 1, Label: x = x / 2, Label: x = x - y, Label: y = x / 2, Label: x = ~call_2, Label: ~call_2 = ret_int(x), Label: ~call_1 = ret_input()",
                    ]
         i = 0
         for k, v in constraint_table.items():

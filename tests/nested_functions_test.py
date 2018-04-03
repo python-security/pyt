@@ -25,16 +25,16 @@ class NestedTest(BaseTestCase):
                     "ret_inner = inner_ret_val",
                     "Exit inner",
                     "foo = save_2_foo",
-                    "¤call_2 = ret_inner",
-                    "temp_1_outer_arg = ¤call_2",
+                    "~call_2 = ret_inner",
+                    "temp_1_outer_arg = ~call_2",
                     "outer_arg = temp_1_outer_arg",
                     "Function Entry outer",
                     "outer_ret_val = outer_arg + 'hey'",
                     "ret_outer = outer_ret_val",
                     "Exit outer",
                     "foo = save_1_foo",
-                    "¤call_1 = ret_outer",
-                    "abc = ¤call_1",
+                    "~call_1 = ret_outer",
+                    "abc = ~call_1",
                     "Exit module"]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):

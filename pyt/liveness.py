@@ -64,7 +64,7 @@ class LivenessAnalysis(AnalysisBase):
     def add_vars_assignment(self, JOIN, cfg_node):
         rvars = list()
         if isinstance(cfg_node, BBorBInode):
-            # A conscience decision was made not to include e.g. ¤call_N's in RHS vars
+            # A conscience decision was made not to include e.g. ~call_N's in RHS vars
             rvars.extend(cfg_node.right_hand_side_variables)
         else:
             vv = VarsVisitor()

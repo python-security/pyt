@@ -10,7 +10,7 @@ from .node_types import (
 )
 
 
-CALL_IDENTIFIER = '¤'
+CALL_IDENTIFIER = '~'
 ConnectStatements = namedtuple(
     'ConnectStatements',
     (

@@ -73,10 +73,10 @@ class CFGForTest(BaseTestCase):
         exit_node = 7
 
         self.assertEqual(self.cfg.nodes[for_node].label,'for x in range(3):')
-        self.assertEqual(self.cfg.nodes[body_1].label, '¤call_1 = ret_print(x)')
+        self.assertEqual(self.cfg.nodes[body_1].label, '~call_1 = ret_print(x)')
         self.assertEqual(self.cfg.nodes[body_2].label, 'y += 1')
-        self.assertEqual(self.cfg.nodes[else_body_1].label, "¤call_2 = ret_print('Final: %s' % x)")
-        self.assertEqual(self.cfg.nodes[else_body_2].label, '¤call_3 = ret_print(y)')
+        self.assertEqual(self.cfg.nodes[else_body_1].label, "~call_2 = ret_print('Final: %s' % x)")
+        self.assertEqual(self.cfg.nodes[else_body_2].label, '~call_3 = ret_print(y)')
         self.assertEqual(self.cfg.nodes[next_node].label, 'x = 3')
 
         self.assertInCfg([(for_node, entry),
@@ -124,10 +124,10 @@ class CFGForTest(BaseTestCase):
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         for_node = self.nodes['for x in range(3):']
-        body_1 = self.nodes['¤call_1 = ret_print(x)']
+        body_1 = self.nodes['~call_1 = ret_print(x)']
         body_2 = self.nodes['y += 1']
-        else_body_1 = self.nodes["¤call_2 = ret_print('Final: %s' % x)"]
-        else_body_2 = self.nodes['¤call_3 = ret_print(y)']
+        else_body_1 = self.nodes["~call_2 = ret_print('Final: %s' % x)"]
+        else_body_2 = self.nodes['~call_3 = ret_print(y)']
         next_node = self.nodes['x = 3']
 
         self.assertLineNumber(for_node, 1)
@@ -200,14 +200,14 @@ class CFGTryTest(BaseTestCase):
         print_a5 = 3
         except_im = 4
         except_im_body_1 = 5
-        value_equal_call_2 = 6 # value = ¤call_2
+        value_equal_call_2 = 6 # value = ~call_2
         print_wagyu = 7
         save_node = 8
         assign_to_temp = 9
         assign_from_temp = 10
         function_entry = 11
         ret_of_subprocess_call = 12
-        ret_does_this_kill_us_equal_call_5 = 13 # ret_does_this_kill_us = ¤call_5
+        ret_does_this_kill_us_equal_call_5 = 13 # ret_does_this_kill_us = ~call_5
         function_exit = 14
         restore_node = 15
         return_handler = 16
@@ -530,10 +530,10 @@ class CFGAssignmentMultiTest(BaseTestCase):
         # This assert means N should be connected to N+1
         self.assertInCfg([(1,0),(2,1),(3,2),(4,3),(5,4)])
 
-        self.assertEqual(assignment_to_call1.label, '¤call_1 = ret_int(5)')
-        self.assertEqual(assignment_to_x.label, 'x = ¤call_1')
-        self.assertEqual(assignment_to_call2.label, '¤call_2 = ret_int(4)')
-        self.assertEqual(assignment_to_y.label, 'y = ¤call_2')
+        self.assertEqual(assignment_to_call1.label, '~call_1 = ret_int(5)')
+        self.assertEqual(assignment_to_x.label, 'x = ~call_1')
+        self.assertEqual(assignment_to_call2.label, '~call_2 = ret_int(4)')
+        self.assertEqual(assignment_to_y.label, 'y = ~call_2')
 
     def test_assignment_multi_target_line_numbers(self):
         self.cfg_create_from_file('example/example_inputs/assignment_two_targets.py')
@@ -585,7 +585,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[1]
-        self.assertEqual(call.label, "¤call_1 = ret_''.join((x.n for x in range(16)))")
+        self.assertEqual(call.label, "~call_1 = ret_''.join((x.n for x in range(16)))")
 
         l = zip(range(1, length), range(length))
 
@@ -684,7 +684,7 @@ class CFGFunctionNodeTest(BaseTestCase):
     def test_function_line_numbers(self):
         path = 'example/example_inputs/simple_function.py'
         self.cfg_create_from_file(path)
-        
+
         input_call = self.cfg.nodes[1]
         y_assignment = self.cfg.nodes[2]
         save_y = self.cfg.nodes[3]
@@ -1116,7 +1116,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assert_length(self.cfg.nodes, expected_length=length)
 
         call = self.cfg.nodes[2]
-        self.assertEqual(call.label, "¤call_1 = ret_request.args.get('param', 'not set')")
+        self.assertEqual(call.label, "~call_1 = ret_request.args.get('param', 'not set')")
 
         l = zip(range(1, length), range(length))
         self.assertInCfg(list(l))

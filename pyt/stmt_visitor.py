@@ -529,7 +529,7 @@ class StmtVisitor(ast.NodeVisitor):
         Nothing gets assigned to ret_func_foo in the builtin/blackbox case.
 
         Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
-        Create e.g. ¤call_1 = ret_func_foo RestoreNode.
+        Create e.g. ~call_1 = ret_func_foo RestoreNode.
 
         Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument.
         Visit the arguments if they're calls. (save_def_args_in_temp)
@@ -554,7 +554,7 @@ class StmtVisitor(ast.NodeVisitor):
 
         index = call_label.result.find('(')
 
-        # Create e.g. ¤call_1 = ret_func_foo
+        # Create e.g. ~call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + call_label.result[:index] + '('
 

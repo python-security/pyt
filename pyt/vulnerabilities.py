@@ -8,11 +8,9 @@ from .argument_helpers import UImode
 from .definition_chains import build_def_use_chain
 from .lattice import Lattice
 from .node_types import (
-    AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
     IfNode,
-    RestoreNode,
     TaintedNode
 )
 from .right_hand_side_visitor import RHSVisitor
@@ -20,7 +18,6 @@ from .trigger_definitions_parser import parse
 from .vars_visitor import VarsVisitor
 from .vulnerability_helper import (
     vuln_factory,
-    VulnerabilityLog,
     VulnerabilityType
 )
 
@@ -61,8 +58,8 @@ class TriggerNode():
 
         if self.trigger_word:
             output = '{} trigger_word is {}, '.format(
-                      output,
-                      self.trigger_word
+                output,
+                self.trigger_word
             )
 
         return (
@@ -82,8 +79,7 @@ def identify_triggers(
 
     Args:
         cfg(CFG): CFG to find sources, sinks and sanitisers in.
-        sources(tuple): list of sources,
-        a source is a (source, sanitiser) tuple.
+        sources(tuple): list of sources, a source is a (source, sanitiser) tuple.
         sinks(tuple): list of sources, a sink is a (sink, sanitiser) tuple.
 
     Returns:
@@ -336,7 +332,7 @@ def how_vulnerable(
     for i, current_node in enumerate(chain):
         if current_node in sanitiser_nodes:
             vuln_deets['sanitiser'] = current_node
-            vuln_deets['definite'] = True
+            vuln_deets['confident'] = True
             return VulnerabilityType.SANITISED
 
         if isinstance(current_node, BBorBInode):
@@ -348,7 +344,7 @@ def how_vulnerable(
                 user_says = input(
                     'Is the return value of {} with tainted argument "{}" vulnerable? (Y/n)'.format(
                         current_node.label,
-                        chain[i-1].left_hand_side
+                        chain[i - 1].left_hand_side
                     )
                 ).lower()
                 if user_says.startswith('n'):
@@ -361,7 +357,7 @@ def how_vulnerable(
 
     if potential_sanitiser:
         vuln_deets['sanitiser'] = potential_sanitiser
-        vuln_deets['definite'] = False
+        vuln_deets['confident'] = False
         return VulnerabilityType.SANITISED
 
     return VulnerabilityType.TRUE
@@ -466,21 +462,21 @@ def get_vulnerability(
 
 def find_vulnerabilities_in_cfg(
     cfg,
-    vulnerability_log,
     definitions,
     lattice,
     ui_mode,
-    blackbox_mapping
+    blackbox_mapping,
+    vulnerabilities_list
 ):
     """Find vulnerabilities in a cfg.
 
     Args:
         cfg(CFG): The CFG to find vulnerabilities in.
-        vulnerability_log(vulnerability_log.VulnerabilityLog): The log in which to place found vulnerabilities.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
         lattice(Lattice): the lattice we're analysing.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
+        vulnerabilities_list(list): That we append to when we find vulnerabilities.
     """
     triggers = identify_triggers(
         cfg,
@@ -500,7 +496,7 @@ def find_vulnerabilities_in_cfg(
                 blackbox_mapping
             )
             if vulnerability:
-                vulnerability_log.append(vulnerability)
+                vulnerabilities_list.append(vulnerability)
 
 
 def find_vulnerabilities(
@@ -518,23 +514,23 @@ def find_vulnerabilities(
         vulnerability_files(VulnerabilityFiles): contains trigger words and blackbox_mapping files
 
     Returns:
-        A VulnerabilityLog with found vulnerabilities.
+        A list of vulnerabilities.
     """
+    vulnerabilities = list()
     definitions = parse(vulnerability_files.triggers)
-    with open(vulnerability_files.blackbox_mapping) as f:
-        blackbox_mapping = json.load(f)
-    vulnerability_log = VulnerabilityLog()
 
+    with open(vulnerability_files.blackbox_mapping) as infile:
+        blackbox_mapping = json.load(infile)
     for cfg in cfg_list:
         find_vulnerabilities_in_cfg(
             cfg,
-            vulnerability_log,
             definitions,
             Lattice(cfg.nodes, analysis_type),
             ui_mode,
-            blackbox_mapping
+            blackbox_mapping,
+            vulnerabilities
         )
-    with open(vulnerability_files.blackbox_mapping, 'w') as f:
-        json.dump(blackbox_mapping, f, indent=4)
+    with open(vulnerability_files.blackbox_mapping, 'w') as outfile:
+        json.dump(blackbox_mapping, outfile, indent=4)
 
-    return vulnerability_log
+    return vulnerabilities
