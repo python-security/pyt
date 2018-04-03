@@ -25,8 +25,7 @@ def report(
 
     result = json.dumps(
         machine_output,
-        indent=4,
-        sort_keys=True
+        indent=4
     )
 
     with fileobj:
