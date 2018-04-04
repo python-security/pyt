@@ -2,6 +2,7 @@ import ast
 import random
 from collections import namedtuple
 
+from .expr_visitor_helper import CALL_IDENTIFIER
 from .node_types import (
     AssignmentCallNode,
     BBorBInode,
@@ -11,7 +12,6 @@ from .node_types import (
 )
 
 
-CALL_IDENTIFIER = '¤'
 ConnectStatements = namedtuple(
     'ConnectStatements',
     (

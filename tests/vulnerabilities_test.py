@@ -12,17 +12,13 @@ from pyt.argument_helpers import (
     UImode,
     VulnerabilityFiles
 )
-from pyt.constraint_table import(
-    constraint_table,
-    initialize_constraint_table
-)
+from pyt.constraint_table import initialize_constraint_table
 from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
-from pyt.framework_helper import(
+from pyt.framework_helper import (
     is_django_view_function,
     is_flask_route_function
 )
-from pyt.lattice import Lattice
 from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
@@ -99,16 +95,14 @@ class EngineTest(BaseTestCase):
         l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
         self.assert_length(l, expected_length=1)
 
-
     def test_find_sanitiser_nodes(self):
         cfg_node = Node(None, None, line_number=None, path=None)
-        sanitiser_tuple  = vulnerabilities.Sanitiser('escape', cfg_node)
+        sanitiser_tuple = vulnerabilities.Sanitiser('escape', cfg_node)
         sanitiser = 'escape'
 
         result = list(vulnerabilities.find_sanitiser_nodes(sanitiser, [sanitiser_tuple]))
         self.assert_length(result, expected_length=1)
         self.assertEqual(result[0], cfg_node)
-
 
     def test_build_sanitiser_node_dict(self):
         self.cfg_create_from_file('example/vulnerable_code/XSS_sanitised.py')
@@ -118,7 +112,7 @@ class EngineTest(BaseTestCase):
 
         cfg = cfg_list[1]
 
-        cfg_node = Node(None, None,  line_number=None, path=None)
+        cfg_node = Node(None, None, line_number=None, path=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
 
         sanitiser_dict = vulnerabilities.build_sanitiser_node_dict(cfg, sinks_in_file)
@@ -145,7 +139,6 @@ class EngineTest(BaseTestCase):
                 default_trigger_word_file
             )
         )
-
 
     def test_find_vulnerabilities_assign_other_var(self):
         vulnerability_log = self.run_analysis('example/vulnerable_code/XSS_assign_to_other_var.py')
@@ -510,6 +503,24 @@ class EngineTest(BaseTestCase):
                 ¤call_4 = ret_html.replace('{{ param }}', another_one)
         """
 
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
+    def test_source_nested_in_sink(self):
+        vulnerability_log = self.run_analysis('example/november_2017_evaluation/false_negatives/source_nested_in_sink.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+             > User input at line 8, trigger word "request.args.get(":
+                 ¤call_2 = ret_request.args.get('next')
+            Reassigned in:
+                File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+                 > Line 8: ret_login = ¤call_1
+            File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+             > reaches line 8, trigger word "redirect(":
+                ¤call_1 = ret_redirect(¤call_2)
+        """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
 

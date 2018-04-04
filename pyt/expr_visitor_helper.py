@@ -3,13 +3,7 @@ from collections import namedtuple
 from .node_types import ConnectToExitNode
 
 
-SavedVariable = namedtuple(
-    'SavedVariable',
-    (
-        'LHS',
-        'RHS'
-    )
-)
+CALL_IDENTIFIER = '¤'
 BUILTINS = (
     'get',
     'Flask',
@@ -30,6 +24,13 @@ BUILTINS = (
     'url_for',
     'flash',
     'jsonify'
+)
+SavedVariable = namedtuple(
+    'SavedVariable',
+    (
+        'LHS',
+        'RHS'
+    )
 )
 
 

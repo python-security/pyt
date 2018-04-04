@@ -1,4 +1,5 @@
 import ast
+import itertools
 
 from .alias_helper import (
     handle_aliases_in_calls
@@ -9,6 +10,7 @@ from .ast_helper import (
 )
 from .expr_visitor_helper import (
     BUILTINS,
+    CALL_IDENTIFIER,
     CFG,
     return_connection_handler,
     SavedVariable
@@ -28,7 +30,7 @@ from .node_types import (
 )
 from .right_hand_side_visitor import RHSVisitor
 from .stmt_visitor import StmtVisitor
-from .stmt_visitor_helper import CALL_IDENTIFIER
+from .vars_visitor import VarsVisitor
 
 
 class ExprVisitor(StmtVisitor):
@@ -536,6 +538,108 @@ class ExprVisitor(StmtVisitor):
         self.function_return_stack.pop()
 
         return self.nodes[-1]
+
+    def add_blackbox_or_builtin_call(self, node, blackbox):
+        """Processes a blackbox or builtin function when it is called.
+        Nothing gets assigned to ret_func_foo in the builtin/blackbox case.
+
+        Increments self.function_call_index each time it is called, we can refer to it as N in the comments.
+        Create e.g. ¤call_1 = ret_func_foo RestoreNode.
+
+        Create e.g. temp_N_def_arg1 = call_arg1_label_visitor.result for each argument.
+        Visit the arguments if they're calls. (save_def_args_in_temp)
+
+        I do not think I care about this one actually -- Create e.g. def_arg1 = temp_N_def_arg1 for each argument.
+        (create_local_scope_from_def_args)
+
+        Add RestoreNode to the end of the Nodes.
+
+        Args:
+            node(ast.Call) : The node that calls the definition.
+            blackbox(bool): Whether or not it is a builtin or blackbox call.
+        Returns:
+            call_node(BBorBInode): The call node.
+        """
+        self.function_call_index += 1
+        saved_function_call_index = self.function_call_index
+        self.undecided = False
+
+        call_label = LabelVisitor()
+        call_label.visit(node)
+
+        index = call_label.result.find('(')
+
+        # Create e.g. ¤call_1 = ret_func_foo
+        LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+        RHS = 'ret_' + call_label.result[:index] + '('
+
+        call_node = BBorBInode(
+            label='',
+            left_hand_side=LHS,
+            right_hand_side_variables=[],
+            line_number=node.lineno,
+            path=self.filenames[-1],
+            func_name=call_label.result[:index]
+        )
+        visual_args = list()
+        rhs_vars = list()
+        last_return_value_of_nested_call = None
+
+        for arg in itertools.chain(node.args, node.keywords):
+            if isinstance(arg, ast.Call):
+                return_value_of_nested_call = self.visit(arg)
+
+                if last_return_value_of_nested_call:
+                    # connect inner to other_inner in e.g.
+                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    # I should probably loop to the inner most call of other_inner here.
+                    try:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+                    except AttributeError:
+                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
+                else:
+                    # I should only set this once per loop, inner in e.g.
+                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+                    # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
+                    call_node.inner_most_call = return_value_of_nested_call
+                last_return_value_of_nested_call = return_value_of_nested_call
+
+                visual_args.append(return_value_of_nested_call.left_hand_side)
+                rhs_vars.append(return_value_of_nested_call.left_hand_side)
+            else:
+                label = LabelVisitor()
+                label.visit(arg)
+                visual_args.append(label.result)
+
+                vv = VarsVisitor()
+                vv.visit(arg)
+                rhs_vars.extend(vv.result)
+        if last_return_value_of_nested_call:
+            # connect other_inner to outer in e.g.
+            # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+            last_return_value_of_nested_call.connect(call_node)
+
+        if len(visual_args) > 0:
+            for arg in visual_args:
+                RHS = RHS + arg + ", "
+            # Replace the last ", " with a )
+            RHS = RHS[:len(RHS) - 2] + ')'
+        else:
+            RHS = RHS + ')'
+        call_node.label = LHS + " = " + RHS
+
+        # .args is only used in get_sink_args
+        # We make a new list because right_hand_side_variables is extended in assignment_call_node
+        call_node.right_hand_side_variables = rhs_vars
+        call_node.args = list(rhs_vars)
+
+        if blackbox:
+            self.blackbox_assignments.add(call_node)
+
+        self.connect_if_allowed(self.nodes[-1], call_node)
+        self.nodes.append(call_node)
+
+        return call_node
 
     def visit_Call(self, node):
         _id = get_call_names_as_string(node.func)
