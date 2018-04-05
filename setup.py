@@ -36,7 +36,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'pyt = pyt:main'
+            'pyt = pyt.__main__:main'
         ]
     }
 )
