@@ -523,6 +523,10 @@ class EngineTest(BaseTestCase):
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_if_else_in_sink(self):
+        vulnerability_log = self.run_analysis('example/november_2017_evaluation/false_negatives/if_else_in_sink.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+
 
 class EngineDjangoTest(BaseTestCase):
     def run_empty(self):
