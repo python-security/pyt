@@ -50,6 +50,7 @@ from .save import (
     vulnerabilities_to_file
 )
 from .vulnerabilities import find_vulnerabilities
+from .baseline import compare
 
 
 def parse_args(args):
@@ -136,6 +137,11 @@ def parse_args(args):
 
     parser.add_argument('-ppm', '--print-project-modules',
                         help='Print project modules.', action='store_true')
+    parser.add_argument('-b', '--baseline',
+                        help='path of a baseline report to compare against '
+                             '(only JSON-formatted files are accepted)',
+                        type=str,
+                        default=False)
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -166,6 +172,7 @@ def parse_args(args):
     save_parser.add_argument('-all', '--save-all',
                              help='Output everything to file.',
                              action='store_true')
+
 
     search_parser = subparsers.add_parser(
         'github_search',
@@ -242,6 +249,7 @@ def main(command_line_args=sys.argv[1:]):
                 repo.clean_up()
         exit()
 
+
     if args.which == 'search':
         set_github_api_token()
         scan_github(
@@ -303,7 +311,9 @@ def main(command_line_args=sys.argv[1:]):
         json.report(vulnerabilities, sys.stdout)
     else:
         text.report(vulnerabilities, sys.stdout)
-
+    if args.baseline:
+        baseline = args.baseline
+        compare(json.report(vulnerabilities, sys.stdout),baseline)
     if args.draw_cfg:
         if args.output_filename:
             draw_cfgs(cfg_list, args.output_filename)
