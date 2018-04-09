@@ -10,7 +10,7 @@ def isSame(res, base):
 def compare(results, baseline):
 
 	baseline = json.load(open(baseline))
-	results = json.load(open(results))
+	#results = json.load(open(results))
 	result = {'generated_at':results["generated_at"], 'vulnerabilities':[]}
 
 	if "generated_at" in results and baseline:
