@@ -7,6 +7,9 @@
 .. image:: https://codeclimate.com/github/python-security/pyt/badges/coverage.svg
     :target: https://codeclimate.com/github/python-security/pyt/coverage
 
+.. image:: https://badge.fury.io/py/python-taint.svg
+    :target: https://badge.fury.io/py/python-taint
+
 Python Taint
 ============
 
