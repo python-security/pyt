@@ -2,12 +2,17 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-VERSION = '0.2.0'
+VERSION = '0.30'
+
 
 setup(
     name='python-taint',
     packages=find_packages(exclude=(['tests*'])),
     version=VERSION,
+    include_package_data=True,
+    package_data={
+        'pyt': ['*.json', '*.pyt'],
+    },
     description='Find security vulnerabilities in Python web applications'
     ' using static analysis.',
     long_description="Check out PyT on `GitHub <https://github.com/python-security/pyt>`_!",
@@ -29,11 +34,10 @@ setup(
     ],
     keywords=['security', 'vulnerability', 'web', 'flask', 'django', 'static-analysis', 'program-analysis'],
     install_requires=[
-        'graphviz==0.4.10',
-        'requests~=2.12',
-        'GitPython==2.0.8'
+        'graphviz>=0.4.10',
+        'requests>=2.12',
+        'GitPython>=2.0.8'
     ],
-    include_package_data=True,
     entry_points={
         'console_scripts': [
             'pyt = pyt:main'
