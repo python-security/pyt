@@ -25,7 +25,7 @@ class VarsVisitor(ast.NodeVisitor):
     def visit_Lambda(self, node):
         self.visit(node.body)
 
-    def visit_IfExpr(self, node):
+    def visit_IfExp(self, node):
         self.visit(node.test)
         self.visit(node.body)
         self.visit(node.orelse)

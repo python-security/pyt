@@ -606,6 +606,10 @@ class ExprVisitor(StmtVisitor):
 
                 visual_args.append(return_value_of_nested_call.left_hand_side)
                 rhs_vars.append(return_value_of_nested_call.left_hand_side)
+            elif isinstance(arg, ast.BoolOp):
+                print('Handle me')
+            elif isinstance(arg, ast.IfExp):
+                print('Handle me')
             else:
                 label = LabelVisitor()
                 label.visit(arg)
