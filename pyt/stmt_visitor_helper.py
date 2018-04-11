@@ -12,6 +12,8 @@ from .node_types import (
 )
 
 
+# Mainly used in stmt_star_handler
+# Or after stmt_star_handler returns an IgnoredNode, like in visit_If and visit_Try
 ConnectStatements = namedtuple(
     'ConnectStatements',
     (
