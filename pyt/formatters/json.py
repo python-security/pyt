@@ -17,11 +17,16 @@ def report(
     """
     TZ_AGNOSTIC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
     time_string = datetime.utcnow().strftime(TZ_AGNOSTIC_FORMAT)
-
-    machine_output = {
-        'generated_at': time_string,
-        'vulnerabilities': [vuln.as_dict() for vuln in vulnerabilities]
-    }
+    try:
+        machine_output = {
+            'generated_at': time_string,
+            'vulnerabilities': [vuln.as_dict() for vuln in vulnerabilities]
+        }
+    except:
+        machine_output = {
+            'generated_at': time_string,
+            'vulnerabilities': [vuln for vuln in vulnerabilities]
+        }
 
     result = json.dumps(
         machine_output,
