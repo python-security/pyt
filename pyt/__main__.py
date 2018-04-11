@@ -50,7 +50,7 @@ from .save import (
     vulnerabilities_to_file
 )
 from .vulnerabilities import find_vulnerabilities
-from .baseline import compare
+from .baseline import get_vulnerabilities_not_in_baseline
 
 
 def parse_args(args):
@@ -308,12 +308,20 @@ def main(command_line_args=sys.argv[1:]):
         )
     )
     if args.json:
-        json.report(vulnerabilities, sys.stdout)
+        if args.baseline:
+            baseline = args.baseline
+            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities,baseline)
+            json.report(vulnerabilities, sys.stdout)
+        else:
+            json.report(vulnerabilities, sys.stdout)
     else:
-        text.report(vulnerabilities, sys.stdout)
-    if args.baseline:
-        baseline = args.baseline
-        compare(json.report(vulnerabilities, sys.stdout),baseline)
+        if args.baseline:
+            baseline = args.baseline
+            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities,baseline)
+            text.report(vulnerabilities, sys.stdout)
+        else:
+            text.report(vulnerabilities, sys.stdout)
+
     if args.draw_cfg:
         if args.output_filename:
             draw_cfgs(cfg_list, args.output_filename)
