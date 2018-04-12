@@ -14,6 +14,7 @@ from .argument_helpers import (
     UImode
 )
 from .ast_helper import generate_ast
+from .baseline import get_vulnerabilities_not_in_baseline
 from .constraint_table import (
     initialize_constraint_table,
     print_table
@@ -50,7 +51,6 @@ from .save import (
     vulnerabilities_to_file
 )
 from .vulnerabilities import find_vulnerabilities
-from .baseline import get_vulnerabilities_not_in_baseline
 
 
 def parse_args(args):
