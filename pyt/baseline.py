@@ -1,5 +1,6 @@
 import json
 
+
 def get_vulnerabilities_not_in_baseline(vulnerabilities, baseline):
 	baseline = json.load(open(baseline))
 
