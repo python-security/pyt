@@ -10,23 +10,17 @@ def report(
 ):
     """
     Prints issues in JSON format.
-
     Args:
         vulnerabilities: list of vulnerabilities to report
         fileobj: The output file object, which may be sys.stdout
     """
     TZ_AGNOSTIC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
     time_string = datetime.utcnow().strftime(TZ_AGNOSTIC_FORMAT)
-    try:
-        machine_output = {
-            'generated_at': time_string,
-            'vulnerabilities': [vuln.as_dict() for vuln in vulnerabilities]
-        }
-    except:
-        machine_output = {
-            'generated_at': time_string,
-            'vulnerabilities': [vuln for vuln in vulnerabilities]
-        }
+
+    machine_output = {
+        'generated_at': time_string,
+        'vulnerabilities': [vuln.as_dict() for vuln in vulnerabilities]
+    }
 
     result = json.dumps(
         machine_output,
