@@ -307,20 +307,13 @@ def main(command_line_args=sys.argv[1:]):
             args.trigger_word_file
         )
     )
+    if args.baseline:
+            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
+    
     if args.json:
-        if args.baseline:
-            baseline = args.baseline
-            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities,baseline)
-            json.report(vulnerabilities, sys.stdout)
-        else:
-            json.report(vulnerabilities, sys.stdout)
+        json.report(vulnerabilities, sys.stdout)
     else:
-        if args.baseline:
-            baseline = args.baseline
-            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities,baseline)
-            text.report(vulnerabilities, sys.stdout)
-        else:
-            text.report(vulnerabilities, sys.stdout)
+        text.report(vulnerabilities, sys.stdout)
 
     if args.draw_cfg:
         if args.output_filename:
