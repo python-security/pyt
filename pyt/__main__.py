@@ -14,6 +14,7 @@ from .argument_helpers import (
     UImode
 )
 from .ast_helper import generate_ast
+from .baseline import get_vulnerabilities_not_in_baseline
 from .constraint_table import (
     initialize_constraint_table,
     print_table
@@ -136,6 +137,11 @@ def parse_args(args):
 
     parser.add_argument('-ppm', '--print-project-modules',
                         help='Print project modules.', action='store_true')
+    parser.add_argument('-b', '--baseline',
+                        help='path of a baseline report to compare against '
+                             '(only JSON-formatted files are accepted)',
+                        type=str,
+                        default=False)
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -166,6 +172,7 @@ def parse_args(args):
     save_parser.add_argument('-all', '--save-all',
                              help='Output everything to file.',
                              action='store_true')
+
 
     search_parser = subparsers.add_parser(
         'github_search',
@@ -242,6 +249,7 @@ def main(command_line_args=sys.argv[1:]):
                 repo.clean_up()
         exit()
 
+
     if args.which == 'search':
         set_github_api_token()
         scan_github(
@@ -299,6 +307,9 @@ def main(command_line_args=sys.argv[1:]):
             args.trigger_word_file
         )
     )
+    if args.baseline:
+            vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
+    
     if args.json:
         json.report(vulnerabilities, sys.stdout)
     else:

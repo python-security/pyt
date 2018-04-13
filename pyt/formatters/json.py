@@ -10,7 +10,6 @@ def report(
 ):
     """
     Prints issues in JSON format.
-
     Args:
         vulnerabilities: list of vulnerabilities to report
         fileobj: The output file object, which may be sys.stdout
