@@ -1,4 +1,0 @@
-.. _theming:
-
-Theming (WIP)
-=============
