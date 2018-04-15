@@ -6,7 +6,7 @@ from pyt.reaching_definitions import ReachingDefinitionsAnalysis
 class ReachingDefinitionsTest(AnalysisBaseTestCase):
     def test_linear_program(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/linear.py', ReachingDefinitionsAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/linear.py', ReachingDefinitionsAnalysis)
 
         EXPECTED = [
                     "Label: Entry module: ",
@@ -24,7 +24,7 @@ class ReachingDefinitionsTest(AnalysisBaseTestCase):
 
     def test_example(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/example.py', ReachingDefinitionsAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/example.py', ReachingDefinitionsAnalysis)
 
         EXPECTED = [
                     "Label: Entry module: ",

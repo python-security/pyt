@@ -7,7 +7,7 @@ from pyt.project_handler import get_directory_modules, get_modules_and_packages
 class NestedTest(BaseTestCase):
     def test_nested_user_defined_function_calls(self):
 
-        path = os.path.normpath('example/nested_functions_code/nested_user_defined_function_calls.py')
+        path = os.path.normpath('examples/nested_functions_code/nested_user_defined_function_calls.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))

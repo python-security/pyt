@@ -13,7 +13,7 @@ def XSS1():
 
     html = open('templates/XSS_param.html').read()
     resp = make_response(html.replace('{{ param }}', another_one))
-    
+
     return resp
 
 if __name__ == '__main__':

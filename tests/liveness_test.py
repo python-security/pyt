@@ -5,7 +5,7 @@ from pyt.liveness import LivenessAnalysis
 
 class LivenessTest(AnalysisBaseTestCase):
     def test_example(self):
-        lattice = self.run_analysis('example/example_inputs/example.py', LivenessAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/example.py', LivenessAnalysis)
 
         x = 0b1   # 1
         y = 0b10  # 2

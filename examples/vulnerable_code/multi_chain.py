@@ -16,4 +16,3 @@ def multi_chain():
     subprocess.call(ben, shell=True)
 
     return render_template('multi_chain.html')
-

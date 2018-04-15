@@ -83,7 +83,7 @@ class EngineTest(BaseTestCase):
         self.assert_length(l, expected_length=2)
 
     def test_find_triggers(self):
-        self.cfg_create_from_file('example/vulnerable_code/XSS.py')
+        self.cfg_create_from_file('examples/vulnerable_code/XSS.py')
 
         cfg_list = [self.cfg]
 
@@ -107,7 +107,7 @@ class EngineTest(BaseTestCase):
 
 
     def test_build_sanitiser_node_dict(self):
-        self.cfg_create_from_file('example/vulnerable_code/XSS_sanitised.py')
+        self.cfg_create_from_file('examples/vulnerable_code/XSS_sanitised.py')
         cfg_list = [self.cfg]
 
         FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
@@ -144,35 +144,35 @@ class EngineTest(BaseTestCase):
 
 
     def test_find_vulnerabilities_assign_other_var(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_assign_to_other_var.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_assign_to_other_var.py')
         self.assert_length(vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_inter_command_injection(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/inter_command_injection.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/inter_command_injection.py')
         self.assert_length(vulnerabilities, expected_length=1)
 
     def test_find_vulnerabilities_inter_command_injection_2(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/inter_command_injection_2.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/inter_command_injection_2.py')
         self.assert_length(vulnerabilities, expected_length=1)
 
     def test_XSS_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS.py
+            File: examples/vulnerable_code/XSS.py
              > User input at line 6, trigger word "request.args.get(":
                 ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/XSS.py
+                File: examples/vulnerable_code/XSS.py
                  > Line 6: param = ~call_1
-                File: example/vulnerable_code/XSS.py
+                File: examples/vulnerable_code/XSS.py
                  > Line 9: ~call_3 = ret_make_response(~call_4)
-                File: example/vulnerable_code/XSS.py
+                File: examples/vulnerable_code/XSS.py
                  > Line 9: resp = ~call_3
-                File: example/vulnerable_code/XSS.py
+                File: examples/vulnerable_code/XSS.py
                  > Line 10: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS.py
+            File: examples/vulnerable_code/XSS.py
              > reaches line 9, trigger word "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
@@ -180,17 +180,17 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_command_injection_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/command_injection.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/command_injection.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/command_injection.py
+            File: examples/vulnerable_code/command_injection.py
              > User input at line 15, trigger word "form[":
                 param = request.form['suggestion']
             Reassigned in:
-                File: example/vulnerable_code/command_injection.py
+                File: examples/vulnerable_code/command_injection.py
                  > Line 16: command = 'echo ' + param + ' >> ' + 'menu.txt'
-            File: example/vulnerable_code/command_injection.py
+            File: examples/vulnerable_code/command_injection.py
              > reaches line 18, trigger word "subprocess.call(":
                 ~call_1 = ret_subprocess.call(command, shell=True)
         """
@@ -198,37 +198,37 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_path_traversal_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/path_traversal.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/path_traversal.py
+            File: examples/vulnerable_code/path_traversal.py
              > User input at line 15, trigger word "request.args.get(":
                  ~call_1 = ret_request.args.get('image_name')
             Reassigned in:
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 15: image_name = ~call_1
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 6: save_2_image_name = image_name
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 10: save_3_image_name = image_name
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 10: image_name = save_3_image_name
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 19: temp_2_other_arg = image_name
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 6: other_arg = temp_2_other_arg
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 7: outer_ret_val = outer_arg + 'hey' + other_arg
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 8: ret_outer = outer_ret_val
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 6: image_name = save_2_image_name
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 19: ~call_2 = ret_outer
-                File: example/vulnerable_code/path_traversal.py
+                File: examples/vulnerable_code/path_traversal.py
                  > Line 19: foo = ~call_2
-            File: example/vulnerable_code/path_traversal.py
+            File: examples/vulnerable_code/path_traversal.py
              > reaches line 20, trigger word "send_file(":
                 ~call_4 = ret_send_file(foo)
         """
@@ -236,37 +236,37 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_ensure_saved_scope(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/ensure_saved_scope.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/ensure_saved_scope.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/ensure_saved_scope.py
+            File: examples/vulnerable_code/ensure_saved_scope.py
              > User input at line 15, trigger word "request.args.get(":
                  ~call_1 = ret_request.args.get('image_name')
             Reassigned in:
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 15: image_name = ~call_1
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 6: save_2_image_name = image_name
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 10: save_3_image_name = image_name
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 10: image_name = save_3_image_name
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 19: temp_2_other_arg = image_name
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 6: other_arg = temp_2_other_arg
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 7: outer_ret_val = outer_arg + 'hey' + other_arg
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 8: ret_outer = outer_ret_val
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 6: image_name = save_2_image_name
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 19: ~call_2 = ret_outer
-                File: example/vulnerable_code/ensure_saved_scope.py
+                File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 19: foo = ~call_2
-            File: example/vulnerable_code/ensure_saved_scope.py
+            File: examples/vulnerable_code/ensure_saved_scope.py
              > reaches line 20, trigger word "send_file(":
                 ~call_4 = ret_send_file(image_name)
         """
@@ -274,25 +274,25 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_path_traversal_sanitised_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/path_traversal_sanitised.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/path_traversal_sanitised.py
+            File: examples/vulnerable_code/path_traversal_sanitised.py
              > User input at line 8, trigger word "request.args.get(":
                  ~call_1 = ret_request.args.get('image_name')
             Reassigned in:
-                File: example/vulnerable_code/path_traversal_sanitised.py
+                File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 8: image_name = ~call_1
-                File: example/vulnerable_code/path_traversal_sanitised.py
+                File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 10: ~call_2 = ret_image_name.replace('..', '')
-                File: example/vulnerable_code/path_traversal_sanitised.py
+                File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 10: image_name = ~call_2
-                File: example/vulnerable_code/path_traversal_sanitised.py
+                File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 12: ~call_4 = ret_os.path.join(~call_5, image_name)
-                File: example/vulnerable_code/path_traversal_sanitised.py
+                File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 12: ret_cat_picture = ~call_3
-            File: example/vulnerable_code/path_traversal_sanitised.py
+            File: examples/vulnerable_code/path_traversal_sanitised.py
              > reaches line 12, trigger word "send_file(":
                 ~call_3 = ret_send_file(~call_4)
             This vulnerability is sanitised by:  Label: ~call_2 = ret_image_name.replace('..', '')
@@ -301,21 +301,21 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_path_traversal_sanitised_2_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/path_traversal_sanitised_2.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised_2.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/path_traversal_sanitised_2.py
+            File: examples/vulnerable_code/path_traversal_sanitised_2.py
              > User input at line 8, trigger word "request.args.get(":
                  ~call_1 = ret_request.args.get('image_name')
             Reassigned in:
-                File: example/vulnerable_code/path_traversal_sanitised_2.py
+                File: examples/vulnerable_code/path_traversal_sanitised_2.py
                  > Line 8: image_name = ~call_1
-                File: example/vulnerable_code/path_traversal_sanitised_2.py
+                File: examples/vulnerable_code/path_traversal_sanitised_2.py
                  > Line 12: ~call_3 = ret_os.path.join(~call_4, image_name)
-                File: example/vulnerable_code/path_traversal_sanitised_2.py
+                File: examples/vulnerable_code/path_traversal_sanitised_2.py
                  > Line 12: ret_cat_picture = ~call_2
-            File: example/vulnerable_code/path_traversal_sanitised_2.py
+            File: examples/vulnerable_code/path_traversal_sanitised_2.py
              > reaches line 12, trigger word "send_file(":
                 ~call_2 = ret_send_file(~call_3)
             This vulnerability is potentially sanitised by:  Label: if '..' in image_name:
@@ -324,19 +324,19 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_sql_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/sql/sqli.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/sql/sqli.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/sql/sqli.py
+            File: examples/vulnerable_code/sql/sqli.py
              > User input at line 26, trigger word "request.args.get(":
                 ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/sql/sqli.py
+                File: examples/vulnerable_code/sql/sqli.py
                  > Line 26: param = ~call_1
-                File: example/vulnerable_code/sql/sqli.py
+                File: examples/vulnerable_code/sql/sqli.py
                  > Line 27: result = ~call_2
-            File: example/vulnerable_code/sql/sqli.py
+            File: examples/vulnerable_code/sql/sqli.py
              > reaches line 27, trigger word "execute(":
                 ~call_2 = ret_db.engine.execute(param)
         """
@@ -344,21 +344,21 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_form_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_form.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_form.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_form.py
+            File: examples/vulnerable_code/XSS_form.py
              > User input at line 14, trigger word "form[":
                 data = request.form['my_text']
             Reassigned in:
-                File: example/vulnerable_code/XSS_form.py
+                File: examples/vulnerable_code/XSS_form.py
                  > Line 15: ~call_1 = ret_make_response(~call_2)
-                File: example/vulnerable_code/XSS_form.py
+                File: examples/vulnerable_code/XSS_form.py
                  > Line 15: resp = ~call_1
-                File: example/vulnerable_code/XSS_form.py
+                File: examples/vulnerable_code/XSS_form.py
                  > Line 17: ret_example2_action = resp
-            File: example/vulnerable_code/XSS_form.py
+            File: examples/vulnerable_code/XSS_form.py
              > reaches line 15, trigger word "replace(":
                 ~call_2 = ret_html1.replace('{{ data }}', data)
         """
@@ -366,23 +366,23 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_url_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_url.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_url.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_url.py
+            File: examples/vulnerable_code/XSS_url.py
              > User input at line 4, trigger word "Framework function URL parameter":
                 url
             Reassigned in:
-                File: example/vulnerable_code/XSS_url.py
+                File: examples/vulnerable_code/XSS_url.py
                  > Line 6: param = url
-                File: example/vulnerable_code/XSS_url.py
+                File: examples/vulnerable_code/XSS_url.py
                  > Line 9: ~call_2 = ret_make_response(~call_3)
-                File: example/vulnerable_code/XSS_url.py
+                File: examples/vulnerable_code/XSS_url.py
                  > Line 9: resp = ~call_2
-                File: example/vulnerable_code/XSS_url.py
+                File: examples/vulnerable_code/XSS_url.py
                  > Line 10: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS_url.py
+            File: examples/vulnerable_code/XSS_url.py
              > reaches line 9, trigger word "replace(":
                 ~call_3 = ret_html.replace('{{ param }}', param)
         """
@@ -390,29 +390,29 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_no_vuln_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_no_vuln.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_no_vuln.py')
         self.assert_length(vulnerabilities, expected_length=0)
 
     def test_XSS_reassign_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_reassign.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_reassign.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_reassign.py
+            File: examples/vulnerable_code/XSS_reassign.py
              > User input at line 6, trigger word "request.args.get(":
                 ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/XSS_reassign.py
+                File: examples/vulnerable_code/XSS_reassign.py
                  > Line 6: param = ~call_1
-                File: example/vulnerable_code/XSS_reassign.py
+                File: examples/vulnerable_code/XSS_reassign.py
                  > Line 8: param = param + ''
-                File: example/vulnerable_code/XSS_reassign.py
+                File: examples/vulnerable_code/XSS_reassign.py
                  > Line 11: ~call_3 = ret_make_response(~call_4)
-                File: example/vulnerable_code/XSS_reassign.py
+                File: examples/vulnerable_code/XSS_reassign.py
                  > Line 11: resp = ~call_3
-                File: example/vulnerable_code/XSS_reassign.py
+                File: examples/vulnerable_code/XSS_reassign.py
                  > Line 12: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS_reassign.py
+            File: examples/vulnerable_code/XSS_reassign.py
              > reaches line 11, trigger word "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
@@ -420,27 +420,27 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_sanitised_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_sanitised.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_sanitised.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_sanitised.py
+            File: examples/vulnerable_code/XSS_sanitised.py
              > User input at line 7, trigger word "request.args.get(":
                  ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 7: param = ~call_1
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 9: ~call_2 = ret_Markup.escape(param)
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 9: param = ~call_2
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 12: ~call_4 = ret_make_response(~call_5)
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 12: resp = ~call_4
-                File: example/vulnerable_code/XSS_sanitised.py
+                File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 13: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS_sanitised.py
+            File: examples/vulnerable_code/XSS_sanitised.py
              > reaches line 12, trigger word "replace(":
                 ~call_5 = ret_html.replace('{{ param }}', param)
             This vulnerability is sanitised by:  Label: ~call_2 = ret_Markup.escape(param)
@@ -449,29 +449,29 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_variable_assign_no_vuln_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_variable_assign_no_vuln.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_assign_no_vuln.py')
         self.assert_length(vulnerabilities, expected_length=0)
 
     def test_XSS_variable_assign_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_variable_assign.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_assign.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_variable_assign.py
+            File: examples/vulnerable_code/XSS_variable_assign.py
              > User input at line 6, trigger word "request.args.get(":
                 ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/XSS_variable_assign.py
+                File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 6: param = ~call_1
-                File: example/vulnerable_code/XSS_variable_assign.py
+                File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 8: other_var = param + ''
-                File: example/vulnerable_code/XSS_variable_assign.py
+                File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 11: ~call_3 = ret_make_response(~call_4)
-                File: example/vulnerable_code/XSS_variable_assign.py
+                File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 11: resp = ~call_3
-                File: example/vulnerable_code/XSS_variable_assign.py
+                File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 12: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS_variable_assign.py
+            File: examples/vulnerable_code/XSS_variable_assign.py
              > reaches line 11, trigger word "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', other_var)
         """
@@ -479,29 +479,29 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
     def test_XSS_variable_multiple_assign_result(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/XSS_variable_multiple_assign.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_multiple_assign.py')
         self.assert_length(vulnerabilities, expected_length=1)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/XSS_variable_multiple_assign.py
+            File: examples/vulnerable_code/XSS_variable_multiple_assign.py
              > User input at line 6, trigger word "request.args.get(":
                 ~call_1 = ret_request.args.get('param', 'not set')
             Reassigned in:
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 6: param = ~call_1
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 8: other_var = param + ''
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 10: not_the_same_var = '' + other_var
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 12: another_one = not_the_same_var + ''
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 15: ~call_3 = ret_make_response(~call_4)
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 15: resp = ~call_3
-                File: example/vulnerable_code/XSS_variable_multiple_assign.py
+                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 17: ret_XSS1 = resp
-            File: example/vulnerable_code/XSS_variable_multiple_assign.py
+            File: examples/vulnerable_code/XSS_variable_multiple_assign.py
              > reaches line 15, trigger word "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', another_one)
         """
@@ -539,18 +539,18 @@ class EngineDjangoTest(BaseTestCase):
         )
 
     def test_django_view_param(self):
-        vulnerabilities = self.run_analysis('example/vulnerable_code/django_XSS.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/django_XSS.py')
         self.assert_length(vulnerabilities, expected_length=2)
         vulnerability_description = str(vulnerabilities[0])
 
         EXPECTED_VULNERABILITY_DESCRIPTION = """
-            File: example/vulnerable_code/django_XSS.py
+            File: examples/vulnerable_code/django_XSS.py
              > User input at line 4, trigger word "Framework function URL parameter":
                 param
             Reassigned in:
-                File: example/vulnerable_code/django_XSS.py
+                File: examples/vulnerable_code/django_XSS.py
                  > Line 5: ret_xss1 = ~call_1
-            File: example/vulnerable_code/django_XSS.py
+            File: examples/vulnerable_code/django_XSS.py
              > reaches line 5, trigger word "render(":
                 ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
         """

@@ -19,7 +19,7 @@ class ProjectHandlerTest(unittest.TestCase):
         self.assertEqual(is_python_file(not_python_module), False)
 
     def test_get_modules(self):
-        project_folder = os.path.normpath(os.path.join('example', 'test_project'))
+        project_folder = os.path.normpath(os.path.join('examples', 'test_project'))
 
         project_namespace = 'test_project'
         folder = 'folder'
@@ -55,7 +55,7 @@ class ProjectHandlerTest(unittest.TestCase):
         self.assertEqual(len(modules), 5)
 
     def test_get_modules_and_packages(self):
-        project_folder = os.path.normpath(os.path.join('example', 'test_project'))
+        project_folder = os.path.normpath(os.path.join('examples', 'test_project'))
 
         project_namespace = 'test_project'
         folder = 'folder'

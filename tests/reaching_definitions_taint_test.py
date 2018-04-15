@@ -7,7 +7,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
     # Note: the numbers in the test represent the line numbers of the assignments in the program.
     def test_linear_program(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/linear.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/linear.py', ReachingDefinitionsTaintAnalysis)
 
         EXPECTED = [
                     "Label: Entry module:",
@@ -26,7 +26,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
 
     def test_if_program(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/if_program.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/if_program.py', ReachingDefinitionsTaintAnalysis)
 
         EXPECTED = [
                     "Label: Entry module:",
@@ -45,7 +45,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
 
     def test_example(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/example.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/example.py', ReachingDefinitionsTaintAnalysis)
 
         EXPECTED = [
                     "Label: Entry module:",
@@ -71,7 +71,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
           i = i + 1
 
     def test_func_with_params(self):
-        lattice = self.run_analysis('example/example_inputs/function_with_params.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/function_with_params.py', ReachingDefinitionsTaintAnalysis)
 
         self.assertInCfg([(1,1),
                           (1,2), (2,2),
@@ -86,7 +86,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
 
     def test_while(self):
         constraint_table = {}
-        lattice = self.run_analysis('example/example_inputs/while.py', ReachingDefinitionsTaintAnalysis)
+        lattice = self.run_analysis('examples/example_inputs/while.py', ReachingDefinitionsTaintAnalysis)
 
         EXPECTED = [
                     "Label: Entry module: ",

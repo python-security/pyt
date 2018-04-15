@@ -4,6 +4,6 @@ class String():
 
     def operation(self, a):
         return a
-    
+
 obj = String()
 s = obj.op('x').operation('g')

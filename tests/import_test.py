@@ -8,7 +8,7 @@ from pyt.project_handler import get_directory_modules, get_modules_and_packages
 
 class ImportTest(BaseTestCase):
     def test_import(self):
-        path = os.path.normpath('example/import_test_project/test_import.py')
+        path = os.path.normpath('examples/import_test_project/test_import.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -42,7 +42,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_import_as(self):
-        path = os.path.normpath('example/import_test_project/test_import_as.py')
+        path = os.path.normpath('examples/import_test_project/test_import_as.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -76,7 +76,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_file_import_star(self):
-        path = os.path.normpath('example/import_test_project/test_from_file_import_star.py')
+        path = os.path.normpath('examples/import_test_project/test_from_file_import_star.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -110,7 +110,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_import_star(self):
-        path = os.path.normpath('example/import_test_project/test_from_package_import_star.py')
+        path = os.path.normpath('examples/import_test_project/test_from_package_import_star.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -143,7 +143,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_import_star_with_alias(self):
-        path = os.path.normpath('example/import_test_project/test_from_package_import_star_with_alias.py')
+        path = os.path.normpath('examples/import_test_project/test_from_package_import_star_with_alias.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -176,8 +176,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_directory(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_directory.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_directory.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -200,7 +200,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_level_1(self):
-        path = os.path.normpath('example/import_test_project/test_relative_level_1.py')
+        path = os.path.normpath('examples/import_test_project/test_relative_level_1.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -234,7 +234,7 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_level_2(self):
-        path = os.path.normpath('example/import_test_project/test_relative_level_2.py')
+        path = os.path.normpath('examples/import_test_project/test_relative_level_2.py')
 
         project_modules = get_modules_and_packages(os.path.dirname(path))
         local_modules = get_directory_modules(os.path.dirname(path))
@@ -243,11 +243,11 @@ class ImportTest(BaseTestCase):
             self.cfg_create_from_file(path, project_modules, local_modules)
         except Exception as e:
             self.assertTrue("OSError('Input needs to be a file. Path: " in repr(e))
-            self.assertTrue("example/A.py" in repr(e))
+            self.assertTrue("examples/A.py" in repr(e))
 
     def test_relative_between_folders(self):
-        file_path = os.path.normpath('example/import_test_project/other_dir/test_relative_between_folders.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/other_dir/test_relative_between_folders.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -270,8 +270,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_relative_from_directory(self):
-        file_path = os.path.normpath('example/import_test_project/test_relative_from_directory.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_relative_from_directory.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -293,8 +293,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_dot(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_dot.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_dot.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -318,8 +318,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_dot_dot(self):
-        file_path = os.path.normpath('example/import_test_project/other_dir/test_from_dot_dot.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/other_dir/test_from_dot_dot.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -343,8 +343,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_multiple_files_with_aliases(self):
-        file_path = os.path.normpath('example/import_test_project/test_multiple_files_with_aliases.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_multiple_files_with_aliases.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -406,8 +406,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_multiple_functions_with_aliases(self):
-        file_path = os.path.normpath('example/import_test_project/test_multiple_functions_with_aliases.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_multiple_functions_with_aliases.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -451,8 +451,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_function(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_function.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_function.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -475,8 +475,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_function_and_alias(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_function_and_alias.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_function_and_alias.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -499,8 +499,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_file(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_file.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_file.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -521,8 +521,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_file_and_alias(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_file_and_alias.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_file_and_alias.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -543,8 +543,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_folder(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_folder.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_folder.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -567,8 +567,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_package_with_folder_and_alias(self):
-        file_path = os.path.normpath('example/import_test_project/test_package_with_folder_and_alias.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_package_with_folder_and_alias.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -591,8 +591,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_with_function(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_package_with_function.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_package_with_function.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -615,8 +615,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_with_function_and_alias(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_package_with_function_and_alias.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_package_with_function_and_alias.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -639,8 +639,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_with_file(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_package_with_file.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_package_with_file.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -661,8 +661,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     def test_from_package_with_file_and_alias(self):
-        file_path = os.path.normpath('example/import_test_project/test_from_package_with_file_and_alias.py')
-        project_path = os.path.normpath('example/import_test_project')
+        file_path = os.path.normpath('examples/import_test_project/test_from_package_with_file_and_alias.py')
+        project_path = os.path.normpath('examples/import_test_project')
 
         project_modules = get_modules_and_packages(project_path)
         local_modules = get_directory_modules(project_path)
@@ -683,8 +683,8 @@ class ImportTest(BaseTestCase):
             self.assertEqual(node.label, expected_label)
 
     # def test_all(self):
-    #     file_path = os.path.normpath('example/import_test_project/test_all.py')
-    #     project_path = os.path.normpath('example/import_test_project')
+    #     file_path = os.path.normpath('examples/import_test_project/test_all.py')
+    #     project_path = os.path.normpath('examples/import_test_project')
 
     #     project_modules = get_modules_and_packages(project_path)
     #     local_modules = get_directory_modules(project_path)
@@ -697,8 +697,8 @@ class ImportTest(BaseTestCase):
     #         self.assertEqual(node.label, expected_label)
 
     # def test_no_all(self):
-    #     file_path = os.path.normpath('example/import_test_project/test_no_all.py')
-    #     project_path = os.path.normpath('example/import_test_project')
+    #     file_path = os.path.normpath('examples/import_test_project/test_no_all.py')
+    #     project_path = os.path.normpath('examples/import_test_project')
 
     #     project_modules = get_modules_and_packages(project_path)
     #     local_modules = get_directory_modules(project_path)

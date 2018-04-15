@@ -16,4 +16,3 @@ if not image_name:
     image_name = 'foo'
 foo = outer(first_inner(image_name), second_inner(image_name)) # Any call after ControlFlowNode caused the problem
 send_file(foo)
-

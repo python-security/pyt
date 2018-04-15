@@ -10,7 +10,7 @@ from pyt.framework_helper import (
 
 class FrameworkEngineTest(BaseTestCase):
     def test_find_flask_functions(self):
-        self.cfg_create_from_file('example/example_inputs/django_flask_and_normal_functions.py')
+        self.cfg_create_from_file('examples/example_inputs/django_flask_and_normal_functions.py')
 
         cfg_list = [self.cfg]
         funcs = _get_func_nodes()
@@ -25,7 +25,7 @@ class FrameworkEngineTest(BaseTestCase):
 
 
     def test_find_every_function_without_leading_underscore(self):
-        self.cfg_create_from_file('example/example_inputs/django_flask_and_normal_functions.py')
+        self.cfg_create_from_file('examples/example_inputs/django_flask_and_normal_functions.py')
 
         cfg_list = [self.cfg]
         funcs = _get_func_nodes()
@@ -38,7 +38,7 @@ class FrameworkEngineTest(BaseTestCase):
         self.assertEqual(i, 3)
 
     def test_find_every_function(self):
-        self.cfg_create_from_file('example/example_inputs/django_flask_and_normal_functions.py')
+        self.cfg_create_from_file('examples/example_inputs/django_flask_and_normal_functions.py')
 
         cfg_list = [self.cfg]
         funcs = _get_func_nodes()
@@ -51,7 +51,7 @@ class FrameworkEngineTest(BaseTestCase):
         self.assertEqual(len(funcs), 4)
 
     def test_find_django_functions(self):
-        self.cfg_create_from_file('example/example_inputs/django_flask_and_normal_functions.py')
+        self.cfg_create_from_file('examples/example_inputs/django_flask_and_normal_functions.py')
 
         cfg_list = [self.cfg]
         funcs = _get_func_nodes()
@@ -65,7 +65,7 @@ class FrameworkEngineTest(BaseTestCase):
         self.assertEqual(i, 1)
 
     def test_find_django_views(self):
-        self.cfg_create_from_file('example/example_inputs/django_views.py')
+        self.cfg_create_from_file('examples/example_inputs/django_views.py')
 
         cfg_list = [self.cfg]
         funcs = _get_func_nodes()
