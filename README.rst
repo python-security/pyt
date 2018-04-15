@@ -39,7 +39,7 @@ Features
 
 Example usage and output:
 
-.. image:: https://raw.githubusercontent.com/python-security/pyt/master/readme_static_files/pyt_example.png
+.. image:: https://raw.githubusercontent.com/KevinHock/rtdpyt/master/readme_static_files/pyt_example.png
 
 Install
 =======
