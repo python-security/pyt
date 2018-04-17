@@ -33,8 +33,6 @@ Features
 
 * Search GitHub and analyse hits with PyT
 
-* Scan intraprocedural or interprocedural
-
 * A lot of customisation possible
 
 Example usage and output:
@@ -46,20 +44,20 @@ Install
 
        1. git clone https://github.com/python-security/pyt.git
        2. cd pyt/
-       3. python setup.py install
+       3. python3 setup.py install
        4. pyt -h
 
 
 Usage from Source
 =================
 
-Using it like a user ``python -m pyt -f example/vulnerable_code/XSS_call.py save -du``
+Using it like a user ``python3 -m pyt -f example/vulnerable_code/XSS_call.py save -du``
 
-Running the tests ``python -m tests``
+Running the tests ``python3 -m tests``
 
-Running an individual test file ``python -m unittest tests.import_test``
+Running an individual test file ``python3 -m unittest tests.import_test``
 
-Running an individual test ``python -m unittest tests.import_test.ImportTest.test_import``
+Running an individual test ``python3 -m unittest tests.import_test.ImportTest.test_import``
 
 
 Contributions
