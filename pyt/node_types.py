@@ -138,14 +138,13 @@ class EntryOrExitNode(Node):
 class RaiseNode(Node, ConnectToExitNode):
     """CFG Node that represents a Raise statement."""
 
-    def __init__(self, ast_node, *, line_number, path):
+    def __init__(self, ast_node, *, path):
         label_visitor = LabelVisitor()
         label_visitor.visit(ast_node)
 
         super().__init__(
             label_visitor.result,
             ast_node,
-            line_number=line_number,
             path=path
         )
 
