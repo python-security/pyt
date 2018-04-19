@@ -89,7 +89,7 @@ Create the virtual environment
 
 Check that you have the right versions
 
-``python --version`` sample output ``Python 3.6.0``
+``python3 --version`` sample output ``Python 3.6.0``
 
 ``pip --version`` sample output ``pip 9.0.1 from /Users/kevinhock/a_folder/lib/python3.6/site-packages (python 3.6)``
 
