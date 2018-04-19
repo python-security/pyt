@@ -176,6 +176,10 @@ class AssignmentNode(Node):
 
 
 class TaintedNode(AssignmentNode):
+    """CFG Node that represents a tainted node.
+
+    Only created in framework_adaptor.py and only used in `identify_triggers` of vulnerabilities.py
+    """
     pass
 
 

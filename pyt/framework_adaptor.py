@@ -5,7 +5,10 @@ import ast
 from .ast_helper import Arguments
 from .expr_visitor import make_cfg
 from .module_definitions import project_definitions
-from .node_types import TaintedNode
+from .node_types import (
+    AssignmentNode,
+    TaintedNode
+)
 
 
 class FrameworkAdaptor():
@@ -37,19 +40,27 @@ class FrameworkAdaptor():
             first_node_after_args = func_cfg.nodes[1]
             first_node_after_args.ingoing = list()
 
-            # We're just gonna give all the tainted args the lineno of the def
+            # We are just going to give all the tainted args the lineno of the def
             definition_lineno = definition.node.lineno
 
             # Taint all the arguments
-            for arg in args:
-                tainted_node = TaintedNode(arg, arg,
-                                           None, [],
-                                           line_number=definition_lineno,
-                                           path=definition.path)
-                function_entry_node.connect(tainted_node)
+            for i, arg in enumerate(args):
+                node_type = TaintedNode
+                if i == 0 and arg == 'self':
+                    node_type = AssignmentNode
+
+                arg_node = node_type(
+                    label=arg,
+                    left_hand_side=arg,
+                    ast_node=None,
+                    right_hand_side_variables=[],
+                    line_number=definition_lineno,
+                    path=definition.path
+                )
+                function_entry_node.connect(arg_node)
                 # 1 and not 0 so that Entry Node remains first in the list
-                func_cfg.nodes.insert(1, tainted_node)
-                tainted_node.connect(first_node_after_args)
+                func_cfg.nodes.insert(1, arg_node)
+                arg_node.connect(first_node_after_args)
 
         return func_cfg
 
