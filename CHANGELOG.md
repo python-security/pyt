@@ -26,7 +26,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 
 #### :tada: New Features
 
-* Baseline support by  in ([#106], thanks [@omergunal])
+* Baseline support ([#106], thanks [@omergunal])
 
 [#106]: https://github.com/python-security/pyt/pull/106
 [@omergunal]: https://github.com/omergunal
