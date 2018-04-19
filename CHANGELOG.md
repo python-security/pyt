@@ -32,10 +32,10 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [@omergunal]: https://github.com/omergunal
 
 #### :sparkles: Usability
-* Combined all source/sink files and made it the default ([#116])
+* Combined all source/sink information files and made it the default ([#116])
 
 #### :telescope: Precision
-* Fixed a bug where "Post.query.paginate" progated taint ([#115])
+* Fixed a bug where `Post.query.paginate` propagated taint ([#115])
 * Fixed a false-positive where `self` was marked as taint ([#119])
 
 #### :bug: Bugfixes
