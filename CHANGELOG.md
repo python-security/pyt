@@ -46,10 +46,10 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 
 * Moved out a bunch of historical files to the [ReadTheDocs repo](https://github.com/KevinHock/rtdpyt) ([#110], [#111])
 
-[#106]: https://github.com/python-security/pyt/pull/116
-[#106]: https://github.com/python-security/pyt/pull/115
-[#106]: https://github.com/python-security/pyt/pull/119
-[#106]: https://github.com/python-security/pyt/pull/117
-[#106]: https://github.com/python-security/pyt/pull/118
-[#106]: https://github.com/python-security/pyt/pull/111
-[#106]: https://github.com/python-security/pyt/pull/110
+[#116]: https://github.com/python-security/pyt/pull/116
+[#115]: https://github.com/python-security/pyt/pull/115
+[#119]: https://github.com/python-security/pyt/pull/119
+[#117]: https://github.com/python-security/pyt/pull/117
+[#118]: https://github.com/python-security/pyt/pull/118
+[#111]: https://github.com/python-security/pyt/pull/111
+[#110]: https://github.com/python-security/pyt/pull/110
