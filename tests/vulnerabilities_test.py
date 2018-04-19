@@ -15,9 +15,10 @@ from pyt.argument_helpers import (
 from pyt.constraint_table import initialize_constraint_table
 from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
-from pyt.framework_helper import(
+from pyt.framework_helper import (
     is_django_view_function,
-    is_flask_route_function
+    is_flask_route_function,
+    is_function
 )
 from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
@@ -95,16 +96,14 @@ class EngineTest(BaseTestCase):
         l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
         self.assert_length(l, expected_length=1)
 
-
     def test_find_sanitiser_nodes(self):
         cfg_node = Node(None, None, line_number=None, path=None)
-        sanitiser_tuple  = vulnerabilities.Sanitiser('escape', cfg_node)
+        sanitiser_tuple = vulnerabilities.Sanitiser('escape', cfg_node)
         sanitiser = 'escape'
 
         result = list(vulnerabilities.find_sanitiser_nodes(sanitiser, [sanitiser_tuple]))
         self.assert_length(result, expected_length=1)
         self.assertEqual(result[0], cfg_node)
-
 
     def test_build_sanitiser_node_dict(self):
         self.cfg_create_from_file('examples/vulnerable_code/XSS_sanitised.py')
@@ -114,7 +113,7 @@ class EngineTest(BaseTestCase):
 
         cfg = cfg_list[1]
 
-        cfg_node = Node(None, None,  line_number=None, path=None)
+        cfg_node = Node(None, None, line_number=None, path=None)
         sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
 
         sanitiser_dict = vulnerabilities.build_sanitiser_node_dict(cfg, sinks_in_file)
@@ -141,7 +140,6 @@ class EngineTest(BaseTestCase):
                 default_trigger_word_file
             )
         )
-
 
     def test_find_vulnerabilities_assign_other_var(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_assign_to_other_var.py')
@@ -555,3 +553,37 @@ class EngineDjangoTest(BaseTestCase):
                 ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
         """
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
+
+class EngineEveryTest(BaseTestCase):
+    def run_empty(self):
+        return
+
+    def run_analysis(self, path):
+        self.cfg_create_from_file(path)
+        cfg_list = [self.cfg]
+
+        FrameworkAdaptor(cfg_list, [], [], is_function)
+        initialize_constraint_table(cfg_list)
+
+        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+
+        trigger_word_file = os.path.join(
+            'pyt',
+            'vulnerability_definitions',
+            'all_trigger_words.pyt'
+        )
+
+        return vulnerabilities.find_vulnerabilities(
+            cfg_list,
+            ReachingDefinitionsTaintAnalysis,
+            UImode.NORMAL,
+            VulnerabilityFiles(
+                default_blackbox_mapping_file,
+                trigger_word_file
+            )
+        )
+
+    def test_self_is_not_tainted(self):
+        vulnerabilities = self.run_analysis('examples/example_inputs/def_with_self_as_first_arg.py')
+        self.assert_length(vulnerabilities, expected_length=0)

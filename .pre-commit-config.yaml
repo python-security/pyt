@@ -8,4 +8,4 @@
     -   id: check-ast
     -   id: check-symlinks
     -   id: flake8
-        args: ['--ignore=E501']
+        args: ['--exclude=examples/*', '--ignore=E501,E741']
