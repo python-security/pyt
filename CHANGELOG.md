@@ -13,6 +13,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 #### :boom: Breaking Changes
 #### :tada: New Features
 #### :sparkles: Usability
+#### :mortar_board: Walkthrough / Help
 #### :telescope: Precision
 #### :bug: Bugfixes
 #### :snake: Miscellaneous
@@ -36,10 +37,10 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 
 #### :telescope: Precision
 * Fixed a bug where `Post.query.paginate` propagated taint ([#115])
-* Fixed a false-positive where `self` was marked as taint ([#119])
+* Fixed a false-positive where `self` was marked as taint ([#119], thanks [@lFatty])
 
 #### :bug: Bugfixes
-* Fixed a bug where `visit_Raise` raised a `TypeError`  ([#117])
+* Fixed a bug where `visit_Raise` raised a `TypeError`  ([#117], thanks [@lFatty])
 * Fixed an infinite loop bug that was caused while handling certain loops ([#118])
 
 #### :snake: Miscellaneous
@@ -53,3 +54,4 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#118]: https://github.com/python-security/pyt/pull/118
 [#111]: https://github.com/python-security/pyt/pull/111
 [#110]: https://github.com/python-security/pyt/pull/110
+[@lfatty]: https://github.com/lfatty
