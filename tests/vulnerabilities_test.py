@@ -6,14 +6,14 @@ from pyt import (
     trigger_definitions_parser,
     vulnerabilities
 )
+from pyt.analysis.constraint_table import initialize_constraint_table
+from pyt.analysis.fixed_point import analyse
 from pyt.argument_helpers import (
     default_blackbox_mapping_file,
     default_trigger_word_file,
     UImode,
     VulnerabilityFiles
 )
-from pyt.constraint_table import initialize_constraint_table
-from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import (
     is_django_view_function,

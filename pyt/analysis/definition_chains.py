@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from .constraint_table import constraint_table
-from .node_types import AssignmentNode
+from ..node_types import AssignmentNode
 
 
 def get_constraint_nodes(

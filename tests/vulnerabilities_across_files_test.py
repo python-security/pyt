@@ -7,8 +7,8 @@ from pyt.argument_helpers import (
     UImode,
     VulnerabilityFiles
 )
-from pyt.constraint_table import initialize_constraint_table
-from pyt.fixed_point import analyse
+from pyt.analysis.constraint_table import initialize_constraint_table
+from pyt.analysis.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.project_handler import get_directory_modules, get_modules

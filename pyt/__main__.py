@@ -5,6 +5,8 @@ import os
 import sys
 from datetime import date
 
+from .analysis.constraint_table import initialize_constraint_table
+from .analysis.fixed_point import analyse
 from .argument_helpers import (
     default_blackbox_mapping_file,
     default_trigger_word_file,
@@ -14,9 +16,7 @@ from .argument_helpers import (
 )
 from .ast_helper import generate_ast
 from .baseline import get_vulnerabilities_not_in_baseline
-from .constraint_table import initialize_constraint_table
 from .expr_visitor import make_cfg
-from .fixed_point import analyse
 from .formatters import (
     json,
     text

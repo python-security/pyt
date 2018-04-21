@@ -3,7 +3,7 @@ from .constraint_table import (
     constraint_table
 )
 from .lattice import Lattice
-from .node_types import AssignmentNode
+from ..node_types import AssignmentNode
 
 
 class ReachingDefinitionsTaintAnalysis():

@@ -13,11 +13,11 @@ from datetime import (
     timedelta
 )
 from . import repo_runner
+from .analysis.constraint_table import initialize_constraint_table
+from .analysis.fixed_point import analyse
 from .argument_helpers import VulnerabilityFiles
 from .ast_helper import generate_ast
-from .constraint_table import initialize_constraint_table
 from .expr_visitor import make_cfg
-from .fixed_point import analyse
 from .formatters import (
     json,
     text

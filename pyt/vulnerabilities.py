@@ -4,9 +4,9 @@ import ast
 import json
 from collections import namedtuple
 
+from .analysis.definition_chains import build_def_use_chain
+from .analysis.lattice import Lattice
 from .argument_helpers import UImode
-from .definition_chains import build_def_use_chain
-from .lattice import Lattice
 from .node_types import (
     AssignmentNode,
     BBorBInode,
