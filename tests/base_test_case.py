@@ -2,7 +2,7 @@
 import unittest
 
 from pyt.ast_helper import generate_ast
-from pyt.expr_visitor import make_cfg
+from pyt.cfg import make_cfg
 from pyt.module_definitions import project_definitions
 
 
@@ -27,30 +27,49 @@ class BaseTestCase(unittest.TestCase):
         for element in range(nodes):
             for sets in range(nodes):
                 if not (element, sets) in connections:
-                    self.assertNotIn(self.cfg.nodes[element], self.cfg.nodes[sets].outgoing, "(%s <- %s)" % (element, sets)  +  " expected to be disconnected")
-                    self.assertNotIn(self.cfg.nodes[sets], self.cfg.nodes[element].ingoing, "(%s <- %s)" % (sets, element)  +  " expected to be disconnected")
+                    self.assertNotIn(
+                        self.cfg.nodes[element],
+                        self.cfg.nodes[sets].outgoing,
+                        "(%s <- %s)" % (element, sets) + " expected to be disconnected"
+                    )
+                    self.assertNotIn(
+                        self.cfg.nodes[sets],
+                        self.cfg.nodes[element].ingoing,
+                        "(%s <- %s)" % (sets, element) + " expected to be disconnected"
+                    )
 
     def assertConnected(self, node, successor):
         """Asserts that a node is connected to its successor.
         This means that node has successor in its outgoing and
         successor has node in its ingoing."""
 
-        self.assertIn(successor, node.outgoing,
-                       '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
+        self.assertIn(
+            successor,
+            node.outgoing,
+            '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']'
+        )
 
-        self.assertIn(node, successor.ingoing,
-                       '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
+        self.assertIn(
+            node,
+            successor.ingoing,
+            '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']'
+        )
 
     def assertNotConnected(self, node, successor):
         """Asserts that a node is not connected to its successor.
         This means that node does not the successor in its outgoing and
         successor does not have the node in its ingoing."""
 
-        self.assertNotIn(successor, node.outgoing,
-                       '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']')
-
-        self.assertNotIn(node, successor.ingoing,
-                         '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']')
+        self.assertNotIn(
+            successor,
+            node.outgoing,
+            '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']'
+        )
+        self.assertNotIn(
+            node,
+            successor.ingoing,
+            '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']'
+        )
 
     def assertLineNumber(self, node, line_number):
         self.assertEqual(node.line_number, line_number)
@@ -70,11 +89,13 @@ class BaseTestCase(unittest.TestCase):
         self.cfg = make_cfg(tree, project_modules, local_modules, filename)
 
     def string_compare_alpha(self, output, expected_string):
-        return [char for char in output if char.isalpha()] \
-                == \
-               [char for char in expected_string if char.isalpha()]
+        return (
+            [char for char in output if char.isalpha()] ==
+            [char for char in expected_string if char.isalpha()]
+        )
 
     def string_compare_alnum(self, output, expected_string):
-        return [char for char in output if char.isalnum()] \
-                == \
-               [char for char in expected_string if char.isalnum()]
+        return (
+            [char for char in output if char.isalnum()] ==
+            [char for char in expected_string if char.isalnum()]
+        )

@@ -1,21 +1,20 @@
 import ast
 
-from .alias_helper import (
+from ..alias_helper import (
     handle_aliases_in_calls
 )
-from .ast_helper import (
+from ..ast_helper import (
     Arguments,
     get_call_names_as_string
 )
 from .expr_visitor_helper import (
     BUILTINS,
-    CFG,
     return_connection_handler,
     SavedVariable
 )
-from .label_visitor import LabelVisitor
-from .module_definitions import ModuleDefinitions
-from .node_types import (
+from ..label_visitor import LabelVisitor
+from ..module_definitions import ModuleDefinitions
+from ..node_types import (
     AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
@@ -26,7 +25,7 @@ from .node_types import (
     RestoreNode,
     ReturnNode
 )
-from .right_hand_side_visitor import RHSVisitor
+from ..right_hand_side_visitor import RHSVisitor
 from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import CALL_IDENTIFIER
 
@@ -564,22 +563,3 @@ class ExprVisitor(StmtVisitor):
             # Mark the call as a blackbox because we don't have the definition
             return self.add_blackbox_or_builtin_call(node, blackbox=True)
         return self.add_blackbox_or_builtin_call(node, blackbox=False)
-
-
-def make_cfg(
-    node,
-    project_modules,
-    local_modules,
-    filename,
-    module_definitions=None
-):
-    visitor = ExprVisitor(
-        node,
-        project_modules,
-        local_modules, filename,
-        module_definitions
-    )
-    return CFG(
-        visitor.nodes,
-        visitor.blackbox_assignments
-    )

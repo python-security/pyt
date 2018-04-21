@@ -2,24 +2,24 @@ import ast
 import itertools
 import os.path
 
-from .alias_helper import (
+from ..alias_helper import (
     as_alias_handler,
     handle_aliases_in_init_files,
     handle_fdid_aliases,
     not_as_alias_handler,
     retrieve_import_alias_mapping
 )
-from .ast_helper import (
+from ..ast_helper import (
     generate_ast,
     get_call_names_as_string
 )
-from .label_visitor import LabelVisitor
-from .module_definitions import (
+from ..label_visitor import LabelVisitor
+from ..module_definitions import (
     LocalModuleDefinition,
     ModuleDefinition,
     ModuleDefinitions
 )
-from .node_types import (
+from ..node_types import (
     AssignmentNode,
     AssignmentCallNode,
     BBorBInode,
@@ -33,8 +33,8 @@ from .node_types import (
     ReturnNode,
     TryNode
 )
-from .project_handler import get_directory_modules
-from .right_hand_side_visitor import RHSVisitor
+from ..project_handler import get_directory_modules
+from ..right_hand_side_visitor import RHSVisitor
 from .stmt_visitor_helper import (
     CALL_IDENTIFIER,
     ConnectStatements,
@@ -45,7 +45,7 @@ from .stmt_visitor_helper import (
     get_last_statements,
     remove_breaks
 )
-from .vars_visitor import VarsVisitor
+from ..vars_visitor import VarsVisitor
 
 
 class StmtVisitor(ast.NodeVisitor):

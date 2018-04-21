@@ -17,7 +17,7 @@ from .analysis.constraint_table import initialize_constraint_table
 from .analysis.fixed_point import analyse
 from .argument_helpers import VulnerabilityFiles
 from .ast_helper import generate_ast
-from .expr_visitor import make_cfg
+from .cfg import make_cfg
 from .formatters import (
     json,
     text

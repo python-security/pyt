@@ -16,7 +16,7 @@ from .argument_helpers import (
 )
 from .ast_helper import generate_ast
 from .baseline import get_vulnerabilities_not_in_baseline
-from .expr_visitor import make_cfg
+from .cfg import make_cfg
 from .formatters import (
     json,
     text
