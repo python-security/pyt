@@ -24,10 +24,10 @@ class CommandLineTest(BaseTestCase):
 
         EXPECTED = """usage: python -m pyt [-h] (-f FILEPATH | -gr GIT_REPOS) [-pr PROJECT_ROOT]
                      [-d] [-o OUTPUT_FILENAME] [-csv CSV_PATH]
-                     [-p | -vp | -trim | -i] [-t TRIGGER_WORD_FILE]
-                     [-m BLACKBOX_MAPPING_FILE] [-py2] [-l LOG_LEVEL]
-                     [-a ADAPTOR] [-db] [-dl DRAW_LATTICE [DRAW_LATTICE ...]]
-                     [-j] [-li | -re | -rt] [-ppm] [-b BASELINE]
+                     [-t TRIGGER_WORD_FILE] [-m BLACKBOX_MAPPING_FILE] [-py2]
+                     [-l LOG_LEVEL] [-a ADAPTOR] [-db]
+                     [-dl DRAW_LATTICE [DRAW_LATTICE ...]] [-j] [-ppm]
+                     [-b BASELINE] [-p | -vp | -trim | -i] [-li | -re | -rt]
                      {save,github_search} ...\n""" + \
                      "python -m pyt: error: one of the arguments " + \
                      "-f/--filepath -gr/--git-repos is required\n"
