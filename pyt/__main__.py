@@ -37,7 +37,6 @@ from .project_handler import (
     get_directory_modules,
     get_modules
 )
-from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .vulnerabilities import find_vulnerabilities
 
 
@@ -208,10 +207,7 @@ def main(command_line_args=sys.argv[1:]):
     )
 
     initialize_constraint_table(cfg_list)
-    analyse(
-        cfg_list,
-        ReachingDefinitionsTaintAnalysis
-    )
+    analyse(cfg_list)
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         ui_mode,

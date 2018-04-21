@@ -26,7 +26,6 @@ from .project_handler import (
     get_directory_modules,
     get_modules
 )
-from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .repo_runner import (
     add_repo_to_csv,
     get_repos,
@@ -247,10 +246,7 @@ def analyse_repo(
     cfg_list = list(cfg)
 
     initialize_constraint_table(cfg_list)
-    analyse(
-        cfg_list,
-        ReachingDefinitionsTaintAnalysis
-    )
+    analyse(cfg_list)
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         ui_mode,
