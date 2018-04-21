@@ -12,7 +12,6 @@ from pyt.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.project_handler import get_directory_modules, get_modules
-from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from pyt.vulnerabilities import find_vulnerabilities
 
 
@@ -31,7 +30,7 @@ class EngineTest(BaseTestCase):
 
         initialize_constraint_table(cfg_list)
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        analyse(cfg_list)
 
         return find_vulnerabilities(
             cfg_list,

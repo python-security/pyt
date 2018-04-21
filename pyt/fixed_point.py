@@ -1,16 +1,17 @@
 """This module implements the fixed point algorithm."""
 from .constraint_table import constraint_table
+from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
 
 class FixedPointAnalysis():
     """Run the fix point analysis."""
 
-    def __init__(self, cfg, analysis):
+    def __init__(self, cfg):
         """Fixed point analysis.
 
         Analysis must be a dataflow analysis containing a 'fixpointmethod'
         method that analyses one CFG."""
-        self.analysis = analysis(cfg)
+        self.analysis = ReachingDefinitionsTaintAnalysis(cfg)
         self.cfg = cfg
 
     def fixpoint_runner(self):
@@ -29,8 +30,8 @@ class FixedPointAnalysis():
             q = q[1:]  # q = q.tail()  # The list minus the head
 
 
-def analyse(cfg_list, *, analysis_type):
+def analyse(cfg_list):
     """Analyse a list of control flow graphs with a given analysis type."""
     for cfg in cfg_list:
-        analysis = FixedPointAnalysis(cfg, analysis_type)
+        analysis = FixedPointAnalysis(cfg)
         analysis.fixpoint_runner()

@@ -52,9 +52,9 @@ class AnalysisBaseTestCase(BaseTestCase):
         for c in list_of_constraints:
             yield (c, node_number)
 
-    def run_analysis(self, path, analysis_type):
+    def run_analysis(self, path):
         self.cfg_create_from_file(path)
         initialize_constraint_table([self.cfg])
-        self.analysis = FixedPointAnalysis(self.cfg, analysis_type)
+        self.analysis = FixedPointAnalysis(self.cfg)
         self.analysis.fixpoint_runner()
         return Lattice(self.cfg.nodes)
