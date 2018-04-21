@@ -1,6 +1,6 @@
 import ast
 
-from ..alias_helper import (
+from .alias_helper import (
     handle_aliases_in_calls
 )
 from ..ast_helper import (

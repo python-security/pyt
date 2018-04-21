@@ -19,8 +19,16 @@ class BaseTestCase(unittest.TestCase):
                                       at index 1 of the tuple.
         """
         for connection in connections:
-            self.assertIn(self.cfg.nodes[connection[0]], self.cfg.nodes[connection[1]].outgoing, str(connection) + " expected to be connected")
-            self.assertIn(self.cfg.nodes[connection[1]], self.cfg.nodes[connection[0]].ingoing, str(connection) + " expected to be connected")
+            self.assertIn(
+                self.cfg.nodes[connection[0]],
+                self.cfg.nodes[connection[1]].outgoing,
+                str(connection) + " expected to be connected"
+            )
+            self.assertIn(
+                self.cfg.nodes[connection[1]],
+                self.cfg.nodes[connection[0]].ingoing,
+                str(connection) + " expected to be connected"
+            )
 
         nodes = len(self.cfg.nodes)
 
@@ -83,10 +91,20 @@ class BaseTestCase(unittest.TestCase):
         actual_length = len(_list)
         self.assertEqual(expected_length, actual_length)
 
-    def cfg_create_from_file(self, filename, project_modules=list(), local_modules=list()):
+    def cfg_create_from_file(
+        self,
+        filename,
+        project_modules=list(),
+        local_modules=list()
+    ):
         project_definitions.clear()
         tree = generate_ast(filename)
-        self.cfg = make_cfg(tree, project_modules, local_modules, filename)
+        self.cfg = make_cfg(
+            tree,
+            project_modules,
+            local_modules,
+            filename
+        )
 
     def string_compare_alpha(self, output, expected_string):
         return (

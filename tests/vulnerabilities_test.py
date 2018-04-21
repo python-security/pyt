@@ -2,7 +2,8 @@ import os
 
 from .base_test_case import BaseTestCase
 
-from pyt import (
+from pyt.vulnerabilities import (
+    find_vulnerabilities,
     trigger_definitions_parser,
     vulnerabilities
 )
@@ -32,7 +33,7 @@ class EngineTest(BaseTestCase):
         return cfg_nodes
 
     def test_parse(self):
-        definitions = vulnerabilities.parse(
+        definitions = trigger_definitions_parser.parse(
             trigger_word_file=os.path.join(
                 os.getcwd(),
                 'pyt',
@@ -130,7 +131,7 @@ class EngineTest(BaseTestCase):
 
         analyse(cfg_list)
 
-        return vulnerabilities.find_vulnerabilities(
+        return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
             VulnerabilityFiles(
@@ -524,7 +525,7 @@ class EngineDjangoTest(BaseTestCase):
             'django_trigger_words.pyt'
         )
 
-        return vulnerabilities.find_vulnerabilities(
+        return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
             VulnerabilityFiles(
@@ -571,7 +572,7 @@ class EngineEveryTest(BaseTestCase):
             'all_trigger_words.pyt'
         )
 
-        return vulnerabilities.find_vulnerabilities(
+        return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
             VulnerabilityFiles(

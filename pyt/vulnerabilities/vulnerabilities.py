@@ -1,21 +1,18 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
 import ast
-import json
 from collections import namedtuple
 
-from .analysis.definition_chains import build_def_use_chain
-from .analysis.lattice import Lattice
-from .argument_helpers import UImode
-from .node_types import (
+from ..analysis.definition_chains import build_def_use_chain
+from ..argument_helpers import UImode
+from ..node_types import (
     AssignmentNode,
     BBorBInode,
     IfNode,
     TaintedNode
 )
-from .right_hand_side_visitor import RHSVisitor
-from .trigger_definitions_parser import parse
-from .vars_visitor import VarsVisitor
+from ..right_hand_side_visitor import RHSVisitor
+from ..vars_visitor import VarsVisitor
 from .vulnerability_helper import (
     vuln_factory,
     VulnerabilityType
@@ -500,38 +497,3 @@ def find_vulnerabilities_in_cfg(
             )
             if vulnerability:
                 vulnerabilities_list.append(vulnerability)
-
-
-def find_vulnerabilities(
-    cfg_list,
-    ui_mode,
-    vulnerability_files
-):
-    """Find vulnerabilities in a list of CFGs from a trigger_word_file.
-
-    Args:
-        cfg_list(list[CFG]): the list of CFGs to scan.
-        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
-        vulnerability_files(VulnerabilityFiles): contains trigger words and blackbox_mapping files
-
-    Returns:
-        A list of vulnerabilities.
-    """
-    vulnerabilities = list()
-    definitions = parse(vulnerability_files.triggers)
-
-    with open(vulnerability_files.blackbox_mapping) as infile:
-        blackbox_mapping = json.load(infile)
-    for cfg in cfg_list:
-        find_vulnerabilities_in_cfg(
-            cfg,
-            definitions,
-            Lattice(cfg.nodes),
-            ui_mode,
-            blackbox_mapping,
-            vulnerabilities
-        )
-    with open(vulnerability_files.blackbox_mapping, 'w') as outfile:
-        json.dump(blackbox_mapping, outfile, indent=4)
-
-    return vulnerabilities

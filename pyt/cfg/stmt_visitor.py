@@ -2,7 +2,7 @@ import ast
 import itertools
 import os.path
 
-from ..alias_helper import (
+from .alias_helper import (
     as_alias_handler,
     handle_aliases_in_init_files,
     handle_fdid_aliases,
