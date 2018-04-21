@@ -29,7 +29,7 @@ from .framework_helper import (
     is_function_without_leading_
 )
 from .github_search import (
-    analyse_repo,
+    analyse_repos,
     scan_github,
     set_github_api_token
 )
@@ -38,7 +38,6 @@ from .project_handler import (
     get_modules
 )
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from .repo_runner import get_repos
 from .vulnerabilities import find_vulnerabilities
 
 
@@ -161,30 +160,16 @@ def main(command_line_args=sys.argv[1:]):
 
     cfg_list = list()
     if args.git_repos:
-        repos = get_repos(args.git_repos)
-        for repo in repos:
-            repo.clone()
-            vulnerabilities = analyse_repo(
-                args,
-                repo,
-                ui_mode
-            )
-            if args.json:
-                json.report(vulnerabilities, sys.stdout)
-            else:
-                text.report(vulnerabilities, sys.stdout)
-            if not vulnerabilities:
-                repo.clean_up()
+        analyse_repos(
+            args,
+            ui_mode
+        )
         exit()
-
-    if args.which == 'search':
+    elif args.which == 'search':
         set_github_api_token()
         scan_github(
-            args.search_string,
-            args.start_date,
-            args.csv_path,
-            ui_mode,
-            args
+            args,
+            ui_mode
         )
         exit()
 

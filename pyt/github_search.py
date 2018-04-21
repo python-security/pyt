@@ -1,23 +1,37 @@
 import os
 import re
 import requests
+import sys
 import time
-from abc import ABCMeta, abstractmethod
-from datetime import date, datetime, timedelta
-
+from abc import (
+    ABCMeta,
+    abstractmethod
+)
+from datetime import (
+    date,
+    datetime,
+    timedelta
+)
 from . import repo_runner
 from .argument_helpers import VulnerabilityFiles
 from .ast_helper import generate_ast
 from .constraint_table import initialize_constraint_table
 from .expr_visitor import make_cfg
 from .fixed_point import analyse
-from .formatters import json
+from .formatters import (
+    json,
+    text
+)
 from .project_handler import (
     get_directory_modules,
     get_modules
 )
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
-from .repo_runner import add_repo_to_csv, NoEntryPathError
+from .repo_runner import (
+    add_repo_to_csv,
+    get_repos,
+    NoEntryPathError
+)
 from .vulnerabilities import find_vulnerabilities
 
 
@@ -220,7 +234,6 @@ def analyse_repo(
     github_repo,
     ui_mode
 ):
-    cfg_list = list()
     directory = os.path.dirname(github_repo.path)
     project_modules = get_modules(directory)
     local_modules = get_directory_modules(directory)
@@ -231,7 +244,7 @@ def analyse_repo(
         local_modules,
         github_repo.path
     )
-    cfg_list.append(cfg)
+    cfg_list = list(cfg)
 
     initialize_constraint_table(cfg_list)
     analyse(
@@ -250,16 +263,13 @@ def analyse_repo(
 
 
 def scan_github(
-    search_string,
-    start_date,
-    csv_path,
-    ui_mode,
-    other_args
+    cmd_line_args,
+    ui_mode
 ):
-    for range_start, range_end in get_dates(start_date):
+    for range_start, range_end in get_dates(cmd_line_args.start_date):
         query = Query(
             SEARCH_REPO_URL,
-            search_string,
+            cmd_line_args.search_string,
             time_interval='{} .. {}'.format(
                 range_start,
                 range_end
@@ -282,12 +292,33 @@ def scan_github(
                     print('NoEntryPathError for {}'.format(repo.url))
                     continue
                 vulnerabilities = analyse_repo(
-                    other_args,
+                    cmd_line_args,
                     repo,
                     ui_mode
                 )
                 with open(repo.path + '.pyt', 'a') as fd:
-                    json.report(vulnerabilities, fd)
+                    if cmd_line_args.json:
+                        json.report(vulnerabilities, fd)
+                    else:
+                        text.report(vulnerabilities, fd)
+
                 if vulnerabilities:
-                    add_repo_to_csv(csv_path, repo)
+                    add_repo_to_csv(cmd_line_args.csv_path, repo)
                 repo.clean_up()
+
+
+def analyse_repos(cmd_line_args, ui_mode):
+    repos = get_repos(cmd_line_args.git_repos)
+    for repo in repos:
+        repo.clone()
+        vulnerabilities = analyse_repo(
+            cmd_line_args,
+            repo,
+            ui_mode
+        )
+        if cmd_line_args.json:
+            json.report(vulnerabilities, sys.stdout)
+        else:
+            text.report(vulnerabilities, sys.stdout)
+        if not vulnerabilities:
+            repo.clean_up()
