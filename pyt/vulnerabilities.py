@@ -434,7 +434,10 @@ def get_vulnerability(
                     elif isinstance(cfg_node, IfNode):
                         potential_sanitiser = cfg_node
 
-        def_use = build_def_use_chain(cfg.nodes)
+        def_use = build_def_use_chain(
+            cfg.nodes,
+            lattice
+        )
         for chain in get_vulnerability_chains(
             source.cfg_node,
             sink.cfg_node,
