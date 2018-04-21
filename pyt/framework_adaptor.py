@@ -16,7 +16,13 @@ class FrameworkAdaptor():
     entry points in a framework and then taints their arguments.
     """
 
-    def __init__(self, cfg_list, project_modules, local_modules, is_route_function):
+    def __init__(
+        self,
+        cfg_list,
+        project_modules,
+        local_modules,
+        is_route_function
+    ):
         self.cfg_list = cfg_list
         self.project_modules = project_modules
         self.local_modules = local_modules

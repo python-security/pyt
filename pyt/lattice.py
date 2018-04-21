@@ -1,11 +1,21 @@
 from .constraint_table import constraint_table
+from .node_types import AssignmentNode
+
+
+def get_lattice_elements(cfg_nodes):
+    """Returns all assignment nodes as they are the only lattice elements
+    in the reaching definitions analysis.
+    """
+    for node in cfg_nodes:
+        if isinstance(node, AssignmentNode):
+            yield node
 
 
 class Lattice:
-    def __init__(self, cfg_nodes, analysis_type):
+    def __init__(self, cfg_nodes):
         self.el2bv = dict()  # Element to bitvector dictionary
         self.bv2el = list()  # Bitvector to element list
-        for i, e in enumerate(analysis_type.get_lattice_elements(cfg_nodes)):
+        for i, e in enumerate(get_lattice_elements(cfg_nodes)):
             # Give each element a unique shift of 1
             self.el2bv[e] = 0b1 << i
             self.bv2el.insert(0, e)
@@ -37,15 +47,3 @@ class Lattice:
             return False
 
         return constraint & value != 0
-
-
-def print_lattice(cfg_list, analysis_type):
-    nodes = list()
-    for cfg in cfg_list:
-        nodes.extend(cfg.nodes)
-    l = Lattice(nodes, analysis_type)
-
-    print('Lattice:')
-    for k, v in l.el2bv.items():
-        print(str(k) + ': ' + str(v))
-    return l

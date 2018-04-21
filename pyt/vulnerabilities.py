@@ -501,7 +501,6 @@ def find_vulnerabilities_in_cfg(
 
 def find_vulnerabilities(
     cfg_list,
-    analysis_type,
     ui_mode,
     vulnerability_files
 ):
@@ -509,7 +508,6 @@ def find_vulnerabilities(
 
     Args:
         cfg_list(list[CFG]): the list of CFGs to scan.
-        analysis_type(AnalysisBase): analysis object used to create lattice.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         vulnerability_files(VulnerabilityFiles): contains trigger words and blackbox_mapping files
 
@@ -525,7 +523,7 @@ def find_vulnerabilities(
         find_vulnerabilities_in_cfg(
             cfg,
             definitions,
-            Lattice(cfg.nodes, analysis_type),
+            Lattice(cfg.nodes),
             ui_mode,
             blackbox_mapping,
             vulnerabilities

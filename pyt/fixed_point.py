@@ -9,7 +9,7 @@ class FixedPointAnalysis():
         """Fixed point analysis.
 
         Analysis must be a dataflow analysis containing a 'fixpointmethod'
-        method that analyses one CFG node."""
+        method that analyses one CFG."""
         self.analysis = analysis(cfg)
         self.cfg = cfg
 
@@ -22,7 +22,7 @@ class FixedPointAnalysis():
             self.analysis.fixpointmethod(q[0])  # y = F_i(x_1, ..., x_n);
             y = constraint_table[q[0]]  # y = q[0].new_constraint
 
-            if not self.analysis.equal(y, x_i):
+            if y != x_i:
                 for node in self.analysis.dep(q[0]):  # for (v in dep(v_i))
                     q.append(node)  # q.append(v):
                 constraint_table[q[0]] = y  # q[0].old_constraint = q[0].new_constraint # x_i = y

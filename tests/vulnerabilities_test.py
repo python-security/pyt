@@ -129,11 +129,13 @@ class EngineTest(BaseTestCase):
         FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
         initialize_constraint_table(cfg_list)
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        analyse(
+            cfg_list,
+            analysis_type=ReachingDefinitionsTaintAnalysis
+        )
 
         return vulnerabilities.find_vulnerabilities(
             cfg_list,
-            ReachingDefinitionsTaintAnalysis,
             UImode.NORMAL,
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
@@ -518,7 +520,10 @@ class EngineDjangoTest(BaseTestCase):
         FrameworkAdaptor(cfg_list, [], [], is_django_view_function)
         initialize_constraint_table(cfg_list)
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        analyse(
+            cfg_list,
+            analysis_type=ReachingDefinitionsTaintAnalysis
+        )
 
         trigger_word_file = os.path.join(
             'pyt',
@@ -528,7 +533,6 @@ class EngineDjangoTest(BaseTestCase):
 
         return vulnerabilities.find_vulnerabilities(
             cfg_list,
-            ReachingDefinitionsTaintAnalysis,
             UImode.NORMAL,
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
@@ -566,7 +570,10 @@ class EngineEveryTest(BaseTestCase):
         FrameworkAdaptor(cfg_list, [], [], is_function)
         initialize_constraint_table(cfg_list)
 
-        analyse(cfg_list, analysis_type=ReachingDefinitionsTaintAnalysis)
+        analyse(
+            cfg_list,
+            analysis_type=ReachingDefinitionsTaintAnalysis
+        )
 
         trigger_word_file = os.path.join(
             'pyt',
@@ -576,7 +583,6 @@ class EngineEveryTest(BaseTestCase):
 
         return vulnerabilities.find_vulnerabilities(
             cfg_list,
-            ReachingDefinitionsTaintAnalysis,
             UImode.NORMAL,
             VulnerabilityFiles(
                 default_blackbox_mapping_file,

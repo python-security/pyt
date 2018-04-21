@@ -7,6 +7,9 @@ class ReachingDefinitionsAnalysis(ReachingDefinitionsAnalysisBase):
     """Reaching definitions analysis rules implemented."""
 
     def fixpointmethod(self, cfg_node):
+        """Regular reaching definitions.
+        Used in definition_chains.py
+        """
         JOIN = self.join(cfg_node)
         # Assignment check
         if isinstance(cfg_node, AssignmentNode):

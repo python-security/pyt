@@ -3,7 +3,6 @@ import ast
 from .constraint_table import constraint_table
 from .lattice import Lattice
 from .node_types import AssignmentNode
-from .reaching_definitions import ReachingDefinitionsAnalysis
 from .vars_visitor import VarsVisitor
 
 
@@ -38,7 +37,7 @@ def get_constraint_nodes(node, lattice):
 
 def build_use_def_chain(cfg_nodes):
     use_def = dict()
-    lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
+    lattice = Lattice(cfg_nodes)
 
     for node in cfg_nodes:
         definitions = list()
@@ -53,7 +52,7 @@ def build_use_def_chain(cfg_nodes):
 
 def build_def_use_chain(cfg_nodes):
     def_use = dict()
-    lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
+    lattice = Lattice(cfg_nodes)
 
     # For every node
     for node in cfg_nodes:

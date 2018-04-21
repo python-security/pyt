@@ -35,7 +35,6 @@ class EngineTest(BaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            ReachingDefinitionsTaintAnalysis,
             UImode.NORMAL,
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
@@ -151,9 +150,10 @@ class EngineTest(BaseTestCase):
                 ~call_3 = ret_subprocess.call(result, shell=True)
             This vulnerability is unknown due to:  Label: ~call_1 = ret_scrypt.encrypt(~call_2)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
-                        or
-                        self.string_compare_alpha(vulnerability_description, OTHER_EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertTrue(
+            self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION) or
+            self.string_compare_alpha(vulnerability_description, OTHER_EXPECTED_VULNERABILITY_DESCRIPTION)
+        )
 
     def test_sink_with_result_of_user_defined_nested(self):
         vulnerabilities = self.run_analysis('examples/nested_functions_code/sink_with_result_of_user_defined_nested.py')
@@ -233,9 +233,10 @@ class EngineTest(BaseTestCase):
                 ~call_1 = ret_subprocess.call(~call_2, shell=True)
             This vulnerability is unknown due to:  Label: ~call_3 = ret_scrypt.encypt(req_param)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
-                        or
-                        self.string_compare_alpha(vulnerability_description, OTHER_EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertTrue(
+            self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION) or
+            self.string_compare_alpha(vulnerability_description, OTHER_EXPECTED_VULNERABILITY_DESCRIPTION)
+        )
 
     def test_sink_with_user_defined_inner(self):
         vulnerabilities = self.run_analysis('examples/nested_functions_code/sink_with_user_defined_inner.py')

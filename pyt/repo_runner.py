@@ -1,4 +1,4 @@
-"""This modules runs PyT on a CSV file of git repos."""
+"""Runs PyT on a CSV file of git repos."""
 import os
 import shutil
 
@@ -14,24 +14,25 @@ class NoEntryPathError(Exception):
 
 class Repo:
     """Holder for a repo with git URL and
-    a path to where the analysis should start"""
+    a path to where the analysis should start."""
 
-    def __init__(self, URL, path=None):
+    def __init__(
+        self,
+        URL,
+        path=None
+    ):
         self.URL = URL.strip()
-        if path:
-            self.path = path.strip()
-        else:
-            self.path = None
         self.directory = None
+        self.path = path.strip() if path else None
 
     def clone(self):
-        """Clone repo and update path to match the current one"""
+        """Clone repo and update path to match the current one."""
 
-        r = self.URL.split('/')[-1].split('.')
-        if len(r) > 1:
-            self.directory = '.'.join(r[:-1])
+        repo = self.URL.split('/')[-1].split('.')
+        if len(repo) > 1:
+            self.directory = '.'.join(repo[:-1])
         else:
-            self.directory = r[0]
+            self.directory = repo[0]
 
         if self.directory not in os.listdir():
             git.Git().clone(self.URL)
@@ -40,9 +41,7 @@ class Repo:
             self._find_entry_path()
         elif self.path[0] == '/':
             self.path = self.path[1:]
-            self.path = os.path.join(self.directory, self.path)
-        else:
-            self.path = os.path.join(self.directory, self.path)
+        self.path = os.path.join(self.directory, self.path)
 
     def _find_entry_path(self):
         for root, dirs, files in os.walk(self.directory):
@@ -52,8 +51,10 @@ class Repo:
                         if 'app = Flask(__name__)' in fd.read():
                             self.path = os.path.join(root, f)
                             return
-        raise NoEntryPathError('No entry path found in repo {}.'
-                               .format(self.URL))
+        raise NoEntryPathError(
+            'No entry path found in repo {}.'
+            .format(self.URL)
+        )
 
     def clean_up(self):
         """Deletes the repo"""
@@ -70,21 +71,22 @@ def get_repos(csv_path):
     return repos
 
 
-def add_repo_to_file(path, repo):
+def add_repo_to_csv(
+    repo,
+    csv_path=DEFAULT_CSV_PATH
+):
     try:
-        with open(path, 'a') as fd:
-            fd.write('{}{}, {}'
-                     .format(os.linesep, repo.URL, repo.path))
+        with open(csv_path, 'a') as fd:
+            fd.write(
+                '{}{}, {}'.format(
+                    os.linesep,
+                    repo.URL,
+                    repo.path
+                )
+            )
     except FileNotFoundError:
-        print('-csv handle not used and fallback path not found: {}'
+        print('-csv file not used and fallback path not found: {}'
               .format(DEFAULT_CSV_PATH))
-        print('You need to specify the csv_path'
-              ' by using the "-csv" handle.')
+        print('To specify the csv_path '
+              'use the "-csv" option.')
         exit(1)
-
-
-def add_repo_to_csv(csv_path, repo):
-    if csv_path is None:
-        add_repo_to_file(DEFAULT_CSV_PATH, repo)
-    else:
-        add_repo_to_file(csv_path, repo)

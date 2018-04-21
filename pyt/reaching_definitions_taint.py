@@ -4,9 +4,11 @@ from .reaching_definitions_base import ReachingDefinitionsAnalysisBase
 
 
 class ReachingDefinitionsTaintAnalysis(ReachingDefinitionsAnalysisBase):
-    """Reaching definitions analysis rules implemented."""
 
     def fixpointmethod(self, cfg_node):
+        """The most important part of PyT, where we perform
+        the variant of reaching definitions to find where sources reach.
+        """
         JOIN = self.join(cfg_node)
         # Assignment check
         if isinstance(cfg_node, AssignmentNode):

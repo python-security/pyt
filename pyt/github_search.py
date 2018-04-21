@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 import time
@@ -5,9 +6,19 @@ from abc import ABCMeta, abstractmethod
 from datetime import date, datetime, timedelta
 
 from . import repo_runner
+from .argument_helpers import VulnerabilityFiles
+from .ast_helper import generate_ast
+from .constraint_table import initialize_constraint_table
+from .expr_visitor import make_cfg
+from .fixed_point import analyse
+from .formatters import json
+from .project_handler import (
+    get_directory_modules,
+    get_modules
+)
 from .reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from .repo_runner import add_repo_to_csv, NoEntryPathError
-from .save import save_repo_scan
+from .vulnerabilities import find_vulnerabilities
 
 
 DEFAULT_TIMEOUT_IN_SECONDS = 60
@@ -21,8 +32,10 @@ SEARCH_REPO_URL = GITHUB_API_URL + '/search/repositories'
 def set_github_api_token():
     global GITHUB_OAUTH_TOKEN
     try:
-        GITHUB_OAUTH_TOKEN = open('github_access_token.pyt',
-                                  'r').read().strip()
+        GITHUB_OAUTH_TOKEN = open(
+            'github_access_token.pyt',
+            'r'
+        ).read().strip()
     except FileNotFoundError:
         print('Insert your GitHub access token'
               ' in the github_access_token.pyt file in the pyt package'
@@ -30,25 +43,26 @@ def set_github_api_token():
         exit(0)
 
 
-class Languages:
-    _prefix = 'language:'
-    python = _prefix + 'python'
-    javascript = _prefix + 'javascript'
-    # add others here
-
-
 class Query:
-    def __init__(self, base_url, search_string,
-                 language=None, repo=None, time_interval=None, per_page=100):
+    def __init__(
+        self,
+        base_url,
+        search_string,
+        repo=None,
+        time_interval=None,
+        per_page=100
+    ):
         repo = self._repo_parameter(repo)
         time_interval = self._time_interval_parameter(time_interval)
         search_string = self._search_parameter(search_string)
         per_page = self._per_page_parameter(per_page)
-        parameters = self._construct_parameters([search_string,
-                                                 language,
-                                                 repo,
-                                                 time_interval,
-                                                 per_page])
+        parameters = self._construct_parameters([
+            search_string,
+            'language:python',
+            repo,
+            time_interval,
+            per_page
+        ])
         self.query_string = self._construct_query(base_url, parameters)
 
     def _construct_query(self, base_url, parameters):
@@ -106,10 +120,14 @@ class RequestCounter:
         else:
             delta = request_time - self.counter[0]
             if delta.seconds < self.timeout_in_seconds:
-                print('Maximum requests "{}" reached'
-                      ' timing out for {} seconds.'
-                      .format(len(self.counter),
-                              self.timeout_in_seconds - delta.seconds))
+                print(
+                    'Maximum requests "{}" reached'
+                    ' timing out for {} seconds.'
+                    .format(
+                        len(self.counter),
+                        self.timeout_in_seconds - delta.seconds
+                    )
+                )
                 self.timeout(self.timeout_in_seconds - delta.seconds)
                 self.counter.pop(0)  # pop index 0
                 self.counter.append(datetime.now())
@@ -138,22 +156,22 @@ class Search(metaclass=ABCMeta):
         headers = {'Authorization': 'token ' + GITHUB_OAUTH_TOKEN}
         r = requests.get(query_string, headers=headers)
 
-        json = r.json()
+        response_body = r.json()
 
         if r.status_code != 200:
             print('Bad request:')
             print(r.status_code)
-            print(json)
+            print(response_body)
             Search.request_counter.timeout()
             self._request(query_string)
             return
 
-        self.total_count = json['total_count']
+        self.total_count = response_body['total_count']
         print('Number of results: {}.'.format(self.total_count))
-        self.incomplete_results = json['incomplete_results']
+        self.incomplete_results = response_body['incomplete_results']
         if self.incomplete_results:
             raise IncompleteResultsError()
-        self.parse_results(json['items'])
+        self.parse_results(response_body['items'])
 
     @abstractmethod
     def parse_results(self, json_results):
@@ -173,106 +191,103 @@ class SearchCode(Search):
 
 
 class File:
-    def __init__(self, json):
-        self.name = json['name']
-        self.repo = Repo(json['repository'])
+    def __init__(self, item):
+        self.name = item['name']
+        self.repo = Repo(item['repository'])
 
 
 class Repo:
-    def __init__(self, json):
-        self.url = json['html_url']
-        self.name = json['full_name']
+    def __init__(self, item):
+        self.url = item['html_url']
+        self.name = item['full_name']
 
 
-def get_dates(start_date, end_date=date.today(), interval=7):
+def get_dates(
+    start_date,
+    end_date=date.today()
+):
+    interval = 7
     delta = end_date - start_date
-    for i in range(delta.days // interval):
-        yield (start_date + timedelta(days=(i * interval) - interval),
-               start_date + timedelta(days=i * interval))
-    else:
-        # Take care of the remainder of days
-        yield (start_date + timedelta(days=i * interval),
-               start_date + timedelta(days=i * interval +
-                                      interval +
-                                      delta.days % interval))
+    for i in range((delta.days // interval) + 1):
+        yield (
+            start_date + timedelta(days=i * interval),
+            start_date + timedelta(days=i * interval + interval)
+        )
 
 
-def scan_github(search_string, start_date, analysis_type, analyse_repo_func, csv_path, ui_mode, other_args):
-    analyse_repo = analyse_repo_func
-    for d in get_dates(start_date, interval=7):
-        q = Query(SEARCH_REPO_URL, search_string,
-                  language=Languages.python,
-                  time_interval=str(d[0]) + ' .. ' + str(d[1]),
-                  per_page=100)
-        s = SearchRepo(q)
-        for repo in s.results:
-            q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)',
-                      Languages.python, repo)
-            s = SearchCode(q)
-            if s.results:
-                r = repo_runner.Repo(repo.url)
+def analyse_repo(
+    args,
+    github_repo,
+    ui_mode
+):
+    cfg_list = list()
+    directory = os.path.dirname(github_repo.path)
+    project_modules = get_modules(directory)
+    local_modules = get_directory_modules(directory)
+    tree = generate_ast(github_repo.path)
+    cfg = make_cfg(
+        tree,
+        project_modules,
+        local_modules,
+        github_repo.path
+    )
+    cfg_list.append(cfg)
+
+    initialize_constraint_table(cfg_list)
+    analyse(
+        cfg_list,
+        ReachingDefinitionsTaintAnalysis
+    )
+    vulnerabilities = find_vulnerabilities(
+        cfg_list,
+        ui_mode,
+        VulnerabilityFiles(
+            args.blackbox_mapping_file,
+            args.trigger_word_file
+        )
+    )
+    return vulnerabilities
+
+
+def scan_github(
+    search_string,
+    start_date,
+    csv_path,
+    ui_mode,
+    other_args
+):
+    for range_start, range_end in get_dates(start_date):
+        query = Query(
+            SEARCH_REPO_URL,
+            search_string,
+            time_interval='{} .. {}'.format(
+                range_start,
+                range_end
+            ),
+            per_page=100
+        )
+        search_repos = SearchRepo(query)
+        for repo in search_repos.results:
+            query = Query(
+                SEARCH_CODE_URL,
+                'app = Flask(__name__)',
+                repo
+            )
+            search_code = SearchCode(query)
+            if search_code.results:
+                repo = repo_runner.Repo(repo.url)
                 try:
-                    r.clone()
+                    repo.clone()
                 except NoEntryPathError as err:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error=err)
+                    print('NoEntryPathError for {}'.format(repo.url))
                     continue
-                except:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error='Other Error Unknown while cloning :-(')
-                    continue
-                try:
-                    vulnerabilities = analyse_repo(other_args, r, analysis_type, ui_mode)
-                    if vulnerabilities:
-                        save_repo_scan(repo, r.path, vulnerabilities)
-                        add_repo_to_csv(csv_path, r)
-                    else:
-                        save_repo_scan(repo, r.path, vulnerabilities=None)
-                    r.clean_up()
-                except SyntaxError as err:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error=err)
-                except IOError as err:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error=err)
-                except AttributeError as err:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error=err)
-                except:
-                    save_repo_scan(repo, r.path, vulnerabilities=None, error='Other Error Unknown :-(')
-
-if __name__ == '__main__':
-    for x in get_dates(date(2010, 1, 1), interval=93):
-        print(x)
-    exit()
-    scan_github('flask', ReachingDefinitionsTaintAnalysis)
-    exit()
-    q = Query(SEARCH_REPO_URL, 'flask')
-    s = SearchRepo(q)
-    for repo in s.results[:3]:
-        q = Query(SEARCH_CODE_URL, 'app = Flask(__name__)', Languages.python, repo)
-        s = SearchCode(q)
-        r = repo_runner.Repo(repo.url)
-        r.clone()
-        print(r.path)
-        r.clean_up()
-        print(repo.name)
-        print(len(s.results))
-        print([f.name for f in s.results])
-    exit()
-
-    r = RequestCounter('test', timeout=2)
-    for x in range(15):
-        r.append(datetime.now())
-    exit()
-
-    dates = get_dates(date(2010, 1, 1))
-    for date in dates:
-        q = Query(SEARCH_REPO_URL, 'flask',
-                  time_interval=str(date) + ' .. ' + str(date))
-        print(q.query_string)
-    exit()
-    s = SearchRepo(q)
-    print(s.total_count)
-    print(s.incomplete_results)
-    print([r.URL for r in s.results])
-    q = Query(SEARCH_CODE_URL, 'import flask', Languages.python, s.results[0])
-    s = SearchCode(q)
-    #print(s.total_count)
-    #print(s.incomplete_results)
-    #print([f.name for f in s.results])
+                vulnerabilities = analyse_repo(
+                    other_args,
+                    repo,
+                    ui_mode
+                )
+                with open(repo.path + '.pyt', 'a') as fd:
+                    json.report(vulnerabilities, fd)
+                if vulnerabilities:
+                    add_repo_to_csv(csv_path, repo)
+                repo.clean_up()
