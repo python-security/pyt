@@ -142,6 +142,9 @@ def parse_args(args):
                              '(only JSON-formatted files are accepted)',
                         type=str,
                         default=False)
+    parser.add_argument('-in', '--ignore-nosec',
+                        help='Ignoring nosec commands',
+                        action='store_true')    
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -307,6 +310,17 @@ def main(command_line_args=sys.argv[1:]):
             args.trigger_word_file
         )
     )
+    
+    if args.ignore_nosec:
+        nosec_lines = set()
+    else:
+        file = open(path, "r")
+        lines = file.readlines()
+        nosec_lines = set(
+                    lineno for
+                    (lineno, line) in enumerate(lines, start=1)
+                    if '#nosec' in line or '# nosec' in line)    
+    
     if args.baseline:
             vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
     
