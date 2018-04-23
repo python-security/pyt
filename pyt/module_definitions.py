@@ -4,7 +4,8 @@
 import ast
 
 
-# Contains all project definitions for a program run:
+# Contains all project definitions for a program run
+# Only used in framework_adaptor.py, but modified here
 project_definitions = dict()
 
 

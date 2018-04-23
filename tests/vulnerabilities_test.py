@@ -10,8 +10,6 @@ from pyt.vulnerabilities import (
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
 from pyt.argument_helpers import (
-    default_blackbox_mapping_file,
-    default_trigger_word_file,
     UImode,
     VulnerabilityFiles
 )
@@ -22,7 +20,10 @@ from pyt.framework_helper import (
     is_function
 )
 from pyt.node_types import Node
-
+from pyt.usage import (
+    default_blackbox_mapping_file,
+    default_trigger_word_file
+)
 
 class EngineTest(BaseTestCase):
     def run_empty(self):

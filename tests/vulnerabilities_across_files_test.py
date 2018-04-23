@@ -2,8 +2,6 @@ import os
 
 from .base_test_case import BaseTestCase
 from pyt.argument_helpers import (
-    default_blackbox_mapping_file,
-    default_trigger_word_file,
     UImode,
     VulnerabilityFiles
 )
@@ -12,6 +10,10 @@ from pyt.analysis.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import is_flask_route_function
 from pyt.project_handler import get_directory_modules, get_modules
+from pyt.usage import (
+    default_blackbox_mapping_file,
+    default_trigger_word_file
+)
 from pyt.vulnerabilities import find_vulnerabilities
 
 
