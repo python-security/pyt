@@ -301,6 +301,7 @@ def main(command_line_args=sys.argv[1:]):
 
     analyse(cfg_list, analysis_type=analysis)
 
+    nosec_lines = set()
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         analysis,
@@ -308,7 +309,8 @@ def main(command_line_args=sys.argv[1:]):
         VulnerabilityFiles(
             args.blackbox_mapping_file,
             args.trigger_word_file
-        )
+        ),
+        nosec_lines
     )
     
     if args.ignore_nosec:
@@ -319,7 +321,17 @@ def main(command_line_args=sys.argv[1:]):
         nosec_lines = set(
                     lineno for
                     (lineno, line) in enumerate(lines, start=1)
-                    if '#nosec' in line or '# nosec' in line)    
+                    if '#nosec' in line or '# nosec' in line)   
+        vulnerabilities = find_vulnerabilities(
+            cfg_list,
+            analysis,
+            ui_mode,
+            VulnerabilityFiles(
+                args.blackbox_mapping_file,
+                args.trigger_word_file
+            ),
+            nosec_lines
+        )
     
     if args.baseline:
             vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
