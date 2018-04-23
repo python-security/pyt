@@ -189,7 +189,6 @@ def find_triggers(
             trigger_nodes.extend(iter(label_contains(node, trigger_words)))
         else:
             pass
-
     return trigger_nodes
 
 
