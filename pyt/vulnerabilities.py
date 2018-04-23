@@ -73,7 +73,8 @@ def identify_triggers(
     cfg,
     sources,
     sinks,
-    lattice
+    lattice,
+    nosec_lines
 ):
     """Identify sources, sinks and sanitisers in a CFG.
 
@@ -89,12 +90,12 @@ def identify_triggers(
     tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
     tainted_trigger_nodes = [TriggerNode('Framework function URL parameter', None,
                                          node) for node in tainted_nodes]
-    sources_in_file = find_triggers(assignment_nodes, sources)
+    sources_in_file = find_triggers(assignment_nodes, sources, nosec_lines)
     sources_in_file.extend(tainted_trigger_nodes)
 
     find_secondary_sources(assignment_nodes, sources_in_file, lattice)
 
-    sinks_in_file = find_triggers(cfg.nodes, sinks)
+    sinks_in_file = find_triggers(cfg.nodes, sinks, nosec_lines)
 
     sanitiser_node_dict = build_sanitiser_node_dict(cfg, sinks_in_file)
 
@@ -170,7 +171,8 @@ def append_node_if_reassigned(
 
 def find_triggers(
     nodes,
-    trigger_words
+    trigger_words,
+    nosec_lines
 ):
     """Find triggers from the trigger_word_list in the nodes.
 
@@ -183,7 +185,11 @@ def find_triggers(
     """
     trigger_nodes = list()
     for node in nodes:
-        trigger_nodes.extend(iter(label_contains(node, trigger_words)))
+        if node.line_number not in nosec_lines:
+            trigger_nodes.extend(iter(label_contains(node, trigger_words)))
+        else:
+            pass
+
     return trigger_nodes
 
 
@@ -466,7 +472,8 @@ def find_vulnerabilities_in_cfg(
     lattice,
     ui_mode,
     blackbox_mapping,
-    vulnerabilities_list
+    vulnerabilities_list,
+    nosec_lines
 ):
     """Find vulnerabilities in a cfg.
 
@@ -482,7 +489,8 @@ def find_vulnerabilities_in_cfg(
         cfg,
         definitions.sources,
         definitions.sinks,
-        lattice
+        lattice,
+        nosec_lines
     )
     for sink in triggers.sinks:
         for source in triggers.sources:
@@ -503,7 +511,8 @@ def find_vulnerabilities(
     cfg_list,
     analysis_type,
     ui_mode,
-    vulnerability_files
+    vulnerability_files,
+    nosec_lines
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
@@ -518,19 +527,19 @@ def find_vulnerabilities(
     """
     vulnerabilities = list()
     definitions = parse(vulnerability_files.triggers)
-
     with open(vulnerability_files.blackbox_mapping) as infile:
         blackbox_mapping = json.load(infile)
     for cfg in cfg_list:
+
         find_vulnerabilities_in_cfg(
             cfg,
             definitions,
             Lattice(cfg.nodes, analysis_type),
             ui_mode,
             blackbox_mapping,
-            vulnerabilities
+            vulnerabilities,
+            nosec_lines
         )
     with open(vulnerability_files.blackbox_mapping, 'w') as outfile:
         json.dump(blackbox_mapping, outfile, indent=4)
-
     return vulnerabilities
