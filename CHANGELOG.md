@@ -22,8 +22,8 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [@xxxx]: https://github.com/xxxx
 -->
 
-# Unreleased
-##### April 18, 2018
+# 0.34
+##### April 24, 2018
 
 #### :tada: New Features
 
@@ -42,6 +42,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 #### :bug: Bugfixes
 * Fixed a bug where `visit_Raise` raised a `TypeError`  ([#117], thanks [@lFatty])
 * Fixed an infinite loop bug that was caused while handling certain loops ([#118])
+* Fixed a bug where we were not including `pyt/vulnerability_definitions` files ([#122], thanks [@Ekultek])
 
 #### :snake: Miscellaneous
 
@@ -55,3 +56,5 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#111]: https://github.com/python-security/pyt/pull/111
 [#110]: https://github.com/python-security/pyt/pull/110
 [@lfatty]: https://github.com/lfatty
+[#122]: https://github.com/python-security/pyt/issues/122
+[@Ekultek]: https://github.com/Ekultek
