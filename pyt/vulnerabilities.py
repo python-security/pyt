@@ -187,8 +187,6 @@ def find_triggers(
     for node in nodes:
         if node.line_number not in nosec_lines:
             trigger_nodes.extend(iter(label_contains(node, trigger_words)))
-        else:
-            pass
     return trigger_nodes
 
 
@@ -529,7 +527,6 @@ def find_vulnerabilities(
     with open(vulnerability_files.blackbox_mapping) as infile:
         blackbox_mapping = json.load(infile)
     for cfg in cfg_list:
-
         find_vulnerabilities_in_cfg(
             cfg,
             definitions,
