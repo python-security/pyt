@@ -142,9 +142,9 @@ def parse_args(args):
                              '(only JSON-formatted files are accepted)',
                         type=str,
                         default=False)
-    parser.add_argument('-in', '--ignore-nosec',
-                        help='Ignoring nosec commands',
-                        action='store_true')    
+    parser.add_argument('--ignore-nosec', dest='ignore_nosec', action='store_true',
+                         help='do not skip lines with # nosec comments'
+    )   
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -238,7 +238,28 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
+    path = os.path.normpath(args.filepath) 
     cfg_list = list()
+    if args.ignore_nosec:
+        nosec_lines = set()
+    else:
+        file = open(path, "r")
+        lines = file.readlines()
+        nosec_lines = set(
+                    lineno for
+                    (lineno, line) in enumerate(lines, start=1)
+                    if '#nosec' in line or '# nosec' in line)   
+        vulnerabilities = find_vulnerabilities(
+            cfg_list,
+            analysis,
+            ui_mode,
+            VulnerabilityFiles(
+                args.blackbox_mapping_file,
+                args.trigger_word_file
+            ),
+            nosec_lines
+        )                
+    
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
@@ -265,8 +286,6 @@ def main(command_line_args=sys.argv[1:]):
             args
         )
         exit()
-
-    path = os.path.normpath(args.filepath)
 
     directory = None
     if args.project_root:
@@ -301,7 +320,6 @@ def main(command_line_args=sys.argv[1:]):
 
     analyse(cfg_list, analysis_type=analysis)
 
-    nosec_lines = set()
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         analysis,
@@ -312,26 +330,6 @@ def main(command_line_args=sys.argv[1:]):
         ),
         nosec_lines
     )
-    
-    if args.ignore_nosec:
-        nosec_lines = set()
-    else:
-        file = open(path, "r")
-        lines = file.readlines()
-        nosec_lines = set(
-                    lineno for
-                    (lineno, line) in enumerate(lines, start=1)
-                    if '#nosec' in line or '# nosec' in line)   
-        vulnerabilities = find_vulnerabilities(
-            cfg_list,
-            analysis,
-            ui_mode,
-            VulnerabilityFiles(
-                args.blackbox_mapping_file,
-                args.trigger_word_file
-            ),
-            nosec_lines
-        )
     
     if args.baseline:
             vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
