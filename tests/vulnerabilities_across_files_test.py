@@ -1,10 +1,7 @@
 import os
 
 from .base_test_case import BaseTestCase
-from pyt.argument_helpers import (
-    UImode,
-    VulnerabilityFiles
-)
+
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
 from pyt.framework_adaptor import FrameworkAdaptor
@@ -14,7 +11,10 @@ from pyt.usage import (
     default_blackbox_mapping_file,
     default_trigger_word_file
 )
-from pyt.vulnerabilities import find_vulnerabilities
+from pyt.vulnerabilities import (
+    find_vulnerabilities,
+    UImode
+)
 
 
 class EngineTest(BaseTestCase):
@@ -37,10 +37,8 @@ class EngineTest(BaseTestCase):
         return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
-            VulnerabilityFiles(
-                default_blackbox_mapping_file,
-                default_trigger_word_file
-            )
+            default_blackbox_mapping_file,
+            default_trigger_word_file
         )
 
     def test_find_vulnerabilities_absolute_from_file_command_injection(self):

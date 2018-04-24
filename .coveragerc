@@ -12,7 +12,6 @@ exclude_lines =
 source = ./pyt
 omit =
     pyt/__main__.py
+    pyt/usage.py
     pyt/formatters/json.py
     pyt/formatters/text.py
-    pyt/github_search.py
-    pyt/repo_runner.py

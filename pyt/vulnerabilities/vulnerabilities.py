@@ -1,10 +1,10 @@
 """Module for finding vulnerabilities based on a definitions file."""
 
 import ast
-from collections import namedtuple
+import json
 
 from ..analysis.definition_chains import build_def_use_chain
-from ..argument_helpers import UImode
+from ..analysis.lattice import Lattice
 from ..node_types import (
     AssignmentNode,
     BBorBInode,
@@ -12,58 +12,16 @@ from ..node_types import (
     TaintedNode
 )
 from ..right_hand_side_visitor import RHSVisitor
+from .trigger_definitions_parser import parse
 from ..vars_visitor import VarsVisitor
 from .vulnerability_helper import (
+    Sanitiser,
+    TriggerNode,
+    Triggers,
     vuln_factory,
-    VulnerabilityType
+    VulnerabilityType,
+    UImode
 )
-
-
-Sanitiser = namedtuple(
-    'Sanitiser',
-    (
-        'trigger_word',
-        'cfg_node'
-    )
-)
-Triggers = namedtuple(
-    'Triggers',
-    (
-        'sources',
-        'sinks',
-        'sanitiser_dict'
-    )
-)
-
-
-class TriggerNode():
-    def __init__(self, trigger_word, sanitisers, cfg_node, secondary_nodes=[]):
-        self.trigger_word = trigger_word
-        self.sanitisers = sanitisers
-        self.cfg_node = cfg_node
-        self.secondary_nodes = secondary_nodes
-
-    def append(self, cfg_node):
-        if not cfg_node == self.cfg_node:
-            if self.secondary_nodes and cfg_node not in self.secondary_nodes:
-                self.secondary_nodes.append(cfg_node)
-            elif not self.secondary_nodes:
-                self.secondary_nodes = [cfg_node]
-
-    def __repr__(self):
-        output = 'TriggerNode('
-
-        if self.trigger_word:
-            output = '{} trigger_word is {}, '.format(
-                output,
-                self.trigger_word
-            )
-
-        return (
-            output +
-            'sanitisers are {}, '.format(self.sanitisers) +
-            'cfg_node is {})\n'.format(self.cfg_node)
-        )
 
 
 def identify_triggers(
@@ -497,3 +455,40 @@ def find_vulnerabilities_in_cfg(
             )
             if vulnerability:
                 vulnerabilities_list.append(vulnerability)
+
+
+def find_vulnerabilities(
+    cfg_list,
+    ui_mode,
+    blackbox_mapping_file,
+    source_sink_file
+):
+    """Find vulnerabilities in a list of CFGs from a trigger_word_file.
+
+    Args:
+        cfg_list(list[CFG]): the list of CFGs to scan.
+        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
+        blackbox_mapping_file(str)
+        source_sink_file(str)
+
+    Returns:
+        A list of vulnerabilities.
+    """
+    vulnerabilities = list()
+    definitions = parse(source_sink_file)
+
+    with open(blackbox_mapping_file) as infile:
+        blackbox_mapping = json.load(infile)
+    for cfg in cfg_list:
+        find_vulnerabilities_in_cfg(
+            cfg,
+            definitions,
+            Lattice(cfg.nodes),
+            ui_mode,
+            blackbox_mapping,
+            vulnerabilities
+        )
+    with open(blackbox_mapping_file, 'w') as outfile:
+        json.dump(blackbox_mapping, outfile, indent=4)
+
+    return vulnerabilities

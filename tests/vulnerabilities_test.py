@@ -2,17 +2,8 @@ import os
 
 from .base_test_case import BaseTestCase
 
-from pyt.vulnerabilities import (
-    find_vulnerabilities,
-    trigger_definitions_parser,
-    vulnerabilities
-)
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
-from pyt.argument_helpers import (
-    UImode,
-    VulnerabilityFiles
-)
 from pyt.framework_adaptor import FrameworkAdaptor
 from pyt.framework_helper import (
     is_django_view_function,
@@ -24,6 +15,13 @@ from pyt.usage import (
     default_blackbox_mapping_file,
     default_trigger_word_file
 )
+from pyt.vulnerabilities import (
+    find_vulnerabilities,
+    trigger_definitions_parser,
+    UImode,
+    vulnerabilities
+)
+
 
 class EngineTest(BaseTestCase):
     def run_empty(self):
@@ -135,10 +133,8 @@ class EngineTest(BaseTestCase):
         return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
-            VulnerabilityFiles(
-                default_blackbox_mapping_file,
-                default_trigger_word_file
-            )
+            default_blackbox_mapping_file,
+            default_trigger_word_file
         )
 
     def test_find_vulnerabilities_assign_other_var(self):
@@ -529,10 +525,8 @@ class EngineDjangoTest(BaseTestCase):
         return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
-            VulnerabilityFiles(
-                default_blackbox_mapping_file,
-                trigger_word_file
-            )
+            default_blackbox_mapping_file,
+            trigger_word_file
         )
 
     def test_django_view_param(self):
@@ -576,10 +570,8 @@ class EngineEveryTest(BaseTestCase):
         return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
-            VulnerabilityFiles(
-                default_blackbox_mapping_file,
-                trigger_word_file
-            )
+            default_blackbox_mapping_file,
+            trigger_word_file
         )
 
     def test_self_is_not_tainted(self):

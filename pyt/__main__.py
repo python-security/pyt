@@ -5,10 +5,6 @@ import sys
 
 from .analysis.constraint_table import initialize_constraint_table
 from .analysis.fixed_point import analyse
-from .argument_helpers import (
-    VulnerabilityFiles,
-    UImode
-)
 from .ast_helper import generate_ast
 from .baseline import get_vulnerabilities_not_in_baseline
 from .cfg import make_cfg
@@ -23,17 +19,15 @@ from .framework_helper import (
     is_function,
     is_function_without_leading_
 )
-from .github_search import (
-    analyse_repos,
-    scan_github,
-    set_github_api_token
-)
 from .project_handler import (
     get_directory_modules,
     get_modules
 )
 from .usage import parse_args
-from .vulnerabilities import find_vulnerabilities
+from .vulnerabilities import (
+    find_vulnerabilities,
+    UImode
+)
 
 
 def main(command_line_args=sys.argv[1:]):
@@ -45,25 +39,9 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
-    cfg_list = list()
-    if args.git_repos:
-        analyse_repos(
-            args,
-            ui_mode
-        )
-        exit()
-    elif args.which == 'search':
-        set_github_api_token()
-        scan_github(
-            args,
-            ui_mode
-        )
-        exit()
-
     path = os.path.normpath(args.filepath)
-
-    if args.project_root:
-        directory = os.path.normpath(args.project_root)
+    if args.root_directory:
+        directory = os.path.normpath(args.root_directory)
     else:
         directory = os.path.dirname(path)
     project_modules = get_modules(directory)
@@ -99,10 +77,8 @@ def main(command_line_args=sys.argv[1:]):
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         ui_mode,
-        VulnerabilityFiles(
-            args.blackbox_mapping_file,
-            args.trigger_word_file
-        )
+        args.blackbox_mapping_file,
+        args.trigger_word_file
     )
     if args.baseline:
         vulnerabilities = get_vulnerabilities_not_in_baseline(
