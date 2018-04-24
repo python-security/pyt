@@ -10,6 +10,9 @@
 .. image:: https://badge.fury.io/py/python-taint.svg
     :target: https://badge.fury.io/py/python-taint
 
+.. image:: https://img.shields.io/badge/PRs-welcome-ff69b4.svg
+    :target: https://github.com/python-security/pyt/issues?q=is%3Aopen+is%3Aissue+label%3Agood-first-issue
+
 Python Taint
 ============
 
