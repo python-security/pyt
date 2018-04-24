@@ -1,3 +1,6 @@
+.. image:: https://img.shields.io/badge/python-v3.6-blue.svg
+    :target: https://pypi.org/project/python-taint/
+
 .. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
     :target: https://travis-ci.org/python-security/pyt
 
