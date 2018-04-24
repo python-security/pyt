@@ -1,9 +1,6 @@
 import argparse
 import os
-from datetime import (
-    date,
-    datetime
-)
+from datetime import datetime
 
 
 default_blackbox_mapping_file = os.path.join(
@@ -97,6 +94,7 @@ def _add_print_group(parser):
         default=False
     )
 
+
 def _check_required_and_mutually_exclusive_args(parser, args):
     if args.filepath is None and args.git_repos is None:
         parser.error('one of the arguments -f/--filepath -gr/--git-repos is required')
@@ -104,6 +102,7 @@ def _check_required_and_mutually_exclusive_args(parser, args):
         parser.error('argument -f/--filepath: not allowed with argument -gr/--git-repos')
     if args.trim_reassigned_in and args.interactive:
         parser.error('argument -i/--interactive: not allowed with argument -trim/--trim-reassigned-in')
+
 
 def parse_args(args):
     if len(args) == 0:

@@ -6,7 +6,6 @@ import sys
 from .analysis.constraint_table import initialize_constraint_table
 from .analysis.fixed_point import analyse
 from .ast_helper import generate_ast
-from .baseline import get_vulnerabilities_not_in_baseline
 from .cfg import make_cfg
 from .formatters import (
     json,
@@ -26,6 +25,7 @@ from .project_handler import (
 from .usage import parse_args
 from .vulnerabilities import (
     find_vulnerabilities,
+    get_vulnerabilities_not_in_baseline,
     UImode
 )
 
