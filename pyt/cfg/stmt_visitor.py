@@ -9,17 +9,16 @@ from .alias_helper import (
     not_as_alias_handler,
     retrieve_import_alias_mapping
 )
-from ..ast_helper import (
+from ..core.ast_helper import (
     generate_ast,
     get_call_names_as_string
 )
-from ..label_visitor import LabelVisitor
-from ..module_definitions import (
+from ..core.module_definitions import (
     LocalModuleDefinition,
     ModuleDefinition,
     ModuleDefinitions
 )
-from ..node_types import (
+from ..core.node_types import (
     AssignmentNode,
     AssignmentCallNode,
     BBorBInode,
@@ -33,8 +32,14 @@ from ..node_types import (
     ReturnNode,
     TryNode
 )
-from ..project_handler import get_directory_modules
-from ..right_hand_side_visitor import RHSVisitor
+from ..core.project_handler import (
+    get_directory_modules
+)
+from ..helper_visitors import (
+    LabelVisitor,
+    RHSVisitor,
+    VarsVisitor
+)
 from .stmt_visitor_helper import (
     CALL_IDENTIFIER,
     ConnectStatements,
@@ -45,7 +50,6 @@ from .stmt_visitor_helper import (
     get_last_statements,
     remove_breaks
 )
-from ..vars_visitor import VarsVisitor
 
 
 class StmtVisitor(ast.NodeVisitor):

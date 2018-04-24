@@ -1,7 +1,8 @@
 import ast
 import unittest
 
-from pyt.vars_visitor import VarsVisitor
+
+from pyt.helper_visitors import VarsVisitor
 
 
 class VarsVisitorTestCase(unittest.TestCase):

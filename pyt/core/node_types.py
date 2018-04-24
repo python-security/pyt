@@ -1,7 +1,7 @@
 """This module contains all of the CFG nodes types."""
 from collections import namedtuple
 
-from .label_visitor import LabelVisitor
+from ..helper_visitors import LabelVisitor
 
 
 ControlFlowNode = namedtuple(

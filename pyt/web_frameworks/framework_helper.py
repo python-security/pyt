@@ -1,12 +1,14 @@
 """Provides helper functions that help with determining if a function is a route function."""
 import ast
 
-from .ast_helper import get_call_names
+from ..core.ast_helper import get_call_names
 
 
-def is_function(function):
-    """Always returns true because arg is always a function."""
-    return True
+def is_django_view_function(ast_node):
+    if len(ast_node.args.args):
+        first_arg_name = ast_node.args.args[0].arg
+        return first_arg_name == 'request'
+    return False
 
 
 def is_flask_route_function(ast_node):
@@ -18,11 +20,9 @@ def is_flask_route_function(ast_node):
     return False
 
 
-def is_django_view_function(ast_node):
-    if len(ast_node.args.args):
-        first_arg_name = ast_node.args.args[0].arg
-        return first_arg_name == 'request'
-    return False
+def is_function(function):
+    """Always returns true because arg is always a function."""
+    return True
 
 
 def is_function_without_leading_(ast_node):

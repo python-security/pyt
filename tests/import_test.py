@@ -2,8 +2,12 @@ import ast
 import os
 
 from .base_test_case import BaseTestCase
-from pyt.ast_helper import get_call_names_as_string
-from pyt.project_handler import get_directory_modules, get_modules_and_packages
+
+from pyt.core.ast_helper import get_call_names_as_string
+from pyt.core.project_handler import (
+    get_directory_modules,
+    get_modules_and_packages
+)
 
 
 class ImportTest(BaseTestCase):
@@ -184,17 +188,18 @@ class ImportTest(BaseTestCase):
 
         self.cfg_create_from_file(file_path, project_modules, local_modules)
 
-
-        EXPECTED = ["Entry module",
-                    "Module Entry bar",
-                    "Module Exit bar",
-                    "temp_1_s = 'hey'",
-                    "s = temp_1_s",
-                    "Function Entry bar.H",
-                    "ret_bar.H = s + 'end'",
-                    "Exit bar.H",
-                    "~call_1 = ret_bar.H",
-                    "Exit module"]
+        EXPECTED = [
+            "Entry module",
+            "Module Entry bar",
+            "Module Exit bar",
+            "temp_1_s = 'hey'",
+            "s = temp_1_s",
+            "Function Entry bar.H",
+            "ret_bar.H = s + 'end'",
+            "Exit bar.H",
+            "~call_1 = ret_bar.H",
+            "Exit module"
+        ]
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
@@ -313,7 +318,6 @@ class ImportTest(BaseTestCase):
                     'c = ~call_1',
                     'Exit module']
 
-
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
 
@@ -337,7 +341,6 @@ class ImportTest(BaseTestCase):
                     '~call_1 = ret_A.B',
                     'c = ~call_1',
                     'Exit module']
-
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)
@@ -445,7 +448,6 @@ class ImportTest(BaseTestCase):
                     "~call_3 = ret_duck_house",
                     "c = ~call_3",
                     "Exit module"]
-
 
         for node, expected_label in zip(self.cfg.nodes, EXPECTED):
             self.assertEqual(node.label, expected_label)

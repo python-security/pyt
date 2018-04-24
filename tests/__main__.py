@@ -1,4 +1,8 @@
-from unittest import TestLoader, TestSuite, TextTestRunner
+from unittest import (
+    TestLoader,
+    TestSuite,
+    TextTestRunner
+)
 
 
 test_suite = TestSuite()

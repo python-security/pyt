@@ -4,13 +4,7 @@ from .base_test_case import BaseTestCase
 
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
-from pyt.framework_adaptor import FrameworkAdaptor
-from pyt.framework_helper import (
-    is_django_view_function,
-    is_flask_route_function,
-    is_function
-)
-from pyt.node_types import Node
+from pyt.core.node_types import Node
 from pyt.usage import (
     default_blackbox_mapping_file,
     default_trigger_word_file
@@ -20,6 +14,12 @@ from pyt.vulnerabilities import (
     trigger_definitions_parser,
     UImode,
     vulnerabilities
+)
+from pyt.web_frameworks import (
+    FrameworkAdaptor,
+    is_django_view_function,
+    is_flask_route_function,
+    is_function
 )
 
 

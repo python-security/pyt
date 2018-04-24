@@ -1,12 +1,12 @@
 import os
 import unittest
-from pprint import pprint
 
-from pyt.project_handler import (
+from pyt.core.project_handler import (
     get_modules,
     get_modules_and_packages,
     is_python_file
 )
+
 
 class ProjectHandlerTest(unittest.TestCase):
     """Tests for the project handler."""
@@ -28,12 +28,12 @@ class ProjectHandlerTest(unittest.TestCase):
         modules = get_modules(project_folder)
 
         app_path = os.path.join(project_folder, 'app.py')
-        utils_path = os.path.join(project_folder,'utils.py')
+        utils_path = os.path.join(project_folder, 'utils.py')
         exceptions_path = os.path.join(project_folder, 'exceptions.py')
         some_path = os.path.join(project_folder, folder, 'some.py')
         indhold_path = os.path.join(project_folder, folder, directory, 'indhold.py')
 
-        relative_folder_name = '.' + folder
+        # relative_folder_name = '.' + folder
         app_name = project_namespace + '.' + 'app'
         utils_name = project_namespace + '.' + 'utils'
         exceptions_name = project_namespace + '.' + 'exceptions'
@@ -66,8 +66,8 @@ class ProjectHandlerTest(unittest.TestCase):
         folder_path = os.path.join(project_folder, folder)
         app_path = os.path.join(project_folder, 'app.py')
         exceptions_path = os.path.join(project_folder, 'exceptions.py')
-        utils_path = os.path.join(project_folder,'utils.py')
-        directory_path = os.path.join(project_folder, folder, directory)
+        utils_path = os.path.join(project_folder, 'utils.py')
+        # directory_path = os.path.join(project_folder, folder, directory)
         some_path = os.path.join(project_folder, folder, 'some.py')
         indhold_path = os.path.join(project_folder, folder, directory, 'indhold.py')
 
@@ -75,15 +75,23 @@ class ProjectHandlerTest(unittest.TestCase):
         app_name = project_namespace + '.' + 'app'
         exceptions_name = project_namespace + '.' + 'exceptions'
         utils_name = project_namespace + '.' + 'utils'
-        relative_directory_name = '.' + folder + '.' + directory
+        # relative_directory_name = '.' + folder + '.' + directory
         some_name = project_namespace + '.' + folder + '.some'
         indhold_name = project_namespace + '.' + folder + '.' + directory + '.indhold'
 
-        folder_tuple = (relative_folder_name[1:], folder_path, relative_folder_name)
+        folder_tuple = (
+            relative_folder_name[1:],
+            folder_path,
+            relative_folder_name
+        )
         app_tuple = (app_name, app_path)
         exceptions_tuple = (exceptions_name, exceptions_path)
         utils_tuple = (utils_name, utils_path)
-        directory_tuple = (relative_directory_name[1:], directory_path, relative_directory_name)
+        # directory_tuple = (
+        #     relative_directory_name[1:],
+        #     directory_path,
+        #     relative_directory_name
+        # )
         some_tuple = (some_name, some_path)
         indhold_tuple = (indhold_name, indhold_path)
 

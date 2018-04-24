@@ -11,13 +11,6 @@ from .formatters import (
     json,
     text
 )
-from .framework_adaptor import FrameworkAdaptor
-from .framework_helper import (
-    is_django_view_function,
-    is_flask_route_function,
-    is_function,
-    is_function_without_leading_
-)
 from .project_handler import (
     get_directory_modules,
     get_modules
@@ -27,6 +20,13 @@ from .vulnerabilities import (
     find_vulnerabilities,
     get_vulnerabilities_not_in_baseline,
     UImode
+)
+from pyt.web_frameworks import (
+    FrameworkAdaptor,
+    is_django_view_function,
+    is_flask_route_function,
+    is_function,
+    is_function_without_leading_
 )
 
 

@@ -2,7 +2,7 @@ import ast
 import random
 from collections import namedtuple
 
-from ..node_types import (
+from ..core.node_types import (
     AssignmentCallNode,
     BBorBInode,
     BreakNode,

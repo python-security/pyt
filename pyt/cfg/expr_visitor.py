@@ -1,20 +1,12 @@
 import ast
 
-from .alias_helper import (
-    handle_aliases_in_calls
-)
-from ..ast_helper import (
+from .alias_helper import handle_aliases_in_calls
+from ..core.ast_helper import (
     Arguments,
     get_call_names_as_string
 )
-from .expr_visitor_helper import (
-    BUILTINS,
-    return_connection_handler,
-    SavedVariable
-)
-from ..label_visitor import LabelVisitor
-from ..module_definitions import ModuleDefinitions
-from ..node_types import (
+from ..core.module_definitions import ModuleDefinitions
+from ..core.node_types import (
     AssignmentCallNode,
     AssignmentNode,
     BBorBInode,
@@ -25,7 +17,15 @@ from ..node_types import (
     RestoreNode,
     ReturnNode
 )
-from ..right_hand_side_visitor import RHSVisitor
+from .expr_visitor_helper import (
+    BUILTINS,
+    return_connection_handler,
+    SavedVariable
+)
+from ..helper_visitors import (
+    LabelVisitor,
+    RHSVisitor
+)
 from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import CALL_IDENTIFIER
 

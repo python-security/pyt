@@ -2,10 +2,10 @@
 
 import ast
 
-from .ast_helper import Arguments
-from .cfg import make_cfg
-from .module_definitions import project_definitions
-from .node_types import (
+from ..cfg import make_cfg
+from ..core.ast_helper import Arguments
+from ..core.module_definitions import project_definitions
+from ..core.node_types import (
     AssignmentNode,
     TaintedNode
 )

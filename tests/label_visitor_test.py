@@ -1,7 +1,7 @@
 import ast
 import unittest
 
-from pyt.label_visitor import LabelVisitor
+from pyt.helper_visitors import LabelVisitor
 
 
 class LabelVisitorTestCase(unittest.TestCase):
@@ -14,64 +14,60 @@ class LabelVisitorTestCase(unittest.TestCase):
 
         return label
 
+
 class LabelVisitorTest(LabelVisitorTestCase):
     def test_assign(self):
         label = self.perform_labeling_on_expression('a = 1')
-        self.assertEqual(label.result,'a = 1')
+        self.assertEqual(label.result, 'a = 1')
 
     def test_augassign(self):
         label = self.perform_labeling_on_expression('a +=2')
-        self.assertEqual(label.result,'a += 2')
+        self.assertEqual(label.result, 'a += 2')
 
     def test_compare_simple(self):
         label = self.perform_labeling_on_expression('a > b')
-        self.assertEqual(label.result,'a > b')
+        self.assertEqual(label.result, 'a > b')
 
     def test_compare_multi(self):
         label = self.perform_labeling_on_expression('a > b > c')
-        self.assertEqual(label.result,'a > b > c')
+        self.assertEqual(label.result, 'a > b > c')
 
     def test_binop(self):
         label = self.perform_labeling_on_expression('a / b')
-        self.assertEqual(label.result,'a / b')
+        self.assertEqual(label.result, 'a / b')
 
     def test_call_no_arg(self):
         label = self.perform_labeling_on_expression('range()')
-        self.assertEqual(label.result,'range()')
-
+        self.assertEqual(label.result, 'range()')
 
     def test_call_single_arg(self):
         label = self.perform_labeling_on_expression('range(5)')
-        self.assertEqual(label.result,'range(5)')
+        self.assertEqual(label.result, 'range(5)')
 
     def test_call_multi_arg(self):
-        label = self.perform_labeling_on_expression('range(1,5)')
-        self.assertEqual(label.result,'range(1, 5)')
+        label = self.perform_labeling_on_expression('range(1, 5)')
+        self.assertEqual(label.result, 'range(1, 5)')
 
     def test_tuple_one_element(self):
         label = self.perform_labeling_on_expression('(1)')
-        self.assertEqual(label.result,'1')
+        self.assertEqual(label.result, '1')
 
     def test_tuple_two_elements(self):
-        label = self.perform_labeling_on_expression('(1,2)')
-        self.assertEqual(label.result,'(1, 2)')
+        label = self.perform_labeling_on_expression('(1, 2)')
+        self.assertEqual(label.result, '(1, 2)')
 
     def test_empty_tuple(self):
         label = self.perform_labeling_on_expression('()')
-        self.assertEqual(label.result,'()')
+        self.assertEqual(label.result, '()')
 
     def test_empty_list(self):
         label = self.perform_labeling_on_expression('[]')
-        self.assertEqual(label.result,'[]')
+        self.assertEqual(label.result, '[]')
 
     def test_list_one_element(self):
         label = self.perform_labeling_on_expression('[1]')
-        self.assertEqual(label.result,'[1]')
+        self.assertEqual(label.result, '[1]')
 
     def test_list_two_elements(self):
-        label = self.perform_labeling_on_expression('[1,2]')
-        self.assertEqual(label.result,'[1, 2]')
-
-
-
-
+        label = self.perform_labeling_on_expression('[1, 2]')
+        self.assertEqual(label.result, '[1, 2]')

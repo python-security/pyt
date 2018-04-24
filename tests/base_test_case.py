@@ -1,9 +1,9 @@
 """A module that contains a base class that has helper methods for testing PyT."""
 import unittest
 
-from pyt.ast_helper import generate_ast
 from pyt.cfg import make_cfg
-from pyt.module_definitions import project_definitions
+from pyt.core.ast_helper import generate_ast
+from pyt.core.module_definitions import project_definitions
 
 
 class BaseTestCase(unittest.TestCase):

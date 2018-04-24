@@ -5,15 +5,17 @@ import json
 
 from ..analysis.definition_chains import build_def_use_chain
 from ..analysis.lattice import Lattice
-from ..node_types import (
+from ..core.node_types import (
     AssignmentNode,
     BBorBInode,
     IfNode,
     TaintedNode
 )
-from ..right_hand_side_visitor import RHSVisitor
+from ..helper_visitors import (
+    RHSVisitor,
+    VarsVisitor
+)
 from .trigger_definitions_parser import parse
-from ..vars_visitor import VarsVisitor
 from .vulnerability_helper import (
     Sanitiser,
     TriggerNode,

@@ -1,7 +1,7 @@
 import ast
 import itertools
 
-from .ast_helper import get_call_names
+from ..core.ast_helper import get_call_names
 
 
 class VarsVisitor(ast.NodeVisitor):
