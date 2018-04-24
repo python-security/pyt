@@ -1,6 +1,6 @@
 import os
 
-from .base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse

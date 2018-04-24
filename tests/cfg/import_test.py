@@ -1,7 +1,7 @@
 import ast
 import os
 
-from .base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 from pyt.core.ast_helper import get_call_names_as_string
 from pyt.core.project_handler import (

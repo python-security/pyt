@@ -1,4 +1,4 @@
-from .base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 from pyt.core.node_types import (
     EntryOrExitNode,

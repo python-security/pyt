@@ -1,6 +1,6 @@
 import os.path
 
-from .base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 from pyt.core.project_handler import (
     get_directory_modules,

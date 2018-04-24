@@ -1,7 +1,6 @@
 import ast
 import unittest
 
-
 from pyt.helper_visitors import VarsVisitor
 
 

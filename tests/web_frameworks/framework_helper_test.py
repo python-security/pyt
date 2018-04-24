@@ -1,4 +1,4 @@
-from .base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 from pyt.web_frameworks import (
     is_django_view_function,

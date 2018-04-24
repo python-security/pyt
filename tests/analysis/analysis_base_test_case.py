@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from ..base_test_case import BaseTestCase
+
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import FixedPointAnalysis
 from pyt.analysis.lattice import Lattice
