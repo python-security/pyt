@@ -24,13 +24,6 @@ from pyt.web_frameworks import (
 
 
 class EngineTest(BaseTestCase):
-    def run_empty(self):
-        return
-
-    def get_lattice_elements(self, cfg_nodes):
-        """Dummy analysis method"""
-        return cfg_nodes
-
     def test_parse(self):
         definitions = trigger_definitions_parser.parse(
             trigger_word_file=os.path.join(
@@ -504,9 +497,6 @@ class EngineTest(BaseTestCase):
 
 
 class EngineDjangoTest(BaseTestCase):
-    def run_empty(self):
-        return
-
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
@@ -549,9 +539,6 @@ class EngineDjangoTest(BaseTestCase):
 
 
 class EngineEveryTest(BaseTestCase):
-    def run_empty(self):
-        return
-
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
         cfg_list = [self.cfg]

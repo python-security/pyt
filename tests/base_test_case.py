@@ -46,45 +46,15 @@ class BaseTestCase(unittest.TestCase):
                         "(%s <- %s)" % (sets, element) + " expected to be disconnected"
                     )
 
-    def assertConnected(self, node, successor):
-        """Asserts that a node is connected to its successor.
-        This means that node has successor in its outgoing and
-        successor has node in its ingoing."""
-
-        self.assertIn(
-            successor,
-            node.outgoing,
-            '\n%s was NOT found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']'
-        )
-
-        self.assertIn(
-            node,
-            successor.ingoing,
-            '\n%s was NOT found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']'
-        )
-
-    def assertNotConnected(self, node, successor):
-        """Asserts that a node is not connected to its successor.
-        This means that node does not the successor in its outgoing and
-        successor does not have the node in its ingoing."""
-
-        self.assertNotIn(
-            successor,
-            node.outgoing,
-            '\n%s was mistakenly found in the outgoing list of %s containing: ' % (successor.label, node.label) + '[' + ', '.join([x.label for x in node.outgoing]) + ']'
-        )
-        self.assertNotIn(
-            node,
-            successor.ingoing,
-            '\n%s was mistakenly found in the ingoing list of %s containing: ' % (node.label, successor.label) + '[' + ', '.join([x.label for x in successor.ingoing]) + ']'
-        )
-
     def assertLineNumber(self, node, line_number):
+        """Only used in cfg_test."""
         self.assertEqual(node.line_number, line_number)
 
     def cfg_list_to_dict(self, list):
         """This method converts the CFG list to a dict, making it easier to find nodes to test.
-        This method assumes that no nodes in the code have the same label"""
+        This method assumes that no nodes in the code have the same label.
+        Only used in cfg_test.
+        """
         return {x.label: x for x in list}
 
     def assert_length(self, _list, *, expected_length):
@@ -107,12 +77,14 @@ class BaseTestCase(unittest.TestCase):
         )
 
     def string_compare_alpha(self, output, expected_string):
+        # Only used in vulnerability tests
         return (
             [char for char in output if char.isalpha()] ==
             [char for char in expected_string if char.isalpha()]
         )
 
     def string_compare_alnum(self, output, expected_string):
+        # Only used in reaching_definitions_taint_test
         return (
             [char for char in output if char.isalnum()] ==
             [char for char in expected_string if char.isalnum()]

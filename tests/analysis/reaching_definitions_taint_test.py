@@ -1,10 +1,12 @@
 from .analysis_base_test_case import AnalysisBaseTestCase
 
+from pyt.analysis.constraint_table import constraint_table
+
 
 class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
     # Note: the numbers in the test represent the line numbers of the assignments in the program.
     def test_linear_program(self):
-        constraint_table = {}
+        # constraint_table = {}
         lattice = self.run_analysis('examples/example_inputs/linear.py')
 
         EXPECTED = [
@@ -22,7 +24,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
             i = i + 1
 
     def test_if_program(self):
-        constraint_table = {}
+        # constraint_table = {}
         lattice = self.run_analysis('examples/example_inputs/if_program.py')
 
         EXPECTED = [
@@ -41,7 +43,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
             i = i + 1
 
     def test_example(self):
-        constraint_table = {}
+        # constraint_table = {}
         lattice = self.run_analysis('examples/example_inputs/example.py')
 
         EXPECTED = [
@@ -82,7 +84,7 @@ class ReachingDefinitionsTaintTest(AnalysisBaseTestCase):
                           *self.constraints([2, 3, 4, 6, 7, 9], 10)], lattice)
 
     def test_while(self):
-        constraint_table = {}
+        # constraint_table = {}
         lattice = self.run_analysis('examples/example_inputs/while.py')
 
         EXPECTED = [
