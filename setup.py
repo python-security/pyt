@@ -2,7 +2,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-VERSION = '0.32'
+VERSION = '0.33'
 
 
 setup(
@@ -11,7 +11,7 @@ setup(
     version=VERSION,
     include_package_data=True,
     package_data={
-        '': ['*.json', '*.pyt'],
+        'pyt.vulnerability_definitions': ['*.json', '*.pyt'],
     },
     description='Find security vulnerabilities in Python web applications'
     ' using static analysis.',
