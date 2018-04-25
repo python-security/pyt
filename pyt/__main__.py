@@ -195,7 +195,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def analyse_repo(args, github_repo, analysis_type, ui_mode):
+def analyse_repo(args, github_repo, analysis_type, ui_mode, nosec_lines):
     cfg_list = list()
     directory = os.path.dirname(github_repo.path)
     project_modules = get_modules(directory)
@@ -218,7 +218,8 @@ def analyse_repo(args, github_repo, analysis_type, ui_mode):
         VulnerabilityFiles(
             args.blackbox_mapping_file,
             args.trigger_word_file
-        )
+        ),
+        nosec_lines
     )
     return vulnerabilities
 
@@ -248,23 +249,13 @@ def main(command_line_args=sys.argv[1:]):
         nosec_lines = set(
                     lineno for
                     (lineno, line) in enumerate(lines, start=1)
-                    if '#nosec' in line or '# nosec' in line)   
-        vulnerabilities = find_vulnerabilities(
-            cfg_list,
-            analysis,
-            ui_mode,
-            VulnerabilityFiles(
-                args.blackbox_mapping_file,
-                args.trigger_word_file
-            ),
-            nosec_lines
-        )                
+                    if '#nosec' in line or '# nosec' in line)                  
     
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
             repo.clone()
-            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode)
+            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode, nosec_lines)
             if args.json:
                 json.report(vulnerabilities, sys.stdout)
             else:
