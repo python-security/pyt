@@ -1,6 +1,3 @@
-.. image:: https://img.shields.io/badge/python-v3.6-blue.svg
-    :target: https://pypi.org/project/python-taint/
-
 .. image:: https://travis-ci.org/python-security/pyt.svg?branch=master
     :target: https://travis-ci.org/python-security/pyt
 
@@ -15,6 +12,9 @@
 
 .. image:: https://img.shields.io/badge/PRs-welcome-ff69b4.svg
     :target: https://github.com/python-security/pyt/issues?q=is%3Aopen+is%3Aissue+label%3Agood-first-issue
+
+.. image:: https://img.shields.io/badge/python-v3.6-blue.svg
+    :target: https://pypi.org/project/python-taint/
 
 Python Taint
 ============
