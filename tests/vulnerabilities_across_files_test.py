@@ -15,7 +15,7 @@ from pyt.project_handler import get_directory_modules, get_modules
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from pyt.vulnerabilities import find_vulnerabilities
 
-
+nosec_lines = set()
 class EngineTest(BaseTestCase):
     def run_analysis(self, path):
         path = os.path.normpath(path)
@@ -40,7 +40,8 @@ class EngineTest(BaseTestCase):
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
                 default_trigger_word_file
-            )
+            ),
+            nosec_lines
         )
 
     def test_find_vulnerabilities_absolute_from_file_command_injection(self):
