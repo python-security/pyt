@@ -5,15 +5,15 @@ import sys
 
 from .analysis.constraint_table import initialize_constraint_table
 from .analysis.fixed_point import analyse
-from .ast_helper import generate_ast
 from .cfg import make_cfg
+from .core.ast_helper import generate_ast
+from .core.project_handler import (
+    get_directory_modules,
+    get_modules
+)
 from .formatters import (
     json,
     text
-)
-from .project_handler import (
-    get_directory_modules,
-    get_modules
 )
 from .usage import parse_args
 from .vulnerabilities import (
@@ -21,7 +21,7 @@ from .vulnerabilities import (
     get_vulnerabilities_not_in_baseline,
     UImode
 )
-from pyt.web_frameworks import (
+from .web_frameworks import (
     FrameworkAdaptor,
     is_django_view_function,
     is_flask_route_function,

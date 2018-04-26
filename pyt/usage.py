@@ -96,10 +96,10 @@ def _add_print_group(parser):
 
 
 def _check_required_and_mutually_exclusive_args(parser, args):
-    if args.filepath is None and args.git_repos is None:
-        parser.error('one of the arguments -f/--filepath -gr/--git-repos is required')
-    if args.filepath and args.git_repos:
-        parser.error('argument -f/--filepath: not allowed with argument -gr/--git-repos')
+    if args.filepath is None and args.root_directory is None:
+        parser.error('one of the arguments -f/--filepath -r/--root-directory is required')
+    if args.filepath and args.root_directory:
+        parser.error('argument -f/--filepath: not allowed with argument -r/--root-directory')
     if args.trim_reassigned_in and args.interactive:
         parser.error('argument -i/--interactive: not allowed with argument -trim/--trim-reassigned-in')
 
