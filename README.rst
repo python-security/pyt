@@ -41,9 +41,9 @@ Features
 
 * A lot of customisation possible
 
-For a look at recent changes, please see the `change log`_
+For a look at recent changes, please see the `changelog`_.
 
-.. _change_log: https://github.com/python-security/pyt/blob/master/CHANGELOG.md
+.. _changelog: https://github.com/python-security/pyt/blob/master/CHANGELOG.md
 
 Example usage and output:
 
