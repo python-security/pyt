@@ -41,6 +41,10 @@ Features
 
 * A lot of customisation possible
 
+For a look at recent changes, please see the `change log`_.
+
+.. _change_log: https://github.com/python-security/pyt/blob/master/CHANGELOG.md
+
 Example usage and output:
 
 .. image:: https://raw.githubusercontent.com/KevinHock/rtdpyt/master/readme_static_files/pyt_example.png
