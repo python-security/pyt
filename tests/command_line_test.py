@@ -28,6 +28,7 @@ class CommandLineTest(BaseTestCase):
                      [-m BLACKBOX_MAPPING_FILE] [-py2] [-l LOG_LEVEL]
                      [-a ADAPTOR] [-db] [-dl DRAW_LATTICE [DRAW_LATTICE ...]]
                      [-j] [-li | -re | -rt] [-ppm] [-b BASELINE]
+                     [--ignore-nosec]
                      {save,github_search} ...\n""" + \
                      "python -m pyt: error: one of the arguments " + \
                      "-f/--filepath -gr/--git-repos is required\n"
