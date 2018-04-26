@@ -172,7 +172,7 @@ def append_node_if_reassigned(
 def find_triggers(
     nodes,
     trigger_words,
-    nosec_lines
+    nosec_lines = set()
 ):
     """Find triggers from the trigger_word_list in the nodes.
 
@@ -470,7 +470,7 @@ def find_vulnerabilities_in_cfg(
     ui_mode,
     blackbox_mapping,
     vulnerabilities_list,
-    nosec_lines
+    nosec_lines = set()
 ):
     """Find vulnerabilities in a cfg.
 
