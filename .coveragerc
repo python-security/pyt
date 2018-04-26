@@ -9,7 +9,9 @@ exclude_lines =
     raise NotImplementedError
 
 [run]
-source = ./pyt
+source =
+    ./pyt
+    ./tests
 omit =
     pyt/__main__.py
     pyt/usage.py

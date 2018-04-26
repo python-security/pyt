@@ -2,9 +2,17 @@ from collections import namedtuple
 
 from ..base_test_case import BaseTestCase
 
-from pyt.analysis.constraint_table import initialize_constraint_table
+from pyt.analysis.constraint_table import (
+    constraint_table,
+    initialize_constraint_table
+)
 from pyt.analysis.fixed_point import FixedPointAnalysis
 from pyt.analysis.lattice import Lattice
+
+
+def clear_constraint_table():
+    for key in list(constraint_table):
+        del constraint_table[key]
 
 
 class AnalysisBaseTestCase(BaseTestCase):
@@ -55,6 +63,7 @@ class AnalysisBaseTestCase(BaseTestCase):
 
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
+        clear_constraint_table()
         initialize_constraint_table([self.cfg])
         self.analysis = FixedPointAnalysis(self.cfg)
         self.analysis.fixpoint_runner()
