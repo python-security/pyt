@@ -23,7 +23,6 @@ from pyt.framework_helper import (
 from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
-nosec_lines = set()
 class EngineTest(BaseTestCase):
     def run_empty(self):
         return
@@ -93,7 +92,7 @@ class EngineTest(BaseTestCase):
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
-        l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words, nosec_lines)
+        l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
         self.assert_length(l, expected_length=1)
 
     def test_find_sanitiser_nodes(self):
@@ -138,8 +137,7 @@ class EngineTest(BaseTestCase):
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
                 default_trigger_word_file
-            ),
-            nosec_lines
+            )
         )
 
     def test_find_vulnerabilities_assign_other_var(self):
@@ -534,8 +532,7 @@ class EngineDjangoTest(BaseTestCase):
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
                 trigger_word_file
-            ),
-            nosec_lines
+            )
         )
 
     def test_django_view_param(self):
@@ -583,8 +580,7 @@ class EngineEveryTest(BaseTestCase):
             VulnerabilityFiles(
                 default_blackbox_mapping_file,
                 trigger_word_file
-            ),
-            nosec_lines
+            )
         )
 
     def test_self_is_not_tainted(self):
