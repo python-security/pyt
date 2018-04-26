@@ -1,4 +1,6 @@
 [report]
+show_missing = True
+
 exclude_lines =
     def valid_date
     def __repr__
