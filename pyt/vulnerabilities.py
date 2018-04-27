@@ -74,7 +74,7 @@ def identify_triggers(
     sources,
     sinks,
     lattice,
-    nosec_lines
+    nosec_lines = set()
 ):
     """Identify sources, sinks and sanitisers in a CFG.
 
