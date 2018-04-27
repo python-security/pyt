@@ -1,4 +1,4 @@
-from ..base_test_case import BaseTestCase
+from .cfg_base_test_case import CFGBaseTestCase
 
 from pyt.core.node_types import (
     EntryOrExitNode,
@@ -6,7 +6,7 @@ from pyt.core.node_types import (
 )
 
 
-class CFGGeneralTest(BaseTestCase):
+class CFGGeneralTest(CFGBaseTestCase):
     def test_repr_cfg(self):
         self.cfg_create_from_file('examples/example_inputs/for_complete.py')
 
@@ -60,7 +60,7 @@ class CFGGeneralTest(BaseTestCase):
         self.assertEqual(expected_label, actual_label)
 
 
-class CFGForTest(BaseTestCase):
+class CFGForTest(CFGBaseTestCase):
     def test_for_complete(self):
         self.cfg_create_from_file('examples/example_inputs/for_complete.py')
 
@@ -177,7 +177,7 @@ class CFGForTest(BaseTestCase):
         ])
 
 
-class CFGTryTest(BaseTestCase):
+class CFGTryTest(CFGBaseTestCase):
     def connected(self, node, successor):
         return (successor, node)
 
@@ -285,7 +285,7 @@ class CFGTryTest(BaseTestCase):
                           self.connected(print_final, _exit)])
 
 
-class CFGIfTest(BaseTestCase):
+class CFGIfTest(CFGBaseTestCase):
     def test_if_complete(self):
         self.cfg_create_from_file('examples/example_inputs/if_complete.py')
 
@@ -487,7 +487,7 @@ class CFGIfTest(BaseTestCase):
         ])
 
 
-class CFGWhileTest(BaseTestCase):
+class CFGWhileTest(CFGBaseTestCase):
 
     def test_while_complete(self):
         self.cfg_create_from_file('examples/example_inputs/while_complete.py')
@@ -558,7 +558,7 @@ class CFGWhileTest(BaseTestCase):
         self.assertLineNumber(next_stmt, 7)
 
 
-class CFGAssignmentMultiTest(BaseTestCase):
+class CFGAssignmentMultiTest(CFGBaseTestCase):
     def test_assignment_multi_target(self):
         self.cfg_create_from_file('examples/example_inputs/assignment_two_targets.py')
 
@@ -669,7 +669,7 @@ class CFGAssignmentMultiTest(BaseTestCase):
         self.assertEqual(self.cfg.nodes[node].label, 'a = (x, y)')
 
 
-class CFGComprehensionTest(BaseTestCase):
+class CFGComprehensionTest(CFGBaseTestCase):
     def test_nodes(self):
         self.cfg_create_from_file('examples/example_inputs/comprehensions.py')
 
@@ -717,7 +717,7 @@ class CFGComprehensionTest(BaseTestCase):
         self.assertEqual(listcomp.label, 'dd = {x + y : y for x in [1, 2, 3] for y in [4, 5, 6]}')
 
 
-class CFGFunctionNodeTest(BaseTestCase):
+class CFGFunctionNodeTest(CFGBaseTestCase):
     def connected(self, node, successor):
         return (successor, node)
 
@@ -1167,7 +1167,7 @@ class CFGFunctionNodeTest(BaseTestCase):
         self.cfg_create_from_file(path)
 
 
-class CFGCallWithAttributeTest(BaseTestCase):
+class CFGCallWithAttributeTest(CFGBaseTestCase):
     def setUp(self):
         self.cfg_create_from_file('examples/example_inputs/call_with_attribute.py')
 
@@ -1187,7 +1187,7 @@ class CFGCallWithAttributeTest(BaseTestCase):
         self.assertLineNumber(call, 5)
 
 
-class CFGBreak(BaseTestCase):
+class CFGBreak(CFGBaseTestCase):
     """Break in while and for and other places"""
     def test_break(self):
         self.cfg_create_from_file('examples/example_inputs/while_break.py')
@@ -1215,7 +1215,7 @@ class CFGBreak(BaseTestCase):
                           (_exit, print_next)])
 
 
-class CFGNameConstant(BaseTestCase):
+class CFGNameConstant(CFGBaseTestCase):
     def setUp(self):
         self.cfg_create_from_file('examples/example_inputs/name_constant.py')
 
@@ -1233,7 +1233,7 @@ class CFGNameConstant(BaseTestCase):
         self.assertEqual(expected_label, actual_label)
 
 
-class CFGName(BaseTestCase):
+class CFGName(CFGBaseTestCase):
     """Test is Name nodes are properly handled in different contexts"""
 
     def test_name_if(self):
