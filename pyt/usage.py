@@ -33,13 +33,6 @@ def _add_required_group(parser):
         help='Path to the file that should be analysed.',
         type=str
     )
-    required_group.add_argument(
-        '-r', '--root-directory',
-        help='Add project root, this is important when the entry '
-             'file is not at the root of the project.',
-        type=str,
-        metavar='DIR_TO_ANALYZE'
-    )
 
 
 def _add_optional_group(parser):
@@ -49,6 +42,12 @@ def _add_optional_group(parser):
         '-a', '--adaptor',
         help='Choose a web framework adaptor: '
              'Flask(Default), Django, Every or Pylons',
+        type=str
+    )
+    optional_group.add_argument(
+        '-pr', '--project-root',
+        help='Add project root, only important when the entry '
+             'file is not at the root of the project.',
         type=str
     )
     optional_group.add_argument(
@@ -80,26 +79,24 @@ def _add_optional_group(parser):
 
 
 def _add_print_group(parser):
-    print_group = parser.add_mutually_exclusive_group()
+    print_group = parser.add_argument_group('print arguments')
     print_group.add_argument(
         '-trim', '--trim-reassigned-in',
-        help='Trims the reassigned list to the vulnerability chain.',
+        help='Trims the reassigned list to just the vulnerability chain.',
         action='store_true',
         default=True
     )
     print_group.add_argument(
         '-i', '--interactive',
-        help='Will ask you about each vulnerability chain and blackbox nodes.',
+        help='Will ask you about each blackbox function call in vulnerability chains.',
         action='store_true',
         default=False
     )
 
 
 def _check_required_and_mutually_exclusive_args(parser, args):
-    if args.filepath is None and args.root_directory is None:
-        parser.error('one of the arguments -f/--filepath -r/--root-directory is required')
-    if args.filepath and args.root_directory:
-        parser.error('argument -f/--filepath: not allowed with argument -r/--root-directory')
+    if args.filepath is None:
+        parser.error('The -f/--filepath argument is required')
     if args.trim_reassigned_in and args.interactive:
         parser.error('argument -i/--interactive: not allowed with argument -trim/--trim-reassigned-in')
 

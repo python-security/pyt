@@ -16,6 +16,5 @@ source =
     ./tests
 omit =
     pyt/__main__.py
-    pyt/usage.py
     pyt/formatters/json.py
     pyt/formatters/text.py

@@ -40,8 +40,8 @@ def main(command_line_args=sys.argv[1:]):
         ui_mode = UImode.TRIM
 
     path = os.path.normpath(args.filepath)
-    if args.root_directory:
-        directory = os.path.normpath(args.root_directory)
+    if args.project_root:
+        directory = os.path.normpath(args.project_root)
     else:
         directory = os.path.dirname(path)
     project_modules = get_modules(directory)
