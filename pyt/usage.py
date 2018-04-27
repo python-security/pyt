@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from datetime import datetime
 
 
@@ -75,6 +76,14 @@ def _add_optional_group(parser):
         help='Input file with a list of sources and sinks',
         type=str,
         default=default_trigger_word_file
+    )
+    optional_group.add_argument(
+        '-o', '--output',
+        help='write report to filename',
+        dest='output_file',
+        action='store',
+        type=argparse.FileType('w'),
+        default=sys.stdout,
     )
 
 

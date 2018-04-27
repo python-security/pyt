@@ -1,4 +1,3 @@
-"""This just tests usage.py"""
 import sys
 from contextlib import contextmanager
 from io import StringIO
@@ -28,7 +27,7 @@ class UsageTest(BaseTestCase):
 
         EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
-                     [-t TRIGGER_WORD_FILE] [-trim] [-i]
+                     [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
 
 required arguments:
   -f FILEPATH, --filepath FILEPATH
@@ -49,6 +48,8 @@ optional arguments:
                         Input blackbox mapping file.
   -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
                         Input file with a list of sources and sinks
+  -o OUTPUT_FILE, --output OUTPUT_FILE
+                        write report to filename
 
 print arguments:
   -trim, --trim-reassigned-in
@@ -66,7 +67,7 @@ print arguments:
 
         EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
-                     [-t TRIGGER_WORD_FILE] [-trim] [-i]
+                     [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
 python -m pyt: error: The -f/--filepath argument is required\n"""
 
         self.assertEqual(stderr.getvalue(), EXPECTED)
@@ -78,7 +79,7 @@ python -m pyt: error: The -f/--filepath argument is required\n"""
 
         EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
-                     [-t TRIGGER_WORD_FILE] [-trim] [-i]
+                     [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
 python -m pyt: error: argument -i/--interactive: not allowed with argument -trim/--trim-reassigned-in\n"""
 
         self.assertEqual(stderr.getvalue(), EXPECTED)

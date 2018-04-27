@@ -55,7 +55,7 @@ def main(command_line_args=sys.argv[1:]):
         local_modules,
         path
     )
-    cfg_list = list(cfg)
+    cfg_list = [cfg]
     framework_route_criteria = is_flask_route_function
     if args.adaptor:
         if args.adaptor.lower().startswith('e'):
@@ -87,9 +87,9 @@ def main(command_line_args=sys.argv[1:]):
         )
 
     if args.json:
-        json.report(vulnerabilities, sys.stdout)
+        json.report(vulnerabilities, args.output_file)
     else:
-        text.report(vulnerabilities, sys.stdout)
+        text.report(vulnerabilities, args.output_file)
 
 
 if __name__ == '__main__':
