@@ -75,17 +75,3 @@ class BaseTestCase(unittest.TestCase):
             local_modules,
             filename
         )
-
-    def string_compare_alpha(self, output, expected_string):
-        # Only used in vulnerability tests
-        return (
-            [char for char in output if char.isalpha()] ==
-            [char for char in expected_string if char.isalpha()]
-        )
-
-    def string_compare_alnum(self, output, expected_string):
-        # Only used in reaching_definitions_taint_test
-        return (
-            [char for char in output if char.isalnum()] ==
-            [char for char in expected_string if char.isalnum()]
-        )

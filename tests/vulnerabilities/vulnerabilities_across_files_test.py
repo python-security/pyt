@@ -1,6 +1,6 @@
 import os
 
-from ..base_test_case import BaseTestCase
+from .vulnerabilities_base_test_case import VulnerabilitiesBaseTestCase
 
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
@@ -22,7 +22,7 @@ from pyt.web_frameworks import (
 )
 
 
-class EngineTest(BaseTestCase):
+class EngineTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
         path = os.path.normpath(path)
 

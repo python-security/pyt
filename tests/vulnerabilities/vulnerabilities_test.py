@@ -1,6 +1,6 @@
 import os
 
-from ..base_test_case import BaseTestCase
+from .vulnerabilities_base_test_case import VulnerabilitiesBaseTestCase
 
 from pyt.analysis.constraint_table import initialize_constraint_table
 from pyt.analysis.fixed_point import analyse
@@ -23,7 +23,7 @@ from pyt.web_frameworks import (
 )
 
 
-class EngineTest(BaseTestCase):
+class EngineTest(VulnerabilitiesBaseTestCase):
     def test_parse(self):
         definitions = trigger_definitions_parser.parse(
             trigger_word_file=os.path.join(
@@ -496,7 +496,7 @@ class EngineTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
 
-class EngineDjangoTest(BaseTestCase):
+class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
@@ -538,7 +538,7 @@ class EngineDjangoTest(BaseTestCase):
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
 
-class EngineEveryTest(BaseTestCase):
+class EngineEveryTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
         self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
