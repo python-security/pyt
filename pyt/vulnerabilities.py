@@ -509,7 +509,7 @@ def find_vulnerabilities(
     analysis_type,
     ui_mode,
     vulnerability_files,
-    nosec_lines
+    nosec_lines = set()
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
