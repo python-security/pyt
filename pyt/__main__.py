@@ -143,8 +143,7 @@ def parse_args(args):
                         type=str,
                         default=False)
     parser.add_argument('--ignore-nosec', dest='ignore_nosec', action='store_true',
-                         help='do not skip lines with # nosec comments'
-    )   
+                         help='do not skip lines with # nosec comments')
 
     save_parser = subparsers.add_parser('save', help='Save menu.')
     save_parser.set_defaults(which='save')
@@ -239,7 +238,7 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
-    path = os.path.normpath(args.filepath) 
+    path = os.path.normpath(args.filepath)
     cfg_list = list()
     if args.ignore_nosec:
         nosec_lines = set()
@@ -249,8 +248,8 @@ def main(command_line_args=sys.argv[1:]):
         nosec_lines = set(
                     lineno for
                     (lineno, line) in enumerate(lines, start=1)
-                    if '#nosec' in line or '# nosec' in line)                  
-    
+                    if '#nosec' in line or '# nosec' in line)
+        
     if args.git_repos:
         repos = get_repos(args.git_repos)
         for repo in repos:
