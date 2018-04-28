@@ -7,8 +7,8 @@ Where do definitions reach?
 Traditionally `reaching definitions`_, a classic dataflow-analysis,
 has been used to answer this question. To understand reaching definitions,
 watch this `wonderful YouTube video`_ and come back here.
-We use `reaching definitions`_,
-with one small modification, a `reassignment check`_.
+We use reaching definitions, with one small modification,
+a `reassignment check`_.
 
 
 .. code-block:: python
@@ -37,8 +37,8 @@ we still want to know that something from a request reached `send_file`.
 How does a definition reach?
 ============================
 
-After we know that a definition reaches a use that we are interested in
-We make what are called `definition-use chains`_ figure out how that definition
+After we know that a definition reaches a use that we are interested in,
+we make what are called `definition-use chains`_ figure out how the definition
 reaches the use. This is necessary because there may be more than one path from
 the definition to the use.
 
@@ -53,7 +53,7 @@ This folder probably will not change at all for the lifetime of the project,
 unless we were to implement more advanced analyses like `solving string
 constraints`_ or doing `alias analysis`_. Right now and in the foreseeable
 future there are more pressing concerns, like handling web frameworks
-and handling all ast node types in the CFG construction.
+and handling all AST node types in the `CFG construction`_.
 
 Stefan and Bruno like the `Schwartzbach notes`_, as you will see in some comments.
 But looking these two algorithms up will yield countless results, my favorite is
@@ -62,5 +62,6 @@ this `amazing guy from YouTube`_.
 
 .. _solving string constraints: https://zyh1121.github.io/z3str3Docs/inputLanguage.html
 .. _alias analysis: https://www3.cs.stonybrook.edu/~liu/papers/Alias-DLS10.pdf
+.. _CFG construction: https://github.com/python-security/pyt/tree/re_organize_code/pyt/cfg
 .. _Schwartzbach notes: http://lara.epfl.ch/w/_media/sav08:schwartzbach.pdf
 .. _amazing guy from YouTube: https://www.youtube.com/watch?v=NVBQSR_HdL0
