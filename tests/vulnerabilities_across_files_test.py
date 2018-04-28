@@ -15,6 +15,7 @@ from pyt.project_handler import get_directory_modules, get_modules
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 from pyt.vulnerabilities import find_vulnerabilities
 
+
 class EngineTest(BaseTestCase):
     def run_analysis(self, path):
         path = os.path.normpath(path)
