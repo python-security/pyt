@@ -23,6 +23,7 @@ from pyt.framework_helper import (
 from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
 
+
 class EngineTest(BaseTestCase):
     def run_empty(self):
         return
