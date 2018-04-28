@@ -10,6 +10,12 @@
 .. image:: https://badge.fury.io/py/python-taint.svg
     :target: https://badge.fury.io/py/python-taint
 
+.. image:: https://img.shields.io/badge/PRs-welcome-ff69b4.svg
+    :target: https://github.com/python-security/pyt/issues?q=is%3Aopen+is%3Aissue+label%3Agood-first-issue
+
+.. image:: https://img.shields.io/badge/python-v3.6-blue.svg
+    :target: https://pypi.org/project/python-taint/
+
 Python Taint
 ============
 
@@ -35,6 +41,10 @@ Features
 
 * A lot of customisation possible
 
+For a look at recent changes, please see the `changelog`_.
+
+.. _changelog: https://github.com/python-security/pyt/blob/master/CHANGELOG.md
+
 Example usage and output:
 
 .. image:: https://raw.githubusercontent.com/KevinHock/rtdpyt/master/readme_static_files/pyt_example.png
@@ -42,11 +52,9 @@ Example usage and output:
 Install
 =======
 
-       1. git clone https://github.com/python-security/pyt.git
-       2. cd pyt/
-       3. python3 setup.py install
-       4. pyt -h
+.. code-block:: python
 
+	pip install python-taint
 
 Usage from Source
 =================
