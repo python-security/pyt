@@ -50,7 +50,7 @@ PyT can also be installed from source. To do so, clone the repo, and then instal
 
   python3 setup.py install
 
-
+.. code-block::
 
   usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
                        [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
