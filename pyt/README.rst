@@ -5,8 +5,9 @@
 Step 1
     Parse command line arguments.
 
-    `parse_args` with `usage.py`_
+    `parse_args`_ in `usage.py`_
 
+    .. _parse_args: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py#L113
     .. _usage.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py
 
 
@@ -20,7 +21,7 @@ Step 2
         import ast
         ast.parse(f.read())
 
-    `generate_ast`_ from `ast_helper.py`_
+    `generate_ast`_ in `ast_helper.py`_
 
     .. _ast: https://docs.python.org/3/library/ast.html
     .. _generate_ast: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/ast_helper.py#L24
@@ -48,9 +49,13 @@ Step 6
     .. _vulnerabilities: https://github.com/python-security/pyt/tree/re_organize_code/pyt/vulnerabilities
 
 Step 7
-    Remove the already vulnerabilities if a baseline (JSON file of a previous run of PyT) is provided.
+    `Remove already known vulnerabilities`_ if a `baseline`_ (JSON file of a previous run of PyT) is provided.
+
+    .. _Remove already known vulnerabilities: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py#L194
+    .. _baseline: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py#L54
 
 Step 8
-    Output the results in either `text or JSON form`_, to stdout or the outfile.
+    Output the results in either `text or JSON form`_, to stdout or the `output file`_.
 
     .. _text or JSON form: https://github.com/python-security/pyt/tree/re_organize_code/pyt/formatters
+    .. _output file: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py#L80
