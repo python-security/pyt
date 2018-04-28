@@ -39,14 +39,14 @@ Step 4
     .. _Framework Adaptor: https://github.com/python-security/pyt/tree/re_organize_code/pyt/web_frameworks
 
 Step 5
-    Perform (modified-)reaching definitions `analysis`_, to know where definitions reach.
+    Perform `(modified-)reaching definitions analysis`_, to know where definitions reach.
 
-    .. _analysis: https://github.com/python-security/pyt/tree/re_organize_code/pyt/analysis
+    .. _\(modified\-\)reaching definitions analysis: https://github.com/python-security/pyt/tree/re_organize_code/pyt/analysis
 
 Step 6
-    Find `vulnerabilities`_, by seeing where sources reach, and how.
+    `Find vulnerabilities`_, by seeing where sources reach, and how.
 
-    .. _vulnerabilities: https://github.com/python-security/pyt/tree/re_organize_code/pyt/vulnerabilities
+    .. _Find vulnerabilities: https://github.com/python-security/pyt/tree/re_organize_code/pyt/vulnerabilities
 
 Step 7
     `Remove already known vulnerabilities`_ if a `baseline`_ (JSON file of a previous run of PyT) is provided.
