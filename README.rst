@@ -52,11 +52,9 @@ Example usage and output:
 Install
 =======
 
-       1. git clone https://github.com/python-security/pyt.git
-       2. cd pyt/
-       3. python3 setup.py install
-       4. pyt -h
+.. code-block:: python
 
+	pip install python-taint
 
 Usage from Source
 =================
