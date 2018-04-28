@@ -50,10 +50,8 @@ PyT can also be installed from source. To do so, clone the repo, and then instal
 
   python3 setup.py install
 
-Usage
-=======
 
-Usage::
+
   usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
                        [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                        [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
