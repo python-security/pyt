@@ -44,7 +44,7 @@ Install
 
   pip install python-taint
 
-PyT can also be installed from source. To do so, clone the repo, and then install it:
+PyT can also be installed from source. To do so, clone the repo, and then run:
 
 .. code-block:: python
 
