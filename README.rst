@@ -19,9 +19,7 @@
 Python Taint
 ============
 
-.. class:: center
-
-    Static analysis of Python web applications based on theoretical foundations (Control flow graphs, fixed point, dataflow analysis)
+<p align="center">Static analysis of Python web applications based on theoretical foundations (Control flow graphs, fixed point, dataflow analysis)</p>
 
 --------
 Features
