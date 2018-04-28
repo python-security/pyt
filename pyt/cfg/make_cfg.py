@@ -20,14 +20,14 @@ class CFG():
 
 
 def make_cfg(
-    node,
+    tree,
     project_modules,
     local_modules,
     filename,
     module_definitions=None
 ):
     visitor = ExprVisitor(
-        node,
+        tree,
         project_modules,
         local_modules, filename,
         module_definitions
