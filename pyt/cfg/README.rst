@@ -2,6 +2,7 @@ make_cfg is what __main__ calls, it takes the Abstract Syntax Tree, creates an E
 
 Statements can contain expressions, but not the other way around. This is why ExprVisitor inherits from StmtVisitor, (which inherits from `ast.NodeVisitor`_ from the standard library.)
 
+
 .. code-block:: python
   :caption: From ast.Nodevisitor
 
@@ -10,6 +11,7 @@ Statements can contain expressions, but not the other way around. This is why Ex
     method = 'visit_' + node.__class__.__name__
     visitor = getattr(self, method, self.generic_visit)
     return visitor(node)
+
 
 There is a `visit\_` function for almost every AST node type.
 
