@@ -4,7 +4,6 @@ Statements can contain expressions, but not the other way around. This is why Ex
 
 
 .. code-block:: python
-  :caption: From ast.Nodevisitor
 
   def visit(self, node):
     """Visit a node."""
