@@ -292,6 +292,43 @@ class CFGTryTest(BaseTestCase):
 
             ])
 
+    def test_try_orelse_with_no_variables_to_save_and_no_args(self):
+        self.cfg_create_from_file('examples/example_inputs/try_orelse_with_no_variables_to_save_and_no_args.py')
+
+        self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
+        self.assert_length(self.cfg.nodes, expected_length=13)
+        
+        entry = 0
+        try_ = 1
+        print_a5 = 2
+        except_im = 3
+        print_wagyu = 4
+        function_entry = 5
+        ret_subprocess_call = 6
+        ret_does_this_kill_us_4 = 7
+        exit_does_this_kill_us = 8
+        ret_does_this_kill_us_3 = 9
+        print_so = 10
+        print_good = 11
+        _exit = 12
+
+        self.assertInCfg([
+                self.connected(entry, try_),
+                self.connected(try_, print_a5),
+                self.connected(print_a5, except_im),
+                self.connected(print_a5, function_entry),
+                self.connected(print_a5, print_good),
+                self.connected(except_im, print_wagyu),
+                self.connected(print_wagyu, print_good),
+                self.connected(function_entry, ret_subprocess_call),
+                self.connected(ret_subprocess_call, ret_does_this_kill_us_4),
+                self.connected(ret_does_this_kill_us_4, exit_does_this_kill_us),
+                self.connected(exit_does_this_kill_us, ret_does_this_kill_us_3),
+                self.connected(ret_does_this_kill_us_3, print_so),
+                self.connected(print_so, print_good),
+                self.connected(print_good, _exit),
+
+            ])
 
     def test_final(self):
         self.cfg_create_from_file('examples/example_inputs/try_final.py')
