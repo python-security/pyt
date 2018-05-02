@@ -80,6 +80,7 @@ Usage
                           Input file with a list of sources and sinks
     -o OUTPUT_FILE, --output OUTPUT_FILE
                           write report to filename
+    --ignore-nosec        do not skip lines with # nosec comments
 
   print arguments:
     -trim, --trim-reassigned-in
