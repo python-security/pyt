@@ -76,7 +76,8 @@ Here is the code of stmt_star_handler
       stmts
   ):
       """Handle stmt* expressions in an AST node.
-      Links all statements together in a list of statements, accounting for statements with multiple last nodes.
+      Links all statements together in a list of statements.
+      Accounts for statements with multiple last nodes.
       """
       break_nodes = list()
       cfg_statements = list()
