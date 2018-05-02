@@ -1,4 +1,4 @@
-make_cfg is what __main__ calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and returns a Control Flow Graph.
+make_cfg is what __main__.py calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and returns a Control Flow Graph.
 
 stmt_visitor.py and expr_visitor.py mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why ExprVisitor inherits from StmtVisitor, (which inherits from `ast.NodeVisitor`_ from the standard library.)
 
@@ -73,8 +73,7 @@ Here is the code of stmt_star_handler
 
   def stmt_star_handler(
       self,
-      stmts,
-      prev_node_to_avoid=None
+      stmts
   ):
       """Handle stmt* expressions in an AST node.
       Links all statements together in a list of statements, accounting for statements with multiple last nodes.
@@ -82,56 +81,42 @@ Here is the code of stmt_star_handler
       break_nodes = list()
       cfg_statements = list()
 
-      self.prev_nodes_to_avoid.append(prev_node_to_avoid)
-      self.last_control_flow_nodes.append(None)
-
       first_node = None
       node_not_to_step_past = self.nodes[-1]
 
       for stmt in stmts:
           node = self.visit(stmt)
 
-          if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
-              self.last_control_flow_nodes.append(node.test)
-          else:
-              self.last_control_flow_nodes.append(None)
-
           if isinstance(node, ControlFlowNode):
               break_nodes.extend(node.break_statements)
           elif isinstance(node, BreakNode):
               break_nodes.append(node)
 
-          if not isinstance(node, IgnoredNode):
-              cfg_statements.append(node)
-              if not first_node:
-                  if isinstance(node, ControlFlowNode):
-                      first_node = node.test
-                  else:
-                      first_node = get_first_node(
-                          node,
-                          node_not_to_step_past
-                      )
-
-      self.prev_nodes_to_avoid.pop()
-      self.last_control_flow_nodes.pop()
+          cfg_statements.append(node)
+          if not first_node:
+              if isinstance(node, ControlFlowNode):
+                  first_node = node.test
+              else:
+                  first_node = get_first_node(
+                      node,
+                      node_not_to_step_past
+                  )
 
       connect_nodes(cfg_statements)
 
-      if cfg_statements:
-          if first_node:
-              first_statement = first_node
-          else:
-              first_statement = get_first_statement(cfg_statements[0])
+      if first_node:
+          first_statement = first_node
+      else:
+          first_statement = get_first_statement(cfg_statements[0])
 
-          last_statements = get_last_statements(cfg_statements)
+      last_statements = get_last_statements(cfg_statements)
 
-          return ConnectStatements(
-              first_statement=first_statement,
-              last_statements=last_statements,
-              break_statements=break_nodes
-          )
-      else:  # When body of module only contains ignored nodes
-          return IgnoredNode()
+      return ConnectStatements(
+          first_statement=first_statement,
+          last_statements=last_statements,
+          break_statements=break_nodes
+      )
+
 
 
 Notice how this code can handle an infinite amount of nested if: statements? This is why stmt_star_handler is so instrumental to making the StmtVisitor work.
