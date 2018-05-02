@@ -288,9 +288,8 @@ class CFGTryTest(BaseTestCase):
             self.connected(exit_does_this_kill_us, ret_does_this_kill_us_3),
             self.connected(ret_does_this_kill_us_3, print_so),
             self.connected(print_so, print_good),
-            self.connected(print_good, _exit),
-
-            ])
+            self.connected(print_good, _exit)
+        ])
 
     def test_try_orelse_with_no_variables_to_save_and_no_args(self):
         self.cfg_create_from_file('examples/example_inputs/try_orelse_with_no_variables_to_save_and_no_args.py')
@@ -326,8 +325,7 @@ class CFGTryTest(BaseTestCase):
                 self.connected(exit_does_this_kill_us, ret_does_this_kill_us_3),
                 self.connected(ret_does_this_kill_us_3, print_so),
                 self.connected(print_so, print_good),
-                self.connected(print_good, _exit),
-
+                self.connected(print_good, _exit)
             ])
 
     def test_final(self):
