@@ -85,7 +85,11 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
-        l = vulnerabilities.find_triggers(XSS1.nodes, trigger_words)
+        l = vulnerabilities.find_triggers(
+            XSS1.nodes,
+            trigger_words,
+            nosec_lines=set()
+        )
         self.assert_length(l, expected_length=1)
 
     def test_find_sanitiser_nodes(self):

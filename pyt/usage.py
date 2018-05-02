@@ -85,6 +85,12 @@ def _add_optional_group(parser):
         type=argparse.FileType('w'),
         default=sys.stdout,
     )
+    optional_group.add_argument(
+        '--ignore-nosec',
+        dest='ignore_nosec',
+        action='store_true',
+        help='do not skip lines with # nosec comments'
+    )
 
 
 def _add_print_group(parser):
@@ -106,8 +112,6 @@ def _add_print_group(parser):
 def _check_required_and_mutually_exclusive_args(parser, args):
     if args.filepath is None:
         parser.error('The -f/--filepath argument is required')
-    if args.trim_reassigned_in and args.interactive:
-        parser.error('argument -i/--interactive: not allowed with argument -trim/--trim-reassigned-in')
 
 
 def parse_args(args):
