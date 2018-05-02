@@ -1,7 +1,8 @@
-make_cfg is what __main__ calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and return a Control Flow Graph.
+make_cfg is what __main__ calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and returns a Control Flow Graph.
 
-Statements can contain expressions, but not the other way around. This is why ExprVisitor inherits from StmtVisitor, (which inherits from `ast.NodeVisitor`_ from the standard library.)
+stmt_visitor.py and expr_visitor.py mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why ExprVisitor inherits from StmtVisitor, (which inherits from `ast.NodeVisitor`_ from the standard library.)
 
+This is how ast.NodeVisitor works:
 
 .. code-block:: python
 
@@ -12,13 +13,32 @@ Statements can contain expressions, but not the other way around. This is why Ex
     return visitor(node)
 
 
-There is a `visit\_` function for almost every AST node type.
+So as you'll see, there is a `visit\_` function for almost every AST node type. We keep track of all the nodes while we visit by adding them to self.nodes, connecting them via `ingoing` and `outgoing` node attributes.
 
-We keep track of all the nodes while we visit by adding them to self.nodes, connecting them via `ingoing` and `outgoing` node attributes.
+The two most illustrative functions are stmt_star_handler and expr_star_handler. expr_star_handler has not been merged to master so let's talk about stmt_star_handler.
 
-The two most illustrative functions are stmt_star_handler and expr_star_handler.
 
-Upon visiting an If statement we will enter visit_If, which will call stmt_star_handler, that returns a namedtuple ControlFlowNode with the first statement, last_statements and break_statements.
+Handling an if: statement 
+=========================
+
+Example code
+
+.. code-block:: python
+
+  if some_condition:
+      x = 5
+
+This is the relevant part of the `abstract grammar`_
+
+.. code-block:: python
+
+  If(expr test, stmt* body, stmt* orelse)
+  # Note: stmt* means any number of statements. 
+
+Upon visiting an if: statement we will enter visit_If in stmt_visitor.py. We create one node for the test, and connect it with the first node of the body, which in this case is x = 5.
+
+which will call stmt_star_handler, that returns a namedtuple ConnectStatements with the first statement, last_statements and break_statements of all of the statements that were in the body of the node.
+
 
 .. code-block:: python
 
@@ -30,19 +50,14 @@ Upon visiting an If statement we will enter visit_If, which will call stmt_star_
       ))
 
       body_connect_stmts = self.stmt_star_handler(node.body)
-      if isinstance(body_connect_stmts, IgnoredNode):
-          body_connect_stmts = ConnectStatements(
-              first_statement=test,
-              last_statements=[],
-              break_statements=[]
-          )
+      # ...
       test.connect(body_connect_stmts.first_statement)
 
       if node.orelse:
-          orelse_last_nodes = self.handle_or_else(node.orelse, test)
-          body_connect_stmts.last_statements.extend(orelse_last_nodes)
+          # ...
       else:
-          body_connect_stmts.last_statements.append(test)  # if there is no orelse, test needs an edge to the next_node
+          # if there is no orelse, test needs an edge to the next_node
+          body_connect_stmts.last_statements.append(test)
 
       last_statements = remove_breaks(body_connect_stmts.last_statements)
 
@@ -52,26 +67,81 @@ Upon visiting an If statement we will enter visit_If, which will call stmt_star_
           break_statements=body_connect_stmts.break_statements
       )
 
+Here is the code of stmt_star_handler
 
-In visit_call we will call expr_star_handler on the arguments, that returns a named_tuple with the 
+.. code-block:: python
 
-We create the control flow graph of the program we are analyzing. 
+  def stmt_star_handler(
+      self,
+      stmts,
+      prev_node_to_avoid=None
+  ):
+      """Handle stmt* expressions in an AST node.
+      Links all statements together in a list of statements, accounting for statements with multiple last nodes.
+      """
+      break_nodes = list()
+      cfg_statements = list()
 
-These modules mirror the `abstract grammar`_ of Python.
+      self.prev_nodes_to_avoid.append(prev_node_to_avoid)
+      self.last_control_flow_nodes.append(None)
+
+      first_node = None
+      node_not_to_step_past = self.nodes[-1]
+
+      for stmt in stmts:
+          node = self.visit(stmt)
+
+          if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
+              self.last_control_flow_nodes.append(node.test)
+          else:
+              self.last_control_flow_nodes.append(None)
+
+          if isinstance(node, ControlFlowNode):
+              break_nodes.extend(node.break_statements)
+          elif isinstance(node, BreakNode):
+              break_nodes.append(node)
+
+          if not isinstance(node, IgnoredNode):
+              cfg_statements.append(node)
+              if not first_node:
+                  if isinstance(node, ControlFlowNode):
+                      first_node = node.test
+                  else:
+                      first_node = get_first_node(
+                          node,
+                          node_not_to_step_past
+                      )
+
+      self.prev_nodes_to_avoid.pop()
+      self.last_control_flow_nodes.pop()
+
+      connect_nodes(cfg_statements)
+
+      if cfg_statements:
+          if first_node:
+              first_statement = first_node
+          else:
+              first_statement = get_first_statement(cfg_statements[0])
+
+          last_statements = get_last_statements(cfg_statements)
+
+          return ConnectStatements(
+              first_statement=first_statement,
+              last_statements=last_statements,
+              break_statements=break_nodes
+          )
+      else:  # When body of module only contains ignored nodes
+          return IgnoredNode()
+
+
+Notice how this code can handle an infinite amount of nested if: statements? This is why stmt_star_handler is so instrumental to making the StmtVisitor work.
+
 
 .. _ast.NodeVisitor: https://docs.python.org/3/library/ast.html#ast.NodeVisitor
 .. _abstract grammar: https://docs.python.org/3/library/ast.html#abstract-grammar
 
-
-Dive into the raw ast NodeVisitor code.
-
-
-Statements can contain expressions, but not the other way around,
-so it was natural to have ExprVisitor inherit from StmtVisitor.
-
-
-TODO: stmt_star_handler and expr_star_handler explanations and walk throughs.
-
+References
+==========
 
 For more information on AST nodes, see the `Green Tree Snakes`_ documentation.
 
