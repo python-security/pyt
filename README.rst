@@ -42,13 +42,16 @@ Install
 
 .. code-block:: python
 
-  pip install python-taint
+	pip install python-taint
 
-PyT can also be installed from source. To do so, clone the repo, and then install it:
+PyT can also be installed from source. To do so, clone the repo, and then run:
 
 .. code-block:: python
 
   python3 setup.py install
+
+Usage
+=====
 
 .. code-block::
 
