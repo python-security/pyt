@@ -67,4 +67,4 @@ Here is an image from the `original thesis`_:
 
 .. image:: https://github.com/KevinHock/rtdpyt/blob/master/docs/img/overview.png
 
-.. _original thesis: http://projekter.aau.dk/projekter/files/239563289/final.pdf#page=57
+.. _original thesis: http://projekter.aau.dk/projekter/files/239563289/final.pdf#page=62
