@@ -15,7 +15,7 @@ Step 1
 
 
 Step 2
-    Generate the Abstract Syntax Tree (AST).
+    Generate the `Abstract Syntax Tree (AST)`_.
 
     Essentially done in these lines of code with the `ast`_ module:
 
@@ -26,6 +26,7 @@ Step 2
 
     `generate_ast`_ in `ast_helper.py`_
 
+    .. _Abstract Syntax Tree (AST): https://en.wikipedia.org/wiki/Abstract_syntax_tree
     .. _ast: https://docs.python.org/3/library/ast.html
     .. _generate_ast: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/ast_helper.py#L24
     .. _ast_helper.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/ast_helper.py
