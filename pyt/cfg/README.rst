@@ -18,7 +18,7 @@ This is how ast.NodeVisitor works:
 
 So as you'll see, there is a `visit\_` function for almost every AST node type. We keep track of all the nodes while we visit by adding them to self.nodes, connecting them via `ingoing and outgoing node attributes`_.
 
-.. _ingoing and outgoing node attributes_: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/node_types.py#L27-L48
+.. _ingoing and outgoing node attributes: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/node_types.py#L27-L48
 
 The two most illustrative functions are `stmt_star_handler`_ and expr_star_handler. expr_star_handler has not been merged to master so let's talk about `stmt_star_handler`_.
 
