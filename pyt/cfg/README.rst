@@ -1,4 +1,7 @@
-make_cfg is what __main__.py calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and returns a Control Flow Graph.
+`make_cfg`_ is what `__main__.py`_ calls, it takes the Abstract Syntax Tree, creates an ExprVisitor and returns a Control Flow Graph.
+
+.. _make_cfg: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/make_cfg.py#L22-L38
+.. _\_\_main\_\_.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/__main__.py#L33-L106
 
 stmt_visitor.py and expr_visitor.py mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why ExprVisitor inherits from StmtVisitor, (which inherits from `ast.NodeVisitor`_ from the standard library.)
 
@@ -13,9 +16,11 @@ This is how ast.NodeVisitor works:
     return visitor(node)
 
 
-So as you'll see, there is a `visit\_` function for almost every AST node type. We keep track of all the nodes while we visit by adding them to self.nodes, connecting them via `ingoing` and `outgoing` node attributes.
+So as you'll see, there is a `visit\_` function for almost every AST node type. We keep track of all the nodes while we visit by adding them to self.nodes, connecting them via `\`ingoing\` and \`outgoing\` node attributes`_.
 
-The two most illustrative functions are stmt_star_handler and expr_star_handler. expr_star_handler has not been merged to master so let's talk about stmt_star_handler.
+.. _\`ingoing\` and \`outgoing\` node attributes_: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/node_types.py#L27-L48
+
+The two most illustrative functions are `stmt_star_handler`_ and expr_star_handler. expr_star_handler has not been merged to master so let's talk about `stmt_star_handler`_.
 
 
 Handling an if: statement 
@@ -36,11 +41,13 @@ This is the relevant part of the `abstract grammar`_
   # Note: stmt* means any number of statements. 
 
 
-Upon visiting an if: statement we will enter visit_If in stmt_visitor.py. Since we know that the test is just one expression, we can just call self.visit() on it. The body could be an infinite number of statements, so we use the stmt_star_handler function.
+Upon visiting an if: statement we will enter visit_If in stmt_visitor.py. Since we know that the test is just one expression, we can just call self.visit() on it. The body could be an infinite number of statements, so we use the `stmt_star_handler`_ function.
 
-stmt_star_handler returns a namedtuple (ConnectStatements) with the first statement, last_statements and break_statements of all of the statements that were in the body of the node. stmt_star_handler takes care of connecting each statement in the body to the next one.
+`stmt_star_handler`_ returns a namedtuple (ConnectStatements) with the first statement, last_statements and break_statements of all of the statements that were in the body of the node. `stmt_star_handler`_ takes care of connecting each statement in the body to the next one.
 
 We then connect the test node to the first node in the body (if some_condition -> x = 5) and return a namedtuple (ControlFlowNode) with the test, last_statements and break_statements.
+
+.. _stmt_star_handler: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/stmt_visitor.py#L60-L121
 
 
 .. code-block:: python
