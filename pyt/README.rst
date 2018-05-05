@@ -63,7 +63,7 @@ Step 8
     .. _text or JSON form: https://github.com/python-security/pyt/tree/re_organize_code/pyt/formatters
     .. _output file: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py#L80
 
-Here is an image from the `orginal thesis`_:
+Here is an image from the `original thesis`_:
 
 .. image:: https://github.com/KevinHock/rtdpyt/blob/master/docs/img/overview.png
 
