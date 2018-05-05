@@ -70,7 +70,6 @@ We then connect the test node to the first node in the body (if some_condition -
           break_statements=body_connect_stmts.break_statements
       )
 
-Here is the code of stmt_star_handler
 
 .. code-block:: python
 
