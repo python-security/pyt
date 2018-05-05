@@ -46,12 +46,14 @@ This is the relevant part of the `abstract grammar`_
   # Note: stmt* means any number of statements. 
 
 
-Upon visiting an if: statement we will enter visit_If in `stmt_visitor.py`_. Since we know that the test is just one expression, we can just call self.visit() on it. The body could be an infinite number of statements, so we use the `stmt_star_handler`_ function.
+Upon visiting an if: statement we will enter `visit_If`_ in `stmt_visitor.py`_. Since we know that the test is just one expression, we can just call self.visit() on it. The body could be an infinite number of statements, so we use the `stmt_star_handler`_ function.
 
 `stmt_star_handler`_ returns a namedtuple (`ConnectStatements`_) with the first statement, last_statements and break_statements of all of the statements that were in the body of the node. `stmt_star_handler`_ takes care of connecting each statement in the body to the next one.
 
 We then connect the test node to the first node in the body (if some_condition -> x = 5) and return a namedtuple (`ControlFlowNode`_) with the test, last_statements and break_statements.
 
+
+.. _visit\_If: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/stmt_visitor.py#L208-L232
 
 .. _ConnectStatements: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/stmt_visitor_helper.py#L15
 
