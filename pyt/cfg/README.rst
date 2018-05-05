@@ -1,7 +1,9 @@
-`make_cfg`_ is what `__main__.py`_ calls, it takes the Abstract Syntax Tree, creates an `ExprVisitor`_ and returns a Control Flow Graph.
+`make_cfg`_ is what `__main__.py`_ calls, it takes the `Abstract Syntax Tree`_, creates an `ExprVisitor`_ and returns a `Control Flow Graph`_.
 
 .. _make_cfg: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/make_cfg.py#L22-L38
 .. _\_\_main\_\_.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/__main__.py#L33-L106
+.. _Abstract Syntax Tree: https://en.wikipedia.org/wiki/Abstract_syntax_tree
+.. _Control Flow Graph: https://en.wikipedia.org/wiki/Control_flow_graph
 
 `stmt_visitor.py`_ and `expr_visitor.py`_ mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why `ExprVisitor`_ inherits from `StmtVisitor`_, (which inherits from `ast.NodeVisitor`_ from the standard library.)
 
