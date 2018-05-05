@@ -5,7 +5,7 @@
 .. _Abstract Syntax Tree: https://en.wikipedia.org/wiki/Abstract_syntax_tree
 .. _Control Flow Graph: https://en.wikipedia.org/wiki/Control_flow_graph
 
-`stmt_visitor.py`_ and `expr_visitor.py`_ mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why `ExprVisitor`_ inherits from `StmtVisitor`_, which inherits from `ast.NodeVisitor`_; from the standard library.)
+`stmt_visitor.py`_ and `expr_visitor.py`_ mirror the `abstract grammar`_ of Python. Statements can contain expressions, but not the other way around. This is why `ExprVisitor`_ inherits from `StmtVisitor`_, which inherits from `ast.NodeVisitor`_; from the standard library.
 
 .. _StmtVisitor: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/stmt_visitor.py#L55
 .. _ExprVisitor: https://github.com/python-security/pyt/blob/re_organize_code/pyt/cfg/expr_visitor.py#L33
