@@ -8,6 +8,7 @@ from .node_types import (
     BBorBInode,
     BreakNode,
     ControlFlowNode,
+    IfExpNode,
     RestoreNode
 )
 
@@ -112,6 +113,11 @@ def get_first_node(
     ingoing = None
     i = 0
     current_node = node
+
+    if isinstance(current_node, (ControlFlowNode, IfExpNode)):
+        raise
+    #     current_node = current_node.test
+
     while current_node.ingoing:
         # This is used because there may be multiple ingoing and loop will cause an infinite loop if we did [0]
         i = random.randrange(len(current_node.ingoing))
@@ -119,7 +125,10 @@ def get_first_node(
         if current_node.ingoing[i] == node_not_to_step_past:
             break
         ingoing = current_node.ingoing
+        # print(f'current_node.ingoing[i] is now {current_node.ingoing[i]}')
         current_node = current_node.ingoing[i]
+        print(f'current_node is now {current_node}')
+        print(f'current_node.ingoing is now {current_node.ingoing}')
     if ingoing:
         return ingoing[i]
     return current_node
@@ -139,7 +148,7 @@ def get_first_statement(node_or_tuple):
 
 
 def get_last_statements(cfg_statements):
-    """Retrieve the last statements from a cfg_statements list."""
+    """Retrieve the last statements from a list of CFG statements."""
     if isinstance(cfg_statements[-1], ControlFlowNode):
         return cfg_statements[-1].last_nodes
     else:

@@ -4,12 +4,23 @@ from collections import namedtuple
 from .label_visitor import LabelVisitor
 
 
+# Used in visit_(For, If, Try, While), assign_multi_target and assign_tuple_target
 ControlFlowNode = namedtuple(
     'ControlFlowNode',
     (
         'test',
         'last_nodes',
         'break_statements'
+    )
+)
+
+
+IfExpNode = namedtuple(
+    'IfExpNode',
+    (
+        'test',
+        'body',
+        'orelse'
     )
 )
 

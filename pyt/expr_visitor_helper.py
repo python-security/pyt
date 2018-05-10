@@ -33,6 +33,16 @@ SavedVariable = namedtuple(
     )
 )
 
+# Mainly used in expr_star_handler
+# Or after stmt_star_handler returns an IgnoredNode, like in visit_Call and visit_Try
+ConnectExpressions = namedtuple(
+    'ConnectExpressions',
+    (
+        'first_expression',
+        'last_expressions'
+    )
+)
+
 
 class CFG():
     def __init__(self, nodes, blackbox_assignments):

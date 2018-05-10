@@ -8,10 +8,12 @@ from .ast_helper import (
     Arguments,
     get_call_names_as_string
 )
+from .stmt_visitor_helper import get_first_node
 from .expr_visitor_helper import (
     BUILTINS,
     CALL_IDENTIFIER,
     CFG,
+    ConnectExpressions,
     return_connection_handler,
     SavedVariable
 )
@@ -23,6 +25,7 @@ from .node_types import (
     BBorBInode,
     ConnectToExitNode,
     EntryOrExitNode,
+    IfExpNode,
     IgnoredNode,
     Node,
     RestoreNode,
@@ -61,6 +64,76 @@ class ExprVisitor(StmtVisitor):
             self.init_function_cfg(node, module_definitions)
         else:
             self.init_cfg(node)
+
+    def expr_star_handler(
+        self,
+        exprs
+    ):
+        """Handle expr* in an AST node.
+
+        Links all expressions together in a list of expressions, accounting for expressions with multiple last nodes.
+        This code is quite similar to stmt_star_handler in stmt_visitor.py
+        """
+        cfg_expressions = list()
+        first_node = None
+        node_not_to_step_past = self.nodes[-1]
+
+        for expr in exprs:
+            print(f'yo expr is {expr}')
+            print(f'yo type(expr) is {type(expr)}')
+            node = self.visit(expr)
+            print(f'yo node is {node}')
+            print(f'yo type(node) is {type(node)}')
+            print(f'yo node_not_to_step_past is {node_not_to_step_past}')
+            print(f'yo type(node_not_to_step_past) is {type(node_not_to_step_past)}')
+
+
+            if not isinstance(node, IgnoredNode):
+                cfg_expressions.append(node)
+                if not first_node:
+                    if isinstance(node, IfExpNode):
+                        first_node = node.test
+                    else:
+                        first_node = get_first_node(
+                            node,
+                            node_not_to_step_past
+                        )
+                    print(f'first_node is {first_node}')
+                    print(f'type(first_node) is {type(first_node)}')
+
+            # if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
+            #     self.last_control_flow_nodes.append(node.test)
+            # else:
+            #     self.last_control_flow_nodes.append(None)
+
+            # if not isinstance(node, IgnoredNode):
+            #     cfg_expressions.append(node)
+            #     if not first_node:
+            #         if isinstance(node, ControlFlowNode):
+            #             first_node = node.test
+            #         else:
+            #             first_node = get_first_node(
+            #                 node,
+            #                 node_not_to_step_past
+            #             )
+
+        # TODO: OKAY CONNECT_NODES
+        connect_nodes(cfg_expressions)
+
+        if cfg_expressions:
+        #     if first_node:
+        #         first_statement = first_node
+        #     else:
+        #         first_statement = get_first_expressions(cfg_expressions[0])
+
+        #     last_statements = get_last_expressions(cfg_expressions)
+
+            return ConnectExpressions(
+                first_expression=first_node,
+                last_expressions=[]
+            )
+        else:  # When body of module only contains ignored nodes (visit_Str)
+            return IgnoredNode()
 
     def init_cfg(self, node):
         self.module_definitions_stack.append(ModuleDefinitions(filename=self.filenames[-1]))
@@ -156,6 +229,40 @@ class ExprVisitor(StmtVisitor):
     def visit_Tuple(self, node):
         return self.visit_miscelleaneous_node(
             node
+        )
+
+    def visit_Compare(self, node):
+        return self.visit_miscelleaneous_node(
+            node
+        )
+
+    def visit_IfExp(self, node):
+        """
+        We return an IfExpNode, quite similar to ControlFlowNode
+            IfExp(expr test, expr body, expr orelse)
+        We do not have any stmt* so we cannot use ControlFlowNode
+        """
+        # Connect the test to the previous node
+        # print(f'node.test is {node.test}')
+        # print(f'type(node.test) is {type(node.test)}')
+        # Do we connect prev node to the test of If statements and Try statements etc?
+        test_node = self.visit(node.test)
+        # print(f'test_node is {test_node}')
+        # self.connect_if_allowed(self.nodes[-1], test_node)
+
+        # Connect body and orelse to the test_node
+        body_node = self.visit(node.body)
+        # body_node.connect(test_node)
+        print(f'body_node is {body_node}')
+        # print(f'type(body_node) is {type(body_node)}')
+        orelse_node = self.visit(node.orelse)
+        # orelse_node.connect(test_node)
+        # print(f'orelse_node is {orelse_node}')
+        # print(f'type(orelse_node) is {type(orelse_node)}')
+        return IfExpNode(
+            test_node,
+            body_node,
+            orelse_node
         )
 
     def connect_if_allowed(
@@ -276,6 +383,10 @@ class ExprVisitor(StmtVisitor):
                 )
                 if return_value_of_nested_call in self.blackbox_assignments:
                     self.blackbox_assignments.add(restore_node)
+            elif isinstance(call_arg, ast.BoolOp):
+                print('Handle me')
+            elif isinstance(call_arg, ast.IfExp):
+                print('Handle me')
             else:
                 call_arg_label_visitor = LabelVisitor()
                 call_arg_label_visitor.visit(call_arg)
@@ -399,7 +510,7 @@ class ExprVisitor(StmtVisitor):
            args_mapping(dict): A mapping of call argument to definition argument.
            line_number(int): Of the def of the function call about to be entered into.
 
-        Note: We do not need connect_if_allowed because of the
+        Note: We do not need connect_if_allowed for the [-1].connect because of the
               preceding call to save_local_scope.
         """
         restore_nodes = list()
@@ -585,39 +696,51 @@ class ExprVisitor(StmtVisitor):
         rhs_vars = list()
         last_return_value_of_nested_call = None
 
-        for arg in itertools.chain(node.args, node.keywords):
-            if isinstance(arg, ast.Call):
-                return_value_of_nested_call = self.visit(arg)
 
-                if last_return_value_of_nested_call:
-                    # connect inner to other_inner in e.g.
-                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
-                    # I should probably loop to the inner most call of other_inner here.
-                    try:
-                        last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
-                    except AttributeError:
-                        last_return_value_of_nested_call.connect(return_value_of_nested_call)
-                else:
-                    # I should only set this once per loop, inner in e.g.
-                    # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
-                    # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
-                    call_node.inner_most_call = return_value_of_nested_call
-                last_return_value_of_nested_call = return_value_of_nested_call
+        something = self.expr_star_handler(list(itertools.chain(
+            node.args,
+            node.keywords
+        )))
+        print(f'something is {something}')
 
-                visual_args.append(return_value_of_nested_call.left_hand_side)
-                rhs_vars.append(return_value_of_nested_call.left_hand_side)
-            elif isinstance(arg, ast.BoolOp):
-                print('Handle me')
-            elif isinstance(arg, ast.IfExp):
-                print('Handle me')
-            else:
-                label = LabelVisitor()
-                label.visit(arg)
-                visual_args.append(label.result)
+        # for arg in itertools.chain(node.args, node.keywords):
+        #     if isinstance(arg, ast.Call):
+        #         return_value_of_nested_call = self.visit(arg)
 
-                vv = VarsVisitor()
-                vv.visit(arg)
-                rhs_vars.extend(vv.result)
+        #         if last_return_value_of_nested_call:
+        #             # connect inner to other_inner in e.g.
+        #             # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+        #             # I should probably loop to the inner most call of other_inner here.
+        #             try:
+        #                 last_return_value_of_nested_call.connect(return_value_of_nested_call.first_node)
+        #             except AttributeError:
+        #                 last_return_value_of_nested_call.connect(return_value_of_nested_call)
+        #         else:
+        #             # I should only set this once per loop, inner in e.g.
+        #             # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
+        #             # (inner_most_call is used when predecessor is a ControlFlowNode in connect_control_flow_node)
+        #             call_node.inner_most_call = return_value_of_nested_call
+        #         last_return_value_of_nested_call = return_value_of_nested_call
+
+        #         visual_args.append(return_value_of_nested_call.left_hand_side)
+        #         rhs_vars.append(return_value_of_nested_call.left_hand_side)
+        #     elif isinstance(arg, ast.BoolOp):
+        #         # BoolOp(boolop op, expr* values)
+        #         # What else has expr*?
+        #         # Maybe worth implementing expr_star_handler
+        #         print('Handle me')
+        #     elif isinstance(arg, ast.IfExp):
+        #         hmm = self.visit(arg)
+        #         print(f'hmm is {hmm}')
+        #         print('Handle me')
+        #     else:
+        #         label = LabelVisitor()
+        #         label.visit(arg)
+        #         visual_args.append(label.result)
+
+        #         vv = VarsVisitor()
+        #         vv.visit(arg)
+        #         rhs_vars.extend(vv.result)
         if last_return_value_of_nested_call:
             # connect other_inner to outer in e.g.
             # `scrypt.outer(scrypt.inner(image_name), scrypt.other_inner(image_name))`
@@ -640,6 +763,8 @@ class ExprVisitor(StmtVisitor):
         if blackbox:
             self.blackbox_assignments.add(call_node)
 
+        print(f'aight self.nodes[-1] is {self.nodes[-1]}')
+        print(f'aight call_node is {call_node}')
         self.connect_if_allowed(self.nodes[-1], call_node)
         self.nodes.append(call_node)
 
