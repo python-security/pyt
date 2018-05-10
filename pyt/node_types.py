@@ -15,16 +15,6 @@ ControlFlowNode = namedtuple(
 )
 
 
-IfExpNode = namedtuple(
-    'IfExpNode',
-    (
-        'test',
-        'body',
-        'orelse'
-    )
-)
-
-
 class IgnoredNode():
     """Ignored Node sent from an ast node that should not return anything."""
     pass
@@ -96,6 +86,16 @@ class Node():
         return '\n' + '\n'.join((label, line_number, ingoing, outgoing))
 
 
+class BoolOpNode(Node):
+    """CFG Node that represents a BoolOp (And | Or)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            **kwargs
+        )
+
+
 class BreakNode(Node):
     """CFG Node that represents a Break statement."""
 
@@ -109,6 +109,20 @@ class BreakNode(Node):
 
 class IfNode(Node):
     """CFG Node that represents an If statement."""
+
+    def __init__(self, test_node, ast_node, *, path):
+        label_visitor = LabelVisitor()
+        label_visitor.visit(test_node)
+
+        super().__init__(
+            'if ' + label_visitor.result + ':',
+            ast_node,
+            path=path
+        )
+
+
+class IfExpNode(Node):
+    """CFG Node that represents an If expression."""
 
     def __init__(self, test_node, ast_node, *, path):
         label_visitor = LabelVisitor()

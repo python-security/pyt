@@ -65,14 +65,19 @@ def connect_nodes(nodes):
     """Connect the nodes in a list linearly."""
     for n, next_node in zip(nodes, nodes[1:]):
         if isinstance(n, ControlFlowNode):
+            print('68')
             _connect_control_flow_node(n, next_node)
         elif isinstance(next_node, ControlFlowNode):
+            print('70')
             n.connect(next_node.test)
         elif isinstance(next_node, RestoreNode):
+            print('72')
             continue
         elif CALL_IDENTIFIER in next_node.label:
+            print('hi')
             continue
         else:
+            print('foo')
             n.connect(next_node)
 
 
@@ -127,8 +132,8 @@ def get_first_node(
         ingoing = current_node.ingoing
         # print(f'current_node.ingoing[i] is now {current_node.ingoing[i]}')
         current_node = current_node.ingoing[i]
-        print(f'current_node is now {current_node}')
-        print(f'current_node.ingoing is now {current_node.ingoing}')
+        # print(f'current_node is now {current_node}')
+        # print(f'current_node.ingoing is now {current_node.ingoing}')
     if ingoing:
         return ingoing[i]
     return current_node

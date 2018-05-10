@@ -56,7 +56,7 @@ class StmtVisitor(ast.NodeVisitor):
         stmts,
         prev_node_to_avoid=None
     ):
-        """Handle stmt* expressions in an AST node.
+        """Handle stmt* in an AST node.
 
         Links all statements together in a list of statements, accounting for statements with multiple last nodes.
         """
@@ -72,7 +72,7 @@ class StmtVisitor(ast.NodeVisitor):
         for stmt in stmts:
             node = self.visit(stmt)
 
-            if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):
+            if isinstance(node, ControlFlowNode) and not isinstance(node.test, TryNode):  # TryNode has no test that can fail
                 self.last_control_flow_nodes.append(node.test)
             else:
                 self.last_control_flow_nodes.append(None)
@@ -200,6 +200,9 @@ class StmtVisitor(ast.NodeVisitor):
             return else_connect_statements.last_statements
 
     def visit_If(self, node):
+        """
+            If(expr test, stmt* body, stmt* orelse)
+        """
         test = self.append_node(IfNode(
             node.test,
             node,
@@ -219,11 +222,16 @@ class StmtVisitor(ast.NodeVisitor):
             orelse_last_nodes = self.handle_or_else(node.orelse, test)
             body_connect_stmts.last_statements.extend(orelse_last_nodes)
         else:
-            body_connect_stmts.last_statements.append(test)  # if there is no orelse, test needs an edge to the next_node
+            # if there is no orelse, test needs an edge to the next_node
+            body_connect_stmts.last_statements.append(test)
 
         last_statements = remove_breaks(body_connect_stmts.last_statements)
 
-        return ControlFlowNode(test, last_statements, break_statements=body_connect_stmts.break_statements)
+        return ControlFlowNode(
+            test=test,
+            last_nodes=last_statements, 
+            break_statements=body_connect_stmts.break_statements
+        )
 
     def visit_Raise(self, node):
         return self.append_node(RaiseNode(
@@ -232,6 +240,9 @@ class StmtVisitor(ast.NodeVisitor):
         ))
 
     def visit_Return(self, node):
+        """
+            Return(expr? value)
+        """
         label = LabelVisitor()
         label.visit(node)
 
@@ -280,6 +291,9 @@ class StmtVisitor(ast.NodeVisitor):
         return body
 
     def visit_Try(self, node):
+        """
+            Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
+        """
         try_node = self.append_node(TryNode(
             node,
             path=self.filenames[-1]
@@ -321,7 +335,11 @@ class StmtVisitor(ast.NodeVisitor):
 
         last_statements.extend(remove_breaks(body.last_statements))
 
-        return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
+        return ControlFlowNode(
+            test=try_node,
+            last_nodes=last_statements,
+            break_statements=body.break_statements
+        )
 
     def assign_tuple_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
@@ -335,8 +353,10 @@ class StmtVisitor(ast.NodeVisitor):
                 new_ast_node = ast.Assign(target, value)
                 new_ast_node.lineno = node.lineno
 
-                new_assignment_nodes.append(self.assignment_call_node(label.result, new_ast_node))
-
+                new_assignment_nodes.append(self.assignment_call_node(
+                    label.result,
+                    new_ast_node
+                ))
             else:
                 label.result += ' = '
                 label.visit(value)
@@ -349,9 +369,13 @@ class StmtVisitor(ast.NodeVisitor):
                     line_number=node.lineno,
                     path=self.filenames[-1]
                 )))
-
         connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
+
+        return ControlFlowNode(
+            test=new_assignment_nodes[0],
+            last_nodes=[new_assignment_nodes[-1]],
+            break_statements=[]
+        )
 
     def assign_multi_target(self, node, right_hand_side_variables):
         new_assignment_nodes = list()
@@ -370,11 +394,18 @@ class StmtVisitor(ast.NodeVisitor):
                 line_number=node.lineno,
                 path=self.filenames[-1]
             )))
-
         connect_nodes(new_assignment_nodes)
-        return ControlFlowNode(new_assignment_nodes[0], [new_assignment_nodes[-1]], [])  # return the last added node
+
+        return ControlFlowNode(
+            test=new_assignment_nodes[0],
+            last_nodes=[new_assignment_nodes[-1]],
+            break_statements=[]
+        )
 
     def visit_Assign(self, node):
+        """
+            Assign(expr* targets, expr value)
+        """
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
         if isinstance(node.targets[0], ast.Tuple):  # x,y = [1,2]
@@ -455,6 +486,9 @@ class StmtVisitor(ast.NodeVisitor):
         return call_assignment
 
     def visit_AugAssign(self, node):
+        """
+            AugAssign(expr target, operator op, expr value)
+        """
         label = LabelVisitor()
         label.visit(node)
 
@@ -481,6 +515,7 @@ class StmtVisitor(ast.NodeVisitor):
 
         # last_nodes is used for making connections to the next node in the parent node
         # this is handled in stmt_star_handler
+        # TKTK: Why list() then extend? Why extend and append?
         last_nodes = list()
         last_nodes.extend(body_connect_stmts.break_statements)
 
@@ -493,11 +528,19 @@ class StmtVisitor(ast.NodeVisitor):
             test.connect(orelse_connect_stmts.first_statement)
             last_nodes.extend(orelse_connect_stmts.last_statements)
         else:
-            last_nodes.append(test)  # if there is no orelse, test needs an edge to the next_node
+            # if there is no orelse, test needs an edge to the next_node
+            last_nodes.append(test)
 
-        return ControlFlowNode(test, last_nodes, list())
+        return ControlFlowNode(
+            test=test,
+            last_nodes=last_nodes,
+            break_statements=[]
+        )
 
     def visit_For(self, node):
+        """
+            For(expr target, expr iter, stmt* body, stmt* orelse)
+        """
         self.undecided = False
 
         iterator_label = LabelVisitor()
@@ -518,6 +561,9 @@ class StmtVisitor(ast.NodeVisitor):
         return self.loop_node_skeleton(for_node, node)
 
     def visit_While(self, node):
+        """
+            While(expr test, stmt* body, stmt* orelse)
+        """
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
@@ -530,6 +576,9 @@ class StmtVisitor(ast.NodeVisitor):
         return self.loop_node_skeleton(test, node)
 
     def visit_With(self, node):
+        """
+            With(withitem* items, stmt* body)
+        """
         label_visitor = LabelVisitor()
         label_visitor.visit(node.items[0])
 
@@ -541,18 +590,15 @@ class StmtVisitor(ast.NodeVisitor):
         connect_statements = self.stmt_star_handler(node.body)
         with_node.connect(connect_statements.first_statement)
         return ControlFlowNode(
-            with_node,
-            connect_statements.last_statements,
-            connect_statements.break_statements
+            test=with_node,
+            last_nodes=connect_statements.last_statements,
+            break_statements=connect_statements.break_statements
         )
 
-    def visit_Break(self, node):
-        return self.append_node(BreakNode(
-            node,
-            path=self.filenames[-1]
-        ))
-
     def visit_Delete(self, node):
+        """
+            Delete(expr* targets)
+        """
         labelVisitor = LabelVisitor()
         for expr in node.targets:
             labelVisitor.visit(expr)
@@ -563,6 +609,9 @@ class StmtVisitor(ast.NodeVisitor):
         ))
 
     def visit_Assert(self, node):
+        """
+            Assert(expr test, expr? msg)
+        """
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
@@ -572,22 +621,34 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-    def visit_Continue(self, node):
-        return self.visit_miscelleaneous_node(
-            node,
-            custom_label='continue'
-        )
-
     def visit_Global(self, node):
         return self.visit_miscelleaneous_node(
             node
         )
+
+    def visit_Expr(self, node):
+        """
+            Expr(expr value)
+        """
+        return self.visit(node.value)
 
     def visit_Pass(self, node):
         return self.visit_miscelleaneous_node(
             node,
             custom_label='pass'
         )
+
+    def visit_Continue(self, node):
+        return self.visit_miscelleaneous_node(
+            node,
+            custom_label='continue'
+        )
+
+    def visit_Break(self, node):
+        return self.append_node(BreakNode(
+            node,
+            path=self.filenames[-1]
+        ))
 
     def visit_miscelleaneous_node(
         self,
@@ -606,9 +667,6 @@ class StmtVisitor(ast.NodeVisitor):
             node,
             path=self.filenames[-1]
         ))
-
-    def visit_Expr(self, node):
-        return self.visit(node.value)
 
     def append_node(self, node):
         """Append a node to the CFG and return it."""
@@ -842,6 +900,9 @@ class StmtVisitor(ast.NodeVisitor):
         )
 
     def visit_Import(self, node):
+        """
+            Import(alias* names)
+        """
         for name in node.names:
             for module in self.local_modules:
                 if name.name == module[0]:
@@ -876,6 +937,9 @@ class StmtVisitor(ast.NodeVisitor):
         return IgnoredNode()
 
     def visit_ImportFrom(self, node):
+        """
+            ImportFrom(identifier? module, alias* names, int? level)
+        """
         # Is it relative?
         if node.level > 0:
             return self.handle_relative_import(node)

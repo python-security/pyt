@@ -482,6 +482,10 @@ def find_vulnerabilities_in_cfg(
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
     """
+    print("New CFG\n\n")
+    for node in cfg.nodes:
+        print(f"node is {node}")
+        print(f"node.outgoing is {node.outgoing}")
     triggers = identify_triggers(
         cfg,
         definitions.sources,
