@@ -93,7 +93,9 @@ def parse_args(args):
                              help='Will ask you about each vulnerability chain and blackbox nodes.',
                              action='store_true',
                              default=False)
-
+    parser.add_argument('-r', '--recursive', dest='recursive',
+                        action='store_true', help='find and process files in subdirectories')
+    
     parser.add_argument('-t', '--trigger-word-file',
                         help='Input trigger word file.',
                         type=str,
@@ -238,6 +240,9 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
+    recursivePath = os.path.normpath(args.recursive)
+    print(recursivePath)
+        
     path = os.path.normpath(args.filepath)
     cfg_list = list()
     if args.ignore_nosec:
