@@ -59,6 +59,9 @@ def parse_args(args):
 
     subparsers = parser.add_subparsers()
 
+    entry_group.add_argument('-r', '--recursive',
+                            help='find and process files in subdirectories',
+                            type=str)
     entry_group = parser.add_mutually_exclusive_group(required=True)
     entry_group.add_argument('-f', '--filepath',
                              help='Path to the file that should be analysed.',
@@ -240,10 +243,17 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
-    recursivePath = os.path.normpath(args.recursive)
-    print(recursivePath)
-        
-    path = os.path.normpath(args.filepath)
+    if args.recursive:
+        file_list = []
+        for root, dirs, files in os.walk(args.recursive):
+            for f in files:
+                fullpath = os.path.join(root, f)
+                if os.path.splitext(fullpath)[1] == '.py':
+                    file_list.append(fullpath)
+        print(file_list)
+    
+    if args.filepath:
+        path = os.path.normpath(args.filepath)
     cfg_list = list()
     if args.ignore_nosec:
         nosec_lines = set()
