@@ -250,11 +250,8 @@ def main(command_line_args=sys.argv[1:]):
                 fullpath = os.path.join(root, f)
                 if os.path.splitext(fullpath)[1] == '.py':
                     file_list.append(fullpath)
-        print(file_list)
-    
-    if args.filepath:
-        path = os.path.normpath(args.filepath)
-    cfg_list = list()
+                    path = fullpath
+                    cfg_list = list()
     if args.ignore_nosec:
         nosec_lines = set()
     else:
@@ -335,6 +332,10 @@ def main(command_line_args=sys.argv[1:]):
         ),
         nosec_lines
     )
+    
+    if args.filepath:
+        path = os.path.normpath(args.filepath)
+
     
     if args.baseline:
             vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
