@@ -251,87 +251,87 @@ def main(command_line_args=sys.argv[1:]):
                 if os.path.splitext(fullpath)[1] == '.py':
                     file_list.append(fullpath)
                     path = fullpath
+                    
+                    if args.ignore_nosec:
+                        nosec_lines = set()
+                    else:
+                        file = open(path, "r")
+                        lines = file.readlines()
+                        nosec_lines = set(
+                                    lineno for
+                                    (lineno, line) in enumerate(lines, start=1)
+                                    if '#nosec' in line or '# nosec' in line)
+
+                    if args.git_repos:
+                        repos = get_repos(args.git_repos)
+                        for repo in repos:
+                            repo.clone()
+                            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode, nosec_lines)
+                            if args.json:
+                                json.report(vulnerabilities, sys.stdout)
+                            else:
+                                text.report(vulnerabilities, sys.stdout)
+                            if not vulnerabilities:
+                                repo.clean_up()
+                        exit()
+
+
+                    if args.which == 'search':
+                        set_github_api_token()
+                        scan_github(
+                            args.search_string,
+                            args.start_date,
+                            analysis,
+                            analyse_repo,
+                            args.csv_path,
+                            ui_mode,
+                            args
+                        )
+                        exit()
+
+                    directory = None
+                    if args.project_root:
+                        directory = os.path.normpath(args.project_root)
+                    else:
+                        directory = os.path.dirname(path)
+                    project_modules = get_modules(directory)
+                    local_modules = get_directory_modules(directory)
+
+                    tree = generate_ast(path, python_2=args.python_2)
+
                     cfg_list = list()
-    if args.ignore_nosec:
-        nosec_lines = set()
-    else:
-        file = open(path, "r")
-        lines = file.readlines()
-        nosec_lines = set(
-                    lineno for
-                    (lineno, line) in enumerate(lines, start=1)
-                    if '#nosec' in line or '# nosec' in line)
-        
-    if args.git_repos:
-        repos = get_repos(args.git_repos)
-        for repo in repos:
-            repo.clone()
-            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode, nosec_lines)
-            if args.json:
-                json.report(vulnerabilities, sys.stdout)
-            else:
-                text.report(vulnerabilities, sys.stdout)
-            if not vulnerabilities:
-                repo.clean_up()
-        exit()
+                    cfg = make_cfg(
+                        tree,
+                        project_modules,
+                        local_modules,
+                        path
+                    )
+                    cfg_list.append(cfg)
+                    framework_route_criteria = is_flask_route_function
+                    if args.adaptor:
+                        if args.adaptor.lower().startswith('e'):
+                            framework_route_criteria = is_function
+                        elif args.adaptor.lower().startswith('p'):
+                            framework_route_criteria = is_function_without_leading_
+                        elif args.adaptor.lower().startswith('d'):
+                            framework_route_criteria = is_django_view_function
+                    # Add all the route functions to the cfg_list
+                    FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
+                    initialize_constraint_table(cfg_list)
 
-    if args.which == 'search':
-        set_github_api_token()
-        scan_github(
-            args.search_string,
-            args.start_date,
-            analysis,
-            analyse_repo,
-            args.csv_path,
-            ui_mode,
-            args
-        )
-        exit()
+                    analyse(cfg_list, analysis_type=analysis)
 
-    directory = None
-    if args.project_root:
-        directory = os.path.normpath(args.project_root)
-    else:
-        directory = os.path.dirname(path)
-    project_modules = get_modules(directory)
-    local_modules = get_directory_modules(directory)
-
-    tree = generate_ast(path, python_2=args.python_2)
-
-    cfg_list = list()
-    cfg = make_cfg(
-        tree,
-        project_modules,
-        local_modules,
-        path
-    )
-    cfg_list.append(cfg)
-    framework_route_criteria = is_flask_route_function
-    if args.adaptor:
-        if args.adaptor.lower().startswith('e'):
-            framework_route_criteria = is_function
-        elif args.adaptor.lower().startswith('p'):
-            framework_route_criteria = is_function_without_leading_
-        elif args.adaptor.lower().startswith('d'):
-            framework_route_criteria = is_django_view_function
-    # Add all the route functions to the cfg_list
-    FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
-
-    initialize_constraint_table(cfg_list)
-
-    analyse(cfg_list, analysis_type=analysis)
-
-    vulnerabilities = find_vulnerabilities(
-        cfg_list,
-        analysis,
-        ui_mode,
-        VulnerabilityFiles(
-            args.blackbox_mapping_file,
-            args.trigger_word_file
-        ),
-        nosec_lines
-    )
+                    vulnerabilities = find_vulnerabilities(
+                        cfg_list,
+                        analysis,
+                        ui_mode,
+                        VulnerabilityFiles(
+                            args.blackbox_mapping_file,
+                            args.trigger_word_file
+                        ),
+                        nosec_lines
+                    )
     
     if args.filepath:
         path = os.path.normpath(args.filepath)
