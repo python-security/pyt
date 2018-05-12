@@ -59,10 +59,10 @@ def parse_args(args):
 
     subparsers = parser.add_subparsers()
 
-    entry_group.add_argument('-r', '--recursive',
-                            help='find and process files in subdirectories',
-                            type=str)
     entry_group = parser.add_mutually_exclusive_group(required=True)
+    entry_group.add_argument('-r', '--recursive',
+                            help='Output filename.',
+                            type=str)    
     entry_group.add_argument('-f', '--filepath',
                              help='Path to the file that should be analysed.',
                              type=str)
@@ -96,9 +96,7 @@ def parse_args(args):
                              help='Will ask you about each vulnerability chain and blackbox nodes.',
                              action='store_true',
                              default=False)
-    parser.add_argument('-r', '--recursive', dest='recursive',
-                        action='store_true', help='find and process files in subdirectories')
-    
+
     parser.add_argument('-t', '--trigger-word-file',
                         help='Input trigger word file.',
                         type=str,
@@ -125,6 +123,9 @@ def parse_args(args):
                         help='Prints JSON instead of report.',
                         action='store_true',
                         default=False)
+    parser.add_argument('-x', '--exclude', dest='excluded_paths',
+                        action='store',
+                        default='', help='Separate files with commas')
 
     analysis_group = parser.add_mutually_exclusive_group()
     analysis_group.add_argument('-li', '--liveness',
@@ -227,6 +228,18 @@ def analyse_repo(args, github_repo, analysis_type, ui_mode, nosec_lines):
     )
     return vulnerabilities
 
+def discover_files(directory_path, excluded_files):
+    file_list = []
+    excluded_list = excluded_files.split(",")
+
+    for root, dirs, files in os.walk(directory_path):
+        for f in files:
+            fullpath = os.path.join(root, f)
+            if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
+                file_list.append(fullpath)
+
+    return(file_list)
+
 
 def main(command_line_args=sys.argv[1:]):
     args = parse_args(command_line_args)
@@ -243,99 +256,94 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
-    if args.recursive:
-        file_list = []
-        for root, dirs, files in os.walk(args.recursive):
-            for f in files:
-                fullpath = os.path.join(root, f)
-                if os.path.splitext(fullpath)[1] == '.py':
-                    file_list.append(fullpath)
-                    path = fullpath
-                    
-                    if args.ignore_nosec:
-                        nosec_lines = set()
-                    else:
-                        file = open(path, "r")
-                        lines = file.readlines()
-                        nosec_lines = set(
-                                    lineno for
-                                    (lineno, line) in enumerate(lines, start=1)
-                                    if '#nosec' in line or '# nosec' in line)
+    directory_path = os.path.normpath(args.recursive)
+    excluded_files = args.excluded_paths
+    test = discover_files(directory_path, excluded_files)
 
-                    if args.git_repos:
-                        repos = get_repos(args.git_repos)
-                        for repo in repos:
-                            repo.clone()
-                            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode, nosec_lines)
-                            if args.json:
-                                json.report(vulnerabilities, sys.stdout)
-                            else:
-                                text.report(vulnerabilities, sys.stdout)
-                            if not vulnerabilities:
-                                repo.clean_up()
-                        exit()
+    print(test)        
+        
+    path = os.path.normpath(args.filepath)
+    cfg_list = list()
+    if args.ignore_nosec:
+        nosec_lines = set()
+    else:
+        file = open(path, "r")
+        lines = file.readlines()
+        nosec_lines = set(
+                    lineno for
+                    (lineno, line) in enumerate(lines, start=1)
+                    if '#nosec' in line or '# nosec' in line)
+        
+    if args.git_repos:
+        repos = get_repos(args.git_repos)
+        for repo in repos:
+            repo.clone()
+            vulnerabilities = analyse_repo(args, repo, analysis, ui_mode, nosec_lines)
+            if args.json:
+                json.report(vulnerabilities, sys.stdout)
+            else:
+                text.report(vulnerabilities, sys.stdout)
+            if not vulnerabilities:
+                repo.clean_up()
+        exit()
 
 
-                    if args.which == 'search':
-                        set_github_api_token()
-                        scan_github(
-                            args.search_string,
-                            args.start_date,
-                            analysis,
-                            analyse_repo,
-                            args.csv_path,
-                            ui_mode,
-                            args
-                        )
-                        exit()
+    if args.which == 'search':
+        set_github_api_token()
+        scan_github(
+            args.search_string,
+            args.start_date,
+            analysis,
+            analyse_repo,
+            args.csv_path,
+            ui_mode,
+            args
+        )
+        exit()
 
-                    directory = None
-                    if args.project_root:
-                        directory = os.path.normpath(args.project_root)
-                    else:
-                        directory = os.path.dirname(path)
-                    project_modules = get_modules(directory)
-                    local_modules = get_directory_modules(directory)
+    directory = None
+    if args.project_root:
+        directory = os.path.normpath(args.project_root)
+    else:
+        directory = os.path.dirname(path)
+    project_modules = get_modules(directory)
+    local_modules = get_directory_modules(directory)
 
-                    tree = generate_ast(path, python_2=args.python_2)
+    tree = generate_ast(path, python_2=args.python_2)
 
-                    cfg_list = list()
-                    cfg = make_cfg(
-                        tree,
-                        project_modules,
-                        local_modules,
-                        path
-                    )
-                    cfg_list.append(cfg)
-                    framework_route_criteria = is_flask_route_function
-                    if args.adaptor:
-                        if args.adaptor.lower().startswith('e'):
-                            framework_route_criteria = is_function
-                        elif args.adaptor.lower().startswith('p'):
-                            framework_route_criteria = is_function_without_leading_
-                        elif args.adaptor.lower().startswith('d'):
-                            framework_route_criteria = is_django_view_function
-                    # Add all the route functions to the cfg_list
-                    FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
+    cfg_list = list()
+    cfg = make_cfg(
+        tree,
+        project_modules,
+        local_modules,
+        path
+    )
+    cfg_list.append(cfg)
+    framework_route_criteria = is_flask_route_function
+    if args.adaptor:
+        if args.adaptor.lower().startswith('e'):
+            framework_route_criteria = is_function
+        elif args.adaptor.lower().startswith('p'):
+            framework_route_criteria = is_function_without_leading_
+        elif args.adaptor.lower().startswith('d'):
+            framework_route_criteria = is_django_view_function
+    # Add all the route functions to the cfg_list
+    FrameworkAdaptor(cfg_list, project_modules, local_modules, framework_route_criteria)
 
-                    initialize_constraint_table(cfg_list)
+    initialize_constraint_table(cfg_list)
 
-                    analyse(cfg_list, analysis_type=analysis)
+    analyse(cfg_list, analysis_type=analysis)
 
-                    vulnerabilities = find_vulnerabilities(
-                        cfg_list,
-                        analysis,
-                        ui_mode,
-                        VulnerabilityFiles(
-                            args.blackbox_mapping_file,
-                            args.trigger_word_file
-                        ),
-                        nosec_lines
-                    )
-    
-    if args.filepath:
-        path = os.path.normpath(args.filepath)
-
+    vulnerabilities = find_vulnerabilities(
+        cfg_list,
+        analysis,
+        ui_mode,
+        VulnerabilityFiles(
+            args.blackbox_mapping_file,
+            args.trigger_word_file
+        ),
+        nosec_lines
+    )
     
     if args.baseline:
             vulnerabilities = get_vulnerabilities_not_in_baseline(vulnerabilities, args.baseline)
