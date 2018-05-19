@@ -73,6 +73,12 @@ Running an individual test file ``python3 -m unittest tests.import_test``
 
 Running an individual test ``python3 -m unittest tests.import_test.ImportTest.test_import``
 
+How It Works
+============
+
+Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
+
+.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
 
 Contributions
 =============
@@ -126,10 +132,3 @@ Install dependencies
     smmap (0.9.0)
 
 In the future, just type ``source ~/a_folder/bin/activate`` to start developing.
-
-How It Works
-============
-
-Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
-
-.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
