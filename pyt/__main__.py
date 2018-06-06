@@ -30,6 +30,19 @@ from .web_frameworks import (
 )
 
 
+def discover_files(directory_path, excluded_files):
+    file_list = []
+    excluded_list = excluded_files.split(",")
+
+    for root, dirs, files in os.walk(directory_path):
+        for f in files:
+            fullpath = os.path.join(root, f)
+            if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
+                file_list.append(fullpath)
+
+    return(file_list)
+
+
 def main(command_line_args=sys.argv[1:]):
     args = parse_args(command_line_args)
 
@@ -40,6 +53,10 @@ def main(command_line_args=sys.argv[1:]):
         ui_mode = UImode.TRIM
 
     path = os.path.normpath(args.filepath)
+    directory_path = os.path.normpath(args.recursive)
+    excluded_files = args.excluded_paths
+    test = discover_files(directory_path, excluded_files) #just for see files in directory
+    print(test)
 
     if args.ignore_nosec:
         nosec_lines = set()
