@@ -1,4 +1,8 @@
-from unittest import TestLoader, TestSuite, TextTestRunner
+from unittest import (
+    TestLoader,
+    TestSuite,
+    TextTestRunner
+)
 
 
 test_suite = TestSuite()
@@ -11,6 +15,6 @@ result = runner.run(suite)
 if result.wasSuccessful():
     print('Success')
     exit(0)
-else:
+else:  # pragma: no cover
     print('Failure')
     exit(1)
