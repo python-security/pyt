@@ -88,3 +88,74 @@ Usage
                           chain.
     -i, --interactive     Will ask you about each blackbox function call in
                           vulnerability chains.
+
+How It Works
+============
+
+Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
+
+.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
+
+Usage from Source
+=================
+
+Using it like a user ``python3 -m pyt -f example/vulnerable_code/XSS_call.py save -du``
+
+Running the tests ``python3 -m tests``
+
+Running an individual test file ``python3 -m unittest tests.import_test``
+
+Running an individual test ``python3 -m unittest tests.import_test.ImportTest.test_import``
+
+Contributions
+=============
+
+Join our slack group: https://pyt-dev.slack.com/ - ask for invite: mr.thalmann@gmail.com
+
+`Guidelines`_
+
+.. _Guidelines: https://github.com/python-security/pyt/blob/master/CONTRIBUTIONS.md
+
+
+Virtual env setup guide
+=======================
+
+Create a directory to hold the virtual env and project
+
+``mkdir ~/a_folder``
+
+``cd ~/a_folder``
+
+Clone the project into the directory
+
+``git clone https://github.com/python-security/pyt.git``
+
+Create the virtual environment
+
+``python3 -m venv ~/a_folder/``
+
+Check that you have the right versions
+
+``python3 --version`` sample output ``Python 3.6.0``
+
+``pip --version`` sample output ``pip 9.0.1 from /Users/kevinhock/a_folder/lib/python3.6/site-packages (python 3.6)``
+
+Change to project directory
+
+``cd pyt``
+
+Install dependencies
+
+``pip install -r requirements.txt``
+
+``pip list`` sample output ::
+
+    gitdb (0.6.4)
+    GitPython (2.0.8)
+    graphviz (0.4.10)
+    pip (9.0.1)
+    requests (2.10.0)
+    setuptools (28.8.0)
+    smmap (0.9.0)
+
+In the future, just type ``source ~/a_folder/bin/activate`` to start developing.
