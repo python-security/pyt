@@ -91,7 +91,18 @@ def _add_optional_group(parser):
         action='store_true',
         help='do not skip lines with # nosec comments'
     )
-
+    optional_group.add_argument(
+        '-r', '--recursive',
+        help='Output filename.',
+        type=str
+    )
+    optional_group.add_argument(
+        '-x', '--exclude',
+        dest='excluded_paths',
+        action='store',
+        default='',
+        help='Separate files with commas'
+        )
 
 def _add_print_group(parser):
     print_group = parser.add_argument_group('print arguments')
