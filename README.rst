@@ -25,19 +25,7 @@ Static analysis of Python web applications based on theoretical foundations (Con
 Features
 --------
 
-* Detect Command injection
-
-* Detect SQL injection
-
-* Detect XSS
-
-* Detect directory traversal
-
-* Get a control flow graph
-
-* Get a def-use and/or a use-def chain
-
-* Search GitHub and analyse hits with PyT
+* Detect command injection, SSRF, SQL injection, XSS, directory traveral etc.
 
 * A lot of customisation possible
 
@@ -62,6 +50,52 @@ PyT can also be installed from source. To do so, clone the repo, and then run:
 
   python3 setup.py install
 
+Usage
+=====
+
+.. code-block::
+
+  usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
+                       [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
+                       [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
+
+  required arguments:
+    -f FILEPATH, --filepath FILEPATH
+                          Path to the file that should be analysed.
+
+  optional arguments:
+    -a ADAPTOR, --adaptor ADAPTOR
+                          Choose a web framework adaptor: Flask(Default),
+                          Django, Every or Pylons
+    -pr PROJECT_ROOT, --project-root PROJECT_ROOT
+                          Add project root, only important when the entry file
+                          is not at the root of the project.
+    -b BASELINE_JSON_FILE, --baseline BASELINE_JSON_FILE
+                          Path of a baseline report to compare against (only
+                          JSON-formatted files are accepted)
+    -j, --json            Prints JSON instead of report.
+    -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
+                          Input blackbox mapping file.
+    -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
+                          Input file with a list of sources and sinks
+    -o OUTPUT_FILE, --output OUTPUT_FILE
+                          write report to filename
+    --ignore-nosec        do not skip lines with # nosec comments
+
+  print arguments:
+    -trim, --trim-reassigned-in
+                          Trims the reassigned list to just the vulnerability
+                          chain.
+    -i, --interactive     Will ask you about each blackbox function call in
+                          vulnerability chains.
+
+How It Works
+============
+
+Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
+
+.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
+
 Usage from Source
 =================
 
@@ -72,13 +106,6 @@ Running the tests ``python3 -m tests``
 Running an individual test file ``python3 -m unittest tests.import_test``
 
 Running an individual test ``python3 -m unittest tests.import_test.ImportTest.test_import``
-
-How It Works
-============
-
-Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
-
-.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
 
 Contributions
 =============
