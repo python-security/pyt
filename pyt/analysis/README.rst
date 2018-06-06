@@ -38,12 +38,33 @@ How does a definition reach?
 ============================
 
 After we know that a definition reaches a use that we are interested in,
-we make what are called `definition-use chains`_ figure out how the definition
+we make what use called `definition-use chains`_ to figure out how the definition
 reaches the use. This is necessary because there may be more than one path from
-the definition to the use.
+the definition to the use. Here is the code from `definition_chains.py`_:
 
+.. code-block:: python
+
+    def build_def_use_chain(
+        cfg_nodes,
+        lattice
+    ):
+        def_use = defaultdict(list)
+        # For every node
+        for node in cfg_nodes:
+            # That's a definition
+            if isinstance(node, AssignmentNode):
+                # Get the uses
+                for variable in node.right_hand_side_variables:
+                    # Loop through most of the nodes before it
+                    for earlier_node in get_constraint_nodes(node, lattice):
+                        # and add them to the 'uses list' of each earlier node, when applicable
+                        # 'earlier node' here being a simplification
+                        if variable in earlier_node.left_hand_side:
+                            def_use[earlier_node].append(node)
+        return def_use
 
 .. _definition-use chains: https://en.wikipedia.org/wiki/Use-define_chain
+.. _definition_chains.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/analysis/definition_chains.py#L16-L33
 
 
 Additional details

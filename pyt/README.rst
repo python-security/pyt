@@ -1,3 +1,6 @@
+How It Works
+============
+
 `__main__.py`_ is where all the high-level steps happen.
 
 .. _\_\_main\_\_.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/__main__.py
@@ -12,7 +15,7 @@ Step 1
 
 
 Step 2
-    Generate the Abstract Syntax Tree (AST).
+    Generate the `Abstract Syntax Tree (AST)`_.
 
     Essentially done in these lines of code with the `ast`_ module:
 
@@ -23,6 +26,7 @@ Step 2
 
     `generate_ast`_ in `ast_helper.py`_
 
+    .. _Abstract Syntax Tree (AST): https://en.wikipedia.org/wiki/Abstract_syntax_tree
     .. _ast: https://docs.python.org/3/library/ast.html
     .. _generate_ast: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/ast_helper.py#L24
     .. _ast_helper.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/core/ast_helper.py
@@ -59,3 +63,9 @@ Step 8
 
     .. _text or JSON form: https://github.com/python-security/pyt/tree/re_organize_code/pyt/formatters
     .. _output file: https://github.com/python-security/pyt/blob/re_organize_code/pyt/usage.py#L80
+
+Here is an image from the `original thesis`_:
+
+.. image:: https://github.com/KevinHock/rtdpyt/blob/master/docs/img/overview.png
+
+.. _original thesis: http://projekter.aau.dk/projekter/files/239563289/final.pdf#page=62
