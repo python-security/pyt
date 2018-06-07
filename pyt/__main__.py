@@ -30,17 +30,23 @@ from .web_frameworks import (
 )
 
 
-def discover_files(directory_path, excluded_files):
-    file_list = []
+def discover_files(targets, excluded_files, recursive=False):
+    file_list = list()
+    included_files = list()
     excluded_list = excluded_files.split(",")
 
-    for root, dirs, files in os.walk(directory_path):
-        for f in files:
-            fullpath = os.path.join(root, f)
-            if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
-                file_list.append(fullpath)
-
-    return(file_list)
+    for target in targets:
+        if os.path.isdir(target):
+            if recursive:
+                for root, dirs, files in os.walk(target):
+                    for f in files:
+                        fullpath = os.path.join(root, f)
+                        if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
+                            included_files.append(fullpath)
+        else:
+            if targets not in excluded_list:
+                included_files.append(targets[0])
+    return(included_files)
 
 
 def main(command_line_args=sys.argv[1:]):
@@ -52,11 +58,15 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
-    path = os.path.normpath(args.filepath)
-    directory_path = os.path.normpath(args.recursive)
+
+
+    targets = args.targets
     excluded_files = args.excluded_paths
-    test = discover_files(directory_path, excluded_files) #just for see files in directory
+    recursive = args.recursive
+    test = discover_files(targets, excluded_files, recursive) #just for see files in directory
     print(test)
+
+    path = os.path.normpath(args.filepath)
 
     if args.ignore_nosec:
         nosec_lines = set()
