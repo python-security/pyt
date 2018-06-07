@@ -1,6 +1,11 @@
 Coming soon.
 
-There are a few different kinds of vulnerabilities
+
+There are a few different `vulnerability types`_ used in `how_vulnerable`_.
+
+.. _vulnerability types: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py#L8-L12
+
+.. _how_vulnerable: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerabilities.py#L266-L323
 
 Regular
 Sanitised
