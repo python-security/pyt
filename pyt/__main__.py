@@ -31,7 +31,6 @@ from .web_frameworks import (
 
 
 def discover_files(targets, excluded_files, recursive=False):
-    file_list = list()
     included_files = list()
     excluded_list = excluded_files.split(",")
 
