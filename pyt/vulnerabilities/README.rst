@@ -1,5 +1,6 @@
 Coming soon.
 
+After we get each vulnerability chain, we see `how_vulnerable`_ it is
 
 There are a few different `vulnerability types`_ used in `how_vulnerable`_.
 
