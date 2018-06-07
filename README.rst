@@ -50,6 +50,13 @@ PyT can also be installed from source. To do so, clone the repo, and then run:
 
   python3 setup.py install
 
+How It Works
+============
+
+Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
+
+.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
+
 Usage
 =====
 
@@ -88,13 +95,6 @@ Usage
                           chain.
     -i, --interactive     Will ask you about each blackbox function call in
                           vulnerability chains.
-
-How It Works
-============
-
-Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
-
-.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
 
 Usage from Source
 =================
