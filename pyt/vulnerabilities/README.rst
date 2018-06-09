@@ -34,6 +34,27 @@ and example code and output
 Sanitised
 
 .. code-block:: python
+    :linenos:
+
+    from flask import Flask, request, make_response, Markup
+
+    app = Flask(__name__)
+
+    @app.route('/XSS_param', methods =['GET'])
+    def XSS1():
+        param = request.args.get('param', 'not set')
+
+        param = Markup.escape(param)
+
+        html = open('templates/XSS_param.html').read()
+        resp = make_response(html.replace('{{ param }}', param))
+        return resp
+
+    if __name__ == '__main__':
+        app.run(debug= True)
+
+.. code-block:: python
+
     File: examples/vulnerable_code/XSS_sanitised.py
      > User input at line 7, source "request.args.get(":
     	 ~call_1 = ret_request.args.get('param', 'not set')
