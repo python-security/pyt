@@ -43,6 +43,7 @@ Install
 .. code-block:: python
 
 	pip install python-taint
+	✨🍰✨
 
 PyT can also be installed from source. To do so, clone the repo, and then run:
 
