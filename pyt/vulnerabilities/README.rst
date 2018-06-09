@@ -24,50 +24,46 @@ There are a few different `vulnerability types`_ used in `how_vulnerable`_.
 
 .. _how_vulnerable: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerabilities.py#L266-L323
 
+Configuration
+=============
+The hard-coded list of sources and sinks can be found in the `vulnerability_definitions`_ folder, currently `all_trigger_words.pyt`_ is used by default.
+
+.. _vulnerability_definitions: https://github.com/python-security/pyt/tree/re_organize_code/pyt/vulnerability_definitions
+.. _all_trigger_words.pyt: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerability_definitions/all_trigger_words.pyt
 
 Types of Vulnerabilities
 ========================
 
-Regular
-and example code and output
+There are 3 kinds of vulnerabilities reported by PyT whose classes are defined in `vulnerability_helper.py`_: `regular`_, `sanitised`_ and `unknown`_. We report a `sanitised`_ vulnerability when there is a known sanitiser between the source and sink, with `confidence when the sanitiser is an assignment`_ and with `uncertainty if it is potentially sanitised by an if statement`_. Here is an example:
 
-Sanitised
+.. _confidence when the sanitiser is an assignment: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerabilities.py#L293
+.. _uncertainty if it is potentially sanitised by an if statement: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerabilities.py#L394
 
 .. code-block:: python
-    :linenos:
 
-    from flask import Flask, request, make_response, Markup
-
-    app = Flask(__name__)
-
-    @app.route('/XSS_param', methods =['GET'])
-    def XSS1():
-        param = request.args.get('param', 'not set')
-
-        param = Markup.escape(param)
-
-        html = open('templates/XSS_param.html').read()
-        resp = make_response(html.replace('{{ param }}', param))
-        return resp
-
-    if __name__ == '__main__':
-        app.run(debug= True)
+      5 @app.route('/XSS_param', methods =['GET'])
+      6 def XSS1():
+      7     param = request.args.get('param', 'not set')
+      8     safe_param = Markup.escape(param)
+      9     html = open('templates/XSS_param.html').read()
+     10     resp = make_response(html.replace('{{ param }}', safe_param))
+     11     return resp
 
 .. code-block:: python
 
     File: examples/vulnerable_code/XSS_sanitised.py
      > User input at line 7, source "request.args.get(":
-    	 ~call_1 = ret_request.args.get('param', 'not set')
+         ~call_1 = ret_request.args.get('param', 'not set')
     Reassigned in:
-    	File: examples/vulnerable_code/XSS_sanitised.py
-    	 > Line 7: param = ~call_1
-    	File: examples/vulnerable_code/XSS_sanitised.py
-    	 > Line 9: ~call_2 = ret_Markup.escape(param)
-    	File: examples/vulnerable_code/XSS_sanitised.py
-    	 > Line 9: param = ~call_2
+        File: examples/vulnerable_code/XSS_sanitised.py
+         > Line 7: param = ~call_1
+        File: examples/vulnerable_code/XSS_sanitised.py
+         > Line 8: ~call_2 = ret_Markup.escape(param)
+        File: examples/vulnerable_code/XSS_sanitised.py
+         > Line 8: safe_param = ~call_2
     File: examples/vulnerable_code/XSS_sanitised.py
-     > reaches line 12, sink "replace(":
-    	~call_5 = ret_html.replace('{{ param }}', param)
+     > reaches line 10, sink "replace(":
+        ~call_5 = ret_html.replace('{{ param }}', safe_param)
     This vulnerability is sanitised by:  Label: ~call_2 = ret_Markup.escape(param)
 
 and example code and output
@@ -82,3 +78,8 @@ How we find sources/sinks
 
 How def-use chains are used
 h
+
+.. _vulnerability_helper.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py
+.. _regular: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py#L42-L91
+.. _sanitised: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py#L94-L119
+.. _unknown: https://github.com/python-security/pyt/blob/re_organize_code/pyt/vulnerabilities/vulnerability_helper.py#L122-L142
