@@ -55,7 +55,7 @@ How It Works
 
 Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
 
-.. _start here: https://github.com/python-security/pyt/tree/re_organize_code/pyt
+.. _start here: https://github.com/python-security/pyt/tree/master/pyt
 
 Usage
 =====
