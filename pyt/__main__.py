@@ -43,7 +43,7 @@ def discover_files(targets, excluded_files, recursive=False):
                         if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
                             included_files.append(fullpath)
         else:
-            if targets not in excluded_list:
+            if target not in excluded_list:
                 included_files.append(targets[0])
     return(included_files)
 
@@ -57,74 +57,72 @@ def main(command_line_args=sys.argv[1:]):
     elif args.trim_reassigned_in:
         ui_mode = UImode.TRIM
 
+    files = discover_files(
+        args.targets,
+        args.excluded_paths,
+        args.recursive
+    )
 
+    for path in files:
+        print(path)
+        if args.ignore_nosec:
+            nosec_lines = set()
+        else:
+            file = open(path, 'r')
+            lines = file.readlines()
+            nosec_lines = set(
+                lineno for
+                (lineno, line) in enumerate(lines, start=1)
+                if '#nosec' in line or '# nosec' in line
+            )
 
-    targets = args.targets
-    excluded_files = args.excluded_paths
-    recursive = args.recursive
-    test = discover_files(targets, excluded_files, recursive) #just for see files in directory
-    print(test)
+        if args.project_root:
+            directory = os.path.normpath(args.project_root)
+        else:
+            directory = os.path.dirname(path)
+        project_modules = get_modules(directory)
+        local_modules = get_directory_modules(directory)
 
-    path = os.path.normpath(args.filepath)
+        tree = generate_ast(path)
 
-    if args.ignore_nosec:
-        nosec_lines = set()
-    else:
-        file = open(path, 'r')
-        lines = file.readlines()
-        nosec_lines = set(
-            lineno for
-            (lineno, line) in enumerate(lines, start=1)
-            if '#nosec' in line or '# nosec' in line
+        cfg = make_cfg(
+            tree,
+            project_modules,
+            local_modules,
+            path
+        )
+        cfg_list = [cfg]
+        framework_route_criteria = is_flask_route_function
+        if args.adaptor:
+            if args.adaptor.lower().startswith('e'):
+                framework_route_criteria = is_function
+            elif args.adaptor.lower().startswith('p'):
+                framework_route_criteria = is_function_without_leading_
+            elif args.adaptor.lower().startswith('d'):
+                framework_route_criteria = is_django_view_function
+        # Add all the route functions to the cfg_list
+        FrameworkAdaptor(
+            cfg_list,
+            project_modules,
+            local_modules,
+            framework_route_criteria
         )
 
-    if args.project_root:
-        directory = os.path.normpath(args.project_root)
-    else:
-        directory = os.path.dirname(path)
-    project_modules = get_modules(directory)
-    local_modules = get_directory_modules(directory)
-
-    tree = generate_ast(path)
-
-    cfg = make_cfg(
-        tree,
-        project_modules,
-        local_modules,
-        path
-    )
-    cfg_list = [cfg]
-    framework_route_criteria = is_flask_route_function
-    if args.adaptor:
-        if args.adaptor.lower().startswith('e'):
-            framework_route_criteria = is_function
-        elif args.adaptor.lower().startswith('p'):
-            framework_route_criteria = is_function_without_leading_
-        elif args.adaptor.lower().startswith('d'):
-            framework_route_criteria = is_django_view_function
-    # Add all the route functions to the cfg_list
-    FrameworkAdaptor(
-        cfg_list,
-        project_modules,
-        local_modules,
-        framework_route_criteria
-    )
-
-    initialize_constraint_table(cfg_list)
-    analyse(cfg_list)
-    vulnerabilities = find_vulnerabilities(
-        cfg_list,
-        ui_mode,
-        args.blackbox_mapping_file,
-        args.trigger_word_file,
-        nosec_lines
-    )
-
-    if args.baseline:
-        vulnerabilities = get_vulnerabilities_not_in_baseline(
-            vulnerabilities,
-            args.baseline
+        initialize_constraint_table(cfg_list)
+        analyse(cfg_list)
+        vulnerabilities = find_vulnerabilities(
+            cfg_list,
+            ui_mode,
+            args.blackbox_mapping_file,
+            args.trigger_word_file,
+            nosec_lines
         )
+
+        if args.baseline:
+            vulnerabilities = get_vulnerabilities_not_in_baseline(
+                vulnerabilities,
+                args.baseline
+            )
 
     if args.json:
         json.report(vulnerabilities, args.output_file)
