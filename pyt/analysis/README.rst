@@ -38,7 +38,7 @@ How does a definition reach?
 ============================
 
 After we know that a definition reaches a use that we are interested in,
-we make what use called `definition-use chains`_ to figure out how the definition
+we use what are called `definition-use chains`_ to figure out how the definition
 reaches the use. This is necessary because there may be more than one path from
 the definition to the use. Here is the code from `definition_chains.py`_:
 
