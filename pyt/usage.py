@@ -29,11 +29,10 @@ def valid_date(s):
 
 def _add_required_group(parser):
     required_group = parser.add_argument_group('required arguments')
-    '''required_group.add_argument(
-        '-f', '--filepath',
-        help='Path to the file that should be analysed.',
-        type=str
-    )'''
+    required_group.add_argument(
+        'targets', metavar='targets', type=str, nargs='*',
+        help='source file(s) or directory(s) to be tested'
+    )
 
 
 def _add_optional_group(parser):
@@ -102,10 +101,7 @@ def _add_optional_group(parser):
         default='',
         help='Separate files with commas'
     )
-    optional_group.add_argument(
-        'targets', metavar='targets', type=str, nargs='*',
-        help='source file(s) or directory(s) to be tested'
-    )
+
 
 def _add_print_group(parser):
     print_group = parser.add_argument_group('print arguments')
@@ -125,7 +121,7 @@ def _add_print_group(parser):
 
 def _check_required_and_mutually_exclusive_args(parser, args):
     if args.targets is None:
-        parser.error('The target argument is required')
+        parser.error('The targets argument is required')
 
 
 def parse_args(args):
