@@ -18,7 +18,7 @@ a `reassignment check`_.
         # Get previous assignments of cfg_node.left_hand_side and remove them from JOIN
         arrow_result = self.arrow(JOIN, cfg_node.left_hand_side)
 
-As an example,
+We do this because, e.g.
 
 .. code-block:: python
 
@@ -38,9 +38,9 @@ How does a definition reach?
 ============================
 
 After we know that a definition reaches a use that we are interested in,
-we use what are called `definition-use chains`_ to figure out how the definition
-reaches the use. This is necessary because there may be more than one path from
-the definition to the use. Here is the code from `definition_chains.py`_:
+we use what are called `definition-use chains`_ to figure out how definitions
+reach their uses. This is necessary because there may be multiple paths from
+definition to use. Here is how we create `definition_chains`_:
 
 .. code-block:: python
 
@@ -64,20 +64,20 @@ the definition to the use. Here is the code from `definition_chains.py`_:
         return def_use
 
 .. _definition-use chains: https://en.wikipedia.org/wiki/Use-define_chain
-.. _definition_chains.py: https://github.com/python-security/pyt/blob/re_organize_code/pyt/analysis/definition_chains.py#L16-L33
+.. _definition_chains: https://github.com/python-security/pyt/blob/re_organize_code/pyt/analysis/definition_chains.py#L16-L33
 
 
 Additional details
 ==================
 
-This folder probably will not change at all for the lifetime of the project,
+This folder will probably not change for the lifetime of the project,
 unless we were to implement more advanced analyses like `solving string
-constraints`_ or doing `alias analysis`_. Right now and in the foreseeable
-future there are more pressing concerns, like handling web frameworks
+constraints`_ or doing `alias analysis`_. Right now there are more
+pressing concerns, like handling web frameworks
 and handling all AST node types in the `CFG construction`_.
 
 Stefan and Bruno like the `Schwartzbach notes`_, as you will see in some comments.
-But looking these two algorithms up will yield countless results, my favorite is
+But looking up these two algorithms will yield countless results, my favorite is
 this `amazing guy from YouTube`_.
 
 
