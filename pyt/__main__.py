@@ -30,7 +30,7 @@ from .web_frameworks import (
 )
 
 
-def main(command_line_args=sys.argv[1:]):
+def main(command_line_args=sys.argv[1:]):  # noqa: C901
     args = parse_args(command_line_args)
 
     ui_mode = UImode.NORMAL

@@ -15,7 +15,7 @@ def convert_to_3(path):  # pragma: no cover
     try:
         print('##### Trying to convert file to Python 3. #####')
         subprocess.call(['2to3', '-w', path])
-    except:
+    except subprocess.SubprocessError:
         print('Check if 2to3 is installed. '
               'https://docs.python.org/2/library/2to3.html')
         exit(1)

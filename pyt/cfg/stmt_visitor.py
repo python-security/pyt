@@ -717,7 +717,7 @@ class StmtVisitor(ast.NodeVisitor):
         self.nodes.append(node)
         return node
 
-    def add_module(
+    def add_module(  # noqa: C901
         self,
         module,
         module_or_package_name,

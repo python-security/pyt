@@ -40,31 +40,31 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         self.assert_length(definitions.sinks[1][1], expected_length=3)
 
     def test_parse_section(self):
-        l = list(trigger_definitions_parser.parse_section(iter(['get'])))
-        self.assert_length(l, expected_length=1)
-        self.assertEqual(l[0][0], 'get')
-        self.assertEqual(l[0][1], list())
+        list_ = list(trigger_definitions_parser.parse_section(iter(['get'])))
+        self.assert_length(list_, expected_length=1)
+        self.assertEqual(list_[0][0], 'get')
+        self.assertEqual(list_[0][1], list())
 
-        l = list(trigger_definitions_parser.parse_section(iter(['get', 'get -> a, b, c d s aq     a'])))
-        self.assert_length(l, expected_length=2)
-        self.assertEqual(l[0][0], 'get')
-        self.assertEqual(l[1][0], 'get')
-        self.assertEqual(l[1][1], ['a', 'b', 'c d s aq     a'])
-        self.assert_length(l[1][1], expected_length=3)
+        list_ = list(trigger_definitions_parser.parse_section(iter(['get', 'get -> a, b, c d s aq     a'])))
+        self.assert_length(list_, expected_length=2)
+        self.assertEqual(list_[0][0], 'get')
+        self.assertEqual(list_[1][0], 'get')
+        self.assertEqual(list_[1][1], ['a', 'b', 'c d s aq     a'])
+        self.assert_length(list_[1][1], expected_length=3)
 
     def test_label_contains(self):
         cfg_node = Node('label', None, line_number=None, path=None)
         trigger_words = [('get', [])]
-        l = list(vulnerabilities.label_contains(cfg_node, trigger_words))
-        self.assert_length(l, expected_length=0)
+        list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
+        self.assert_length(list_, expected_length=0)
 
         cfg_node = Node('request.get("stefan")', None, line_number=None, path=None)
         trigger_words = [('get', []), ('request', [])]
-        l = list(vulnerabilities.label_contains(cfg_node, trigger_words))
-        self.assert_length(l, expected_length=2)
+        list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
+        self.assert_length(list_, expected_length=2)
 
-        trigger_node_1 = l[0]
-        trigger_node_2 = l[1]
+        trigger_node_1 = list_[0]
+        trigger_node_2 = list_[1]
         self.assertEqual(trigger_node_1.trigger_word, 'get')
         self.assertEqual(trigger_node_1.cfg_node, cfg_node)
         self.assertEqual(trigger_node_2.trigger_word, 'request')
@@ -72,8 +72,8 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         cfg_node = Node('request.get("stefan")', None, line_number=None, path=None)
         trigger_words = [('get', []), ('get', [])]
-        l = list(vulnerabilities.label_contains(cfg_node, trigger_words))
-        self.assert_length(l, expected_length=2)
+        list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
+        self.assert_length(list_, expected_length=2)
 
     def test_find_triggers(self):
         self.cfg_create_from_file('examples/vulnerable_code/XSS.py')
@@ -85,12 +85,12 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         XSS1 = cfg_list[1]
         trigger_words = [('get', [])]
 
-        l = vulnerabilities.find_triggers(
+        list_ = vulnerabilities.find_triggers(
             XSS1.nodes,
             trigger_words,
             nosec_lines=set()
         )
-        self.assert_length(l, expected_length=1)
+        self.assert_length(list_, expected_length=1)
 
     def test_find_sanitiser_nodes(self):
         cfg_node = Node(None, None, line_number=None, path=None)
