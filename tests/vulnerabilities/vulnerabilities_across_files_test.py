@@ -56,7 +56,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         self.assert_length(vulnerabilities, expected_length=1)
 
     def test_no_false_positive_absolute_from_file_command_injection_3(self):
-        vulnerabilities = self.run_analysis('examples/vulnerable_code_across_files/no_false_positive_absolute_from_file_command_injection_3.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code_across_files/no_false_positive_absolute_from_file_command_injection_3.py')  # noqa: E501
         self.assert_length(vulnerabilities, expected_length=0)
 
     def test_blackbox_library_call(self):
@@ -79,7 +79,8 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             File: examples/vulnerable_code_across_files/blackbox_library_call.py
              > reaches line 17, sink "subprocess.call(":
                 ~call_3 = ret_subprocess.call(hey, shell=True)
-            This vulnerability is unknown due to:  Label: ~call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
+            This vulnerability is unknown due to:
+                Label: ~call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
         """
 
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
@@ -295,5 +296,5 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         self.assert_length(vulnerabilities, expected_length=1)
 
     def test_no_false_positive_import_file_command_injection_3(self):
-        vulnerabilities = self.run_analysis('examples/vulnerable_code_across_files/no_false_positive_import_file_command_injection_3.py')
+        vulnerabilities = self.run_analysis('examples/vulnerable_code_across_files/no_false_positive_import_file_command_injection_3.py')  # noqa: E501
         self.assert_length(vulnerabilities, expected_length=0)

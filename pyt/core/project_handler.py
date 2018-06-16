@@ -40,12 +40,26 @@ def get_modules(path):
     for root, directories, filenames in os.walk(path):
         for filename in filenames:
             if is_python_file(filename):
-                directory = os.path.dirname(os.path.realpath(os.path.join(root, filename))).split(module_root)[-1].replace(os.sep, '.')
+                directory = os.path.dirname(
+                    os.path.realpath(
+                        os.path.join(
+                            root,
+                            filename
+                        )
+                    )
+                ).split(module_root)[-1].replace(
+                    os.sep,  # e.g. '/'
+                    '.'
+                )
                 directory = directory.replace('.', '', 1)
                 if directory:
-                    modules.append(('.'.join((module_root, directory, filename.replace('.py', ''))), os.path.join(root, filename)))
+                    modules.append(
+                        ('.'.join((module_root, directory, filename.replace('.py', ''))), os.path.join(root, filename))
+                    )
                 else:
-                    modules.append(('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename)))
+                    modules.append(
+                        ('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename))
+                    )
 
     return modules
 

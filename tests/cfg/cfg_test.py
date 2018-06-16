@@ -82,14 +82,16 @@ class CFGForTest(CFGBaseTestCase):
         self.assertEqual(self.cfg.nodes[else_body_2].label, '~call_3 = ret_print(y)')
         self.assertEqual(self.cfg.nodes[next_node].label, 'x = 3')
 
-        self.assertInCfg([(for_node, entry),
-                          (body_1, for_node),
-                          (else_body_1, for_node),
-                          (body_2, body_1),
-                          (for_node, body_2),
-                          (else_body_2, else_body_1),
-                          (next_node, else_body_2),
-                          (exit_node, next_node)])
+        self.assertInCfg([
+            (for_node, entry),
+            (body_1, for_node),
+            (else_body_1, for_node),
+            (body_2, body_1),
+            (for_node, body_2),
+            (else_body_2, else_body_1),
+            (next_node, else_body_2),
+            (exit_node, next_node)
+        ])
 
     def test_for_no_orelse(self):
         self.cfg_create_from_file('examples/example_inputs/for_no_orelse.py')
@@ -105,7 +107,14 @@ class CFGForTest(CFGBaseTestCase):
         next_node = 4
         exit_node = 5
 
-        self.assertInCfg([(for_node, entry), (body_1, for_node), (body_2, body_1), (for_node, body_2), (next_node, for_node), (exit_node, next_node)])
+        self.assertInCfg([
+            (for_node, entry),
+            (body_1, for_node),
+            (body_2, body_1),
+            (for_node, body_2),
+            (next_node, for_node),
+            (exit_node, next_node)
+        ])
 
     def test_for_tuple_target(self):
         self.cfg_create_from_file('examples/example_inputs/for_tuple_target.py')
@@ -307,7 +316,7 @@ class CFGTryTest(CFGBaseTestCase):
 
         self.nodes = self.cfg_list_to_dict(self.cfg.nodes)
         self.assert_length(self.cfg.nodes, expected_length=13)
-        
+
         entry = 0
         try_ = 1
         print_a5 = 2
@@ -323,21 +332,21 @@ class CFGTryTest(CFGBaseTestCase):
         _exit = 12
 
         self.assertInCfg([
-                self.connected(entry, try_),
-                self.connected(try_, print_a5),
-                self.connected(print_a5, except_im),
-                self.connected(print_a5, function_entry),
-                self.connected(print_a5, print_good),
-                self.connected(except_im, print_wagyu),
-                self.connected(print_wagyu, print_good),
-                self.connected(function_entry, ret_subprocess_call),
-                self.connected(ret_subprocess_call, ret_does_this_kill_us_4),
-                self.connected(ret_does_this_kill_us_4, exit_does_this_kill_us),
-                self.connected(exit_does_this_kill_us, ret_does_this_kill_us_3),
-                self.connected(ret_does_this_kill_us_3, print_so),
-                self.connected(print_so, print_good),
-                self.connected(print_good, _exit)
-            ])
+            self.connected(entry, try_),
+            self.connected(try_, print_a5),
+            self.connected(print_a5, except_im),
+            self.connected(print_a5, function_entry),
+            self.connected(print_a5, print_good),
+            self.connected(except_im, print_wagyu),
+            self.connected(print_wagyu, print_good),
+            self.connected(function_entry, ret_subprocess_call),
+            self.connected(ret_subprocess_call, ret_does_this_kill_us_4),
+            self.connected(ret_does_this_kill_us_4, exit_does_this_kill_us),
+            self.connected(exit_does_this_kill_us, ret_does_this_kill_us_3),
+            self.connected(ret_does_this_kill_us_3, print_so),
+            self.connected(print_so, print_good),
+            self.connected(print_good, _exit)
+        ])
 
     def test_final(self):
         self.cfg_create_from_file('examples/example_inputs/try_final.py')
@@ -354,15 +363,17 @@ class CFGTryTest(CFGBaseTestCase):
         print_final = 5
         _exit = 6
 
-        self.assertInCfg([self.connected(entry, try_),
-                          self.connected(try_, try_body),
-                          self.connected(try_body, except_im),
-                          self.connected(try_body, print_final),
-                          self.connected(try_body, _exit),
-                          self.connected(except_im, except_im_body_1),
-                          self.connected(except_im_body_1, _exit),
-                          self.connected(except_im_body_1, print_final),
-                          self.connected(print_final, _exit)])
+        self.assertInCfg([
+            self.connected(entry, try_),
+            self.connected(try_, try_body),
+            self.connected(try_body, except_im),
+            self.connected(try_body, print_final),
+            self.connected(try_body, _exit),
+            self.connected(except_im, except_im_body_1),
+            self.connected(except_im_body_1, _exit),
+            self.connected(except_im_body_1, print_final),
+            self.connected(print_final, _exit)
+        ])
 
 
 class CFGIfTest(CFGBaseTestCase):
@@ -714,10 +725,8 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=4)
 
-        # start_node = self.cfg.nodes[0]
         assign_y = self.cfg.nodes[1]
         assign_x = self.cfg.nodes[2]
-        # exit_node = self.cfg.nodes[-1]
 
         self.assertEqual(assign_x.label, 'x = 5')
         self.assertEqual(assign_y.label, 'y = 5')
@@ -731,9 +740,13 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
         call = self.cfg.nodes[1]
         self.assertEqual(call.label, "~call_1 = ret_''.join((x.n for x in range(16)))")
 
-        l = zip(range(1, length), range(length))
-
-        self.assertInCfg(list(l))
+        self.assertInCfg(
+            list(
+                zip(
+                    range(1, length), range(length)
+                )
+            )
+        )
 
     def test_assignment_tuple_value(self):
         self.cfg_create_from_file('examples/example_inputs/assignment_tuple_value.py')
@@ -742,7 +755,6 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
         start_node = 0
         node = 1
         exit_node = 2
-        # print(self.cfg)
 
         self.assertInCfg([(node, start_node), (exit_node, node)])
 
@@ -867,19 +879,21 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
         restore_actual_y = 12
         _exit = 13
 
-        self.assertInCfg([self.connected(entry, input_call),
-                          self.connected(input_call, y_assignment),
-                          self.connected(y_assignment, save_y),
-                          self.connected(save_y, save_actual_y),
-                          self.connected(save_actual_y, bar_local_y),
-                          self.connected(bar_local_y, entry_bar),
-                          self.connected(entry_bar, another_input_call),
-                          self.connected(another_input_call, bar_y_assignment),
-                          self.connected(bar_y_assignment, bar_print_y),
-                          self.connected(bar_print_y, bar_print_x),
-                          self.connected(bar_print_x, exit_bar),
-                          self.connected(exit_bar, restore_actual_y),
-                          self.connected(restore_actual_y, _exit)])
+        self.assertInCfg([
+            self.connected(entry, input_call),
+            self.connected(input_call, y_assignment),
+            self.connected(y_assignment, save_y),
+            self.connected(save_y, save_actual_y),
+            self.connected(save_actual_y, bar_local_y),
+            self.connected(bar_local_y, entry_bar),
+            self.connected(entry_bar, another_input_call),
+            self.connected(another_input_call, bar_y_assignment),
+            self.connected(bar_y_assignment, bar_print_y),
+            self.connected(bar_print_y, bar_print_x),
+            self.connected(bar_print_x, exit_bar),
+            self.connected(exit_bar, restore_actual_y),
+            self.connected(restore_actual_y, _exit)
+        ])
 
     def test_function_with_return(self):
         path = 'examples/example_inputs/simple_function_with_return.py'
@@ -887,8 +901,13 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=19)
 
-        l = zip(range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes)))
-        self.assertInCfg(list(l))
+        self.assertInCfg(
+            list(
+                zip(
+                    range(1, len(self.cfg.nodes)), range(len(self.cfg.nodes))
+                )
+            )
+        )
 
     def test_function_multiple_return(self):
         path = 'examples/example_inputs/function_with_multiple_return.py'
@@ -1238,9 +1257,14 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
         length = len(self.cfg.nodes)
 
         self.assertEqual(length, 21)
-        l = zip(range(1, length), range(length))
 
-        self.assertInCfg(list(l))
+        self.assertInCfg(
+            list(
+                zip(
+                    range(1, length), range(length)
+                )
+            )
+        )
 
     def test_call_on_call(self):
         path = 'examples/example_inputs/call_on_call.py'
@@ -1258,8 +1282,13 @@ class CFGCallWithAttributeTest(CFGBaseTestCase):
         call = self.cfg.nodes[2]
         self.assertEqual(call.label, "~call_1 = ret_request.args.get('param', 'not set')")
 
-        l = zip(range(1, length), range(length))
-        self.assertInCfg(list(l))
+        self.assertInCfg(
+            list(
+                zip(
+                    range(1, length), range(length)
+                )
+            )
+        )
 
     def test_call_with_attribute_line_numbers(self):
         call = self.cfg.nodes[2]
