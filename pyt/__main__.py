@@ -45,7 +45,7 @@ def discover_files(targets, excluded_files, recursive=False):
         else:
             if target not in excluded_list:
                 included_files.append(targets[0])
-    return(included_files)
+    return included_files
 
 
 def main(command_line_args=sys.argv[1:]):
@@ -62,7 +62,7 @@ def main(command_line_args=sys.argv[1:]):
         args.excluded_paths,
         args.recursive
     )
-
+    vulnerabilities = list()
     for path in files:
         print(path)
         if args.ignore_nosec:
@@ -82,7 +82,6 @@ def main(command_line_args=sys.argv[1:]):
             directory = os.path.dirname(path)
         project_modules = get_modules(directory)
         local_modules = get_directory_modules(directory)
-
         tree = generate_ast(path)
 
         cfg = make_cfg(
@@ -110,19 +109,14 @@ def main(command_line_args=sys.argv[1:]):
 
         initialize_constraint_table(cfg_list)
         analyse(cfg_list)
-        vulnerabilities = find_vulnerabilities(
+        vulnerabilities.append(find_vulnerabilities(
             cfg_list,
             ui_mode,
             args.blackbox_mapping_file,
             args.trigger_word_file,
             nosec_lines
-        )
+        ))
 
-        if args.baseline:
-            vulnerabilities = get_vulnerabilities_not_in_baseline(
-                vulnerabilities,
-                args.baseline
-            )
 
     if args.json:
         json.report(vulnerabilities, args.output_file)
