@@ -48,7 +48,7 @@ def discover_files(targets, excluded_files, recursive=False):
     return included_files
 
 
-def main(command_line_args=sys.argv[1:]):
+def main(command_line_args=sys.argv[1:]):  # noqa: C901
     args = parse_args(command_line_args)
 
     ui_mode = UImode.NORMAL
