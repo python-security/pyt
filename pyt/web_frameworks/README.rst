@@ -29,7 +29,7 @@ There are currently 4 options for framework route criteria, in the `framework_he
 .. _is\_function: https://github.com/python-security/pyt/blob/re_organize_code/pyt/web_frameworks/framework_helper.py#L23
 
 
-How The Code Works
+How the Code Works
 ==================
 
 `FrameworkAdaptor`_ is what `__main__.py`_ creates, it takes a framework_route_criteria that is chosen by the --adaptor cli argument. The framework_route_criteria is a function that takes an `ast.FunctionDef`_ and returns whether or not it is a route in the selected web framework.
