@@ -45,7 +45,7 @@ Step 4
 Step 5
     Perform `(modified-)reaching definitions analysis`_, to know where definitions reach.
 
-    .. _\(modified\-\)reaching definitions analysis: https://github.com/python-security/pyt/tree/master/pyt/analysis
+    .. _\(modified\-\)reaching definitions analysis: https://github.com/python-security/pyt/tree/master/pyt/analysis#where-do-definitions-reach
 
 Step 6
     `Find vulnerabilities`_, by seeing where sources reach, and how.
