@@ -5,17 +5,18 @@ from pyt.__main__ import main
 
 
 class MainTest(BaseTestCase):
+    @mock.patch('pyt.__main__.discover_files')
     @mock.patch('pyt.__main__.parse_args')
     @mock.patch('pyt.__main__.find_vulnerabilities')
     @mock.patch('pyt.__main__.text')
-    def test_text_output(self, mock_text, mock_find_vulnerabilities, mock_parse_args):
+    def test_text_output(self, mock_text, mock_find_vulnerabilities, mock_parse_args, mock_discover_files):
         mock_find_vulnerabilities.return_value = 'stuff'
         example_file = 'examples/vulnerable_code/inter_command_injection.py'
         output_file = 'mocked_outfile'
 
+        mock_discover_files.return_value = [example_file]
         mock_parse_args.return_value = mock.Mock(
             autospec=True,
-            filepath=example_file,
             project_root=None,
             baseline=None,
             json=None,
@@ -32,17 +33,18 @@ class MainTest(BaseTestCase):
                 mock_parse_args.return_value.output_file
             )
 
+    @mock.patch('pyt.__main__.discover_files')
     @mock.patch('pyt.__main__.parse_args')
     @mock.patch('pyt.__main__.find_vulnerabilities')
     @mock.patch('pyt.__main__.json')
-    def test_json_output(self, mock_json, mock_find_vulnerabilities, mock_parse_args):
+    def test_json_output(self, mock_json, mock_find_vulnerabilities, mock_parse_args, mock_discover_files):
         mock_find_vulnerabilities.return_value = 'stuff'
         example_file = 'examples/vulnerable_code/inter_command_injection.py'
         output_file = 'mocked_outfile'
 
+        mock_discover_files.return_value = [example_file]
         mock_parse_args.return_value = mock.Mock(
             autospec=True,
-            filepath=example_file,
             project_root=None,
             baseline=None,
             json=True,
