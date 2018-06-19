@@ -48,7 +48,7 @@ def discover_files(targets, excluded_files, recursive=False):
     return included_files
 
 
-def main(command_line_args=sys.argv[1:]):  # noqa: C901
+def main(command_line_args=sys.argv[1:]):
     args = parse_args(command_line_args)
 
     ui_mode = UImode.NORMAL
@@ -91,6 +91,8 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             path
         )
         cfg_list = [cfg]
+
+
         framework_route_criteria = is_flask_route_function
         if args.adaptor:
             if args.adaptor.lower().startswith('e'):
@@ -109,13 +111,19 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
 
         initialize_constraint_table(cfg_list)
         analyse(cfg_list)
-        vulnerabilities.append(find_vulnerabilities(
+        vulnerabilities.extend(find_vulnerabilities(
             cfg_list,
             ui_mode,
             args.blackbox_mapping_file,
             args.trigger_word_file,
             nosec_lines
         ))
+
+    if args.baseline:
+            vulnerabilities = get_vulnerabilities_not_in_baseline(
+                vulnerabilities,
+                args.baseline
+            )
 
 
     if args.json:
