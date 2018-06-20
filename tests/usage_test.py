@@ -65,18 +65,19 @@ print arguments:
 
         self.assertEqual(stdout.getvalue(), EXPECTED)
 
-    '''def test_valid_args_but_no_filepath(self):
+    def test_valid_args_but_no_targets(self):
         with self.assertRaises(SystemExit):
             with capture_sys_output() as (_, stderr):
                 parse_args(['-j'])
 
-        EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
+        EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                     [-trim] [-i]
-python -m pyt: error: The -f/--filepath argument is required\n"""
+                     [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                     [targets [targets ...]]
+python -m pyt: error: The targets argument is required\n"""
 
-        self.assertEqual(stderr.getvalue(), EXPECTED)'''
+        self.assertEqual(stderr.getvalue(), EXPECTED)
 
 #     def test_using_both_mutually_exclusive_args(self):
 #         with self.assertRaises(SystemExit):
