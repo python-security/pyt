@@ -74,7 +74,7 @@ print arguments:
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
                      [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
-                     targets [targets ...]
+                     [targets [targets ...]]
 python -m pyt: error: the following arguments are required: targets\n"""
 
         self.assertEqual(stderr.getvalue(), EXPECTED)
