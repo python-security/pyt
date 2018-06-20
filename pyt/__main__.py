@@ -33,18 +33,20 @@ from .web_frameworks import (
 def discover_files(targets, excluded_files, recursive=False):
     included_files = list()
     excluded_list = excluded_files.split(",")
-
+    
+    
     for target in targets:
         if os.path.isdir(target):
-            if recursive:
                 for root, dirs, files in os.walk(target):
                     for f in files:
+                        if not recursive:
+                            break
                         fullpath = os.path.join(root, f)
                         if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
                             included_files.append(fullpath)
         else:
             if target not in excluded_list:
-                included_files.append(targets[0])
+                included_files.append(target)
     return included_files
 
 
@@ -62,9 +64,8 @@ def main(command_line_args=sys.argv[1:]):
         args.excluded_paths,
         args.recursive
     )
-    vulnerabilities = list()
     for path in files:
-        print(path)
+        vulnerabilities = list()
         if args.ignore_nosec:
             nosec_lines = set()
         else:
