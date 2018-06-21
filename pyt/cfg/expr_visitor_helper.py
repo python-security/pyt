@@ -7,7 +7,7 @@ from ..core.node_types import (
 )
 
 
-CALL_IDENTIFIER = '¤'
+CALL_IDENTIFIER = '~'
 BUILTINS = (
     'get',
     'Flask',
