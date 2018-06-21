@@ -308,7 +308,7 @@ class ExprVisitor(StmtVisitor):
         # print(f'right is {right}')
         # print(f'is_or is {is_or}')
         print(f'\n\n\n\nvalues are {values}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
-        
+
         # Aight, we are here, node.values is not just left or right, you fool
         # print(f'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfuck, node.values is {node.values} and node.op is {node.op}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
         raise
@@ -790,7 +790,7 @@ class ExprVisitor(StmtVisitor):
             node.args,
             node.keywords
         )))
-        # 
+        #
         print(f'\n\n\n\n\n\nsomething is {something}')
         # ConnectExpressions
         # for arg in itertools.chain(node.args, node.keywords):

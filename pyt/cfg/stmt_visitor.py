@@ -233,7 +233,7 @@ class StmtVisitor(ast.NodeVisitor):
 
         return ControlFlowNode(
             test=test,
-            last_nodes=last_statements, 
+            last_nodes=last_statements,
             break_statements=body_connect_stmts.break_statements
         )
 

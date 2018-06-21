@@ -7,7 +7,7 @@ class LabelVisitor(ast.NodeVisitor):
 
     def handle_comma_separated(self, comma_separated_list):
         if comma_separated_list:
-            for element in range(len(comma_separated_list)-1):
+            for element in range(len(comma_separated_list) - 1):
                 self.visit(comma_separated_list[element])
                 self.result += ', '
 
@@ -91,7 +91,7 @@ class LabelVisitor(ast.NodeVisitor):
 
     def visit_BoolOp(self, node):
         for i, value in enumerate(node.values):
-            if i == len(node.values)-1:
+            if i == len(node.values) - 1:
                 self.visit(value)
             else:
                 self.visit(value)

@@ -28,7 +28,7 @@ So as you'll see, there is a `visit\_` function for almost every AST node type. 
 The two most illustrative functions are `stmt_star_handler`_ and expr_star_handler. expr_star_handler has not been merged to master so let's talk about `stmt_star_handler`_.
 
 
-Handling an if: statement 
+Handling an if: statement
 =========================
 
 Example code
@@ -43,7 +43,7 @@ This is the relevant part of the `abstract grammar`_
 .. code-block:: python
 
   If(expr test, stmt* body, stmt* orelse)
-  # Note: stmt* means any number of statements. 
+  # Note: stmt* means any number of statements.
 
 
 Upon visiting an if: statement we will enter `visit_If`_ in `stmt_visitor.py`_. Since we know that the test is just one expression, we can just call self.visit() on it. The body could be an infinite number of statements, so we use the `stmt_star_handler`_ function.

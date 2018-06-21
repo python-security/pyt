@@ -5,7 +5,7 @@ This code determines which functions have their arguments marked at tainted, for
     @app.route('/')
     def ito_en(image):
 
-will have arguments marked as tainted, whereas 
+will have arguments marked as tainted, whereas
 
 .. code-block:: python
 
