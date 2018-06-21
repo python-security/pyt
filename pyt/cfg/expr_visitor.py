@@ -24,7 +24,6 @@ from ..core.node_types import (
 from .expr_visitor_helper import (
     BUILTINS,
     CALL_IDENTIFIER,
-    CFG,
     ConnectExpressions,
     connect_nodes,
     get_last_expressions,
@@ -37,7 +36,6 @@ from ..helper_visitors import (
 )
 from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import get_first_node
-from .vars_visitor import VarsVisitor
 
 
 class ExprVisitor(StmtVisitor):

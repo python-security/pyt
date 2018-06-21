@@ -3,7 +3,6 @@ import os
 from .base_test_case import BaseTestCase
 
 from pyt import (
-    trigger_definitions_parser,
     vulnerabilities
 )
 from pyt.argument_helpers import (
@@ -21,6 +20,7 @@ from pyt.framework_helper import (
 )
 from pyt.node_types import Node
 from pyt.reaching_definitions_taint import ReachingDefinitionsTaintAnalysis
+from pyt.vulnerabilities import trigger_definitions_parser
 
 
 class EngineTest(BaseTestCase):
