@@ -1,1 +1,1 @@
-include pyt/trigger_definitions/*
+graft pyt/vulnerability_definitions
