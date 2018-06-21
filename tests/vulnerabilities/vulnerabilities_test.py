@@ -499,6 +499,28 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
 
+    def test_source_nested_in_sink(self):
+        vulnerability_log = self.run_analysis('example/november_2017_evaluation/false_negatives/source_nested_in_sink.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+        vulnerability_description = str(vulnerability_log.vulnerabilities[0])
+
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+             > User input at line 8, trigger word "request.args.get(":
+                 ¤call_2 = ret_request.args.get('next')
+            Reassigned in:
+                File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+                 > Line 8: ret_login = ¤call_1
+            File: example/november_2017_evaluation/false_negatives/source_nested_in_sink.py
+             > reaches line 8, trigger word "redirect(":
+                ¤call_1 = ret_redirect(¤call_2)
+        """
+        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+
+    def test_if_else_in_sink(self):
+        vulnerability_log = self.run_analysis('example/november_2017_evaluation/false_negatives/if_else_in_sink.py')
+        self.assert_length(vulnerability_log.vulnerabilities, expected_length=1)
+
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
