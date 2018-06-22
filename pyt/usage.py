@@ -30,7 +30,7 @@ def valid_date(s):
 def _add_required_group(parser):
     required_group = parser.add_argument_group('required arguments')
     required_group.add_argument(
-        'targets', metavar='targets', type=str, nargs='*',
+        'targets', metavar='targets', type=str, nargs='+',
         help='source file(s) or directory(s) to be tested'
     )
 
