@@ -25,14 +25,14 @@ class UsageTest(BaseTestCase):
 
         self.maxDiff = None
 
-        EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
+        EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                     [-trim] [-i]
+                     [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                     targets [targets ...]
 
 required arguments:
-  -f FILEPATH, --filepath FILEPATH
-                        Path to the file that should be analysed.
+  targets               source file(s) or directory(s) to be tested
 
 optional arguments:
   -a ADAPTOR, --adaptor ADAPTOR
@@ -52,6 +52,9 @@ optional arguments:
   -o OUTPUT_FILE, --output OUTPUT_FILE
                         write report to filename
   --ignore-nosec        do not skip lines with # nosec comments
+  -r, --recursive       find and process files in subdirectories
+  -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
+                        Separate files with commas
 
 print arguments:
   -trim, --trim-reassigned-in
@@ -62,16 +65,17 @@ print arguments:
 
         self.assertEqual(stdout.getvalue(), EXPECTED)
 
-    def test_valid_args_but_no_filepath(self):
+    def test_valid_args_but_no_targets(self):
         with self.assertRaises(SystemExit):
             with capture_sys_output() as (_, stderr):
                 parse_args(['-j'])
 
-        EXPECTED = """usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
+        EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                     [-trim] [-i]
-python -m pyt: error: The -f/--filepath argument is required\n"""
+                     [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                     targets [targets ...]
+python -m pyt: error: the following arguments are required: targets\n"""
 
         self.assertEqual(stderr.getvalue(), EXPECTED)
 
@@ -89,7 +93,7 @@ python -m pyt: error: The -f/--filepath argument is required\n"""
 
     def test_normal_usage(self):
         with capture_sys_output() as (stdout, stderr):
-            parse_args(['-f', 'foo.py'])
+            parse_args(['foo.py'])
 
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '')
