@@ -62,7 +62,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         args.excluded_paths,
         args.recursive
     )
-    
+
     for path in files:
         vulnerabilities = list()
         if args.ignore_nosec:
@@ -91,7 +91,6 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             path
         )
         cfg_list = [cfg]
-
 
         framework_route_criteria = is_flask_route_function
         if args.adaptor:
