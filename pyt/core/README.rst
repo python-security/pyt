@@ -17,9 +17,9 @@ This directory contains miscellaneous code that is imported from different parts
 .. _ast\_helper.py: https://github.com/python-security/pyt/blob/master/pyt/core/ast_helper.py
 .. _generate\_ast: https://github.com/python-security/pyt/blob/61ce4751531b01e968698aa537d58b68eb606f01/pyt/core/ast_helper.py#L24-L44
 
-.. _get\_call\_names\_as\_string: https://github.com/python-security/pyt/blob/61ce4751531b01e968698aa537d58b68eb606f01/pyt/core/ast_helper.py#L70-L72
-.. _get\_call\_names: https://github.com/python-security/pyt/blob/61ce4751531b01e968698aa537d58b68eb606f01/pyt/core/ast_helper.py#L75-L75
-
+.. _get\_call\_names: https://github.com/python-security/pyt/blob/b07035f2812817ed8340303cc8df9aeee3168489/pyt/core/ast_helper.py#L65-L68
+.. _get\_call\_names\_as\_string: https://github.com/python-security/pyt/blob/b07035f2812817ed8340303cc8df9aeee3168489/pyt/core/ast_helper.py#L76-L79
+.. _Arguments: https://github.com/python-security/pyt/blob/b07035f2812817ed8340303cc8df9aeee3168489/pyt/core/ast_helper.py#L81-L111
 
 
 
