@@ -23,7 +23,18 @@ This directory contains miscellaneous code that is imported from different parts
 
 
 
-`module_definitions.py`_ contains TODO
+`module_definitions.py`_ contains classes created mostly in `stmt_visitor.py`_
+
+- `project_definitions`_ is a global dictionary modifed in the `append_if_local_or_in_imports`_ method of `ModuleDefinitions`_, read in `framework_adaptor.py`_ to `obtain all function nodes`_.
+
+- `ModuleDefinition`_ is created to keep track of parent definitions when visiting functions, classes and __init__.py files in `stmt_visitor.py`_
+
+- `LocalModuleDefinition`_ is created when visiting functions and classes in `stmt_visitor.py`_
+
+- `ModuleDefinitions`_ contains `append_if_local_or_in_imports`_ which is used in when adding a function or class to the module definitions in 
+
+
+.. _obtain all function nodes: https://github.com/python-security/pyt/blob/02461063688fe02226e627c00adfb2c707d89aa0/pyt/web_frameworks/framework_adaptor.py#L93
 
 `node_types.py`_ contains all the different node types created in `expr_visitor.py`_ and `stmt_visitor.py`_
 
