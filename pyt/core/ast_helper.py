@@ -62,6 +62,12 @@ def _get_call_names_helper(node, result):
         return _get_call_names_helper(node.value, result)
 
 
+def get_call_names(node):
+    """Get a list of call names."""
+    result = list()
+    return reversed(_get_call_names_helper(node, result))
+
+
 def _list_to_dotted_string(list_of_components):
     """Convert a list to a string seperated by a dot."""
     return '.'.join(list_of_components)
@@ -72,17 +78,11 @@ def get_call_names_as_string(node):
     return _list_to_dotted_string(get_call_names(node))
 
 
-def get_call_names(node):
-    """Get a list of call names."""
-    result = list()
-    return reversed(_get_call_names_helper(node, result))
-
-
 class Arguments():
     """Represents arguments of a function."""
 
     def __init__(self, args):
-        """Create an Argument container class.
+        """Argument container class.
 
         Args:
             args(list(ast.args): The arguments in a function AST node.
