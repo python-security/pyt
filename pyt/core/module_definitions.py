@@ -56,7 +56,13 @@ class ModuleDefinitions():
     Adds to the project definitions list.
     """
 
-    def __init__(self, import_names=None, module_name=None, is_init=False, filename=None):
+    def __init__(
+        self,
+        import_names=None,
+        module_name=None,
+        is_init=False,
+        filename=None
+    ):
         """Optionally set import names and module name.
 
         Module name should only be set when it is a normal import statement.

@@ -1,10 +1,11 @@
 import os
 import unittest
 
+from ..test_utils import get_modules_and_packages
+
 from pyt.core.project_handler import (
     get_modules,
-    get_modules_and_packages,
-    is_python_file
+    _is_python_file
 )
 
 
@@ -15,8 +16,8 @@ class ProjectHandlerTest(unittest.TestCase):
         python_module = './project_handler_test.py'
         not_python_module = '../.travis.yml'
 
-        self.assertEqual(is_python_file(python_module), True)
-        self.assertEqual(is_python_file(not_python_module), False)
+        self.assertEqual(_is_python_file(python_module), True)
+        self.assertEqual(_is_python_file(not_python_module), False)
 
     def test_get_modules(self):
         project_folder = os.path.normpath(os.path.join('examples', 'test_project'))

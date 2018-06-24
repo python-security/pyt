@@ -1,11 +1,9 @@
 import os.path
 
 from ..base_test_case import BaseTestCase
+from ..test_utils import get_modules_and_packages
 
-from pyt.core.project_handler import (
-    get_directory_modules,
-    get_modules_and_packages
-)
+from pyt.core.project_handler import get_directory_modules
 
 
 class NestedTest(BaseTestCase):
