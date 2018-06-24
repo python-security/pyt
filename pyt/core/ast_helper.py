@@ -10,7 +10,7 @@ BLACK_LISTED_CALL_NAMES = ['self']
 recursive = False
 
 
-def convert_to_3(path):  # pragma: no cover
+def _convert_to_3(path):  # pragma: no cover
     """Convert python 2 file to python 3."""
     try:
         print('##### Trying to convert file to Python 3. #####')
@@ -34,7 +34,7 @@ def generate_ast(path):
             except SyntaxError:  # pragma: no cover
                 global recursive
                 if not recursive:
-                    convert_to_3(path)
+                    _convert_to_3(path)
                     recursive = True
                     return generate_ast(path)
                 else:
@@ -44,12 +44,7 @@ def generate_ast(path):
     raise IOError('Input needs to be a file. Path: ' + path)
 
 
-def list_to_dotted_string(list_of_components):
-    """Convert a list to a string seperated by a dot."""
-    return '.'.join(list_of_components)
-
-
-def get_call_names_helper(node, result):
+def _get_call_names_helper(node, result):
     """Recursively finds all function names."""
     if isinstance(node, ast.Name):
         if node.id not in BLACK_LISTED_CALL_NAMES:
@@ -58,24 +53,29 @@ def get_call_names_helper(node, result):
     elif isinstance(node, ast.Call):
         return result
     elif isinstance(node, ast.Subscript):
-        return get_call_names_helper(node.value, result)
+        return _get_call_names_helper(node.value, result)
     elif isinstance(node, ast.Str):
         result.append(node.s)
         return result
     else:
         result.append(node.attr)
-        return get_call_names_helper(node.value, result)
+        return _get_call_names_helper(node.value, result)
+
+
+def _list_to_dotted_string(list_of_components):
+    """Convert a list to a string seperated by a dot."""
+    return '.'.join(list_of_components)
 
 
 def get_call_names_as_string(node):
     """Get a list of call names as a string."""
-    return list_to_dotted_string(get_call_names(node))
+    return _list_to_dotted_string(get_call_names(node))
 
 
 def get_call_names(node):
     """Get a list of call names."""
     result = list()
-    return reversed(get_call_names_helper(node, result))
+    return reversed(_get_call_names_helper(node, result))
 
 
 class Arguments():
