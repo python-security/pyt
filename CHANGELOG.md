@@ -28,10 +28,13 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 #### :tada: New Features
 
 * Baseline support ([#106], thanks [@omergunal])
+* Whitelist lines ending in # nosec ([#121], [@omergunal])
+* Recursive option ([#129], [@omergunal])
 
-[#106]: https://github.com/python-security/pyt/pull/106
 [@omergunal]: https://github.com/omergunal
-
+[#106]: https://github.com/python-security/pyt/pull/106
+[#129]: https://github.com/python-security/pyt/pull/129
+[#121]: https://github.com/python-security/pyt/pull/121
 #### :sparkles: Usability
 * Combined all source/sink information files and made it the default ([#116])
 
@@ -43,11 +46,15 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 * Fixed a bug where `visit_Raise` raised a `TypeError`  ([#117], thanks [@lFatty])
 * Fixed an infinite loop bug that was caused while handling certain loops ([#118])
 * Fixed a bug where we were not including `pyt/vulnerability_definitions` files ([#122], thanks [@Ekultek])
+* Fixed flake8 errors ([#130])
 
 #### :snake: Miscellaneous
 
 * Moved out a bunch of historical files to the [ReadTheDocs repo](https://github.com/KevinHock/rtdpyt) ([#110], [#111])
+* Re organize code ([#126])
+* Cleaned up pyt/core/ ([#132])
 
+[#126]: https://github.com/python-security/pyt/pull/126
 [#116]: https://github.com/python-security/pyt/pull/116
 [#115]: https://github.com/python-security/pyt/pull/115
 [#119]: https://github.com/python-security/pyt/pull/119
@@ -58,3 +65,5 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [@lfatty]: https://github.com/lfatty
 [#122]: https://github.com/python-security/pyt/issues/122
 [@Ekultek]: https://github.com/Ekultek
+[#130]: https://github.com/python-security/pyt/pull/130
+[#132]: https://github.com/python-security/pyt/pull/132
