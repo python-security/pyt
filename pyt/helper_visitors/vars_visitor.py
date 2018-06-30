@@ -126,6 +126,7 @@ class VarsVisitor(ast.NodeVisitor):
 
     def visit_Subscript(self, node):
         if isinstance(node.value, ast.Attribute):
+            # foo.bar[1]
             self.result.append(list(get_call_names(node.value))[0])
         self.visit(node.value)
         self.slicev(node.slice)

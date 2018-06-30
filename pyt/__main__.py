@@ -35,10 +35,10 @@ def discover_files(targets, excluded_files, recursive=False):
     excluded_list = excluded_files.split(",")
     for target in targets:
         if os.path.isdir(target):
-            for root, dirs, files in os.walk(target):
-                for f in files:
-                    fullpath = os.path.join(root, f)
-                    if os.path.splitext(fullpath)[1] == '.py' and fullpath.split("/")[-1] not in excluded_list:
+            for root, _, files in os.walk(target):
+                for file in files:
+                    if file.endswith('.py') and file not in excluded_list:
+                        fullpath = os.path.join(root, file)
                         included_files.append(fullpath)
                 if not recursive:
                     break
@@ -46,6 +46,18 @@ def discover_files(targets, excluded_files, recursive=False):
             if target not in excluded_list:
                 included_files.append(target)
     return included_files
+
+
+def retrieve_nosec_lines(
+    path
+):
+    file = open(path, 'r')
+    lines = file.readlines()
+    return set(
+        lineno for
+        (lineno, line) in enumerate(lines, start=1)
+        if '#nosec' in line or '# nosec' in line
+    )
 
 
 def main(command_line_args=sys.argv[1:]):  # noqa: C901
@@ -63,18 +75,11 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         args.recursive
     )
 
+    nosec_lines = dict()
+
     for path in files:
-        vulnerabilities = list()
-        if args.ignore_nosec:
-            nosec_lines = set()
-        else:
-            file = open(path, 'r')
-            lines = file.readlines()
-            nosec_lines = set(
-                lineno for
-                (lineno, line) in enumerate(lines, start=1)
-                if '#nosec' in line or '# nosec' in line
-            )
+        if not args.ignore_nosec:
+            nosec_lines[path] = retrieve_nosec_lines(path)
 
         if args.project_root:
             directory = os.path.normpath(args.project_root)
@@ -100,6 +105,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
                 framework_route_criteria = is_function_without_leading_
             elif args.adaptor.lower().startswith('d'):
                 framework_route_criteria = is_django_view_function
+
         # Add all the route functions to the cfg_list
         FrameworkAdaptor(
             cfg_list,
@@ -108,15 +114,15 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             framework_route_criteria
         )
 
-        initialize_constraint_table(cfg_list)
-        analyse(cfg_list)
-        vulnerabilities.extend(find_vulnerabilities(
-            cfg_list,
-            ui_mode,
-            args.blackbox_mapping_file,
-            args.trigger_word_file,
-            nosec_lines
-        ))
+    initialize_constraint_table(cfg_list)
+    analyse(cfg_list)
+    vulnerabilities = find_vulnerabilities(
+        cfg_list,
+        ui_mode,
+        args.blackbox_mapping_file,
+        args.trigger_word_file,
+        nosec_lines
+    )
 
     if args.baseline:
         vulnerabilities = get_vulnerabilities_not_in_baseline(
