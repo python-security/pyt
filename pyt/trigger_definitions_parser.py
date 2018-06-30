@@ -1,10 +1,6 @@
-import os
+import json
 from collections import namedtuple
 
-
-SANITISER_SEPARATOR = '->'
-SOURCES_KEYWORD = 'sources:'
-SINKS_KEYWORD = 'sinks:'
 
 Definitions = namedtuple(
     'Definitions',
@@ -15,31 +11,6 @@ Definitions = namedtuple(
 )
 
 
-def parse_section(iterator):
-    """Parse a section of a file. Stops at empty line.
-
-    Args:
-        iterator(File): file descriptor pointing at a definition file.
-
-    Returns:
-         Iterator of all definitions in the section.
-    """
-    try:
-        line = next(iterator).rstrip()
-        while line:
-            if line.rstrip():
-                if SANITISER_SEPARATOR in line:
-                    line = line.split(SANITISER_SEPARATOR)
-                    sink = line[0].rstrip()
-                    sanitisers = list(map(str.strip, line[1].split(',')))
-                    yield (sink, sanitisers)
-                else:
-                    yield (line, list())
-            line = next(iterator).rstrip()
-    except StopIteration:
-        return
-
-
 def parse(trigger_word_file):
     """Parse the file for source and sink definitions.
 
@@ -48,11 +19,12 @@ def parse(trigger_word_file):
     """
     sources = list()
     sinks = list()
-    with open(trigger_word_file, 'r') as fd:
-        for line in fd:
-            line = line.rstrip()
-            if line == SOURCES_KEYWORD:
-                sources = list(parse_section(fd))
-            elif line == SINKS_KEYWORD:
-                sinks = list(parse_section(fd))
+
+    with open(trigger_word_file) as fd:
+        trigger_dict = json.load(fd)
+        sources = trigger_dict['sources']
+        for sink in trigger_dict['sinks']:
+            print(f'sink is {sink}')
+            sinks.append(sink)
+
     return Definitions(sources, sinks)

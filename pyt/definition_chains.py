@@ -1,4 +1,5 @@
 import ast
+from collections import defaultdict
 
 from .constraint_table import constraint_table
 from .lattice import Lattice
@@ -52,23 +53,20 @@ def build_use_def_chain(cfg_nodes):
 
 
 def build_def_use_chain(cfg_nodes):
-    def_use = dict()
+    def_use = defaultdict(list)
     lattice = Lattice(cfg_nodes, ReachingDefinitionsAnalysis)
 
     # For every node
     for node in cfg_nodes:
         # That's a definition
         if isinstance(node, AssignmentNode):
-            # Make an empty list for it in def_use dict
-            def_use[node] = list()
-
             # Get its uses
-            for variable in node.right_hand_side_variables:
+            for i, variable in enumerate(node.right_hand_side_variables, start=1):
                 # Loop through most of the nodes before it
                 for earlier_node in get_constraint_nodes(node, lattice):
                     # and add to the 'uses list' of each earlier node, when applicable
                     # 'earlier node' here being a simplification
                     if variable in earlier_node.left_hand_side:
-                        def_use[earlier_node].append(node)
+                        def_use[earlier_node].append((i, node))
 
     return def_use

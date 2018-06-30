@@ -15,7 +15,7 @@ default_blackbox_mapping_file = os.path.join(
 default_trigger_word_file = os.path.join(
     os.path.dirname(__file__),
     'vulnerability_definitions',
-    'flask_trigger_words.pyt'
+    'flask_trigger_words.json'
 )
 
 

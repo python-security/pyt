@@ -32,12 +32,12 @@ class EngineTest(BaseTestCase):
         return cfg_nodes
 
     def test_parse(self):
-        definitions = vulnerabilities.parse(
+        definitions = trigger_definitions_parser.parse(
             trigger_word_file=os.path.join(
                 os.getcwd(),
                 'pyt',
                 'vulnerability_definitions',
-                'test_triggers.pyt'
+                'test_triggers.json'
             )
         )
 
@@ -525,7 +525,7 @@ class EngineDjangoTest(BaseTestCase):
         trigger_word_file = os.path.join(
             'pyt',
             'vulnerability_definitions',
-            'django_trigger_words.pyt'
+            'django_trigger_words.json'
         )
 
         return vulnerabilities.find_vulnerabilities(
