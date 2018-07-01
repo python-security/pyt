@@ -1,7 +1,7 @@
 import mock
 
 from .base_test_case import BaseTestCase
-from pyt.__main__ import main,discover_files
+from pyt.__main__ import discover_files, main
 
 
 class MainTest(BaseTestCase):
@@ -61,32 +61,34 @@ class MainTest(BaseTestCase):
                 mock_parse_args.return_value.output_file
             )
 
+
+class MainTest(BaseTestCase):
     def test_targets_with_no_excluded(self):
         targets = ["examples/vulnerable_code/inter_command_injection.py"]
         excluded_files = ""
 
-        included_files = discover_files(targets,excluded_files)
+        included_files = discover_files(targets, excluded_files)
         expected = ["examples/vulnerable_code/inter_command_injection.py"]
-        self.assertListEqual(included_files,expected)
+        self.assertListEqual(included_files, expected)
 
     def test_targets_with_exluded(self):
         targets = ["examples/vulnerable_code/inter_command_injection.py"]
         excluded_files = "examples/vulnerable_code/inter_command_injection.py"
 
-        included_files = discover_files(targets,excluded_files)
+        included_files = discover_files(targets, excluded_files)
         expected = []
-        self.assertListEqual(included_files,expected)
+        self.assertListEqual(included_files, expected)
 
     def test_targets_with_recursive(self):
         targets = ["examples/vulnerable_code/"]
         excluded_files = ""
 
-        included_files = discover_files(targets,excluded_files,True)
-        self.assertEqual(len(included_files),30)
+        included_files = discover_files(targets, excluded_files, True)
+        self.assertEqual(len(included_files), 30)
 
     def test_targets_with_recursive_and_excluded(self):
         targets = ["examples/vulnerable_code/"]
         excluded_files = "inter_command_injection.py"
 
-        included_files = discover_files(targets,excluded_files,True)
-        self.assertEqual(len(included_files),29)
+        included_files = discover_files(targets, excluded_files, True)
+        self.assertEqual(len(included_files), 29)
