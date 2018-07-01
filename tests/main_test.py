@@ -62,7 +62,7 @@ class MainTest(BaseTestCase):
             )
 
 
-class MainTest(BaseTestCase):
+class DiscoverFilesTest(BaseTestCase):
     def test_targets_with_no_excluded(self):
         targets = ["examples/vulnerable_code/inter_command_injection.py"]
         excluded_files = ""
