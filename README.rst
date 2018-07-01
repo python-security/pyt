@@ -63,44 +63,48 @@ Usage
 
 .. code-block::
 
-  usage: python -m pyt [-h] [-f FILEPATH] [-a ADAPTOR] [-pr PROJECT_ROOT]
-                       [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
-                       [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [-trim] [-i]
+  usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
+                   [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
+                   [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
+                   [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                   targets [targets ...]
 
   required arguments:
-    -f FILEPATH, --filepath FILEPATH
-                          Path to the file that should be analysed.
+    targets               source file(s) or directory(s) to be tested
 
   optional arguments:
     -a ADAPTOR, --adaptor ADAPTOR
-                          Choose a web framework adaptor: Flask(Default),
-                          Django, Every or Pylons
+                        Choose a web framework adaptor: Flask(Default),
+                        Django, Every or Pylons
     -pr PROJECT_ROOT, --project-root PROJECT_ROOT
-                          Add project root, only important when the entry file
-                          is not at the root of the project.
+                        Add project root, only important when the entry file
+                        is not at the root of the project.
     -b BASELINE_JSON_FILE, --baseline BASELINE_JSON_FILE
-                          Path of a baseline report to compare against (only
-                          JSON-formatted files are accepted)
+                        Path of a baseline report to compare against (only
+                        JSON-formatted files are accepted)
     -j, --json            Prints JSON instead of report.
     -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
-                          Input blackbox mapping file.
+                        Input blackbox mapping file.
     -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
-                          Input file with a list of sources and sinks
+                        Input file with a list of sources and sinks
     -o OUTPUT_FILE, --output OUTPUT_FILE
-                          write report to filename
+                        write report to filename
     --ignore-nosec        do not skip lines with # nosec comments
+    -r, --recursive       find and process files in subdirectories
+    -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
+                        Separate files with commas
 
   print arguments:
     -trim, --trim-reassigned-in
-                          Trims the reassigned list to just the vulnerability
-                          chain.
+                        Trims the reassigned list to just the vulnerability
+                        chain.
     -i, --interactive     Will ask you about each blackbox function call in
-                          vulnerability chains.
+                        vulnerability chains.
 
 Usage from Source
 =================
 
-Using it like a user ``python3 -m pyt -f example/vulnerable_code/XSS_call.py save -du``
+Using it like a user ``python3 -m pyt examples/vulnerable_code/XSS_call.py``
 
 Running the tests ``python3 -m tests``
 
