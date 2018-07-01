@@ -2,6 +2,7 @@
 
 import os
 import sys
+from collections import defaultdict
 
 from .analysis.constraint_table import initialize_constraint_table
 from .analysis.fixed_point import analyse
@@ -75,7 +76,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         args.recursive
     )
 
-    nosec_lines = dict()
+    nosec_lines = defaultdict(set)
 
     for path in files:
         if not args.ignore_nosec:

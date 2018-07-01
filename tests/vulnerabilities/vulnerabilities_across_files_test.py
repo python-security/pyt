@@ -39,15 +39,11 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         analyse(cfg_list)
 
-        nosec_lines = {
-            path: []
-        }
         return find_vulnerabilities(
             cfg_list,
             UImode.NORMAL,
             default_blackbox_mapping_file,
-            default_trigger_word_file,
-            nosec_lines
+            default_trigger_word_file
         )
 
     def test_find_vulnerabilities_absolute_from_file_command_injection(self):

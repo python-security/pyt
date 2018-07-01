@@ -2,6 +2,7 @@
 
 import ast
 import json
+from collections import defaultdict
 
 from ..analysis.definition_chains import build_def_use_chain
 from ..analysis.lattice import Lattice
@@ -477,7 +478,7 @@ def find_vulnerabilities(
     ui_mode,
     blackbox_mapping_file,
     sources_and_sinks_file,
-    nosec_lines
+    nosec_lines=defaultdict(set)
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
