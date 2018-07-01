@@ -2,6 +2,7 @@
 
 import ast
 import json
+from collections import defaultdict
 
 from ..analysis.definition_chains import build_def_use_chain
 from ..analysis.lattice import Lattice
@@ -39,14 +40,20 @@ def identify_triggers(
         cfg(CFG): CFG to find sources, sinks and sanitisers in.
         sources(tuple): list of sources, a source is a (source, sanitiser) tuple.
         sinks(tuple): list of sources, a sink is a (sink, sanitiser) tuple.
+        nosec_lines(set): lines with # nosec whitelisting
 
     Returns:
         Triggers tuple with sink and source nodes and a sanitiser node dict.
     """
     assignment_nodes = filter_cfg_nodes(cfg, AssignmentNode)
     tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
-    tainted_trigger_nodes = [TriggerNode('Framework function URL parameter', None,
-                                         node) for node in tainted_nodes]
+    tainted_trigger_nodes = [
+        TriggerNode(
+            'Framework function URL parameter',
+            sanitisers=None,
+            cfg_node=node
+        ) for node in tainted_nodes
+    ]
     sources_in_file = find_triggers(assignment_nodes, sources, nosec_lines)
     sources_in_file.extend(tainted_trigger_nodes)
 
@@ -136,6 +143,7 @@ def find_triggers(
     Args:
         nodes(list[Node]): the nodes to find triggers in.
         trigger_word_list(list[string]): list of trigger words to look for.
+        nosec_lines(set): lines with # nosec whitelisting
 
     Returns:
         List of found TriggerNodes
@@ -441,13 +449,14 @@ def find_vulnerabilities_in_cfg(
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
         vulnerabilities_list(list): That we append to when we find vulnerabilities.
+        nosec_lines(dict): filenames mapped to their nosec lines
     """
     triggers = identify_triggers(
         cfg,
         definitions.sources,
         definitions.sinks,
         lattice,
-        nosec_lines
+        nosec_lines[cfg.filename]
     )
     for sink in triggers.sinks:
         for source in triggers.sources:
@@ -468,8 +477,8 @@ def find_vulnerabilities(
     cfg_list,
     ui_mode,
     blackbox_mapping_file,
-    source_sink_file,
-    nosec_lines=set()
+    sources_and_sinks_file,
+    nosec_lines=defaultdict(set)
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
@@ -477,13 +486,14 @@ def find_vulnerabilities(
         cfg_list(list[CFG]): the list of CFGs to scan.
         ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping_file(str)
-        source_sink_file(str)
+        sources_and_sinks_file(str)
+        nosec_lines(dict): filenames mapped to their nosec lines
 
     Returns:
         A list of vulnerabilities.
     """
     vulnerabilities = list()
-    definitions = parse(source_sink_file)
+    definitions = parse(sources_and_sinks_file)
 
     with open(blackbox_mapping_file) as infile:
         blackbox_mapping = json.load(infile)

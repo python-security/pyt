@@ -2,9 +2,15 @@ from .expr_visitor import ExprVisitor
 
 
 class CFG():
-    def __init__(self, nodes, blackbox_assignments):
+    def __init__(
+        self,
+        nodes,
+        blackbox_assignments,
+        filename
+    ):
         self.nodes = nodes
         self.blackbox_assignments = blackbox_assignments
+        self.filename = filename
 
     def __repr__(self):
         output = ''
@@ -29,10 +35,12 @@ def make_cfg(
     visitor = ExprVisitor(
         tree,
         project_modules,
-        local_modules, filename,
+        local_modules,
+        filename,
         module_definitions
     )
     return CFG(
         visitor.nodes,
-        visitor.blackbox_assignments
+        visitor.blackbox_assignments,
+        filename
     )
