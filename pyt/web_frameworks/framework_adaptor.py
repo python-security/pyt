@@ -76,9 +76,28 @@ class FrameworkAdaptor():
         Yields:
             CFG of each route function, with args marked as tainted.
         """
-        for definition in _get_func_nodes():
-            if self.is_route_function(definition.node):
-                yield self.get_func_cfg_with_tainted_args(definition)
+        for class_definition in _get_class_nodes():
+            # import ipdb
+            # ipdb.set_trace()
+            # print(f'class_definition is {class_definition}')
+            # print(f'class_definition.name is {class_definition.name}')
+
+            # ipdb> class_definition.module_definitions.definitions[0].name
+            # 'Foo'
+            # ipdb> class_definition.module_definitions.definitions[1].name
+            # 'Foo.bar'
+            # ipdb> class_definition.module_definitions.definitions[2].name
+            # 'menu'
+
+            for definition in class_definition.module_definitions.definitions:
+                # print(f'definition inside class is {definition}')
+                # print(f'definition.name inside class is {definition.name}')
+                if definition.name.endswith('.get') or definition.name.endswith('.post'):
+                    print(f'adding {definition.name}')
+                    # print()
+                    yield self.get_func_cfg_with_tainted_args(definition)
+            # if self.is_route_function(class_definition.node):
+            #     yield self.get_func_cfg_with_tainted_args(class_definition)
 
     def run(self):
         """Run find_route_functions_taint_args on each CFG."""
@@ -92,3 +111,9 @@ def _get_func_nodes():
     """Get all function nodes."""
     return [definition for definition in project_definitions.values()
             if isinstance(definition.node, ast.FunctionDef)]
+
+def _get_class_nodes():
+    """Get all function nodes."""
+    return [definition for definition in project_definitions.values()
+            if isinstance(definition.node, ast.ClassDef)]
+
