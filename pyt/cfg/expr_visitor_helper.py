@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from ..core.node_types import (
     ConnectToExitNode,
-    ControlFlowNode,
+    ControlFlowExpr,
     IfExpNode
 )
 
@@ -43,7 +43,10 @@ ConnectExpressions = namedtuple(
     'ConnectExpressions',
     (
         'first_expression',
-        'last_expressions'
+        'all_expressions',
+        'last_expressions',
+        'variables',
+        'visual_variables'
     )
 )
 
@@ -60,22 +63,22 @@ def get_last_expressions(expressions):
     """Retrieve the last expressions from a list of expressions."""
     # if isinstance(expressions[-1], IfExpNode):
     #     raise
-    #     return expressions[-1].last_nodes
+    #     return expressions[-1].last_expressions
     # Combine me with get_last_statements
     # Combine me with get_last_statements
     # Combine me with get_last_statements
     # Combine me with get_last_statements
-    if isinstance(expressions[-1], ControlFlowNode):
-        return expressions[-1].last_nodes
+    if isinstance(expressions[-1], ControlFlowExpr):
+        return expressions[-1].last_expressions
     else:
         return [expressions[-1]]
 
 
 
 def _connect_control_flow_node(control_flow_node, next_node):
-    """Connect a ControlFlowNode properly to the next_node."""
-    for last in control_flow_node.last_nodes:
-        if isinstance(next_node, ControlFlowNode):
+    """Connect a ControlFlowExpr properly to the next_node."""
+    for last in control_flow_node.last_expressions:
+        if isinstance(next_node, ControlFlowExpr):
             last.connect(next_node.test)  # connect to next if test case
         else:
             last.connect(next_node)
@@ -84,10 +87,10 @@ def _connect_control_flow_node(control_flow_node, next_node):
 def connect_nodes(nodes):
     """Connect the nodes in a list linearly."""
     for n, next_node in zip(nodes, nodes[1:]):
-        if isinstance(n, ControlFlowNode):
+        if isinstance(n, ControlFlowExpr):
             print('_connect_control_flow_node')
             _connect_control_flow_node(n, next_node)
-        elif isinstance(next_node, ControlFlowNode):
+        elif isinstance(next_node, ControlFlowExpr):
             print('n.connect(next_node.test)')
             n.connect(next_node.test)
         # elif isinstance(next_node, RestoreNode):

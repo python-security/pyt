@@ -8,7 +8,23 @@ import scrypt
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	# 2 bool op
-    return redirect(request.args.get('The') or request.brgs.get('French') or request.crgs.get('Laundry'))
+    # print('foo')
+    # x = 5
+    # laun = request.args.get('Laundry')
+    laun = 'beep'
+    # return redirect(request.args.get('The') or request.args.get('French') or laun)
+    return redirect(request.args.get('The') if 1==2 else request.args.get('French'))
+    # return redirect(request.args.get('The') if 1==2 else laun)
+
+    # return redirect(request.args.get('The'))
+
+
+    # return redirect(request.args.get('The') if 1==2 else 'foo')
+    # return redirect('beep', request.args.get('The'))
+    # return redirect(request.args.get('The') if 1==2 else 'beep')
+    # return redirect(request.args.get('The'))
+    # return 'The'
+    # return redirect('The')
 
 
     # 2 IfExp and a string

@@ -283,6 +283,7 @@ class StmtVisitor(ast.NodeVisitor):
     def handle_stmt_star_ignore_node(self, body, fallback_cfg_node):
         """
             This is bad code and should be solved via isinstance checking for IgnoredNode.
+            If body is an IgnoredNode, it will not have a first_statement.
         """
         try:
             fallback_cfg_node.connect(body.first_statement)

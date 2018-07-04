@@ -14,11 +14,29 @@ ControlFlowNode = namedtuple(
     )
 )
 
+# Used in visit_(BoolOp, IfExp)
+ControlFlowExpr = namedtuple(
+    'ControlFlowExpr',
+    (
+        'test',
+        'last_expressions',
+        'variables',
+        'visual_variables'
+    )
+)
+
+
 
 class IgnoredNode():
-    """Ignored Node sent from an ast node that should not return anything."""
+    """Represents an ast node that should not return anything."""
     pass
 
+
+class StrNode(IgnoredNode):
+    """Represents a Str ast node."""
+    def __init__(self, visual_variables=None)
+        self.visual_variables = visual_variables
+        self.variables = []
 
 class ConnectToExitNode():
     """A common type between raise's and return's, used in return_handler."""
