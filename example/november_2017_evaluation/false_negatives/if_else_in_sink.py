@@ -12,8 +12,19 @@ def login():
     # x = 5
     # laun = request.args.get('Laundry')
     laun = 'beep'
-    # return redirect(request.args.get('The') or request.args.get('French') or laun)
-    return redirect(request.args.get('The') if 1==2 else request.args.get('French'))
+    # return redirect(request.args.get('The') or request.args.get('French') or 'laun' and 'crazy')
+    # return redirect(request.args.get('The') or request.args.get('French') or request.args.get('Laundry') and 'crazy')
+
+    # works
+    # return redirect(request.args.get('The') or request.args.get('French') or 'crazy' and request.args.get('Laundry'))
+
+    return redirect(request.args.get('The') if 1==2 else request.args.get('French') if 'foo' else 'crazy')
+
+    # works
+    # return redirect('crazy' and request.args.get('Laundry') )
+
+
+    # return redirect(request.args.get('The') if 1==2 else request.args.get('French'))
     # return redirect(request.args.get('The') if 1==2 else laun)
 
     # return redirect(request.args.get('The'))

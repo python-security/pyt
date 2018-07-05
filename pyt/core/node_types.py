@@ -34,9 +34,10 @@ class IgnoredNode():
 
 class StrNode(IgnoredNode):
     """Represents a Str ast node."""
-    def __init__(self, visual_variables=None)
-        self.visual_variables = visual_variables
-        self.variables = []
+    def __init__(self, string):
+        self.variables = list()
+        self.visual_variables = string
+
 
 class ConnectToExitNode():
     """A common type between raise's and return's, used in return_handler."""
@@ -47,7 +48,14 @@ class Node():
     """A Control Flow Graph node that contains a list of
     ingoing and outgoing nodes and a list of its variables."""
 
-    def __init__(self, label, ast_node, *, line_number=None, path):
+    def __init__(
+        self,
+        label,
+        ast_node,
+        *,
+        line_number=None,
+        path
+    ):
         """Create a Node that can be used in a CFG.
 
         Args:
@@ -195,7 +203,16 @@ class RaiseNode(Node, ConnectToExitNode):
 class AssignmentNode(Node):
     """CFG Node that represents an assignment."""
 
-    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number=None, path):
+    def __init__(
+        self,
+        label,
+        left_hand_side,
+        ast_node,
+        right_hand_side_variables,
+        *,
+        line_number=None,
+        path
+    ):
         """Create an Assignment node.
 
         Args:
@@ -229,7 +246,15 @@ class TaintedNode(AssignmentNode):
 class RestoreNode(AssignmentNode):
     """Node used for handling restore nodes returning from function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path):
+    def __init__(
+        self,
+        label,
+        left_hand_side,
+        right_hand_side_variables,
+        *,
+        line_number,
+        path
+    ):
         """Create a Restore node.
 
         Args:
@@ -243,20 +268,32 @@ class RestoreNode(AssignmentNode):
 
 
 class BBorBInode(AssignmentNode):
-    """Node used for handling restore nodes returning from blackbox or builtin function calls."""
+    """Node used for handling restore nodes returning from blackbox function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path, func_name):
-        """Create a Restore node.
+    def __init__(
+        self,
+        left_hand_side,
+        *,
+        line_number,
+        path,
+        func_name
+    ):
+        """Create a blackbox call node.
 
         Args:
-            label(str): The label of the node, describing the expression it represents.
             left_hand_side(str): The variable on the left hand side of the assignment. Used for analysis.
-            right_hand_side_variables(list[str]): A list of variables on the right hand side.
             line_number(Optional[int]): The line of the expression the Node represents.
             path(string): Current filename.
             func_name(string): The string we will compare with the blackbox_mapping in vulnerabilities.py
         """
-        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(
+            label='',
+            left_hand_side=left_hand_side,
+            ast_node=None,
+            right_hand_side_variables=[],
+            line_number=line_number,
+            path=path
+        )
         self.args = list()
         self.inner_most_call = self
         self.func_name = func_name

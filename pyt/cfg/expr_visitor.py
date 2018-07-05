@@ -26,14 +26,15 @@ from .expr_visitor_helper import (
     BUILTINS,
     CALL_IDENTIFIER,
     ConnectExpressions,
-    connect_nodes,
+    connect_expressions,
     get_last_expressions,
     return_connection_handler,
     SavedVariable
 )
 from ..helper_visitors import (
     LabelVisitor,
-    RHSVisitor
+    RHSVisitor,
+    VarsVisitor
 )
 from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import get_first_node
@@ -74,9 +75,13 @@ class ExprVisitor(StmtVisitor):
     ):
         """Handle expr* in an AST node.
 
-        Links all expressions together in a list of expressions, accounting for expressions with multiple last nodes.
+        Links all expressions together in a list of expressions.
+        Makes last_expressions the last_expressions of all exprs combined.
         This code is quite similar to stmt_star_handler in stmt_visitor.py
         """
+        if not exprs:
+            return ConnectExpressions()
+
         cfg_expressions = list()
         variables = list()
         visual_variables = list()
@@ -90,19 +95,22 @@ class ExprVisitor(StmtVisitor):
                 # Append str
                 variables.append(node.left_hand_side)
                 visual_variables.append(node.left_hand_side)
-            elif isinstance(node, ControlFlowExpr):
+            elif isinstance(node, (ControlFlowExpr, StrNode)):
                 # Extend a list
                 variables.extend(node.variables)
                 visual_variables.append(node.visual_variables)
-            elif isinstance(node, StrNode):
+            else:
+                print(f'exprs are {exprs}')
+                print(f'expr is {expr}')
+                print(f'type of node is {type(node)}')
+
+                vv = VarsVisitor()
+                vv.visit(expr)
+                variables.extend(vv.result)
+
                 label = LabelVisitor()
                 label.visit(expr)
                 visual_variables.append(label.result)
-            else:
-                print(f'type of node is {type(node)}')
-                # todo
-                pass
-                # raise
 
             if not isinstance(node, StrNode):
                 cfg_expressions.append(node)
@@ -117,21 +125,12 @@ class ExprVisitor(StmtVisitor):
                     # Here we connect the first node, to the [-1] node before all the visiting happened
                     node_not_to_step_past.connect(first_node)
 
-        connect_nodes(cfg_expressions)
-
-        if not cfg_expressions:  # When body of module only contains ignored nodes (visit_Str)
-            # todo cleanup
-            n = StrNode()
-            n.variables = []
-            n.visual_variables = visual_variables
-            return n
-
-        last_expressions = get_last_expressions(cfg_expressions)
+        connect_expressions(cfg_expressions)
 
         return ConnectExpressions(
             first_expression=first_node,
             all_expressions=cfg_expressions,
-            last_expressions=last_expressions,
+            last_expressions=get_last_expressions(cfg_expressions) if cfg_expressions else [],
             variables=variables,
             visual_variables=visual_variables
         )
@@ -223,7 +222,9 @@ class ExprVisitor(StmtVisitor):
         )
 
     def visit_Str(self, node):
-        return StrNode()
+        label = LabelVisitor()
+        label.visit(node)
+        return StrNode(label.result)
 
     def visit_Subscript(self, node):
         return self.visit_miscelleaneous_node(
@@ -261,23 +262,30 @@ class ExprVisitor(StmtVisitor):
             path=self.filenames[-1]
         ))
 
+        print(f'boolop is {boolop}')
+
         values = self.expr_star_handler(node.values)
 
         last_expressions = values.all_expressions if is_or else values.last_expressions
         variables = list()
 
-        visual_variables = " {} ".format(op_str).join(
-            map(
-                lambda expr: expr.left_hand_side if isinstance(expr, AssignmentNode) else expr.label,
-                values.all_expressions
-            )
+        visual_variables = ' {} '.format(op_str).join(
+            values.visual_variables
         )
 
         for expr in last_expressions:
             if isinstance(expr, AssignmentNode):
                 variables.append(expr.left_hand_side)
+            elif isinstance(expr, ControlFlowExpr):
+                variables.extend(expr.variables)
             else:
                 variables.append(expr.label)
+
+        print(f'variables are now {variables}')
+        print(f'last_expressions are {last_expressions}')
+        print(f'visual_variables are now {visual_variables}')
+        # import ipdb
+        # ipdb.set_trace()
 
         return ControlFlowExpr(
             test=boolop,
@@ -285,6 +293,13 @@ class ExprVisitor(StmtVisitor):
             variables=variables,
             visual_variables=visual_variables
         )
+
+    def visit_keyword(self, node):
+        """
+             (identifier? arg, expr value)
+             NULL identifier for **kwargs
+        """
+        return self.visit(node.value)
 
     def visit_IfExp(self, node):
         """
@@ -765,12 +780,9 @@ class ExprVisitor(StmtVisitor):
 
         # Create e.g. ¤call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
-        RHS = 'ret_' + call_label.result[:index] + '('
 
         call_node = BBorBInode(
-            label='',
             left_hand_side=LHS,
-            right_hand_side_variables=[],
             line_number=node.lineno,
             path=self.filenames[-1],
             func_name=call_label.result[:index]
@@ -782,45 +794,26 @@ class ExprVisitor(StmtVisitor):
             node.args,
             node.keywords
         )))
-        # This code is the key to it all
-        if isinstance(connected_expressions, StrNode):
-            # TODO
-            pass
-            # raise
-        else:
-            print(f'\n\n\n\n\n\n\nsomething IS {connected_expressions}')
-            print(f'connected_expressions.variables are {connected_expressions.variables}\n\n\n\n\n\n\n')
-            for expr in connected_expressions.last_expressions:
-                print(f'Hmm, so expr is {expr}')
-                print(f'Hmm, so type(expr) is {type(expr)}')
-                expr.connect(call_node)
-                # if isinstance(expr, AssignmentNode):
-                #     visual_variables.append(expr.left_hand_side)
-                #     rhs_vars.append(expr.left_hand_side)
+        print(f'\n\n\n\n\n\n\nsomething IS {connected_expressions}')
+        print(f'connected_expressions.variables are {connected_expressions.variables}\n\n\n\n\n\n\n')
+        print('LAST EXPRESSIONS IS ')
+        for expr in connected_expressions.last_expressions:
+            expr.connect(call_node)
 
-        # TODO: Refactor this with join!
-        if len(connected_expressions.visual_variables) > 0:
-            for arg in connected_expressions.visual_variables:
-                RHS = RHS + arg + ", "
-            # Replace the last ", " with a )
-            RHS = RHS[:len(RHS) - 2] + ')'
-        else:
-            RHS = RHS + ')'
-        call_node.label = LHS + " = " + RHS
+        RHS = 'ret_{}({})'.format(
+            call_label.result[:index],
+            ', '.join(connected_expressions.visual_variables)
+        )
+        call_node.label = LHS + ' = ' + RHS
 
         # .args is only used in get_sink_args
         # We make a new list because right_hand_side_variables is extended in assignment_call_node
         call_node.right_hand_side_variables = connected_expressions.variables
         call_node.args = list(connected_expressions.variables)
 
-        print(f'\n\n\n\n\n\n\n\n\n\n\n\ncall_node is {call_node}')
-        # raise
         if blackbox:
             self.blackbox_assignments.add(call_node)
 
-        # print(f'aight self.nodes[-1] is {self.nodes[-1]}')
-        print(f'aight call_node is {call_node}')
-        # self.connect_if_allowed(self.nodes[-1], call_node)
         self.nodes.append(call_node)
 
         return call_node
