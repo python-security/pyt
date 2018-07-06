@@ -35,6 +35,7 @@ class IgnoredNode():
 class StrNode(IgnoredNode):
     """Represents a Str ast node."""
     def __init__(self, string):
+        self.label = string
         self.variables = list()
         self.visual_variables = string
 

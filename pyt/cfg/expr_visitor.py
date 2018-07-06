@@ -267,12 +267,12 @@ class ExprVisitor(StmtVisitor):
         values = self.expr_star_handler(node.values)
 
         last_expressions = values.all_expressions if is_or else values.last_expressions
-        variables = list()
 
         visual_variables = ' {} '.format(op_str).join(
             values.visual_variables
         )
 
+        variables = list()
         for expr in last_expressions:
             if isinstance(expr, AssignmentNode):
                 variables.append(expr.left_hand_side)
@@ -284,9 +284,9 @@ class ExprVisitor(StmtVisitor):
         print(f'variables are now {variables}')
         print(f'last_expressions are {last_expressions}')
         print(f'visual_variables are now {visual_variables}')
-        # import ipdb
-        # ipdb.set_trace()
-
+        import ipdb
+        ipdb.set_trace()
+        print('uh oh, last_expressions is wrong')
         return ControlFlowExpr(
             test=boolop,
             last_expressions=last_expressions,
@@ -312,53 +312,57 @@ class ExprVisitor(StmtVisitor):
         ))
 
         body = self.visit(node.body)
-        if isinstance(body, ControlFlowExpr):
-            raise
 
-        last_nodes = list()
-        if not isinstance(body, StrNode):
-            test.connect(body)
-            last_nodes.append(body)
+        last_expressions = list()
+        # todo: Make this DRY
+        if isinstance(body, ControlFlowExpr):
+            test.connect(body.test)
+            last_expressions.append(orelse.last_expressions)
+        if isinstance(body, StrNode):
+            pass
         else:
-            # TODO
-            # Also TODO: Handling ControlFlowExpr
-            raise
+            test.connect(body)
+            last_expressions.append(body)
 
         orelse = self.visit(node.orelse)
         print(f'So orelse is {orelse}')
 
         if isinstance(orelse, ControlFlowExpr):
             test.connect(orelse.test)
-            last_nodes.append(orelse.last_nodes)
-        elif not isinstance(orelse, StrNode):
-            test.connect(orelse)
-            last_nodes.append(orelse)
+            last_expressions.extend(orelse.last_expressions)
+        elif isinstance(orelse, StrNode):
+            pass
         else:
-            # TODO
-            raise
+            test.connect(orelse)
+            last_expressions.append(orelse)
+
 
         variables = list()
-        for expr in last_nodes:
+
+        for expr in last_expressions:
             if isinstance(expr, AssignmentNode):
                 variables.append(expr.left_hand_side)
+            elif isinstance(expr, ControlFlowExpr):
+                variables.extend(expr.variables)
             else:
                 variables.append(expr.label)
 
         visual_variables = '{} if {} else {}'.format(
             *list(
                 map(
-                    lambda expr: expr.left_hand_side if isinstance(expr, AssignmentNode) else expr.label,
-                    [body, test, orelse],
+                    lambda expr: expr.left_hand_side if isinstance(expr, AssignmentNode) else expr.visual_variables if isinstance(expr, ControlFlowExpr) else expr.label,
+                    [body, test, orelse]
                 )
             )
         )
-
-        print(f'the last_nodes are {last_nodes}')
+        print(f'the last_expressions are {last_expressions}')
         print(f'the variables are {variables}')
+        import ipdb
+        ipdb.set_trace()
 
         return ControlFlowExpr(
             test=test,
-            last_expressions=last_nodes,
+            last_expressions=last_expressions,
             variables=variables,
             visual_variables=visual_variables
         )

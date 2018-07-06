@@ -18,7 +18,12 @@ def login():
     # works
     # return redirect(request.args.get('The') or request.args.get('French') or 'crazy' and request.args.get('Laundry'))
 
-    return redirect(request.args.get('The') if 1==2 else request.args.get('French') if 'foo' else 'crazy')
+    # return redirect(request.args.get('The') if 1==2 else request.args.get('French') if 'foo' else 'crazy')
+    # return redirect(request.args.get('The') if 1==2 else request.args.get('French') if 'foo' else request.args.get('Aces'))
+
+    # return redirect(request.args.get('The') if 'hey' or 'you' else request.args.get('French') if 'foo' else 'c' and request.args.get('Aces'))
+    return redirect(request.args.get('The') if 'hey' or 'you' else request.args.get('French') if 'foo' else request.args.get('Aces') and 'c')
+
 
     # works
     # return redirect('crazy' and request.args.get('Laundry') )
