@@ -132,6 +132,7 @@ class VarsVisitorTest(VarsVisitorTestCase):
 
     def test_visit_await(self):
         vars = self.perform_vars_on_expression("""
-async def bar():
-    await foo()""")
+            async def bar():
+                await foo()
+        """.lstrip())
         self.assertEqual(vars.result, [])
