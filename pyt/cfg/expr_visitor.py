@@ -86,6 +86,7 @@ class ExprVisitor(StmtVisitor):
         variables = list()
         visual_variables = list()
         first_node = None
+        last_node_should_not_be_ignored = False
         node_not_to_step_past = self.nodes[-1]
 
         for expr in exprs:
@@ -112,7 +113,8 @@ class ExprVisitor(StmtVisitor):
                 label.visit(expr)
                 visual_variables.append(label.result)
 
-            if not isinstance(node, StrNode):
+            last_node_should_not_be_ignored = not isinstance(node, StrNode)
+            if last_node_should_not_be_ignored:
                 cfg_expressions.append(node)
                 if not first_node:
                     if isinstance(node, ControlFlowExpr):
@@ -130,7 +132,7 @@ class ExprVisitor(StmtVisitor):
         return ConnectExpressions(
             first_expression=first_node,
             all_expressions=cfg_expressions,
-            last_expressions=get_last_expressions(cfg_expressions) if cfg_expressions else [],
+            last_expressions=get_last_expressions(cfg_expressions) if last_node_should_not_be_ignored else [],
             variables=variables,
             visual_variables=visual_variables
         )
