@@ -101,11 +101,12 @@ def _connect_control_flow_node(control_flow_node, next_node):
 
 def connect_expressions(nodes):
     """Connect the nodes in a list linearly."""
+    print(f'nodes are {nodes}')
     for n, next_node in zip(nodes, nodes[1:]):
         if isinstance(n, ControlFlowExpr):
             print('_connect_control_flow_node')
             # todo
-            raise
+            # raise
             _connect_control_flow_node(n, next_node)
         # e.g. (request.args.get('The') or 'French' and request.args.get('Laundry'))
         elif isinstance(next_node, ControlFlowExpr):
@@ -114,7 +115,7 @@ def connect_expressions(nodes):
             # print('n.connect(next_node.test)')
             print('connecting all of n with all of last_expressions')
             # todo: decide this
-            raise
+            # raise
             for expr in next_node.last_expressions:
                 n.connect(expr)
             # or this

@@ -271,13 +271,15 @@ class ExprVisitor(StmtVisitor):
 
         variables = list()
         for expr in last_expressions:
-            boolop.connect(expr)
-            if isinstance(expr, AssignmentNode):
-                variables.append(expr.left_hand_side)
-            elif isinstance(expr, ControlFlowExpr):
+            if isinstance(expr, ControlFlowExpr):
                 variables.extend(expr.variables)
+                boolop.connect(expr.test)
             else:
-                variables.append(expr.label)
+                boolop.connect(expr)
+                if isinstance(expr, AssignmentNode):
+                    variables.append(expr.left_hand_side)
+                else:
+                    variables.append(expr.label)
 
         return ControlFlowExpr(
             test=boolop,
@@ -331,7 +333,11 @@ class ExprVisitor(StmtVisitor):
         visual_variables = '{} if {} else {}'.format(
             *list(
                 map(
-                    lambda expr: expr.left_hand_side if isinstance(expr, AssignmentNode) else expr.visual_variables if isinstance(expr, ControlFlowExpr) else expr.label,
+                    lambda expr: (
+                        expr.left_hand_side if isinstance(expr, AssignmentNode)
+                        else expr.visual_variables if isinstance(expr, ControlFlowExpr)
+                        else expr.label
+                    ),
                     [body, test, orelse]
                 )
             )
