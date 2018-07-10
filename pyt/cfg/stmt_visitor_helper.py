@@ -7,7 +7,6 @@ from ..core.node_types import (
     BBorBInode,
     BreakNode,
     ControlFlowNode,
-    IfExpNode,
     RestoreNode
 )
 from .expr_visitor_helper import CALL_IDENTIFIER
@@ -119,7 +118,7 @@ def get_first_node(
     i = 0
     current_node = node
 
-    if isinstance(current_node, (ControlFlowNode, IfExpNode)):
+    if isinstance(current_node, ControlFlowNode):
         raise
     #     current_node = current_node.test
 

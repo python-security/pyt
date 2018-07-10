@@ -8,7 +8,9 @@ from pyt.core.node_types import (
 
 class CFGExprTest(CFGBaseTestCase):
     def test_last_and_not_tainted(self):
-        self.cfg_create_from_file('examples/vulnerable_code_with_expressions/last_var_in_and_is_not_tainted.py')
+        self.cfg_create_from_file(
+            'examples/vulnerable_code_with_expressions/last_var_in_and_is_not_tainted.py'
+        )
 
         self.assert_length(self.cfg.nodes, expected_length=9)
 
@@ -34,16 +36,14 @@ class CFGExprTest(CFGBaseTestCase):
             (and_bool_op, second_if_exp_test_if_Foo),
 
             (call_1_ret_redirect, call_3_req_get_French),
-
-            (call_4_req_get_Aces, and_bool_op),
-
-            # call_4_req_get_Aces.outgoing == []
 
             (_exit, call_1_ret_redirect)
         ])
 
     def test_last_and_tainted(self):
-        self.cfg_create_from_file('examples/vulnerable_code_with_expressions/last_var_in_and_is_tainted.py')
+        self.cfg_create_from_file(
+            'examples/vulnerable_code_with_expressions/last_var_in_and_is_tainted.py'
+        )
 
         self.assert_length(self.cfg.nodes, expected_length=9)
 
@@ -70,7 +70,7 @@ class CFGExprTest(CFGBaseTestCase):
 
             (call_1_ret_redirect, call_3_req_get_French),
 
-            (call_4_req_get_Aces, and_bool_op),
+            (call_4_req_get_Aces, and_bool_op),  # Connected this time
 
             (call_1_ret_redirect, call_4_req_get_Aces),  # Connected this time
 

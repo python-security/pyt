@@ -15,16 +15,23 @@ ControlFlowNode = namedtuple(
 )
 
 # Used in visit_(BoolOp, IfExp)
-ControlFlowExpr = namedtuple(
-    'ControlFlowExpr',
-    (
-        'test',
-        'last_expressions',
-        'variables',
-        'visual_variables'
-    )
-)
+# todo: refactor better
+class ControlFlowExpr():
 
+    def __init__(
+        self,
+        test,
+        last_expressions,
+        variables,
+        visual_variables
+    ):
+        self.test = test
+        self.last_expressions = last_expressions
+        self.variables = variables
+        self.visual_variables = visual_variables
+
+    def connect(self, node):
+        self.test.connect(node)
 
 
 class IgnoredNode():
@@ -34,10 +41,13 @@ class IgnoredNode():
 
 class StrNode(IgnoredNode):
     """Represents a Str ast node."""
-    def __init__(self, string):
-        self.label = string
+    def __init__(self, node):
+        label = LabelVisitor()
+        label.visit(node)
+
+        self.label = label.result
         self.variables = list()
-        self.visual_variables = string
+        self.visual_variables = label.result
 
 
 class ConnectToExitNode():
@@ -143,20 +153,6 @@ class BreakNode(Node):
 
 class IfNode(Node):
     """CFG Node that represents an If statement."""
-
-    def __init__(self, test_node, ast_node, *, path):
-        label_visitor = LabelVisitor()
-        label_visitor.visit(test_node)
-
-        super().__init__(
-            'if ' + label_visitor.result + ':',
-            ast_node,
-            path=path
-        )
-
-
-class IfExpNode(Node):
-    """CFG Node that represents an If expression."""
 
     def __init__(self, test_node, ast_node, *, path):
         label_visitor = LabelVisitor()

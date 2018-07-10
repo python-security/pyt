@@ -15,7 +15,6 @@ from ..core.node_types import (
     ConnectToExitNode,
     ControlFlowExpr,
     EntryOrExitNode,
-    IfExpNode,
     IgnoredNode,
     Node,
     RestoreNode,
@@ -25,7 +24,7 @@ from ..core.node_types import (
 from .expr_visitor_helper import (
     BUILTINS,
     CALL_IDENTIFIER,
-    ConnectExpressions,
+    ConnectedExpressions,
     connect_expressions,
     get_last_expressions,
     return_connection_handler,
@@ -80,9 +79,9 @@ class ExprVisitor(StmtVisitor):
         This code is quite similar to stmt_star_handler in stmt_visitor.py
         """
         if not exprs:
-            return ConnectExpressions()
+            return ConnectedExpressions()
 
-        cfg_expressions = list()
+        expr_nodes = list()
         variables = list()
         visual_variables = list()
         first_node = None
@@ -93,18 +92,12 @@ class ExprVisitor(StmtVisitor):
             node = self.visit(expr)
 
             if isinstance(node, AssignmentNode):
-                # Append str
                 variables.append(node.left_hand_side)
                 visual_variables.append(node.left_hand_side)
             elif isinstance(node, (ControlFlowExpr, StrNode)):
-                # Extend a list
                 variables.extend(node.variables)
                 visual_variables.append(node.visual_variables)
             else:
-                print(f'exprs are {exprs}')
-                print(f'expr is {expr}')
-                print(f'type of node is {type(node)}')
-
                 vv = VarsVisitor()
                 vv.visit(expr)
                 variables.extend(vv.result)
@@ -115,8 +108,8 @@ class ExprVisitor(StmtVisitor):
 
             last_node_should_not_be_ignored = not isinstance(node, StrNode)
             if last_node_should_not_be_ignored:
-                cfg_expressions.append(node)
-                if not first_node:
+                expr_nodes.append(node)
+                if first_node is not None:
                     if isinstance(node, ControlFlowExpr):
                         first_node = node.test
                     else:
@@ -127,18 +120,20 @@ class ExprVisitor(StmtVisitor):
                     # Here we connect the first node, to the [-1] node before all the visiting happened
                     node_not_to_step_past.connect(first_node)
 
-        connect_expressions(cfg_expressions)
+        connect_expressions(expr_nodes)
 
-        return ConnectExpressions(
+        return ConnectedExpressions(
             first_expression=first_node,
-            all_expressions=cfg_expressions,
-            last_expressions=get_last_expressions(cfg_expressions) if last_node_should_not_be_ignored else [],
+            all_expressions=expr_nodes,
+            last_expressions=get_last_expressions(expr_nodes) if last_node_should_not_be_ignored else [],
             variables=variables,
             visual_variables=visual_variables
         )
 
     def init_cfg(self, node):
-        self.module_definitions_stack.append(ModuleDefinitions(filename=self.filenames[-1]))
+        self.module_definitions_stack.append(
+            ModuleDefinitions(filename=self.filenames[-1])
+        )
 
         entry_node = self.append_node(EntryOrExitNode('Entry module'))
 
@@ -224,9 +219,10 @@ class ExprVisitor(StmtVisitor):
         )
 
     def visit_Str(self, node):
-        label = LabelVisitor()
-        label.visit(node)
-        return StrNode(label.result)
+        return StrNode(node)
+
+    def visit_Num(self, node):
+        return StrNode(node)
 
     def visit_Subscript(self, node):
         return self.visit_miscelleaneous_node(
@@ -264,8 +260,6 @@ class ExprVisitor(StmtVisitor):
             path=self.filenames[-1]
         ))
 
-        print(f'boolop is {boolop}')
-
         values = self.expr_star_handler(node.values)
 
         last_expressions = values.all_expressions if is_or else values.last_expressions
@@ -273,9 +267,11 @@ class ExprVisitor(StmtVisitor):
         visual_variables = ' {} '.format(op_str).join(
             values.visual_variables
         )
+        boolop.label = visual_variables
 
         variables = list()
         for expr in last_expressions:
+            boolop.connect(expr)
             if isinstance(expr, AssignmentNode):
                 variables.append(expr.left_hand_side)
             elif isinstance(expr, ControlFlowExpr):
@@ -283,12 +279,6 @@ class ExprVisitor(StmtVisitor):
             else:
                 variables.append(expr.label)
 
-        print(f'variables are now {variables}')
-        print(f'last_expressions are {last_expressions}')
-        print(f'visual_variables are now {visual_variables}')
-        import ipdb
-        ipdb.set_trace()
-        print('uh oh, last_expressions is wrong')
         return ControlFlowExpr(
             test=boolop,
             last_expressions=last_expressions,
@@ -307,40 +297,29 @@ class ExprVisitor(StmtVisitor):
         """
             IfExp(expr test, expr body, expr orelse)
         """
-        test = self.append_node(IfExpNode(
-            node.test,
-            node,
-            path=self.filenames[-1]
-        ))
+        test = self.visit(node.test)
+
+        # We cannot ignore the test, as we connect it to body and orelse
+        if isinstance(test, StrNode):
+            test = self.visit_miscelleaneous_node(node.test)
 
         body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
 
         last_expressions = list()
-        # todo: Make this DRY
-        if isinstance(body, ControlFlowExpr):
-            test.connect(body.test)
-            last_expressions.append(orelse.last_expressions)
-        if isinstance(body, StrNode):
-            pass
-        else:
-            test.connect(body)
-            last_expressions.append(body)
-
-        orelse = self.visit(node.orelse)
-        print(f'So orelse is {orelse}')
-
-        if isinstance(orelse, ControlFlowExpr):
-            test.connect(orelse.test)
-            last_expressions.extend(orelse.last_expressions)
-        elif isinstance(orelse, StrNode):
-            pass
-        else:
-            test.connect(orelse)
-            last_expressions.append(orelse)
-
+        for child in [body, orelse]:
+            if isinstance(child, StrNode):
+                continue
+            elif isinstance(child, ControlFlowExpr):
+                if isinstance(child.test, StrNode):
+                    continue
+                test.connect(child.test)
+                last_expressions.extend(child.last_expressions)
+            else:
+                test.connect(child)
+                last_expressions.append(child)
 
         variables = list()
-
         for expr in last_expressions:
             if isinstance(expr, AssignmentNode):
                 variables.append(expr.left_hand_side)
@@ -357,10 +336,6 @@ class ExprVisitor(StmtVisitor):
                 )
             )
         )
-        print(f'the last_expressions are {last_expressions}')
-        print(f'the variables are {variables}')
-        import ipdb
-        ipdb.set_trace()
 
         return ControlFlowExpr(
             test=test,
@@ -368,34 +343,6 @@ class ExprVisitor(StmtVisitor):
             variables=variables,
             visual_variables=visual_variables
         )
-
-    # def connect_if_allowed(
-    #     self,
-    #     previous_node,
-    #     node_to_connect_to
-    # ):
-    #     # e.g.
-    #     # while x != 10:
-    #     #     if x > 0:
-    #     #         print(x)
-    #     #         break
-    #     #     else:
-    #     #         print('hest')
-    #     # print('next')  # self.nodes[-1] is print('hest')
-    #     #
-    #     # So we connect to `while x!= 10` instead
-    #     if self.last_control_flow_nodes[-1]:
-    #         self.last_control_flow_nodes[-1].connect(node_to_connect_to)
-    #         self.last_control_flow_nodes[-1] = None
-    #         return
-
-    #     # Except in this case:
-    #     #
-    #     # if not image_name:
-    #     #     return 404
-    #     # print('foo')  # We do not want to connect this line with `return 404`
-    #     if previous_node is not self.prev_nodes_to_avoid[-1] and not isinstance(previous_node, ReturnNode):
-    #         previous_node.connect(node_to_connect_to)
 
     def save_local_scope(
         self,

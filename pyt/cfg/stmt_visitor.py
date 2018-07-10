@@ -650,10 +650,12 @@ class StmtVisitor(ast.NodeVisitor):
         )
 
     def visit_Break(self, node):
-        return self.append_node(BreakNode(
-            node,
-            path=self.filenames[-1]
-        ))
+        return self.append_node(
+            BreakNode(
+                node,
+                path=self.filenames[-1]
+            )
+        )
 
     def visit_miscelleaneous_node(
         self,
