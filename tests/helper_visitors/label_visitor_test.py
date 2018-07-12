@@ -71,3 +71,11 @@ class LabelVisitorTest(LabelVisitorTestCase):
     def test_list_two_elements(self):
         label = self.perform_labeling_on_expression('[1, 2]')
         self.assertEqual(label.result, '[1, 2]')
+
+    def test_joined_str(self):
+        label = self.perform_labeling_on_expression('f"a{f(b)}{c}d"')
+        self.assertEqual(label.result, 'f\'a{f(b)}{c}d\'')
+
+    def test_joined_str_with_format_spec(self):
+        label = self.perform_labeling_on_expression('f"a{b!s:.{length}}"')
+        self.assertEqual(label.result, 'f\'a{b!s:.{length}}\'')
