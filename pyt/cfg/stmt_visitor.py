@@ -380,8 +380,8 @@ class StmtVisitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
-        if isinstance(node.targets[0], ast.Tuple):  # x,y = [1,2]
-            if isinstance(node.value, ast.Tuple):
+        if isinstance(node.targets[0], (ast.Tuple, ast.List)):  # x,y = [1,2]
+            if isinstance(node.value, (ast.Tuple, ast.List)):
                 return self.assign_tuple_target(node, rhs_visitor.result)
             elif isinstance(node.value, ast.Call):
                 call = None
