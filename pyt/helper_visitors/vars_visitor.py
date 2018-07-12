@@ -32,7 +32,8 @@ class VarsVisitor(ast.NodeVisitor):
 
     def visit_Dict(self, node):
         for k in node.keys:
-            self.visit(k)
+            if k is not None:
+                self.visit(k)
         for v in node.values:
             self.visit(v)
 

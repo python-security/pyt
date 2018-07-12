@@ -136,3 +136,7 @@ class VarsVisitorTest(VarsVisitorTestCase):
                 await foo()
         """.lstrip())
         self.assertEqual(vars.result, [])
+
+    def test_visit_dict(self):
+        vars = self.perform_vars_on_expression('a = {k1: v1, k2: v2, **d1, **d2}')
+        self.assertEqual(vars.result, ['a', 'k1', 'k2', 'v1', 'v2', 'd1', 'd2'])
