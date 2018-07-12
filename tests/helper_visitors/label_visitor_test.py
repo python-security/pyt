@@ -79,3 +79,7 @@ class LabelVisitorTest(LabelVisitorTestCase):
     def test_joined_str_with_format_spec(self):
         label = self.perform_labeling_on_expression('f"a{b!s:.{length}}"')
         self.assertEqual(label.result, 'f\'a{b!s:.{length}}\'')
+
+    def test_starred(self):
+        label = self.perform_labeling_on_expression('[a, *b] = *c, d')
+        self.assertEqual(label.result, '[a, *b] = (*c, d)')
