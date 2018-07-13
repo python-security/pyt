@@ -23,7 +23,7 @@ exclude_paths:
 - "pyt/intraprocedural_cfg.py"
 - "pyt/repo_runner.py"
 - "pyt/save.py"
-- "example/**"
+- "examples/**"
 - "profiling/**"
 - "tests/**"
 - "LICENSE"

@@ -720,6 +720,25 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
         self.assertLineNumber(assign, 1)
         self.assertLineNumber(builtin, 2)
 
+    def test_assignment_with_annotation(self):
+        self.cfg_create_from_file('examples/example_inputs/assignment_with_annotation.py')
+
+        self.assert_length(self.cfg.nodes, expected_length=3)
+
+        entry = 0
+        assign = 1
+        exit_node = 2
+
+        self.assertInCfg([(assign, entry), (exit_node, assign)])
+        self.assertEqual(self.cfg.nodes[assign].label, 'y = 5')
+
+    def test_assignment_with_annotation_line_numbers(self):
+        self.cfg_create_from_file('examples/example_inputs/assignment_with_annotation.py')
+
+        assign = self.cfg.nodes[1]
+
+        self.assertLineNumber(assign, 2)
+
     def test_multiple_assignment(self):
         self.cfg_create_from_file('examples/example_inputs/assignment_multiple_assign.py')
 

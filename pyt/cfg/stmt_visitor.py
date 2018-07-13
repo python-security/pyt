@@ -422,6 +422,14 @@ class StmtVisitor(ast.NodeVisitor):
                     path=self.filenames[-1]
                 ))
 
+    def visit_AnnAssign(self, node):
+        if node.value is None:
+            return IgnoredNode()
+        else:
+            assign = ast.Assign(targets=[node.target], value=node.value)
+            ast.copy_location(assign, node)
+            return self.visit(assign)
+
     def assignment_call_node(self, left_hand_label, ast_node):
         """Handle assignments that contain a function call on its right side."""
         self.undecided = True  # Used for handling functions in assignments
