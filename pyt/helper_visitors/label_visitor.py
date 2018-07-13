@@ -288,3 +288,35 @@ class LabelVisitor(ast.NodeVisitor):
 
     def visit_Str(self, node):
         self.result += "'" + node.s + "'"
+
+    def visit_joined_str(self, node, surround=True):
+        for val in node.values:
+            if isinstance(val, ast.Str):
+                self.result += val.s
+            else:
+                self.visit(val)
+
+    def visit_JoinedStr(self, node):
+        """
+            JoinedStr(expr* values)
+        """
+        self.result += "f\'"
+        self.visit_joined_str(node)
+        self.result += "'"
+
+    def visit_FormattedValue(self, node):
+        """
+            FormattedValue(expr value, int? conversion, expr? format_spec)
+        """
+        self.result += '{'
+        self.visit(node.value)
+        self.result += {
+            -1: '',     # no formatting
+            97: '!a',   # ascii formatting
+            114: '!r',  # repr formatting
+            115: '!s',  # string formatting
+        }[node.conversion]
+        if node.format_spec:
+            self.result += ':'
+            self.visit_joined_str(node.format_spec)
+        self.result += '}'
