@@ -168,7 +168,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_command_injection_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/command_injection.py')
@@ -186,7 +186,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_1 = ret_subprocess.call(command, shell=True)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal.py')
@@ -224,7 +224,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_send_file(foo)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_ensure_saved_scope(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/ensure_saved_scope.py')
@@ -262,7 +262,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_send_file(image_name)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_sanitised_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised.py')
@@ -289,7 +289,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is sanitised by:  Label: ~call_2 = ret_image_name.replace('..', '')
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_sanitised_2_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised_2.py')
@@ -312,7 +312,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is potentially sanitised by:  Label: if '..' in image_name:
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_sql_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/sql/sqli.py')
@@ -332,7 +332,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_2 = ret_db.engine.execute(param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_form_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_form.py')
@@ -354,7 +354,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_2 = ret_html1.replace('{{ data }}', data)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_url_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_url.py')
@@ -378,7 +378,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_3 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_no_vuln_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_no_vuln.py')
@@ -408,7 +408,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_sanitised_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_sanitised.py')
@@ -437,7 +437,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is sanitised by:  Label: ~call_2 = ret_Markup.escape(param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_variable_assign_no_vuln_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_assign_no_vuln.py')
@@ -467,7 +467,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', other_var)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_variable_multiple_assign_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_multiple_assign.py')
@@ -497,7 +497,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', another_one)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
@@ -539,7 +539,7 @@ class EngineDjangoTest(VulnerabilitiesBaseTestCase):
              > reaches line 5, sink "render(":
                 ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
 
 class EngineEveryTest(VulnerabilitiesBaseTestCase):

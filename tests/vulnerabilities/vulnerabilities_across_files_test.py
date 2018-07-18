@@ -83,7 +83,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 Label: ~call_2 = ret_scrypt.encrypt('echo ' + param + ' >> ' + 'menu.txt', 'password')
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_builtin_with_user_defined_inner(self):
         vulnerabilities = self.run_analysis('examples/nested_functions_code/builtin_with_user_defined_inner.py')
@@ -117,7 +117,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_3 = ret_subprocess.call(foo, shell=True)
             This vulnerability is unknown due to:  Label: ~call_1 = ret_scrypt.encrypt(~call_2)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_sink_with_result_of_blackbox_nested(self):
         vulnerabilities = self.run_analysis('examples/nested_functions_code/sink_with_result_of_blackbox_nested.py')
@@ -203,7 +203,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
              > reaches line 18, sink "subprocess.call(":
                 ~call_3 = ret_subprocess.call(result, shell=True)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_sink_with_blackbox_inner(self):
         vulnerabilities = self.run_analysis('examples/nested_functions_code/sink_with_blackbox_inner.py')
@@ -284,7 +284,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
              > reaches line 18, sink "subprocess.call(":
                 ~call_1 = ret_subprocess.call(~call_2, shell=True)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_find_vulnerabilities_import_file_command_injection(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code_across_files/import_file_command_injection.py')
