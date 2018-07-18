@@ -1,9 +1,6 @@
+import json
 from collections import namedtuple
 
-
-SANITISER_SEPARATOR = '->'
-SOURCES_KEYWORD = 'sources:'
-SINKS_KEYWORD = 'sinks:'
 
 Definitions = namedtuple(
     'Definitions',
@@ -13,30 +10,30 @@ Definitions = namedtuple(
     )
 )
 
+Source = namedtuple('Source', ('trigger_word'))
 
-def parse_section(iterator):
-    """Parse a section of a file. Stops at empty line.
 
-    Args:
-        iterator(File): file descriptor pointing at a definition file.
+class Sink:
+    def __init__(
+        self, trigger, *,
+        sanitisers=None
+    ):
+        self._trigger = trigger
+        self.sanitisers = sanitisers or []
 
-    Returns:
-         Iterator of all definitions in the section.
-    """
-    try:
-        line = next(iterator).rstrip()
-        while line:
-            if line.rstrip():
-                if SANITISER_SEPARATOR in line:
-                    line = line.split(SANITISER_SEPARATOR)
-                    sink = line[0].rstrip()
-                    sanitisers = list(map(str.strip, line[1].split(',')))
-                    yield (sink, sanitisers)
-                else:
-                    yield (line, list())
-            line = next(iterator).rstrip()
-    except StopIteration:
-        return
+    @property
+    def call(self):
+        if self._trigger[-1] == '(':
+            return self._trigger[:-1]
+        return None
+
+    @property
+    def trigger_word(self):
+        return self._trigger
+
+    @classmethod
+    def from_json(cls, key, data):
+        return cls(trigger=key, **data)
 
 
 def parse(trigger_word_file):
@@ -45,13 +42,11 @@ def parse(trigger_word_file):
     Returns:
        A definitions tuple with sources and sinks.
     """
-    sources = list()
-    sinks = list()
-    with open(trigger_word_file, 'r') as fd:
-        for line in fd:
-            line = line.rstrip()
-            if line == SOURCES_KEYWORD:
-                sources = list(parse_section(fd))
-            elif line == SINKS_KEYWORD:
-                sinks = list(parse_section(fd))
+    with open(trigger_word_file) as fd:
+        triggers_dict = json.load(fd)
+    sources = [Source(s) for s in triggers_dict['sources']]
+    sinks = [
+        Sink.from_json(trigger, data)
+        for trigger, data in triggers_dict['sinks'].items()
+    ]
     return Definitions(sources, sinks)
