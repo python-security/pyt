@@ -21,3 +21,9 @@ class RHSVisitor(ast.NodeVisitor):
         if node.keywords:
             for keyword in node.keywords:
                 self.visit(keyword)
+
+    @classmethod
+    def result_for_node(cls, node):
+        visitor = cls()
+        visitor.visit(node)
+        return visitor.result

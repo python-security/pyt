@@ -573,6 +573,7 @@ class StmtVisitor(ast.NodeVisitor):
         call_node = BBorBInode(
             label='',
             left_hand_side=LHS,
+            ast_node=node,
             right_hand_side_variables=[],
             line_number=node.lineno,
             path=self.filenames[-1],

@@ -13,6 +13,7 @@ from ..core.node_types import (
     TaintedNode
 )
 from ..helper_visitors import (
+    CallVisitor,
     RHSVisitor,
     VarsVisitor
 )
@@ -240,6 +241,37 @@ def get_sink_args(cfg_node):
         return vv.result
 
 
+def get_sink_args_which_propagate(sink, ast_node):
+    sink_args_with_positions = CallVisitor.get_call_visit_results(sink.trigger.call, ast_node)
+    sink_args = []
+
+    for i, vars in enumerate(sink_args_with_positions.args):
+        if sink.trigger.arg_propagates(i):
+            sink_args.extend(vars)
+
+    if (
+        # Either any unspecified arg propagates
+        not sink.trigger.arg_list_propagates or
+        # or there are some propagating args which weren't passed positionally
+        any(1 for position in sink.trigger.arg_list if position >= len(sink_args_with_positions.args))
+    ):
+        sink_args.extend(sink_args_with_positions.unknown_args)
+
+    for keyword, vars in sink_args_with_positions.kwargs.items():
+        if sink.trigger.kwarg_propagates(keyword):
+            sink_args.extend(vars)
+
+    if (
+        # Either any unspecified kwarg propagates
+        not sink.trigger.kwarg_list_propagates or
+        # or there are some propagating kwargs which have not been passed by keyword
+        sink.trigger.kwarg_list - set(sink_args_with_positions.kwargs.keys())
+    ):
+        sink_args.extend(sink_args_with_positions.unknown_kwargs)
+
+    return sink_args
+
+
 def get_vulnerability_chains(
     current_node,
     sink,
@@ -374,10 +406,14 @@ def get_vulnerability(
                                                    sink.cfg_node)]
     nodes_in_constaint.append(source.cfg_node)
 
-    sink_args = get_sink_args(sink.cfg_node)
+    if sink.trigger.all_arguments_propagate_taint:
+        sink_args = get_sink_args(sink.cfg_node)
+    else:
+        sink_args = get_sink_args_which_propagate(sink, sink.cfg_node.ast_node)
+
     tainted_node_in_sink_arg = get_tainted_node_in_sink_args(
         sink_args,
-        nodes_in_constaint
+        nodes_in_constaint,
     )
 
     if tainted_node_in_sink_arg:

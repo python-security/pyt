@@ -1,3 +1,4 @@
+import ast
 import os
 
 from .vulnerabilities_base_test_case import VulnerabilitiesBaseTestCase
@@ -308,7 +309,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
     def test_sql_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/sql/sqli.py')
-        self.assert_length(vulnerabilities, expected_length=1)
+        self.assert_length(vulnerabilities, expected_length=2)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/sql/sqli.py
@@ -560,3 +561,61 @@ class EngineEveryTest(VulnerabilitiesBaseTestCase):
     def test_self_is_not_tainted(self):
         vulnerabilities = self.run_analysis('examples/example_inputs/def_with_self_as_first_arg.py')
         self.assert_length(vulnerabilities, expected_length=0)
+
+
+class EnginePositionTest(VulnerabilitiesBaseTestCase):
+    def run_analysis(self):
+        cfg_list = [self.cfg]
+
+        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
+        initialize_constraint_table(cfg_list)
+
+        analyse(cfg_list)
+
+        trigger_word_file = os.path.join(
+            'pyt',
+            'vulnerability_definitions',
+            'test_positions.pyt'
+        )
+
+        return find_vulnerabilities(
+            cfg_list,
+            UImode.NORMAL,
+            default_blackbox_mapping_file,
+            trigger_word_file
+        )
+
+    def test_sql_result_ignores_false_positive_prepared_statement(self):
+        self.cfg_create_from_file('examples/vulnerable_code/sql/sqli.py')
+        vulnerabilities = self.run_analysis()
+        self.assert_length(vulnerabilities, expected_length=1)
+        self.assertEqual(vulnerabilities[0].source.line_number, 26)
+
+    def test_args_kwargs_that_do_dont_propagate(self):
+        def check(fixture, vulnerable):
+            tree = ast.parse('TAINT = make_taint()\n' + fixture)
+            self.cfg_create_from_ast(tree)
+            vulnerabilities = self.run_analysis()
+            self.assert_length(vulnerabilities, expected_length=1 if vulnerable else 0, msg=fixture)
+
+        no_vuln_fixtures = (
+            'execute(0)',
+            'run(0, x, TAINT, 0, x=x)',
+            'run(x, 0, non_propagating=TAINT)',
+            'execute(x, name=TAINT)',
+            'execute(x, *TAINT)',
+            'execute(text=x, **TAINT)',
+            'dont_run(TAINT)',
+        )
+        vuln_fixtures = (
+            'run(TAINT)',
+            'subprocess.run(TAINT)',
+            'run(0, TAINT, 0, x=0)',
+            'run(0, x, non_propagating=x, tainted=TAINT)',
+            'execute(*ok, *TAINT)',
+            'execute(name=x, **TAINT)',
+        )
+        for fixture_str in no_vuln_fixtures:
+            check(fixture_str, False)
+        for fixture_str in vuln_fixtures:
+            check(fixture_str, True)
