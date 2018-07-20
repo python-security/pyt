@@ -733,3 +733,19 @@ class ImportTest(BaseTestCase):
         result = get_call_names_as_string(call.func)
 
         self.assertEqual(result, 'abc.defg.hi')
+
+    def test_get_call_names_with_binop(self):
+        m = ast.parse('(date.today() - timedelta(days=1)).strftime("%Y-%m-%d")')
+        call = m.body[0].value
+
+        result = get_call_names_as_string(call.func)
+
+        self.assertEqual(result, 'strftime')
+
+    def test_get_call_names_with_comprehension(self):
+        m = ast.parse('{a for a in b()}.union(c)')
+        call = m.body[0].value
+
+        result = get_call_names_as_string(call.func)
+
+        self.assertEqual(result, 'union')

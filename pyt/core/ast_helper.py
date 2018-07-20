@@ -44,28 +44,23 @@ def generate_ast(path):
     raise IOError('Input needs to be a file. Path: ' + path)
 
 
-def _get_call_names_helper(node, result):
+def _get_call_names_helper(node):
     """Recursively finds all function names."""
     if isinstance(node, ast.Name):
         if node.id not in BLACK_LISTED_CALL_NAMES:
-            result.append(node.id)
-        return result
-    elif isinstance(node, ast.Call):
-        return result
+            yield node.id
     elif isinstance(node, ast.Subscript):
-        return _get_call_names_helper(node.value, result)
+        yield from _get_call_names_helper(node.value)
     elif isinstance(node, ast.Str):
-        result.append(node.s)
-        return result
-    else:
-        result.append(node.attr)
-        return _get_call_names_helper(node.value, result)
+        yield node.s
+    elif isinstance(node, ast.Attribute):
+        yield node.attr
+        yield from _get_call_names_helper(node.value)
 
 
 def get_call_names(node):
     """Get a list of call names."""
-    result = list()
-    return reversed(_get_call_names_helper(node, result))
+    return reversed(list(_get_call_names_helper(node)))
 
 
 def _list_to_dotted_string(list_of_components):
