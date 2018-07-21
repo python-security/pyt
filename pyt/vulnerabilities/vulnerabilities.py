@@ -13,10 +13,11 @@ from ..core.node_types import (
     TaintedNode
 )
 from ..helper_visitors import (
+    CallVisitor,
     RHSVisitor,
     VarsVisitor
 )
-from .trigger_definitions_parser import parse
+from .trigger_definitions_parser import parse, Source
 from .vulnerability_helper import (
     Sanitiser,
     TriggerNode,
@@ -49,8 +50,7 @@ def identify_triggers(
     tainted_nodes = filter_cfg_nodes(cfg, TaintedNode)
     tainted_trigger_nodes = [
         TriggerNode(
-            'Framework function URL parameter',
-            sanitisers=None,
+            Source('Framework function URL parameter'),
             cfg_node=node
         ) for node in tainted_nodes
     ]
@@ -142,7 +142,7 @@ def find_triggers(
 
     Args:
         nodes(list[Node]): the nodes to find triggers in.
-        trigger_word_list(list[string]): list of trigger words to look for.
+        trigger_word_list(list[Union[Sink, Source]]): list of trigger words to look for.
         nosec_lines(set): lines with # nosec whitelisting
 
     Returns:
@@ -157,23 +157,21 @@ def find_triggers(
 
 def label_contains(
     node,
-    trigger_words
+    triggers
 ):
     """Determine if node contains any of the trigger_words provided.
 
     Args:
         node(Node): CFG node to check.
-        trigger_words(list[string]): list of trigger words to look for.
+        trigger_words(list[Union[Sink, Source]]): list of trigger words to look for.
 
     Returns:
         Iterable of TriggerNodes found. Can be multiple because multiple
         trigger_words can be in one node.
     """
-    for trigger_word_tuple in trigger_words:
-        if trigger_word_tuple[0] in node.label:
-            trigger_word = trigger_word_tuple[0]
-            sanitisers = trigger_word_tuple[1]
-            yield TriggerNode(trigger_word, sanitisers, node)
+    for trigger in triggers:
+        if trigger.trigger_word in node.label:
+            yield TriggerNode(trigger, node)
 
 
 def build_sanitiser_node_dict(
@@ -241,6 +239,37 @@ def get_sink_args(cfg_node):
         vv = VarsVisitor()
         vv.visit(cfg_node.ast_node)
         return vv.result
+
+
+def get_sink_args_which_propagate(sink, ast_node):
+    sink_args_with_positions = CallVisitor.get_call_visit_results(sink.trigger.call, ast_node)
+    sink_args = []
+
+    for i, vars in enumerate(sink_args_with_positions.args):
+        if sink.trigger.arg_propagates(i):
+            sink_args.extend(vars)
+
+    if (
+        # Either any unspecified arg propagates
+        not sink.trigger.arg_list_propagates or
+        # or there are some propagating args which weren't passed positionally
+        any(1 for position in sink.trigger.arg_list if position >= len(sink_args_with_positions.args))
+    ):
+        sink_args.extend(sink_args_with_positions.unknown_args)
+
+    for keyword, vars in sink_args_with_positions.kwargs.items():
+        if sink.trigger.kwarg_propagates(keyword):
+            sink_args.extend(vars)
+
+    if (
+        # Either any unspecified kwarg propagates
+        not sink.trigger.kwarg_list_propagates or
+        # or there are some propagating kwargs which have not been passed by keyword
+        sink.trigger.kwarg_list - set(sink_args_with_positions.kwargs.keys())
+    ):
+        sink_args.extend(sink_args_with_positions.unknown_kwargs)
+
+    return sink_args
 
 
 def get_vulnerability_chains(
@@ -377,10 +406,14 @@ def get_vulnerability(
                                                    sink.cfg_node)]
     nodes_in_constaint.append(source.cfg_node)
 
-    sink_args = get_sink_args(sink.cfg_node)
+    if sink.trigger.all_arguments_propagate_taint:
+        sink_args = get_sink_args(sink.cfg_node)
+    else:
+        sink_args = get_sink_args_which_propagate(sink, sink.cfg_node.ast_node)
+
     tainted_node_in_sink_arg = get_tainted_node_in_sink_args(
         sink_args,
-        nodes_in_constaint
+        nodes_in_constaint,
     )
 
     if tainted_node_in_sink_arg:

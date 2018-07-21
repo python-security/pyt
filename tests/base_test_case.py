@@ -9,9 +9,9 @@ from pyt.core.module_definitions import project_definitions
 class BaseTestCase(unittest.TestCase):
     """A base class that has helper methods for testing PyT."""
 
-    def assert_length(self, _list, *, expected_length):
+    def assert_length(self, _list, *, expected_length, msg=None):
         actual_length = len(_list)
-        self.assertEqual(expected_length, actual_length)
+        self.assertEqual(expected_length, actual_length, msg=msg)
 
     def cfg_create_from_file(
         self,
@@ -26,4 +26,18 @@ class BaseTestCase(unittest.TestCase):
             project_modules,
             local_modules,
             filename
+        )
+
+    def cfg_create_from_ast(
+        self,
+        ast_tree,
+        project_modules=list(),
+        local_modules=list()
+    ):
+        project_definitions.clear()
+        self.cfg = make_cfg(
+            ast_tree,
+            project_modules,
+            local_modules,
+            filename='?'
         )

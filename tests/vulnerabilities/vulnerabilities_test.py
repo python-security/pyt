@@ -1,3 +1,4 @@
+import ast
 import os
 
 from .vulnerabilities_base_test_case import VulnerabilitiesBaseTestCase
@@ -11,9 +12,13 @@ from pyt.usage import (
 )
 from pyt.vulnerabilities import (
     find_vulnerabilities,
-    trigger_definitions_parser,
     UImode,
     vulnerabilities
+)
+from pyt.vulnerabilities.trigger_definitions_parser import (
+    parse,
+    Sink,
+    Source,
 )
 from pyt.web_frameworks import (
     FrameworkAdaptor,
@@ -25,7 +30,7 @@ from pyt.web_frameworks import (
 
 class EngineTest(VulnerabilitiesBaseTestCase):
     def test_parse(self):
-        definitions = trigger_definitions_parser.parse(
+        definitions = parse(
             trigger_word_file=os.path.join(
                 os.getcwd(),
                 'pyt',
@@ -36,44 +41,31 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         self.assert_length(definitions.sources, expected_length=1)
         self.assert_length(definitions.sinks, expected_length=3)
-        self.assert_length(definitions.sinks[0][1], expected_length=1)
-        self.assert_length(definitions.sinks[1][1], expected_length=3)
-
-    def test_parse_section(self):
-        list_ = list(trigger_definitions_parser.parse_section(iter(['get'])))
-        self.assert_length(list_, expected_length=1)
-        self.assertEqual(list_[0][0], 'get')
-        self.assertEqual(list_[0][1], list())
-
-        list_ = list(trigger_definitions_parser.parse_section(iter(['get', 'get -> a, b, c d s aq     a'])))
-        self.assert_length(list_, expected_length=2)
-        self.assertEqual(list_[0][0], 'get')
-        self.assertEqual(list_[1][0], 'get')
-        self.assertEqual(list_[1][1], ['a', 'b', 'c d s aq     a'])
-        self.assert_length(list_[1][1], expected_length=3)
+        self.assert_length(definitions.sinks[0].sanitisers, expected_length=1)
+        self.assert_length(definitions.sinks[1].sanitisers, expected_length=3)
 
     def test_label_contains(self):
         cfg_node = Node('label', None, line_number=None, path=None)
-        trigger_words = [('get', [])]
+        trigger_words = [Source('get')]
         list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
         self.assert_length(list_, expected_length=0)
 
         cfg_node = Node('request.get("stefan")', None, line_number=None, path=None)
-        trigger_words = [('get', []), ('request', [])]
+        trigger_words = [Sink('request'), Source('get')]
         list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
         self.assert_length(list_, expected_length=2)
 
         trigger_node_1 = list_[0]
         trigger_node_2 = list_[1]
-        self.assertEqual(trigger_node_1.trigger_word, 'get')
+        self.assertEqual(trigger_node_1.trigger_word, 'request')
         self.assertEqual(trigger_node_1.cfg_node, cfg_node)
-        self.assertEqual(trigger_node_2.trigger_word, 'request')
+        self.assertEqual(trigger_node_2.trigger_word, 'get')
         self.assertEqual(trigger_node_2.cfg_node, cfg_node)
 
         cfg_node = Node('request.get("stefan")', None, line_number=None, path=None)
-        trigger_words = [('get', []), ('get', [])]
+        trigger_words = [Source('get'), Source('get'), Sink('get(')]
         list_ = list(vulnerabilities.label_contains(cfg_node, trigger_words))
-        self.assert_length(list_, expected_length=2)
+        self.assert_length(list_, expected_length=3)
 
     def test_find_triggers(self):
         self.cfg_create_from_file('examples/vulnerable_code/XSS.py')
@@ -83,7 +75,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
 
         XSS1 = cfg_list[1]
-        trigger_words = [('get', [])]
+        trigger_words = [Source('get')]
 
         list_ = vulnerabilities.find_triggers(
             XSS1.nodes,
@@ -110,7 +102,8 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         cfg = cfg_list[1]
 
         cfg_node = Node(None, None, line_number=None, path=None)
-        sinks_in_file = [vulnerabilities.TriggerNode('replace', ['escape'], cfg_node)]
+        sink = Sink.from_json('replace', {'sanitisers': ['escape']})
+        sinks_in_file = [vulnerabilities.TriggerNode(sink, cfg_node)]
 
         sanitiser_dict = vulnerabilities.build_sanitiser_node_dict(cfg, sinks_in_file)
         self.assert_length(sanitiser_dict, expected_length=1)
@@ -168,7 +161,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_command_injection_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/command_injection.py')
@@ -186,7 +179,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_1 = ret_subprocess.call(command, shell=True)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal.py')
@@ -224,7 +217,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_send_file(foo)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_ensure_saved_scope(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/ensure_saved_scope.py')
@@ -262,7 +255,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_send_file(image_name)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_sanitised_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised.py')
@@ -289,7 +282,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is sanitised by:  Label: ~call_2 = ret_image_name.replace('..', '')
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_path_traversal_sanitised_2_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised_2.py')
@@ -312,11 +305,11 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is potentially sanitised by:  Label: if '..' in image_name:
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_sql_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/sql/sqli.py')
-        self.assert_length(vulnerabilities, expected_length=1)
+        self.assert_length(vulnerabilities, expected_length=2)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/sql/sqli.py
@@ -332,7 +325,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_2 = ret_db.engine.execute(param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_form_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_form.py')
@@ -354,7 +347,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_2 = ret_html1.replace('{{ data }}', data)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_url_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_url.py')
@@ -378,7 +371,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_3 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_no_vuln_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_no_vuln.py')
@@ -408,7 +401,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_sanitised_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_sanitised.py')
@@ -437,7 +430,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             This vulnerability is sanitised by:  Label: ~call_2 = ret_Markup.escape(param)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_variable_assign_no_vuln_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_assign_no_vuln.py')
@@ -467,7 +460,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', other_var)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
     def test_XSS_variable_multiple_assign_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/XSS_variable_multiple_assign.py')
@@ -497,7 +490,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 ~call_4 = ret_html.replace('{{ param }}', another_one)
         """
 
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
@@ -539,7 +532,7 @@ class EngineDjangoTest(VulnerabilitiesBaseTestCase):
              > reaches line 5, sink "render(":
                 ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
         """
-        self.assertTrue(self.string_compare_alpha(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION))
+        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
 
 class EngineEveryTest(VulnerabilitiesBaseTestCase):
@@ -568,3 +561,61 @@ class EngineEveryTest(VulnerabilitiesBaseTestCase):
     def test_self_is_not_tainted(self):
         vulnerabilities = self.run_analysis('examples/example_inputs/def_with_self_as_first_arg.py')
         self.assert_length(vulnerabilities, expected_length=0)
+
+
+class EnginePositionTest(VulnerabilitiesBaseTestCase):
+    def run_analysis(self):
+        cfg_list = [self.cfg]
+
+        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
+        initialize_constraint_table(cfg_list)
+
+        analyse(cfg_list)
+
+        trigger_word_file = os.path.join(
+            'pyt',
+            'vulnerability_definitions',
+            'test_positions.pyt'
+        )
+
+        return find_vulnerabilities(
+            cfg_list,
+            UImode.NORMAL,
+            default_blackbox_mapping_file,
+            trigger_word_file
+        )
+
+    def test_sql_result_ignores_false_positive_prepared_statement(self):
+        self.cfg_create_from_file('examples/vulnerable_code/sql/sqli.py')
+        vulnerabilities = self.run_analysis()
+        self.assert_length(vulnerabilities, expected_length=1)
+        self.assertEqual(vulnerabilities[0].source.line_number, 26)
+
+    def test_args_kwargs_that_do_dont_propagate(self):
+        def check(fixture, vulnerable):
+            tree = ast.parse('TAINT = make_taint()\n' + fixture)
+            self.cfg_create_from_ast(tree)
+            vulnerabilities = self.run_analysis()
+            self.assert_length(vulnerabilities, expected_length=1 if vulnerable else 0, msg=fixture)
+
+        no_vuln_fixtures = (
+            'execute(0)',
+            'run(0, x, TAINT, 0, x=x)',
+            'run(x, 0, non_propagating=TAINT)',
+            'execute(x, name=TAINT)',
+            'execute(x, *TAINT)',
+            'execute(text=x, **TAINT)',
+            'dont_run(TAINT)',
+        )
+        vuln_fixtures = (
+            'run(TAINT)',
+            'subprocess.run(TAINT)',
+            'run(0, TAINT, 0, x=0)',
+            'run(0, x, non_propagating=x, tainted=TAINT)',
+            'execute(*ok, *TAINT)',
+            'execute(name=x, **TAINT)',
+        )
+        for fixture_str in no_vuln_fixtures:
+            check(fixture_str, False)
+        for fixture_str in vuln_fixtures:
+            check(fixture_str, True)

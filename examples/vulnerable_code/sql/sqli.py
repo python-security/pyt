@@ -38,5 +38,13 @@ def filtering():
         print(value.username, value.email)
     return 'Result is displayed in console.'
 
+@app.route('/users/<name>', methods=['DELETE'])
+def delete_user_dangerously(name):
+    query = "DELETE FROM user WHERE username = :name"
+    db.engine.execute(query, name=name)
+    print('Deleted')
+    return 'Deleted'
+
+
 if __name__ == '__main__':
     app.run(debug=True)

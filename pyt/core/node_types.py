@@ -202,7 +202,7 @@ class RestoreNode(AssignmentNode):
 class BBorBInode(AssignmentNode):
     """Node used for handling restore nodes returning from blackbox or builtin function calls."""
 
-    def __init__(self, label, left_hand_side, right_hand_side_variables, *, line_number, path, func_name):
+    def __init__(self, label, left_hand_side, ast_node, right_hand_side_variables, *, line_number, path, func_name):
         """Create a Restore node.
 
         Args:
@@ -213,7 +213,7 @@ class BBorBInode(AssignmentNode):
             path(string): Current filename.
             func_name(string): The string we will compare with the blackbox_mapping in vulnerabilities.py
         """
-        super().__init__(label, left_hand_side, None, right_hand_side_variables, line_number=line_number, path=path)
+        super().__init__(label, left_hand_side, ast_node, right_hand_side_variables, line_number=line_number, path=path)
         self.args = list()
         self.inner_most_call = self
         self.func_name = func_name
