@@ -52,14 +52,10 @@ def get_modules(path):
                     '.'
                 )
                 directory = directory.replace('.', '', 1)
-                if directory:
-                    modules.append(
-                        ('.'.join((module_root, directory, filename.replace('.py', ''))), os.path.join(root, filename))
-                    )
-                else:
-                    modules.append(
-                        ('.'.join((module_root, filename.replace('.py', ''))), os.path.join(root, filename))
-                    )
+                modules.append((
+                    '.'.join(p for p in (module_root, directory, _filename_to_module(filename)) if p),
+                    os.path.join(root, filename)
+                ))
 
     return modules
 
@@ -68,3 +64,10 @@ def _is_python_file(path):
     if os.path.splitext(path)[1] == '.py':
         return True
     return False
+
+
+def _filename_to_module(filename):
+    if filename == '__init__.py':
+        return ''
+    else:
+        return os.path.splitext(filename)[0]
