@@ -101,6 +101,13 @@ def _add_optional_group(parser):
         default='',
         help='Separate files with commas'
     )
+    optional_group.add_argument(
+        '--dont-prepend-root',
+        help="In project root e.g. /app, imports are not prepended with app.*",
+        action='store_false',
+        default=True,
+        dest='prepend_module_root'
+    )
 
 
 def _add_print_group(parser):

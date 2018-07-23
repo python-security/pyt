@@ -31,7 +31,7 @@ def get_directory_modules(directory):
     return _local_modules
 
 
-def get_modules(path):
+def get_modules(path, prepend_module_root=True):
     """Return a list containing tuples of
     e.g. ('test_project.utils', 'example/test_project/utils.py')
     """
@@ -52,10 +52,20 @@ def get_modules(path):
                     '.'
                 )
                 directory = directory.replace('.', '', 1)
-                modules.append((
-                    '.'.join(p for p in (module_root, directory, _filename_to_module(filename)) if p),
-                    os.path.join(root, filename)
-                ))
+
+                module_name_parts = []
+                if prepend_module_root:
+                    module_name_parts.append(module_root)
+                if directory:
+                    module_name_parts.append(directory)
+
+                if filename == '__init__.py':
+                    path = root
+                else:
+                    module_name_parts.append(os.path.splitext(filename)[0])
+                    path = os.path.join(root, filename)
+
+                modules.append(('.'.join(module_name_parts), path))
 
     return modules
 
@@ -64,10 +74,3 @@ def _is_python_file(path):
     if os.path.splitext(path)[1] == '.py':
         return True
     return False
-
-
-def _filename_to_module(filename):
-    if filename == '__init__.py':
-        return ''
-    else:
-        return os.path.splitext(filename)[0]

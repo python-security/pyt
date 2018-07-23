@@ -32,7 +32,7 @@ class ProjectHandlerTest(unittest.TestCase):
         utils_path = os.path.join(project_folder, 'utils.py')
         exceptions_path = os.path.join(project_folder, 'exceptions.py')
         some_path = os.path.join(project_folder, folder, 'some.py')
-        __init__path = os.path.join(project_folder, folder, '__init__.py')
+        __init__path = os.path.join(project_folder, folder)
         indhold_path = os.path.join(project_folder, folder, directory, 'indhold.py')
 
         # relative_folder_name = '.' + folder
@@ -54,6 +54,32 @@ class ProjectHandlerTest(unittest.TestCase):
         self.assertIn(utils_tuple, modules)
         self.assertIn(exceptions_tuple, modules)
         self.assertIn(some_tuple, modules)
+        self.assertIn(__init__tuple, modules)
+        self.assertIn(indhold_tuple, modules)
+
+        self.assertEqual(len(modules), 6)
+
+    def test_get_modules_no_prepend_root(self):
+        project_folder = os.path.normpath(os.path.join('examples', 'test_project'))
+
+        folder = 'folder'
+        directory = 'directory'
+
+        modules = get_modules(project_folder, prepend_module_root=False)
+
+        app_path = os.path.join(project_folder, 'app.py')
+        __init__path = os.path.join(project_folder, folder)
+        indhold_path = os.path.join(project_folder, folder, directory, 'indhold.py')
+
+        app_name = 'app'
+        __init__name = folder
+        indhold_name = folder + '.' + directory + '.indhold'
+
+        app_tuple = (app_name, app_path)
+        __init__tuple = (__init__name, __init__path)
+        indhold_tuple = (indhold_name, indhold_path)
+
+        self.assertIn(app_tuple, modules)
         self.assertIn(__init__tuple, modules)
         self.assertIn(indhold_tuple, modules)
 
