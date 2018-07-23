@@ -18,15 +18,6 @@ default_trigger_word_file = os.path.join(
 )
 
 
-def valid_date(s):
-    date_format = "%Y-%m-%d"
-    try:
-        return datetime.strptime(s, date_format).date()
-    except ValueError:
-        msg = "Not a valid date: '{0}'. Format: {1}".format(s, date_format)
-        raise argparse.ArgumentTypeError(msg)
-
-
 def _add_required_group(parser):
     required_group = parser.add_argument_group('required arguments')
     required_group.add_argument(
