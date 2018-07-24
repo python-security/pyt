@@ -2,15 +2,14 @@ language: python
 python:
   - "3.6"
 install:
-  - pip install -r requirements.txt
-  - pip install codeclimate-test-reporter flake8
+  - pip install codeclimate-test-reporter 'coverage>=4.0,<4.4' flake8
 before_script:
   # stop the build if there are Python syntax errors or undefined names
   - flake8 . --count --exclude=examples --select=E901,E999,F821,F822,F823 --show-source --statistics
-  # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-  - flake8 . --count --exclude=examples --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 script:
-  - python -m tests
   - coverage run -m tests
+  - flake8 . --count --exclude=examples --max-complexity=11 --max-line-length=127 --show-source --statistics
+  - coverage report --include=tests/* --fail-under 100
+  - coverage report --include=pyt/* --fail-under 91
 after_script:
   - codeclimate-test-reporter
