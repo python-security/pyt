@@ -320,3 +320,7 @@ class LabelVisitor(ast.NodeVisitor):
             self.result += ':'
             self.visit_joined_str(node.format_spec)
         self.result += '}'
+
+    def visit_Starred(self, node):
+        self.result += '*'
+        self.visit(node.value)

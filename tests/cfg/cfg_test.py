@@ -1,3 +1,5 @@
+import ast
+
 from .cfg_base_test_case import CFGBaseTestCase
 
 from pyt.core.node_types import (
@@ -778,6 +780,45 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
         self.assertInCfg([(node, start_node), (exit_node, node)])
 
         self.assertEqual(self.cfg.nodes[node].label, 'a = (x, y)')
+
+    def test_assignment_starred(self):
+        self.cfg_create_from_file('examples/example_inputs/assignment_starred.py')
+
+        middle_nodes = self.cfg.nodes[1:-1]
+        self.assert_length(middle_nodes, expected_length=5)
+
+        visited = [self.cfg.nodes[0]]
+        while True:
+            current_node = visited[-1]
+            if len(current_node.outgoing) != 1:
+                break
+            visited.append(current_node.outgoing[0])
+        self.assertCountEqual(self.cfg.nodes, visited, msg="Did not complete a path from Entry to Exit")
+
+        self.assertEqual(middle_nodes[0].label, 'a = f')
+        self.assertCountEqual(  # We don't assert a specific order for the assignment nodes
+            [n.label for n in middle_nodes],
+            ['a = f', 'd = f + i', 'e = j'] + ['*b, c = *g, *h'] * 2,
+        )
+        self.assertCountEqual(
+            [(n.left_hand_side, n.right_hand_side_variables) for n in middle_nodes],
+            [('a', ['f']), ('b', ['g', 'h']), ('c', ['g', 'h']), ('d', ['f', 'i']), ('e', ['j'])],
+        )
+
+    def test_assignment_starred_list(self):
+        self.cfg_create_from_ast(ast.parse('[a, b, c] = *d, e'))
+
+        middle_nodes = self.cfg.nodes[1:-1]
+        self.assert_length(middle_nodes, expected_length=3)
+
+        self.assertCountEqual(
+            [n.label for n in middle_nodes],
+            ['a, b = *d', 'a, b = *d', 'c = e'],
+        )
+        self.assertCountEqual(
+            [(n.left_hand_side, n.right_hand_side_variables) for n in middle_nodes],
+            [('a', ['d']), ('b', ['d']), ('c', ['e'])],
+        )
 
 
 class CFGComprehensionTest(CFGBaseTestCase):

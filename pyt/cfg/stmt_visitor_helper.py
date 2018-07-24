@@ -79,6 +79,8 @@ def _get_names(node, result):
         return node.id + result
     elif isinstance(node, ast.Subscript):
         return result
+    elif isinstance(node, ast.Starred):
+        return _get_names(node.value, result)
     else:
         return _get_names(node.value, result + '.' + node.attr)
 
