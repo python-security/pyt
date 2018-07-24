@@ -327,28 +327,59 @@ class StmtVisitor(ast.NodeVisitor):
         return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
 
     def assign_tuple_target(self, node, right_hand_side_variables):
-        new_assignment_nodes = list()
-        for i, target in enumerate(node.targets[0].elts):
-            value = node.value.elts[i]
+        new_assignment_nodes = []
+        remaining_variables = list(right_hand_side_variables)
+        remaining_targets = list(node.targets[0].elts)
+        remaining_values = list(node.value.elts)  # May contain duplicates
 
+        def visit(target, value):
             label = LabelVisitor()
             label.visit(target)
-
+            rhs_visitor = RHSVisitor()
+            rhs_visitor.visit(value)
             if isinstance(value, ast.Call):
                 new_ast_node = ast.Assign(target, value)
-                new_ast_node.lineno = node.lineno
-
+                ast.copy_location(new_ast_node, node)
                 new_assignment_nodes.append(self.assignment_call_node(label.result, new_ast_node))
-
             else:
                 label.result += ' = '
                 label.visit(value)
-
                 new_assignment_nodes.append(self.append_node(AssignmentNode(
                     label.result,
                     extract_left_hand_side(target),
                     ast.Assign(target, value),
-                    right_hand_side_variables,
+                    rhs_visitor.result,
+                    line_number=node.lineno,
+                    path=self.filenames[-1]
+                )))
+            remaining_targets.remove(target)
+            remaining_values.remove(value)
+            for var in rhs_visitor.result:
+                remaining_variables.remove(var)
+
+        # Pair targets and values until a Starred node is reached
+        for target, value in zip(node.targets[0].elts, node.value.elts):
+            if isinstance(target, ast.Starred) or isinstance(value, ast.Starred):
+                break
+            visit(target, value)
+
+        # If there was a Starred node, pair remaining targets and values from the end
+        for target, value in zip(reversed(list(remaining_targets)), reversed(list(remaining_values))):
+            if isinstance(target, ast.Starred) or isinstance(value, ast.Starred):
+                break
+            visit(target, value)
+
+        if remaining_targets:
+            label = LabelVisitor()
+            label.handle_comma_separated(remaining_targets)
+            label.result += ' = '
+            label.handle_comma_separated(remaining_values)
+            for target in remaining_targets:
+                new_assignment_nodes.append(self.append_node(AssignmentNode(
+                    label.result,
+                    extract_left_hand_side(target),
+                    ast.Assign(target, remaining_values[0]),
+                    remaining_variables,
                     line_number=node.lineno,
                     path=self.filenames[-1]
                 )))
