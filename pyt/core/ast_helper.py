@@ -4,6 +4,7 @@ Useful when working with the ast module."""
 import ast
 import os
 import subprocess
+from functools import lru_cache
 
 
 BLACK_LISTED_CALL_NAMES = ['self']
@@ -21,6 +22,7 @@ def _convert_to_3(path):  # pragma: no cover
         exit(1)
 
 
+@lru_cache()
 def generate_ast(path):
     """Generate an Abstract Syntax Tree using the ast module.
 
