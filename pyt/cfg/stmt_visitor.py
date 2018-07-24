@@ -53,6 +53,9 @@ from .stmt_visitor_helper import (
 
 
 class StmtVisitor(ast.NodeVisitor):
+    def __init__(self, allow_local_directory_imports=True):
+        self._allow_local_modules = allow_local_directory_imports
+        super().__init__()
 
     def visit_Module(self, node):
         return self.stmt_star_handler(node.body)
@@ -753,7 +756,7 @@ class StmtVisitor(ast.NodeVisitor):
 
         # Analyse the file
         self.filenames.append(module_path)
-        self.local_modules = get_directory_modules(module_path)
+        self.local_modules = get_directory_modules(module_path) if self._allow_local_modules else []
         tree = generate_ast(module_path)
 
         # module[0] is None during e.g. "from . import foo", so we must str()

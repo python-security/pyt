@@ -94,7 +94,8 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             tree,
             project_modules,
             local_modules,
-            path
+            path,
+            allow_local_directory_imports=args.allow_local_imports
         )
         cfg_list = [cfg]
 

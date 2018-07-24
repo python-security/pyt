@@ -99,6 +99,14 @@ def _add_optional_group(parser):
         default=True,
         dest='prepend_module_root'
     )
+    optional_group.add_argument(
+        '--no-local-imports',
+        help='If set, absolute imports must be relative to the project root. '
+             'If not set, modules in the same directory can be imported just by their names.',
+        action='store_false',
+        default=True,
+        dest='allow_local_imports'
+    )
 
 
 def _add_print_group(parser):

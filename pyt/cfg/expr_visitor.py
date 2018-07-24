@@ -37,11 +37,13 @@ class ExprVisitor(StmtVisitor):
         project_modules,
         local_modules,
         filename,
-        module_definitions=None
+        module_definitions=None,
+        allow_local_directory_imports=True
     ):
         """Create an empty CFG."""
+        super().__init__(allow_local_directory_imports=allow_local_directory_imports)
         self.project_modules = project_modules
-        self.local_modules = local_modules
+        self.local_modules = local_modules if self._allow_local_modules else []
         self.filenames = [filename]
         self.blackbox_assignments = set()
         self.nodes = list()
