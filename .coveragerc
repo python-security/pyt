@@ -2,7 +2,6 @@
 show_missing = True
 
 exclude_lines =
-    def valid_date
     def __repr__
     def __str__
     if __name__ == .__main__.:

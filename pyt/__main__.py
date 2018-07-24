@@ -86,7 +86,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             directory = os.path.normpath(args.project_root)
         else:
             directory = os.path.dirname(path)
-        project_modules = get_modules(directory)
+        project_modules = get_modules(directory, prepend_module_root=args.prepend_module_root)
         local_modules = get_directory_modules(directory)
         tree = generate_ast(path)
 
@@ -94,7 +94,8 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             tree,
             project_modules,
             local_modules,
-            path
+            path,
+            allow_local_directory_imports=args.allow_local_imports
         )
         cfg_list = [cfg]
 

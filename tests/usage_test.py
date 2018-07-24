@@ -28,7 +28,8 @@ class UsageTest(BaseTestCase):
         EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                     [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                     [-r] [-x EXCLUDED_PATHS] [--dont-prepend-root]
+                     [--no-local-imports] [-trim] [-i]
                      targets [targets ...]
 
 required arguments:
@@ -55,6 +56,11 @@ optional arguments:
   -r, --recursive       find and process files in subdirectories
   -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
                         Separate files with commas
+  --dont-prepend-root   In project root e.g. /app, imports are not prepended
+                        with app.*
+  --no-local-imports    If set, absolute imports must be relative to the
+                        project root. If not set, modules in the same
+                        directory can be imported just by their names.
 
 print arguments:
   -trim, --trim-reassigned-in
@@ -73,7 +79,8 @@ print arguments:
         EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
                      [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                     [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
+                     [-r] [-x EXCLUDED_PATHS] [--dont-prepend-root]
+                     [--no-local-imports] [-trim] [-i]
                      targets [targets ...]
 python -m pyt: error: the following arguments are required: targets\n"""
 

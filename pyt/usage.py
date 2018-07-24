@@ -18,15 +18,6 @@ default_trigger_word_file = os.path.join(
 )
 
 
-def valid_date(s):
-    date_format = "%Y-%m-%d"
-    try:
-        return datetime.strptime(s, date_format).date()
-    except ValueError:
-        msg = "Not a valid date: '{0}'. Format: {1}".format(s, date_format)
-        raise argparse.ArgumentTypeError(msg)
-
-
 def _add_required_group(parser):
     required_group = parser.add_argument_group('required arguments')
     required_group.add_argument(
@@ -100,6 +91,21 @@ def _add_optional_group(parser):
         action='store',
         default='',
         help='Separate files with commas'
+    )
+    optional_group.add_argument(
+        '--dont-prepend-root',
+        help="In project root e.g. /app, imports are not prepended with app.*",
+        action='store_false',
+        default=True,
+        dest='prepend_module_root'
+    )
+    optional_group.add_argument(
+        '--no-local-imports',
+        help='If set, absolute imports must be relative to the project root. '
+             'If not set, modules in the same directory can be imported just by their names.',
+        action='store_false',
+        default=True,
+        dest='allow_local_imports'
     )
 
 

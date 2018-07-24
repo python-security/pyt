@@ -30,14 +30,16 @@ def make_cfg(
     project_modules,
     local_modules,
     filename,
-    module_definitions=None
+    module_definitions=None,
+    allow_local_directory_imports=True
 ):
     visitor = ExprVisitor(
         tree,
         project_modules,
         local_modules,
         filename,
-        module_definitions
+        module_definitions,
+        allow_local_directory_imports
     )
     return CFG(
         visitor.nodes,
