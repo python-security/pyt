@@ -30,11 +30,7 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     keywords=['security', 'vulnerability', 'web', 'flask', 'django', 'static-analysis', 'program-analysis'],
-    install_requires=[
-        'graphviz>=0.4.10',
-        'requests>=2.12',
-        'GitPython>=2.0.8'
-    ],
+    install_requires=[],
     entry_points={
         'console_scripts': [
             'pyt = pyt:main'

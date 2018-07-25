@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from datetime import datetime
 
 
 default_blackbox_mapping_file = os.path.join(

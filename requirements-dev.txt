@@ -1,8 +1,0 @@
-flake8
-mock
-pre-commit
-py
-pycodestyle
-pyflakes
-tox
-virtualenv
