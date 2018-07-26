@@ -446,10 +446,14 @@ def find_vulnerabilities_in_cfg(
     for node in cfg.nodes:
         print(f"\n \n[vulnerabilities.py] node is {node}")
         # print(f"node.ingoing is {node.ingoing}")
-        hmm = list()
+        ingoing = list()
+        outgoing = list()
+        for n in node.ingoing:
+            ingoing.append(n.label)
         for n in node.outgoing:
-            hmm.append(n.label)
-        print(f"node.outgoing is {hmm}")# {node.outgoing}")
+            outgoing.append(n.label)
+        print(f"node.ingoing is {ingoing}")
+        print(f"node.outgoing is {outgoing}")
     triggers = identify_triggers(
         cfg,
         definitions.sources,

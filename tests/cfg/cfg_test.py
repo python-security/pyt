@@ -1209,37 +1209,38 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
         ret_send_file = 28
         _exit = 29
 
-        self.assertInCfg([(save_3_image_name, _if),
-                          (ret_request, entry),
-                          (image_name_equals_call_1, ret_request),
-                          (_if, image_name_equals_call_1),
-                          (image_name_equals_foo, _if),
-                          (save_3_image_name, image_name_equals_foo),
-                          (temp_3_first_arg, save_3_image_name),
-                          (first_arg_equals_temp, temp_3_first_arg),
-                          (function_entry_first_inner, first_arg_equals_temp),
-                          (first_ret_val_equals_first, function_entry_first_inner),
-                          (ret_first_inner, first_ret_val_equals_first),
-                          (function_exit_first_inner, ret_first_inner),
-                          (image_name_equals_save_4, function_exit_first_inner),
-                          (call_3_equals_ret_first_inner, image_name_equals_save_4),
-                          (call_4_equals_ret_second_inner, call_3_equals_ret_first_inner),
-                          (save_5_image_name, call_4_equals_ret_second_inner),
-                          (save_5_first_ret_val, save_5_image_name),
-                          (temp_5_second_arg, save_5_first_ret_val),
-                          (second_arg_equals_temp, temp_5_second_arg),
-                          (function_entry_third_inner, second_arg_equals_temp),
-                          (third_ret_val, function_entry_third_inner),
-                          (ret_third_inner, third_ret_val),
-                          (exit_third_inner, ret_third_inner),
-                          (image_name_equals_save_5, exit_third_inner),
-                          (first_ret_val_equals_save_5, image_name_equals_save_5),
-                          (call_5_equals_ret_third_inner, first_ret_val_equals_save_5),
-                          (call_2_equals_ret_outer, call_5_equals_ret_third_inner),
-                          (foo_equals_call_2, call_2_equals_ret_outer),
-                          (ret_send_file, foo_equals_call_2),
-                          (_exit, ret_send_file)
-                          ])
+        self.assertInCfg([
+            (save_3_image_name, _if),
+            (ret_request, entry),
+            (image_name_equals_call_1, ret_request),
+            (_if, image_name_equals_call_1),
+            (image_name_equals_foo, _if),
+            (save_3_image_name, image_name_equals_foo),
+            (temp_3_first_arg, save_3_image_name),
+            (first_arg_equals_temp, temp_3_first_arg),
+            (function_entry_first_inner, first_arg_equals_temp),
+            (first_ret_val_equals_first, function_entry_first_inner),
+            (ret_first_inner, first_ret_val_equals_first),
+            (function_exit_first_inner, ret_first_inner),
+            (image_name_equals_save_4, function_exit_first_inner),
+            (call_3_equals_ret_first_inner, image_name_equals_save_4),
+            (call_4_equals_ret_second_inner, call_3_equals_ret_first_inner),
+            (save_5_image_name, call_4_equals_ret_second_inner),
+            (save_5_first_ret_val, save_5_image_name),
+            (temp_5_second_arg, save_5_first_ret_val),
+            (second_arg_equals_temp, temp_5_second_arg),
+            (function_entry_third_inner, second_arg_equals_temp),
+            (third_ret_val, function_entry_third_inner),
+            (ret_third_inner, third_ret_val),
+            (exit_third_inner, ret_third_inner),
+            (image_name_equals_save_5, exit_third_inner),
+            (first_ret_val_equals_save_5, image_name_equals_save_5),
+            (call_5_equals_ret_third_inner, first_ret_val_equals_save_5),
+            (call_2_equals_ret_outer, call_5_equals_ret_third_inner),
+            (foo_equals_call_2, call_2_equals_ret_outer),
+            (ret_send_file, foo_equals_call_2),
+            (_exit, ret_send_file)
+        ])
 
     def test_function_line_numbers_2(self):
         path = 'examples/example_inputs/simple_function_with_return.py'
@@ -1301,7 +1302,12 @@ class CFGBreak(CFGBaseTestCase):
     def test_break(self):
         self.cfg_create_from_file('examples/example_inputs/while_break.py')
 
-        self.assert_length(self.cfg.nodes, expected_length=8)
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        for i, n in enumerate(self.cfg.nodes):
+            print(f'node #{i} is {n}')
+            print(f'n.ingoing is {n.ingoing}')
+            # print(f'n.outgoing is {n.outgoing}')
 
         entry = 0
         _while = 1
@@ -1312,16 +1318,17 @@ class CFGBreak(CFGBaseTestCase):
         print_next = 6
         _exit = 7
 
-        # (foo, bar) means foo <- bar
-        self.assertInCfg([(_while, entry),
-                          (_while, print_hest),
-                          (_if, _while),
-                          (print_x, _if),
-                          (_break, print_x),
-                          (print_hest, _if),
-                          (print_next, _while),
-                          (print_next, _break),
-                          (_exit, print_next)])
+        self.assertInCfg([
+            (_while, entry),
+            (_while, print_hest),
+            (_if, _while),
+            (print_x, _if),
+            (_break, print_x),
+            (print_hest, _if),
+            (print_next, _while),
+            (print_next, _break),
+            (_exit, print_next)
+        ])
 
 
 class CFGNameConstant(CFGBaseTestCase):

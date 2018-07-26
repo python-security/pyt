@@ -81,6 +81,9 @@ class ExprVisitor(StmtVisitor):
         if not exprs:
             return ConnectedExpressions()
 
+        import ipdb
+        # ipdb.set_trace()
+
         expr_nodes = list()
         variables = list()
         visual_variables = list()
@@ -88,9 +91,17 @@ class ExprVisitor(StmtVisitor):
         last_node_should_not_be_ignored = False
         node_not_to_step_past = self.nodes[-1]
 
+        print('')
         for expr in exprs:
             node = self.visit(expr)
+            print(f'node is {node}')
+            if 'param' in str(node):
+                raise
 
+            import ast
+            if not node and not isinstance(expr, ast.BinOp) and not isinstance(expr, ast.GeneratorExp):
+                print(f'type(expr) is {type(expr)}')
+                raise
             if isinstance(node, AssignmentNode):
                 variables.append(node.left_hand_side)
                 visual_variables.append(node.left_hand_side)
@@ -105,11 +116,13 @@ class ExprVisitor(StmtVisitor):
                 label = LabelVisitor()
                 label.visit(expr)
                 visual_variables.append(label.result)
+                print(f'aight variables are {variables}')
+                print(f'aight visual_variables are {visual_variables}')
 
-            last_node_should_not_be_ignored = not isinstance(node, StrNode)
+            last_node_should_not_be_ignored = node and not isinstance(node, StrNode)
             if last_node_should_not_be_ignored:
                 expr_nodes.append(node)
-                if first_node is not None:
+                if first_node is None:
                     if isinstance(node, ControlFlowExpr):
                         first_node = node.test
                     else:
@@ -117,10 +130,16 @@ class ExprVisitor(StmtVisitor):
                             node,
                             node_not_to_step_past
                         )
-                    # Here we connect the first node, to the [-1] node before all the visiting happened
-                    node_not_to_step_past.connect(first_node)
 
+                    print(f'hmm, so node_not_to_step_past is {node_not_to_step_past}')
+                    print(f'hmm, so first_node is {first_node}')
+                    # Here we connect the first node, to the [-1] node before all the visiting happened
+                    # node_not_to_step_past.connect(first_node)
+        print(f'[before expr_nodes] are {expr_nodes}')
         connect_expressions(expr_nodes)
+        print(f'[after expr_nodes] are {expr_nodes}')
+        print('see')
+
 
         return ConnectedExpressions(
             first_expression=first_node,
@@ -145,14 +164,19 @@ class ExprVisitor(StmtVisitor):
 
         exit_node = self.append_node(EntryOrExitNode('Exit module'))
 
+        # Hmmmm
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
             return
 
         first_node = module_statements.first_statement
 
-        if CALL_IDENTIFIER not in first_node.label:
-            entry_node.connect(first_node)
+        # import ipdb
+        # ipdb.set_trace()
+
+        # This is because we do `node_not_to_step_past.connect(first_node)` in expr_star_handler
+        # if CALL_IDENTIFIER not in first_node.label:
+        entry_node.connect(first_node)
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
@@ -168,14 +192,18 @@ class ExprVisitor(StmtVisitor):
         module_statements = self.stmt_star_handler(node.body)
         exit_node = self.append_node(EntryOrExitNode('Exit function'))
 
+        # Hmmmm
         if isinstance(module_statements, IgnoredNode):
             entry_node.connect(exit_node)
             return
 
         first_node = module_statements.first_statement
 
-        if CALL_IDENTIFIER not in first_node.label:
-            entry_node.connect(first_node)
+        import ipdb
+        # ipdb.set_trace()
+        # This is because we do `node_not_to_step_past.connect(first_node)` in expr_star_handler
+        # if CALL_IDENTIFIER not in first_node.label:
+        entry_node.connect(first_node)
 
         last_nodes = module_statements.last_statements
         exit_node.connect_predecessors(last_nodes)
@@ -728,6 +756,9 @@ class ExprVisitor(StmtVisitor):
         Returns:
             call_node(BBorBInode): The call node.
         """
+        # import ipdb
+        # ipdb.set_trace()
+        # print('look at self.nodes yo, entry aint connectin w/ BoolOpz but it does indeed connect with IfExp')
         self.function_call_index += 1
         saved_function_call_index = self.function_call_index
         self.undecided = False
@@ -749,10 +780,15 @@ class ExprVisitor(StmtVisitor):
 
         # Maybe I can remove the ignored nodes and add them to my visual args?
         # Who knows?
+        print(f'heyo, so node.args is {node.args}')
+
         connected_expressions = self.expr_star_handler(list(itertools.chain(
             node.args,
             node.keywords
         )))
+        # This is used in connect_nodes
+        call_node.first_expression = connected_expressions.first_expression
+
         print(f'\n\n\n\n\n\n\nsomething IS {connected_expressions}')
         print(f'connected_expressions.variables are {connected_expressions.variables}\n\n\n\n\n\n\n')
         print('LAST EXPRESSIONS IS ')

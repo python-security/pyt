@@ -100,7 +100,12 @@ class StmtVisitor(ast.NodeVisitor):
         self.prev_nodes_to_avoid.pop()
         self.last_control_flow_nodes.pop()
 
+        import ipdb
+        print(f'[before cfg_statements] are {cfg_statements}')
+        # ipdb.set_trace()
         connect_nodes(cfg_statements)
+        print(f'[after cfg_statements] are {cfg_statements}')
+        print('see')
 
         if cfg_statements:
             if first_node:

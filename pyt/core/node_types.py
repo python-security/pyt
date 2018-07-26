@@ -30,6 +30,9 @@ class ControlFlowExpr():
         self.variables = variables
         self.visual_variables = visual_variables
 
+        self.label = test.label
+        self.ingoing = test.ingoing
+
     def connect(self, node):
         self.test.connect(node)
 

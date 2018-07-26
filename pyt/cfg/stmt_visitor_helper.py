@@ -7,6 +7,7 @@ from ..core.node_types import (
     BBorBInode,
     BreakNode,
     ControlFlowNode,
+    Node, # tmp
     RestoreNode
 )
 from .expr_visitor_helper import CALL_IDENTIFIER
@@ -24,27 +25,40 @@ ConnectStatements = namedtuple(
 )
 
 
-def _get_inner_most_function_call(call_node):
-    # Loop to inner most function call
-    # e.g. return scrypt.inner in `foo = scrypt.outer(scrypt.inner(image_name))`
-    old_call_node = None
-    while call_node != old_call_node:
-        old_call_node = call_node
-        if isinstance(call_node, BBorBInode):
-            call_node = call_node.inner_most_call
-        else:
-            try:
-                # e.g. save_2_blah, even when there is a save_3_blah
-                call_node = call_node.first_node
-            except AttributeError:
-                # No inner calls
-                # Possible improvement: Make new node for RestoreNode's made in process_function
-                #                       and make `self.inner_most_call = self`
-                # So that we can duck type and not catch an exception when there are no inner calls.
-                # This is what we do in BBorBInode
-                pass
+def _get_inner_most_expression(call_node):
+    if not isinstance(call_node, BBorBInode):
+        raise
+    else:
+        first_expression = call_node.first_expression
+        # In the case that it was just strings or something
+        if not first_expression:
+            return call_node
 
-    return call_node
+    # e.g. return image_name in `foo = scrypt.outer(scrypt.inner(image_name))`
+    old_first_expression = None
+    while first_expression != old_first_expression:
+        old_first_expression = first_expression
+        if isinstance(first_expression, BBorBInode):
+            first_expression = first_expression.first_expression
+        else:
+            print(f'So first_expression is {first_expression}')
+            print(f'So type(first_expression) is {type(first_expression)}')
+            if type(first_expression) == Node:
+                print('returning it b/c it is type() Node')
+                return first_expression
+            raise
+            # try:
+            #     # e.g. save_2_blah, even when there is a save_3_blah
+            #     first_expression = first_expression.first_node
+            # except AttributeError:
+            #     # No inner calls
+            #     # Possible improvement: Make new node for RestoreNode's made in process_function
+            #     #                       and make `self.inner_most_call = self`
+            #     # So that we can duck type and not catch an exception when there are no inner calls.
+            #     # This is what we do in BBorBInode
+            #     pass
+
+    return first_expression
 
 
 def _connect_control_flow_node(control_flow_node, next_node):
@@ -52,10 +66,17 @@ def _connect_control_flow_node(control_flow_node, next_node):
     for last in control_flow_node.last_nodes:
         if isinstance(next_node, ControlFlowNode):
             last.connect(next_node.test)  # connect to next if test case
-        elif isinstance(next_node, AssignmentCallNode):
-            call_node = next_node.call_node
-            inner_most_call_node = _get_inner_most_function_call(call_node)
-            last.connect(inner_most_call_node)
+        elif isinstance(next_node, (AssignmentCallNode, BBorBInode)):
+            # Get some_function in `foo = some_function(h)`
+            if isinstance(next_node, AssignmentCallNode):
+                next_node = next_node.call_node
+
+            import ipdb
+            # ipdb.set_trace()
+
+            inner_most_expression = _get_inner_most_expression(next_node)
+            print(f'ahh yeah, connecting {last} to {inner_most_expression}')
+            last.connect(inner_most_expression)
         else:
             last.connect(next_node)
 
@@ -63,6 +84,10 @@ def _connect_control_flow_node(control_flow_node, next_node):
 def connect_nodes(nodes):
     """Connect the nodes in a list linearly."""
     for n, next_node in zip(nodes, nodes[1:]):
+
+        import ipdb
+        # ipdb.set_trace()
+
         if isinstance(n, ControlFlowNode):
             print('68')
             _connect_control_flow_node(n, next_node)
@@ -72,8 +97,23 @@ def connect_nodes(nodes):
         elif isinstance(next_node, RestoreNode):
             print('72')
             continue
+        elif isinstance(next_node, (AssignmentCallNode, BBorBInode)):
+            # Get some_function in `foo = some_function(h)`
+            import ipdb
+            # ipdb.set_trace()
+
+            if isinstance(next_node, AssignmentCallNode):
+                next_node = next_node.call_node
+            n.connect(_get_inner_most_expression(next_node))
+        # Do we do this because we do node_not_to_step_past.connect(first_node) in expr_star_handler?
         elif CALL_IDENTIFIER in next_node.label:
-            print('hi')
+            # We should connect to the first node of next_node!
+            # Otherwise, we will connect to the assingment instead of param in e.g. foo = hey(param)
+            # TODO
+            n.connect(next_node.first_expression)
+            print('type of next_node is')
+            print(type(next_node))
+            raise
             continue
         else:
             print('foo')
