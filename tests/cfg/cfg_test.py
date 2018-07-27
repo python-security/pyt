@@ -820,6 +820,14 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
             [('a', ['d']), ('b', ['d']), ('c', ['e'])],
         )
 
+    def test_augmented_assignment(self):
+        self.cfg_create_from_ast(ast.parse('a+=f(b,c)'))
+
+        (node,) = self.cfg.nodes[1:-1]
+        self.assertEqual(node.label, 'a += f(b, c)')
+        self.assertEqual(node.left_hand_side, 'a')
+        self.assertEqual(node.right_hand_side_variables, ['b', 'c', 'a'])
+
 
 class CFGComprehensionTest(CFGBaseTestCase):
     def test_nodes(self):

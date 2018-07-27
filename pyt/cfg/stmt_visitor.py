@@ -499,11 +499,12 @@ class StmtVisitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
 
+        lhs = extract_left_hand_side(node.target)
         return self.append_node(AssignmentNode(
             label.result,
-            extract_left_hand_side(node.target),
+            lhs,
             node,
-            rhs_visitor.result,
+            rhs_visitor.result + [lhs],
             path=self.filenames[-1]
         ))
 
