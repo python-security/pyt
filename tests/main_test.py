@@ -16,15 +16,36 @@ class MainTest(BaseTestCase):
 
         mock_discover_files.return_value = [example_file]
         mock_parse_args.return_value = mock.Mock(
-            autospec=True,
             project_root=None,
             baseline=None,
             json=None,
             output_file=output_file
         )
-        main([
-            'parse_args is mocked'
-        ])
+        with self.assertRaises(SystemExit):
+            main(['parse_args is mocked'])
+        assert mock_text.report.call_count == 1
+        mock_text.report.assert_called_with(
+            mock_find_vulnerabilities.return_value,
+            mock_parse_args.return_value.output_file
+        )
+
+    @mock.patch('pyt.__main__.discover_files')
+    @mock.patch('pyt.__main__.parse_args')
+    @mock.patch('pyt.__main__.find_vulnerabilities')
+    @mock.patch('pyt.__main__.text')
+    def test_no_vulns_found(self, mock_text, mock_find_vulnerabilities, mock_parse_args, mock_discover_files):
+        mock_find_vulnerabilities.return_value = []
+        example_file = 'examples/vulnerable_code/inter_command_injection.py'
+        output_file = 'mocked_outfile'
+
+        mock_discover_files.return_value = [example_file]
+        mock_parse_args.return_value = mock.Mock(
+            project_root=None,
+            baseline=None,
+            json=None,
+            output_file=output_file
+        )
+        main(['parse_args is mocked'])  # No SystemExit
         assert mock_text.report.call_count == 1
         mock_text.report.assert_called_with(
             mock_find_vulnerabilities.return_value,
@@ -42,15 +63,13 @@ class MainTest(BaseTestCase):
 
         mock_discover_files.return_value = [example_file]
         mock_parse_args.return_value = mock.Mock(
-            autospec=True,
             project_root=None,
             baseline=None,
             json=True,
             output_file=output_file
         )
-        main([
-            'parse_args is mocked'
-        ])
+        with self.assertRaises(SystemExit):
+            main(['parse_args is mocked'])
         assert mock_json.report.call_count == 1
         mock_json.report.assert_called_with(
             mock_find_vulnerabilities.return_value,

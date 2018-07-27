@@ -22,6 +22,7 @@ from .vulnerabilities import (
     get_vulnerabilities_not_in_baseline,
     UImode
 )
+from .vulnerabilities.vulnerability_helper import SanitisedVulnerability
 from .web_frameworks import (
     FrameworkAdaptor,
     is_django_view_function,
@@ -136,6 +137,10 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         json.report(vulnerabilities, args.output_file)
     else:
         text.report(vulnerabilities, args.output_file)
+
+    has_unsanitized_vulnerabilities = any(not isinstance(v, SanitisedVulnerability) for v in vulnerabilities)
+    if has_unsanitized_vulnerabilities:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
