@@ -26,12 +26,10 @@ class MainTest(BaseTestCase):
             'parse_args is mocked'
         ])
         assert mock_text.report.call_count == 1
-        # This with: makes no sense
-        with self.assertRaises(AssertionError):
-            assert mock_text.report.assert_called_with(
-                mock_find_vulnerabilities.return_value,
-                mock_parse_args.return_value.output_file
-            )
+        mock_text.report.assert_called_with(
+            mock_find_vulnerabilities.return_value,
+            mock_parse_args.return_value.output_file
+        )
 
     @mock.patch('pyt.__main__.discover_files')
     @mock.patch('pyt.__main__.parse_args')
@@ -54,12 +52,10 @@ class MainTest(BaseTestCase):
             'parse_args is mocked'
         ])
         assert mock_json.report.call_count == 1
-        # This with: makes no sense
-        with self.assertRaises(AssertionError):
-            assert mock_json.report.assert_called_with(
-                mock_find_vulnerabilities.return_value,
-                mock_parse_args.return_value.output_file
-            )
+        mock_json.report.assert_called_with(
+            mock_find_vulnerabilities.return_value,
+            mock_parse_args.return_value.output_file
+        )
 
 
 class DiscoverFilesTest(BaseTestCase):
