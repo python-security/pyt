@@ -114,11 +114,10 @@ class ExprVisitor(StmtVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        try:
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(node.value)
-        except AttributeError:
-            rhs_visitor.result = 'EmptyYield'
+        if node.value is None:
+            rhs_visitor_result = []
+        else:
+            rhs_visitor_result = RHSVisitor.result_for_node(node.value)
 
         # Yield is a bit like augmented assignment to a return value
         this_function_name = self.function_return_stack[-1]
@@ -127,7 +126,7 @@ class ExprVisitor(StmtVisitor):
             LHS + ' += ' + label.result,
             LHS,
             node,
-            rhs_visitor.result + [LHS],
+            rhs_visitor_result + [LHS],
             path=self.filenames[-1])
         )
 
