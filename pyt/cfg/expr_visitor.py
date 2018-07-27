@@ -15,7 +15,8 @@ from ..core.node_types import (
     IgnoredNode,
     Node,
     RestoreNode,
-    ReturnNode
+    ReturnNode,
+    YieldNode
 )
 from .expr_visitor_helper import (
     BUILTINS,
@@ -119,15 +120,19 @@ class ExprVisitor(StmtVisitor):
         except AttributeError:
             rhs_visitor.result = 'EmptyYield'
 
+        # Yield is a bit like augmented assignment to a return value
         this_function_name = self.function_return_stack[-1]
-        LHS = 'yield_' + this_function_name
-        return self.append_node(ReturnNode(
-            LHS + ' = ' + label.result,
+        LHS = 'yld_' + this_function_name
+        return self.append_node(YieldNode(
+            LHS + ' += ' + label.result,
             LHS,
             node,
-            rhs_visitor.result,
+            rhs_visitor.result + [LHS],
             path=self.filenames[-1])
         )
+
+    def visit_YieldFrom(self, node):
+        return self.visit_Yield(node)
 
     def visit_Attribute(self, node):
         return self.visit_miscelleaneous_node(
@@ -449,24 +454,28 @@ class ExprVisitor(StmtVisitor):
             saved_function_call_index(int): Unique number for each call.
             first_node(EntryOrExitNode or RestoreNode): Used to connect previous statements to this function.
         """
-        for node in function_nodes:
+        if any(isinstance(node, YieldNode) for node in function_nodes):
+            # Presence of a `YieldNode` means that the function is a generator
+            rhs_prefix = 'yld_'
+        elif any(isinstance(node, ConnectToExitNode) for node in function_nodes):
             # Only `Return`s and `Raise`s can be of type ConnectToExitNode
-            if isinstance(node, ConnectToExitNode):
-                # Create e.g. ~call_1 = ret_func_foo RestoreNode
-                LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
-                RHS = 'ret_' + get_call_names_as_string(call_node.func)
-                return_node = RestoreNode(
-                    LHS + ' = ' + RHS,
-                    LHS,
-                    [RHS],
-                    line_number=call_node.lineno,
-                    path=self.filenames[-1]
-                )
-                return_node.first_node = first_node
+            rhs_prefix = 'ret_'
+        else:
+            return  # No return value
 
-                self.nodes[-1].connect(return_node)
-                self.nodes.append(return_node)
-                return
+        # Create e.g. ~call_1 = ret_func_foo RestoreNode
+        LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
+        RHS = rhs_prefix + get_call_names_as_string(call_node.func)
+        return_node = RestoreNode(
+            LHS + ' = ' + RHS,
+            LHS,
+            [RHS],
+            line_number=call_node.lineno,
+            path=self.filenames[-1]
+        )
+        return_node.first_node = first_node
+        self.nodes[-1].connect(return_node)
+        self.nodes.append(return_node)
 
     def process_function(self, call_node, definition):
         """Processes a user defined function when it is called.

@@ -492,6 +492,31 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 
+    def test_yield(self):
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/yield.py')
+        self.assert_length(vulnerabilities, expected_length=1)
+        vuln = vulnerabilities[0]
+        self.assertEqual(vuln.source.left_hand_side, "yld_things_to_run")
+        self.assertIn("yld_things_to_run", vuln.source.right_hand_side_variables)
+        EXPECTED_VULNERABILITY_DESCRIPTION = """
+            File: examples/vulnerable_code/yield.py
+             > User input at line 9, source "request.get_json(":
+                     yld_things_to_run += request.get_json()['commands']
+            Reassigned in:
+                    File: examples/vulnerable_code/yield.py
+                     > Line 15: ~call_2 = yld_things_to_run
+                    File: examples/vulnerable_code/yield.py
+                     > Line 15: ~call_1 = ret_'; '.join(~call_2)
+                    File: examples/vulnerable_code/yield.py
+                     > Line 15: script = ~call_1
+            File: examples/vulnerable_code/yield.py
+             > reaches line 16, sink "subprocess.call(":
+                    ~call_3 = ret_subprocess.call(script, shell=True)
+            This vulnerability is unknown due to:  Label: ~call_1 = ret_'; '.join(~call_2)
+        """
+
+        self.assertAlphaEqual(str(vuln), EXPECTED_VULNERABILITY_DESCRIPTION)
+
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):

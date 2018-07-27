@@ -285,3 +285,11 @@ class ReturnNode(AssignmentNode, ConnectToExitNode):
             line_number=ast_node.lineno,
             path=path
         )
+
+
+class YieldNode(AssignmentNode):
+    """CFG Node that represents a yield or yield from.
+
+    The presence of a YieldNode means that a function is a generator.
+    """
+    pass
