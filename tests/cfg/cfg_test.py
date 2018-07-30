@@ -820,6 +820,14 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
             [('a', ['d']), ('b', ['d']), ('c', ['e'])],
         )
 
+    def test_augmented_assignment(self):
+        self.cfg_create_from_ast(ast.parse('a+=f(b,c)'))
+
+        (node,) = self.cfg.nodes[1:-1]
+        self.assertEqual(node.label, 'a += f(b, c)')
+        self.assertEqual(node.left_hand_side, 'a')
+        self.assertEqual(node.right_hand_side_variables, ['b', 'c', 'a'])
+
 
 class CFGComprehensionTest(CFGBaseTestCase):
     def test_nodes(self):
@@ -994,6 +1002,42 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
                           (exit_foo, ret),
                           (call_foo, exit_foo),
                           (_exit, call_foo)])
+
+    def test_generator_multiple_yield(self):
+        path = 'examples/example_inputs/generator_with_multiple_yields.py'
+        self.cfg_create_from_file(path)
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        entry_foo = 1
+        a = 2
+        _if = 3
+        yld_if = 4
+        yld = 5
+        exit_foo = 6
+        call_foo = 7
+        _exit = 8
+
+        self.assertInCfg([
+            (entry_foo, entry),
+            (a, entry_foo),
+            (_if, a),
+            (yld_if, _if),
+            (yld, _if),
+            (yld, yld_if),  # Different from return
+            (exit_foo, yld),
+            (call_foo, exit_foo),
+            (_exit, call_foo)
+        ])
+
+        yld_if_node = self.cfg.nodes[yld_if]
+        self.assertEqual(yld_if_node.left_hand_side, 'yld_foo')
+        self.assertEqual(yld_if_node.right_hand_side_variables, ['yld_foo'])
+        yld_node = self.cfg.nodes[yld]
+        self.assertEqual(yld_node.left_hand_side, 'yld_foo')
+        self.assertEqual(yld_node.right_hand_side_variables, ['a', 'yld_foo'])
+        self.assertEqual(self.cfg.nodes[call_foo].right_hand_side_variables, ['yld_foo'])
 
     def test_blackbox_call_after_if(self):
         path = 'examples/vulnerable_code/blackbox_call_after_if.py'

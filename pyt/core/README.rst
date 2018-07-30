@@ -9,7 +9,7 @@ This directory contains miscellaneous code that is imported from different parts
 
 - `get_call_names`_ used in `vars_visitor.py`_ when visiting a Subscript, and `framework_helper.py`_ on function decorators in `is_flask_route_function`_
 
-- `get_call_names_as_string`_ used in `expr_visitor.py`_ to create ret_function_name as RHS and yield_function_name as LHS, and in stmt_visitor.py when connecting a function to a loop.
+- `get_call_names_as_string`_ used in `expr_visitor.py`_ to create ret_function_name as RHS and yld_function_name as LHS, and in stmt_visitor.py when connecting a function to a loop.
 
 - `Arguments`_ used in `expr_visitor.py`_ when processing the arguments of a user defined function and `framework_adaptor.py`_ to taint function definition arguments.
 

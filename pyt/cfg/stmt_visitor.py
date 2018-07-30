@@ -244,12 +244,6 @@ class StmtVisitor(ast.NodeVisitor):
         label = LabelVisitor()
         label.visit(node)
 
-        try:
-            rhs_visitor = RHSVisitor()
-            rhs_visitor.visit(node.value)
-        except AttributeError:
-            rhs_visitor.result = 'EmptyReturn'
-
         this_function_name = self.function_return_stack[-1]
         LHS = 'ret_' + this_function_name
 
@@ -263,14 +257,17 @@ class StmtVisitor(ast.NodeVisitor):
                 path=self.filenames[-1]
             )
             return_value_of_call.connect(return_node)
-            self.nodes.append(return_node)
-            return return_node
+            return self.append_node(return_node)
+        elif node.value is not None:
+            rhs_visitor_result = RHSVisitor.result_for_node(node.value)
+        else:
+            rhs_visitor_result = []
 
         return self.append_node(ReturnNode(
             LHS + ' = ' + label.result,
             LHS,
             node,
-            rhs_visitor.result,
+            rhs_visitor_result,
             path=self.filenames[-1]
         ))
 
@@ -502,11 +499,12 @@ class StmtVisitor(ast.NodeVisitor):
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node.value)
 
+        lhs = extract_left_hand_side(node.target)
         return self.append_node(AssignmentNode(
             label.result,
-            extract_left_hand_side(node.target),
+            lhs,
             node,
-            rhs_visitor.result,
+            rhs_visitor.result + [lhs],
             path=self.filenames[-1]
         ))
 
