@@ -23,7 +23,8 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [@xxxx]: https://github.com/xxxx
 -->
 
-# Unreleased
+# 0.37
+##### July 30, 2018
 
 #### :tada: New Features
 
@@ -47,9 +48,11 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 
 * Added per-arg taint, for sink functions ([#147], thanks [@bcaller])
 * Improved tuple assingment to be more precise and support starargs ([#150], thanks [@bcaller])
+* AugAssign, Yield, and YieldFrom taint propagation improvements ([#155], thanks [@bcaller]) 
 
 [#147]: https://github.com/python-security/pyt/pull/147
 [#150]: https://github.com/python-security/pyt/pull/150
+[#155]: https://github.com/python-security/pyt/pull/155
 
 #### :bug: Bugfixes
 * Fixed a bug where `get_call_names` only handled ast.Attribute nodes ([#148], thanks [@bcaller])
