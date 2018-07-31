@@ -52,6 +52,13 @@ class VarsVisitorTest(VarsVisitorTestCase):
         vars = self.perform_vars_on_expression("resp = make_response(html.replace.bar('{{ param }}', param))")
         self.assertEqual(vars.result, ['resp', 'ret_bar'])
 
+    def test_curried_function(self):
+        # Curried functions aren't supported really, but we now at least have a defined behaviour.
+        vars = self.perform_vars_on_expression('f(g.h(a)(b))')
+        self.assertCountEqual(vars.result, ['ret_h', 'b'])
+        vars = self.perform_vars_on_expression('f(g(a)(b)(c)(d, e=f))')
+        self.assertCountEqual(vars.result, ['ret_g', 'b', 'c', 'd', 'f'])
+
     def test_keyword_vararg(self):
         vars = self.perform_vars_on_expression('print(arg = x)')
         self.assertEqual(vars.result, ['x'])
