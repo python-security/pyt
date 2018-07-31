@@ -68,9 +68,6 @@ class VarsVisitor(ast.NodeVisitor):
         for gen in node.generators:
             self.comprehension(gen)
 
-    def visit_Await(self, node):
-        self.visit(node.value)
-
     def visit_Yield(self, node):
         if node.value:
             self.visit(node.value)

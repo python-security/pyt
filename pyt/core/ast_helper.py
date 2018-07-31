@@ -6,6 +6,8 @@ import os
 import subprocess
 from functools import lru_cache
 
+from .transformer import AsyncTransformer
+
 
 BLACK_LISTED_CALL_NAMES = ['self']
 recursive = False
@@ -32,7 +34,8 @@ def generate_ast(path):
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:
-                return ast.parse(f.read())
+                tree = ast.parse(f.read())
+                return AsyncTransformer().visit(tree)
             except SyntaxError:  # pragma: no cover
                 global recursive
                 if not recursive:

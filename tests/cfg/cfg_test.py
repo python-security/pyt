@@ -1446,6 +1446,28 @@ class CFGNameConstant(CFGBaseTestCase):
         self.assertEqual(expected_label, actual_label)
 
 
+class CFGAsync(CFGBaseTestCase):
+    def test_await_keyword_treated_as_if_absent(self):
+        self.cfg_create_from_file('examples/example_inputs/asynchronous.py')
+        enter_g = 8
+        call_x = 9
+        ret_g = 10
+        exit_g = 11
+        call_ret_val = 12
+        set_z_to_g_ret_val = 13
+
+        for i in range(enter_g, set_z_to_g_ret_val + 1):
+            self.assertIn(self.cfg.nodes[i], self.cfg.nodes[i + 1].ingoing)
+            self.assertIn(self.cfg.nodes[i + 1], self.cfg.nodes[i].outgoing)
+
+        self.assertIsInstance(self.cfg.nodes[enter_g], EntryOrExitNode)
+        self.assertEqual(self.cfg.nodes[call_x].label, '~call_3 = ret_x()')
+        self.assertEqual(self.cfg.nodes[ret_g].label, 'ret_g = ~call_3')
+        self.assertIsInstance(self.cfg.nodes[exit_g], EntryOrExitNode)
+        self.assertEqual(self.cfg.nodes[call_ret_val].label, '~call_2 = ret_g')
+        self.assertEqual(self.cfg.nodes[set_z_to_g_ret_val].label, 'z = ~call_2')
+
+
 class CFGName(CFGBaseTestCase):
     """Test is Name nodes are properly handled in different contexts"""
 
