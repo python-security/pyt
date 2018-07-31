@@ -149,18 +149,4 @@ Change to project directory
 
 ``cd pyt``
 
-Install dependencies
-
-``pip install -r requirements.txt``
-
-``pip list`` sample output ::
-
-    gitdb (0.6.4)
-    GitPython (2.0.8)
-    graphviz (0.4.10)
-    pip (9.0.1)
-    requests (2.10.0)
-    setuptools (28.8.0)
-    smmap (0.9.0)
-
 In the future, just type ``source ~/a_folder/bin/activate`` to start developing.
