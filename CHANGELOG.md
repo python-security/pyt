@@ -55,7 +55,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#155]: https://github.com/python-security/pyt/pull/155
 
 #### :bug: Bugfixes
-* Fixed a bug where `get_call_names` only handled ast.Attribute nodes ([#148], thanks [@bcaller])
+* Fixed a bug where `get_call_names` only handled `ast.Attribute` nodes ([#148], thanks [@bcaller])
 * Fixed a bug where `vars_visitor.py` crashed on Python 3.5 dict syntax ([#144], thanks [@bcaller])
 
 [#144]: https://github.com/python-security/pyt/pull/144
@@ -69,13 +69,13 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 
 #### :mortar_board: Walkthrough / Help
 
-* Added README.rst files to almost every directory. (Partially [#126])
+* Added `README.rst` files to almost every directory. (Partially [#126])
 
 #### :snake: Miscellaneous
 
 * Added tests for `vars_visitor.py`, making our overall coverage 91% ([#139], thanks [@stannum-l])
 * Cleaned and organized requirements, `setup.py`, `tox.ini` and `.travis.yml` ([#152], thanks [@bcaller])
-* Cleaned up the new pyt/core/ folder ([#132]) 
+* Cleaned up the new `pyt/core/` folder ([#132]) 
 * Fixed all flake8 errors ([#114] & [#130], thanks [@cclauss])
 * Re-organized the entire codebase into different directories ([#126])
 * Return exit code 1 if any non-sanitised vulnerabilities are found ([#156], thanks [@bcaller])
