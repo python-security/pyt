@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from .base_test_case import BaseTestCase
 from pyt.__main__ import discover_files, main
