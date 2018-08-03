@@ -1,3 +1,6 @@
+Web Frameworks
+==============
+
 This code determines which functions have their arguments marked at tainted, for example by default the framework adaptor is Flask, so
 
 .. code-block:: python
