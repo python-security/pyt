@@ -540,6 +540,9 @@ def find_vulnerabilities(
             vulnerabilities,
             nosec_lines
         )
-    with open(blackbox_mapping_file, 'w') as outfile:
-        json.dump(blackbox_mapping, outfile, indent=4)
+
+    if ui_mode == UImode.INTERACTIVE:
+        with open(blackbox_mapping_file, 'w') as outfile:
+            json.dump(blackbox_mapping, outfile, indent=4)
+
     return vulnerabilities
