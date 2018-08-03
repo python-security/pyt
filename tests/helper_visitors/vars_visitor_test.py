@@ -45,6 +45,10 @@ class VarsVisitorTest(VarsVisitorTestCase):
         self.assertEqual(vars.result, ['resp', 'ret_replace'])
 
     def test_call6(self):
+        vars = self.perform_vars_on_expression("resp = f(kw=g(a, b))")
+        self.assertEqual(vars.result, ['resp', 'ret_g'])
+
+    def test_call7(self):
         vars = self.perform_vars_on_expression("resp = make_response(html.replace.bar('{{ param }}', param))")
         self.assertEqual(vars.result, ['resp', 'ret_bar'])
 

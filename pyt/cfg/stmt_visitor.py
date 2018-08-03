@@ -615,7 +615,8 @@ class StmtVisitor(ast.NodeVisitor):
         rhs_vars = list()
         last_return_value_of_nested_call = None
 
-        for arg in itertools.chain(node.args, node.keywords):
+        for arg_node in itertools.chain(node.args, node.keywords):
+            arg = arg_node.value if isinstance(arg_node, ast.keyword) else arg_node
             if isinstance(arg, ast.Call):
                 return_value_of_nested_call = self.visit(arg)
 
@@ -634,15 +635,18 @@ class StmtVisitor(ast.NodeVisitor):
                     call_node.inner_most_call = return_value_of_nested_call
                 last_return_value_of_nested_call = return_value_of_nested_call
 
-                visual_args.append(return_value_of_nested_call.left_hand_side)
+                if isinstance(arg_node, ast.keyword) and arg_node.arg is not None:
+                    visual_args.append(arg_node.arg + '=' + return_value_of_nested_call.left_hand_side)
+                else:
+                    visual_args.append(return_value_of_nested_call.left_hand_side)
                 rhs_vars.append(return_value_of_nested_call.left_hand_side)
             else:
                 label = LabelVisitor()
-                label.visit(arg)
+                label.visit(arg_node)
                 visual_args.append(label.result)
 
                 vv = VarsVisitor()
-                vv.visit(arg)
+                vv.visit(arg_node)
                 rhs_vars.extend(vv.result)
         if last_return_value_of_nested_call:
             # connect other_inner to outer in e.g.

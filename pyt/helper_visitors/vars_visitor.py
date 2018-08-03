@@ -84,7 +84,8 @@ class VarsVisitor(ast.NodeVisitor):
         # This will not visit Flask in Flask(__name__) but it will visit request in `request.args.get()
         if not isinstance(node.func, ast.Name):
             self.visit(node.func)
-        for arg in itertools.chain(node.args, node.keywords):
+        for arg_node in itertools.chain(node.args, node.keywords):
+            arg = arg_node.value if isinstance(arg_node, ast.keyword) else arg_node
             if isinstance(arg, ast.Call):
                 if isinstance(arg.func, ast.Name):
                     # We can't just visit because we need to add 'ret_'
