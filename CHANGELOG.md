@@ -23,8 +23,30 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [@xxxx]: https://github.com/xxxx
 -->
 
+# 0.38
+##### August 2nd, 2018
+
+#### :tada: New Features
+
+* Support for all async node types ([#158], thanks [@bcaller])
+
+[#158]: https://github.com/python-security/pyt/pull/158
+
+#### :bug: Bugfixes
+* Fixed a bug where we [wrote to the default_blackbox_mapping file](https://github.com/python-security/pyt/commit/0038b1e2ea92b7e38bd7f94e52380d7514830aa8) even if the `-i` option was not being used. ([#161], thanks [@polyzen])
+
+[@polyzen]: https://github.com/polyzen
+[#161]: https://github.com/python-security/pyt/issues/161
+
+#### :snake: Miscellaneous
+
+* Switched to using built-in mock ([#160], thanks [@polyzen])
+
+[#160]: https://github.com/python-security/pyt/pull/160
+
+
 # 0.37
-##### July 30, 2018
+##### July 30th, 2018
 
 #### :tada: New Features
 
@@ -91,7 +113,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#156]: https://github.com/python-security/pyt/pull/156
 
 # 0.34
-##### April 24, 2018
+##### April 24th, 2018
 
 #### :tada: New Features
 
