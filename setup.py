@@ -2,7 +2,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-VERSION = '0.37'
+VERSION = '0.38'
 
 
 setup(
