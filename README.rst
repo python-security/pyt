@@ -63,11 +63,17 @@ Soon you will find a `README.rst`_ in every directory in the ``pyt/`` folder, `s
 How to Use
 ============
 
-1. Choose a web framework: `The -a option determines which functions will have their arguments tainted`_, by default it is Flask.
+1. Choose a web framework
 
-2. (optional) Customize source and sink information: Use the ``-t`` option to specify sources and sinks, by default `this file is used`_.
+`The -a option determines which functions will have their arguments tainted`_, by default it is Flask.
 
-3. (optional) Customize which library functions propagate taint: For functions that are imported from libraries, e.g. ``url_for`` or ``os.path.join``, use the ``-m`` option to specify whether or not they return tainted values given tainted inputs, by `default this file is used`_.
+2. (optional) Customize source and sink information
+
+Use the ``-t`` option to specify sources and sinks, by default `this file is used`_.
+
+3. (optional) Customize which library functions propagate taint
+
+For functions from builtins or libraries, e.g. ``url_for`` or ``os.path.join``, use the ``-m`` option to specify whether or not they return tainted values given tainted inputs, by `default this file is used`_.
 
 .. _The -a option determines which functions will have their arguments tainted: https://github.com/python-security/pyt/tree/master/pyt/web_frameworks#web-frameworks
 .. _this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/all_trigger_words.pyt
