@@ -102,15 +102,21 @@ Usage
   optional arguments:
     -pr PROJECT_ROOT, --project-root PROJECT_ROOT
                         Add project root, only important when the entry file
-                        is not at the root of the project.
+                        is not at the root of the project
+
     -b BASELINE_JSON_FILE, --baseline BASELINE_JSON_FILE
                         Path of a baseline report to compare against (only
                         JSON-formatted files are accepted)
-    -j, --json            Prints JSON instead of report.
+
+    -j, --json            Prints JSON instead of report
+
     -o OUTPUT_FILE, --output OUTPUT_FILE
                         Write report to filename
+
     --ignore-nosec      Do not skip lines with # nosec comments
+
     -r, --recursive     Find and process files in subdirectories
+
     -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
                         Separate files with commas
 
