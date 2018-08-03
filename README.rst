@@ -119,7 +119,7 @@ Usage
     -trim, --trim-reassigned-in
                         Trims the reassigned list to just the vulnerability
                         chain.
-    -i, --interactive     Will ask you about each blackbox function call in
+    -i, --interactive   Will ask you about each blackbox function call in
                         vulnerability chains.
 
 Usage from Source
