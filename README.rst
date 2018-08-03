@@ -51,7 +51,7 @@ PyT can also be installed from source. To do so, clone the repo, and then run:
 
   python3 setup.py install
 
-How It Works
+How it Works
 ============
 
 Soon you will find a `README.rst`_ in every directory in the ``pyt/`` folder, `start here`_.
@@ -60,7 +60,7 @@ Soon you will find a `README.rst`_ in every directory in the ``pyt/`` folder, `s
 .. _start here: https://github.com/python-security/pyt/tree/master/pyt
 
 
-How To Use
+How to Use
 ============
 
 1. Choose a web framework: `The -a option chooses what functions will have their arguments tainted`_, by default it is Flask.
