@@ -72,10 +72,18 @@ Usage
   required arguments:
     targets               source file(s) or directory(s) to be tested
 
-  optional arguments:
+  important optional arguments:
     -a ADAPTOR, --adaptor ADAPTOR
                         Choose a web framework adaptor: Flask(Default),
                         Django, Every or Pylons
+			
+    -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
+                        Input file with a list of sources and sinks
+			
+    -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
+                        Input blackbox mapping file
+
+  optional arguments:
     -pr PROJECT_ROOT, --project-root PROJECT_ROOT
                         Add project root, only important when the entry file
                         is not at the root of the project.
@@ -83,10 +91,6 @@ Usage
                         Path of a baseline report to compare against (only
                         JSON-formatted files are accepted)
     -j, --json            Prints JSON instead of report.
-    -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
-                        Input blackbox mapping file.
-    -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
-                        Input file with a list of sources and sinks
     -o OUTPUT_FILE, --output OUTPUT_FILE
                         write report to filename
     --ignore-nosec        do not skip lines with # nosec comments
@@ -94,12 +98,32 @@ Usage
     -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
                         Separate files with commas
 
+
   print arguments:
     -trim, --trim-reassigned-in
                         Trims the reassigned list to just the vulnerability
                         chain.
     -i, --interactive     Will ask you about each blackbox function call in
                         vulnerability chains.
+
+Choosing a Web Framework
+========================
+
+`The -a option chooses what functions will have their arguments tainted`_
+
+.. _The -a option chooses what functions will have their arguments tainted: https://github.com/python-security/pyt/tree/master/pyt/web_frameworks#web-frameworks
+
+Configuring Source and Sink Information
+=======================================
+
+Use the ``-t`` option to specify sources and sinks, by default `this file is used`_.
+
+.. _this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/all_trigger_words.pyt
+
+For functions that are imported from libraries, use the ``-m`` option to specify whether or not they
+return tainted values given tainted inputs, by `default this file is used`_.
+
+.. _default this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/blackbox_mapping.json)
 
 Usage from Source
 =================
