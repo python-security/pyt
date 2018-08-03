@@ -54,9 +54,25 @@ PyT can also be installed from source. To do so, clone the repo, and then run:
 How It Works
 ============
 
-Soon you will find a README.rst in every directory in the pyt folder, `start here`_.
+Soon you will find a `README.rst`_ in every directory in the ``pyt/`` folder, `start here`_.
 
+.. _README.rst: https://github.com/python-security/pyt/tree/master/pyt
 .. _start here: https://github.com/python-security/pyt/tree/master/pyt
+
+
+How To Use
+============
+
+1. Choose a web framework: `The -a option chooses what functions will have their arguments tainted`_, by default it is Flask.
+
+2. (optional) Customize source and sink information: Use the ``-t`` option to specify sources and sinks, by default `this file is used`_.
+
+3. (optional) Customize which library functions propagate taint: For functions that are imported from libraries, e.g. ``url_for`` or ``os.path.join``, use the ``-m`` option to specify whether or not they return tainted values given tainted inputs, by `default this file is used`_.
+
+.. _The -a option chooses what functions will have their arguments tainted: https://github.com/python-security/pyt/tree/master/pyt/web_frameworks#web-frameworks
+.. _this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/all_trigger_words.pyt
+.. _default this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/blackbox_mapping.json
+
 
 Usage
 =====
@@ -105,25 +121,6 @@ Usage
                         chain.
     -i, --interactive     Will ask you about each blackbox function call in
                         vulnerability chains.
-
-Choosing a Web Framework
-========================
-
-`The -a option chooses what functions will have their arguments tainted`_
-
-.. _The -a option chooses what functions will have their arguments tainted: https://github.com/python-security/pyt/tree/master/pyt/web_frameworks#web-frameworks
-
-Configuring Source and Sink Information
-=======================================
-
-Use the ``-t`` option to specify sources and sinks, by default `this file is used`_.
-
-.. _this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/all_trigger_words.pyt
-
-For functions that are imported from libraries, use the ``-m`` option to specify whether or not they
-return tainted values given tainted inputs, by `default this file is used`_.
-
-.. _default this file is used: https://github.com/python-security/pyt/blob/master/pyt/vulnerability_definitions/blackbox_mapping.json)
 
 Usage from Source
 =================
