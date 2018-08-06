@@ -326,11 +326,11 @@ class StmtVisitor(ast.NodeVisitor):
 
         return ControlFlowNode(try_node, last_statements, break_statements=body.break_statements)
 
-    def assign_tuple_target(self, node, right_hand_side_variables):
+    def assign_tuple_target(self, target_nodes, value_nodes, right_hand_side_variables):
         new_assignment_nodes = []
         remaining_variables = list(right_hand_side_variables)
-        remaining_targets = list(node.targets[0].elts)
-        remaining_values = list(node.value.elts)  # May contain duplicates
+        remaining_targets = list(target_nodes)
+        remaining_values = list(value_nodes)  # May contain duplicates
 
         def visit(target, value):
             label = LabelVisitor()
@@ -339,7 +339,7 @@ class StmtVisitor(ast.NodeVisitor):
             rhs_visitor.visit(value)
             if isinstance(value, ast.Call):
                 new_ast_node = ast.Assign(target, value)
-                ast.copy_location(new_ast_node, node)
+                ast.copy_location(new_ast_node, target)
                 new_assignment_nodes.append(self.assignment_call_node(label.result, new_ast_node))
             else:
                 label.result += ' = '
@@ -349,7 +349,7 @@ class StmtVisitor(ast.NodeVisitor):
                     extract_left_hand_side(target),
                     ast.Assign(target, value),
                     rhs_visitor.result,
-                    line_number=node.lineno,
+                    line_number=target.lineno,
                     path=self.filenames[-1]
                 )))
             remaining_targets.remove(target)
@@ -358,7 +358,7 @@ class StmtVisitor(ast.NodeVisitor):
                 remaining_variables.remove(var)
 
         # Pair targets and values until a Starred node is reached
-        for target, value in zip(node.targets[0].elts, node.value.elts):
+        for target, value in zip(target_nodes, value_nodes):
             if isinstance(target, ast.Starred) or isinstance(value, ast.Starred):
                 break
             visit(target, value)
@@ -380,7 +380,7 @@ class StmtVisitor(ast.NodeVisitor):
                     extract_left_hand_side(target),
                     ast.Assign(target, remaining_values[0]),
                     remaining_variables,
-                    line_number=node.lineno,
+                    line_number=target.lineno,
                     path=self.filenames[-1]
                 )))
 
@@ -413,7 +413,7 @@ class StmtVisitor(ast.NodeVisitor):
         rhs_visitor.visit(node.value)
         if isinstance(node.targets[0], (ast.Tuple, ast.List)):  # x,y = [1,2]
             if isinstance(node.value, (ast.Tuple, ast.List)):
-                return self.assign_tuple_target(node, rhs_visitor.result)
+                return self.assign_tuple_target(node.targets[0].elts, node.value.elts, rhs_visitor.result)
             elif isinstance(node.value, ast.Call):
                 call = None
                 for element in node.targets[0].elts:
@@ -421,6 +421,10 @@ class StmtVisitor(ast.NodeVisitor):
                     label.visit(element)
                     call = self.assignment_call_node(label.result, node)
                 return call
+            elif isinstance(node.value, ast.Name):  # Treat `x, y = z` like `x, y = (*z,)`
+                value_node = ast.Starred(node.value, ast.Load())
+                ast.copy_location(value_node, node)
+                return self.assign_tuple_target(node.targets[0].elts, [value_node], rhs_visitor.result)
             else:
                 label = LabelVisitor()
                 label.visit(node)
