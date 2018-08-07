@@ -84,7 +84,8 @@ class VarsVisitor(ast.NodeVisitor):
         # This will not visit Flask in Flask(__name__) but it will visit request in `request.args.get()
         if not isinstance(node.func, ast.Name):
             self.visit(node.func)
-        for arg in itertools.chain(node.args, node.keywords):
+        for arg_node in itertools.chain(node.args, node.keywords):
+            arg = arg_node.value if isinstance(arg_node, ast.keyword) else arg_node
             if isinstance(arg, ast.Call):
                 if isinstance(arg.func, ast.Name):
                     # We can't just visit because we need to add 'ret_'
@@ -95,11 +96,31 @@ class VarsVisitor(ast.NodeVisitor):
                     # func.value.id is html
                     # We want replace
                     self.result.append('ret_' + arg.func.attr)
+                elif isinstance(arg.func, ast.Call):
+                    self.visit_curried_call_inside_call_args(arg)
                 else:
-                    # Deal with it when we have code that triggers it.
-                    raise
+                    raise Exception('Cannot visit vars of ' + ast.dump(arg))
             else:
                 self.visit(arg)
+
+    def visit_curried_call_inside_call_args(self, inner_call):
+        # Curried functions aren't supported really, but we now at least have a defined behaviour.
+        # In f(g(a)(b)(c)), inner_call is the Call node with argument c
+        # Try to get the name of curried function g
+        curried_func = inner_call.func.func
+        while isinstance(curried_func, ast.Call):
+            curried_func = curried_func.func
+        if isinstance(curried_func, ast.Name):
+            self.result.append('ret_' + curried_func.id)
+        elif isinstance(curried_func, ast.Attribute):
+            self.result.append('ret_' + curried_func.attr)
+
+        # Visit all arguments except a (ignore the curried function g)
+        not_curried = inner_call
+        while not_curried.func is not curried_func:
+            for arg in itertools.chain(not_curried.args, not_curried.keywords):
+                self.visit(arg.value if isinstance(arg, ast.keyword) else arg)
+            not_curried = not_curried.func
 
     def visit_Attribute(self, node):
         if not isinstance(node.value, ast.Name):
