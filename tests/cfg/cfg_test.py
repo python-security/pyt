@@ -820,6 +820,21 @@ class CFGAssignmentMultiTest(CFGBaseTestCase):
             [('a', ['d']), ('b', ['d']), ('c', ['e'])],
         )
 
+    def test_unpacking_to_tuple(self):
+        self.cfg_create_from_ast(ast.parse('a, b, c = d'))
+
+        middle_nodes = self.cfg.nodes[1:-1]
+        self.assert_length(middle_nodes, expected_length=3)
+
+        self.assertCountEqual(
+            [n.label for n in middle_nodes],
+            ['a, b, c = *d'] * 3,
+        )
+        self.assertCountEqual(
+            [(n.left_hand_side, n.right_hand_side_variables) for n in middle_nodes],
+            [('a', ['d']), ('b', ['d']), ('c', ['d'])],
+        )
+
     def test_augmented_assignment(self):
         self.cfg_create_from_ast(ast.parse('a+=f(b,c)'))
 
