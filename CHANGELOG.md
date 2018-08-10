@@ -69,8 +69,8 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 #### :telescope: Precision
 
 * Added per-arg taint, for sink functions ([#147], thanks [@bcaller])
+* AugAssign, Yield, and YieldFrom taint propagation improvements ([#155], thanks [@bcaller])
 * Improved tuple assingment to be more precise and support starargs ([#150], thanks [@bcaller])
-* AugAssign, Yield, and YieldFrom taint propagation improvements ([#155], thanks [@bcaller]) 
 
 [#147]: https://github.com/python-security/pyt/pull/147
 [#150]: https://github.com/python-security/pyt/pull/150
