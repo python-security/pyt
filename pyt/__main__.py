@@ -79,15 +79,18 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
 
     nosec_lines = defaultdict(set)
 
+    if args.project_root:
+        directory = os.path.normpath(args.project_root)
+        project_modules = get_modules(directory, prepend_module_root=args.prepend_module_root)
+
     for path in sorted(files):
         if not args.ignore_nosec:
             nosec_lines[path] = retrieve_nosec_lines(path)
 
-        if args.project_root:
-            directory = os.path.normpath(args.project_root)
-        else:
+        if not args.project_root:
             directory = os.path.dirname(path)
-        project_modules = get_modules(directory, prepend_module_root=args.prepend_module_root)
+            project_modules = get_modules(directory, prepend_module_root=args.prepend_module_root)
+
         local_modules = get_directory_modules(directory)
         tree = generate_ast(path)
 
