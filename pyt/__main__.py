@@ -79,7 +79,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
 
     nosec_lines = defaultdict(set)
 
-    for path in files:
+    for path in sorted(files):
         if not args.ignore_nosec:
             nosec_lines[path] = retrieve_nosec_lines(path)
 
