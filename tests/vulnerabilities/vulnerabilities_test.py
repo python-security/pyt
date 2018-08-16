@@ -111,8 +111,9 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[3])
 
-    def run_analysis(self, path):
-        self.cfg_create_from_file(path)
+    def run_analysis(self, path=None):
+        if path:
+            self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
 
         FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
@@ -467,6 +468,20 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         """
 
         self.assertAlphaEqual(str(vuln), EXPECTED_VULNERABILITY_DESCRIPTION)
+
+    def test_method_of_taint(self):
+        def assert_vulnerable(fixture):
+            tree = ast.parse('TAINT = request.args.get("")\n' + fixture + '\nexecute(result)')
+            self.cfg_create_from_ast(tree)
+            vulnerabilities = self.run_analysis()
+            self.assert_length(vulnerabilities, expected_length=1, msg=fixture)
+
+        assert_vulnerable('result = TAINT')
+        assert_vulnerable('result = TAINT.lower()')
+        assert_vulnerable('result = str(TAINT)')
+        assert_vulnerable('result = str(TAINT.lower())')
+        assert_vulnerable('result = repr(str("%s" % TAINT.lower().upper()))')
+        assert_vulnerable('result = repr(str("{}".format(TAINT.lower())))')
 
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
