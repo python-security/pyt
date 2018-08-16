@@ -150,12 +150,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             Reassigned in:
                 File: examples/vulnerable_code/XSS.py
                  > Line 6: param = ~call_1
-                File: examples/vulnerable_code/XSS.py
-                 > Line 9: ~call_3 = ret_make_response(~call_4)
-                File: examples/vulnerable_code/XSS.py
-                 > Line 9: resp = ~call_3
-                File: examples/vulnerable_code/XSS.py
-                 > Line 10: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS.py
              > reaches line 9, sink "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', param)
@@ -274,8 +268,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 10: image_name = ~call_2
                 File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 12: ~call_4 = ret_os.path.join(~call_5, image_name)
-                File: examples/vulnerable_code/path_traversal_sanitised.py
-                 > Line 12: ret_cat_picture = ~call_3
             File: examples/vulnerable_code/path_traversal_sanitised.py
              > reaches line 12, sink "send_file(":
                 ~call_3 = ret_send_file(~call_4)
@@ -297,8 +289,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 8: image_name = ~call_1
                 File: examples/vulnerable_code/path_traversal_sanitised_2.py
                  > Line 12: ~call_3 = ret_os.path.join(~call_4, image_name)
-                File: examples/vulnerable_code/path_traversal_sanitised_2.py
-                 > Line 12: ret_cat_picture = ~call_2
             File: examples/vulnerable_code/path_traversal_sanitised_2.py
              > reaches line 12, sink "send_file(":
                 ~call_2 = ret_send_file(~call_3)
@@ -318,8 +308,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             Reassigned in:
                 File: examples/vulnerable_code/sql/sqli.py
                  > Line 26: param = ~call_1
-                File: examples/vulnerable_code/sql/sqli.py
-                 > Line 27: result = ~call_2
             File: examples/vulnerable_code/sql/sqli.py
              > reaches line 27, sink "execute(":
                 ~call_2 = ret_db.engine.execute(param)
@@ -335,13 +323,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             File: examples/vulnerable_code/XSS_form.py
              > User input at line 14, source "form[":
                 data = request.form['my_text']
-            Reassigned in:
-                File: examples/vulnerable_code/XSS_form.py
-                 > Line 15: ~call_1 = ret_make_response(~call_2)
-                File: examples/vulnerable_code/XSS_form.py
-                 > Line 15: resp = ~call_1
-                File: examples/vulnerable_code/XSS_form.py
-                 > Line 17: ret_example2_action = resp
             File: examples/vulnerable_code/XSS_form.py
              > reaches line 15, sink "replace(":
                 ~call_2 = ret_html1.replace('{{ data }}', data)
@@ -360,12 +341,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
             Reassigned in:
                 File: examples/vulnerable_code/XSS_url.py
                  > Line 6: param = url
-                File: examples/vulnerable_code/XSS_url.py
-                 > Line 9: ~call_2 = ret_make_response(~call_3)
-                File: examples/vulnerable_code/XSS_url.py
-                 > Line 9: resp = ~call_2
-                File: examples/vulnerable_code/XSS_url.py
-                 > Line 10: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS_url.py
              > reaches line 9, sink "replace(":
                 ~call_3 = ret_html.replace('{{ param }}', param)
@@ -390,12 +365,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 6: param = ~call_1
                 File: examples/vulnerable_code/XSS_reassign.py
                  > Line 8: param = param + ''
-                File: examples/vulnerable_code/XSS_reassign.py
-                 > Line 11: ~call_3 = ret_make_response(~call_4)
-                File: examples/vulnerable_code/XSS_reassign.py
-                 > Line 11: resp = ~call_3
-                File: examples/vulnerable_code/XSS_reassign.py
-                 > Line 12: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS_reassign.py
              > reaches line 11, sink "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', param)
@@ -418,12 +387,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 9: ~call_2 = ret_Markup.escape(param)
                 File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 9: param = ~call_2
-                File: examples/vulnerable_code/XSS_sanitised.py
-                 > Line 12: ~call_4 = ret_make_response(~call_5)
-                File: examples/vulnerable_code/XSS_sanitised.py
-                 > Line 12: resp = ~call_4
-                File: examples/vulnerable_code/XSS_sanitised.py
-                 > Line 13: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS_sanitised.py
              > reaches line 12, sink "replace(":
                 ~call_5 = ret_html.replace('{{ param }}', param)
@@ -449,12 +412,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 6: param = ~call_1
                 File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 8: other_var = param + ''
-                File: examples/vulnerable_code/XSS_variable_assign.py
-                 > Line 11: ~call_3 = ret_make_response(~call_4)
-                File: examples/vulnerable_code/XSS_variable_assign.py
-                 > Line 11: resp = ~call_3
-                File: examples/vulnerable_code/XSS_variable_assign.py
-                 > Line 12: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS_variable_assign.py
              > reaches line 11, sink "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', other_var)
@@ -479,12 +436,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 10: not_the_same_var = '' + other_var
                 File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 12: another_one = not_the_same_var + ''
-                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
-                 > Line 15: ~call_3 = ret_make_response(~call_4)
-                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
-                 > Line 15: resp = ~call_3
-                File: examples/vulnerable_code/XSS_variable_multiple_assign.py
-                 > Line 17: ret_XSS1 = resp
             File: examples/vulnerable_code/XSS_variable_multiple_assign.py
              > reaches line 15, sink "replace(":
                 ~call_4 = ret_html.replace('{{ param }}', another_one)
@@ -550,9 +501,6 @@ class EngineDjangoTest(VulnerabilitiesBaseTestCase):
             File: examples/vulnerable_code/django_XSS.py
              > User input at line 4, source "Framework function URL parameter":
                 param
-            Reassigned in:
-                File: examples/vulnerable_code/django_XSS.py
-                 > Line 5: ret_xss1 = ~call_1
             File: examples/vulnerable_code/django_XSS.py
              > reaches line 5, sink "render(":
                 ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
