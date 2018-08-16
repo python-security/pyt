@@ -65,11 +65,9 @@ def retrieve_nosec_lines(
 def main(command_line_args=sys.argv[1:]):  # noqa: C901
     args = parse_args(command_line_args)
 
-    ui_mode = UImode.NORMAL
+    ui_mode = UImode.TRIM
     if args.interactive:
         ui_mode = UImode.INTERACTIVE
-    elif args.trim_reassigned_in:
-        ui_mode = UImode.TRIM
 
     files = discover_files(
         args.targets,
