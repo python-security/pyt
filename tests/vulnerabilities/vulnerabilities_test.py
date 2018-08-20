@@ -12,7 +12,6 @@ from pyt.usage import (
 )
 from pyt.vulnerabilities import (
     find_vulnerabilities,
-    UImode,
     vulnerabilities
 )
 from pyt.vulnerabilities.trigger_definitions_parser import (
@@ -123,7 +122,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            UImode.NORMAL,
             default_blackbox_mapping_file,
             default_trigger_word_file
         )
@@ -202,8 +200,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 File: examples/vulnerable_code/path_traversal.py
                  > Line 8: ret_outer = outer_ret_val
                 File: examples/vulnerable_code/path_traversal.py
-                 > Line 6: image_name = save_2_image_name
-                File: examples/vulnerable_code/path_traversal.py
                  > Line 19: ~call_2 = ret_outer
                 File: examples/vulnerable_code/path_traversal.py
                  > Line 19: foo = ~call_2
@@ -229,28 +225,14 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 6: save_2_image_name = image_name
                 File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 10: save_3_image_name = image_name
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 10: image_name = save_3_image_name
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 19: temp_2_other_arg = image_name
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 6: other_arg = temp_2_other_arg
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 7: outer_ret_val = outer_arg + 'hey' + other_arg
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 8: ret_outer = outer_ret_val
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 6: image_name = save_2_image_name
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 19: ~call_2 = ret_outer
-                File: examples/vulnerable_code/ensure_saved_scope.py
-                 > Line 19: foo = ~call_2
             File: examples/vulnerable_code/ensure_saved_scope.py
              > reaches line 20, sink "send_file(":
                 ~call_4 = ret_send_file(image_name)
         """
-
-        self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
+        self.assertAlphaEqual(
+            vulnerability_description,
+            EXPECTED_VULNERABILITY_DESCRIPTION
+        )
 
     def test_path_traversal_sanitised_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/path_traversal_sanitised.py')
@@ -502,7 +484,6 @@ class EngineDjangoTest(VulnerabilitiesBaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            UImode.NORMAL,
             default_blackbox_mapping_file,
             trigger_word_file
         )
@@ -541,7 +522,6 @@ class EngineEveryTest(VulnerabilitiesBaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            UImode.NORMAL,
             default_blackbox_mapping_file,
             trigger_word_file
         )
@@ -568,7 +548,6 @@ class EnginePositionTest(VulnerabilitiesBaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            UImode.NORMAL,
             default_blackbox_mapping_file,
             trigger_word_file
         )

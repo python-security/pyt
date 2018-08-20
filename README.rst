@@ -86,53 +86,56 @@ Usage
 .. code-block::
 
   usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
-                   [-b BASELINE_JSON_FILE] [-j] [-m BLACKBOX_MAPPING_FILE]
-                   [-t TRIGGER_WORD_FILE] [-o OUTPUT_FILE] [--ignore-nosec]
-                   [-r] [-x EXCLUDED_PATHS] [-trim] [-i]
-                   targets [targets ...]
+                       [-b BASELINE_JSON_FILE] [-j] [-t TRIGGER_WORD_FILE]
+                       [-m BLACKBOX_MAPPING_FILE] [-i] [-o OUTPUT_FILE]
+                       [--ignore-nosec] [-r] [-x EXCLUDED_PATHS]
+                       [--dont-prepend-root] [--no-local-imports]
+                       targets [targets ...]
 
   required arguments:
-    targets               source file(s) or directory(s) to be tested
+    targets               source file(s) or directory(s) to be scanned
 
   important optional arguments:
     -a ADAPTOR, --adaptor ADAPTOR
-                        Choose a web framework adaptor: Flask(Default),
-                        Django, Every or Pylons
-			
+                          Choose a web framework adaptor: Flask(Default),
+                          Django, Every or Pylons
+
     -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
-                        Input file with a list of sources and sinks
-			
+                          Input file with a list of sources and sinks
+
     -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
-                        Input blackbox mapping file
+                              Input blackbox mapping file
 
   optional arguments:
     -pr PROJECT_ROOT, --project-root PROJECT_ROOT
-                        Add project root, only important when the entry file
-                        is not at the root of the project
+                          Add project root, only important when the entry file
+                          is not at the root of the project.
 
     -b BASELINE_JSON_FILE, --baseline BASELINE_JSON_FILE
-                        Path of a baseline report to compare against (only
-                        JSON-formatted files are accepted)
+                          Path of a baseline report to compare against (only
+                          JSON-formatted files are accepted)
 
-    -j, --json            Prints JSON instead of report
+    -j, --json            Prints JSON instead of report.
+
+    -i, --interactive     Will ask you about each blackbox function call in
+                          vulnerability chains.
 
     -o OUTPUT_FILE, --output OUTPUT_FILE
-                        Write report to filename
+                          Write report to filename
 
-    --ignore-nosec      Do not skip lines with # nosec comments
+    --ignore-nosec        Do not skip lines with # nosec comments
 
-    -r, --recursive     Find and process files in subdirectories
+    -r, --recursive       Find and process files in subdirectories
 
     -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
-                        Separate files with commas
+                          Separate files with commas
 
+    --dont-prepend-root   In project root e.g. /app, imports are not prepended
+                          with app.*
 
-  print arguments:
-    -trim, --trim-reassigned-in
-                        Trims the reassigned list to just the vulnerability
-                        chain.
-    -i, --interactive   Will ask you about each blackbox function call in
-                        vulnerability chains.
+    --no-local-imports    If set, absolute imports must be relative to the
+                          project root. If not set, modules in the same
+                          directory can be imported just by their names.
 
 Usage from Source
 =================
