@@ -81,6 +81,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         directory = os.path.normpath(args.project_root)
         project_modules = get_modules(directory, prepend_module_root=args.prepend_module_root)
 
+    cfg_list = list()
     for path in sorted(files):
         if not args.ignore_nosec:
             nosec_lines[path] = retrieve_nosec_lines(path)
