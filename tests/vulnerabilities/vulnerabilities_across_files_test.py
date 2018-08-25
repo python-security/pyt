@@ -12,10 +12,7 @@ from pyt.usage import (
     default_blackbox_mapping_file,
     default_trigger_word_file
 )
-from pyt.vulnerabilities import (
-    find_vulnerabilities,
-    UImode
-)
+from pyt.vulnerabilities import find_vulnerabilities
 from pyt.web_frameworks import (
     FrameworkAdaptor,
     is_flask_route_function
@@ -41,7 +38,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         return find_vulnerabilities(
             cfg_list,
-            UImode.NORMAL,
             default_blackbox_mapping_file,
             default_trigger_word_file
         )
@@ -92,7 +88,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/nested_functions_code/builtin_with_user_defined_inner.py
              > User input at line 16, source "form[":
-                req_param = request.form['suggestion']
+                 req_param = request.form['suggestion']
             Reassigned in:
                 File: examples/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 10: save_2_req_param = req_param
@@ -104,8 +100,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 11: yes_vuln = inner_arg + 'hey'
                 File: examples/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 12: ret_inner = yes_vuln
-                File: examples/nested_functions_code/builtin_with_user_defined_inner.py
-                 > Line 10: req_param = save_2_req_param
                 File: examples/nested_functions_code/builtin_with_user_defined_inner.py
                  > Line 19: ~call_2 = ret_inner
                 File: examples/nested_functions_code/builtin_with_user_defined_inner.py
@@ -167,7 +161,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
              > User input at line 16, source "form[":
-                req_param = request.form['suggestion']
+                 req_param = request.form['suggestion']
             Reassigned in:
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 6: save_1_req_param = req_param
@@ -182,8 +176,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 12: ret_inner = inner_ret_val
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 10: req_param = save_2_req_param
-                File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 17: ~call_2 = ret_inner
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 17: temp_1_outer_arg = ~call_2
@@ -193,8 +185,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 7: outer_ret_val = outer_arg + 'hey'
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 8: ret_outer = outer_ret_val
-                File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
-                 > Line 6: req_param = save_1_req_param
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
                  > Line 17: ~call_1 = ret_outer
                 File: examples/nested_functions_code/sink_with_result_of_user_defined_nested.py
@@ -250,7 +240,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/nested_functions_code/sink_with_user_defined_inner.py
              > User input at line 16, source "form[":
-                req_param = request.form['suggestion']
+                 req_param = request.form['suggestion']
             Reassigned in:
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 6: save_2_req_param = req_param
@@ -265,8 +255,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 12: ret_inner = inner_ret_val
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 10: req_param = save_3_req_param
-                File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 18: ~call_3 = ret_inner
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 18: temp_2_outer_arg = ~call_3
@@ -276,8 +264,6 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 7: outer_ret_val = outer_arg + 'hey'
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 8: ret_outer = outer_ret_val
-                File: examples/nested_functions_code/sink_with_user_defined_inner.py
-                 > Line 6: req_param = save_2_req_param
                 File: examples/nested_functions_code/sink_with_user_defined_inner.py
                  > Line 18: ~call_2 = ret_outer
             File: examples/nested_functions_code/sink_with_user_defined_inner.py

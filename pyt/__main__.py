@@ -19,8 +19,7 @@ from .formatters import (
 from .usage import parse_args
 from .vulnerabilities import (
     find_vulnerabilities,
-    get_vulnerabilities_not_in_baseline,
-    UImode
+    get_vulnerabilities_not_in_baseline
 )
 from .vulnerabilities.vulnerability_helper import SanitisedVulnerability
 from .web_frameworks import (
@@ -64,10 +63,6 @@ def retrieve_nosec_lines(
 
 def main(command_line_args=sys.argv[1:]):  # noqa: C901
     args = parse_args(command_line_args)
-
-    ui_mode = UImode.TRIM
-    if args.interactive:
-        ui_mode = UImode.INTERACTIVE
 
     files = discover_files(
         args.targets,
@@ -123,9 +118,9 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
     analyse(cfg_list)
     vulnerabilities = find_vulnerabilities(
         cfg_list,
-        ui_mode,
         args.blackbox_mapping_file,
         args.trigger_word_file,
+        args.interactive,
         nosec_lines
     )
 
@@ -140,7 +135,10 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
     else:
         text.report(vulnerabilities, args.output_file)
 
-    has_unsanitized_vulnerabilities = any(not isinstance(v, SanitisedVulnerability) for v in vulnerabilities)
+    has_unsanitized_vulnerabilities = any(
+        not isinstance(v, SanitisedVulnerability)
+        for v in vulnerabilities
+    )
     if has_unsanitized_vulnerabilities:
         sys.exit(1)
 

@@ -665,6 +665,7 @@ class StmtVisitor(ast.NodeVisitor):
         call_node.label = LHS + " = " + RHS
 
         call_node.right_hand_side_variables = rhs_vars
+        # Used in get_sink_args
         rhs_visitor = RHSVisitor()
         rhs_visitor.visit(node)
         call_node.args = rhs_visitor.result

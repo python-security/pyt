@@ -23,8 +23,7 @@ from .vulnerability_helper import (
     TriggerNode,
     Triggers,
     vuln_factory,
-    VulnerabilityType,
-    UImode
+    VulnerabilityType
 )
 
 
@@ -306,7 +305,7 @@ def how_vulnerable(
     sanitiser_nodes,
     potential_sanitiser,
     blackbox_assignments,
-    ui_mode,
+    interactive,
     vuln_deets
 ):
     """Iterates through the chain of nodes and checks the blackbox nodes against the blackbox mapping and sanitiser dictionary.
@@ -320,7 +319,7 @@ def how_vulnerable(
         sanitiser_nodes(set): A set of nodes that are sanitisers for the sink.
         potential_sanitiser(Node): An if or elif node that can potentially cause sanitisation.
         blackbox_assignments(set[AssignmentNode]): set of blackbox assignments, includes the ReturnNode's of BBorBInode's.
-        ui_mode(UImode): determines if we interact with the user when we don't already have a blackbox mapping available.
+        interactive(bool): determines if we ask the user about blackbox functions not in the mapping file.
         vuln_deets(dict): vulnerability details.
 
     Returns:
@@ -337,7 +336,7 @@ def how_vulnerable(
                 continue
             elif current_node.func_name in blackbox_mapping['does_not_propagate']:
                 return VulnerabilityType.FALSE
-            elif ui_mode == UImode.INTERACTIVE:
+            elif interactive:
                 user_says = input(
                     'Is the return value of {} with tainted argument "{}" vulnerable? (Y/n)'.format(
                         current_node.label,
@@ -378,7 +377,7 @@ def get_vulnerability(
     triggers,
     lattice,
     cfg,
-    ui_mode,
+    interactive,
     blackbox_mapping
 ):
     """Get vulnerability between source and sink if it exists.
@@ -395,7 +394,7 @@ def get_vulnerability(
         triggers(Triggers): Triggers of the CFG.
         lattice(Lattice): the lattice we're analysing.
         cfg(CFG): .blackbox_assignments used in is_unknown, .nodes used in build_def_use_chain
-        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
+        interactive(bool): determines if we ask the user about blackbox functions not in the mapping file.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
 
     Returns:
@@ -421,8 +420,7 @@ def get_vulnerability(
             'source': source.cfg_node,
             'source_trigger_word': source.trigger_word,
             'sink': sink.cfg_node,
-            'sink_trigger_word': sink.trigger_word,
-            'reassignment_nodes': source.secondary_nodes
+            'sink_trigger_word': sink.trigger_word
         }
 
         sanitiser_nodes = set()
@@ -450,14 +448,13 @@ def get_vulnerability(
                 sanitiser_nodes,
                 potential_sanitiser,
                 cfg.blackbox_assignments,
-                ui_mode,
+                interactive,
                 vuln_deets
             )
             if vulnerability_type == VulnerabilityType.FALSE:
                 continue
 
-            if ui_mode != UImode.NORMAL:
-                vuln_deets['reassignment_nodes'] = chain
+            vuln_deets['reassignment_nodes'] = chain
 
             return vuln_factory(vulnerability_type)(**vuln_deets)
 
@@ -468,9 +465,9 @@ def find_vulnerabilities_in_cfg(
     cfg,
     definitions,
     lattice,
-    ui_mode,
     blackbox_mapping,
     vulnerabilities_list,
+    interactive,
     nosec_lines
 ):
     """Find vulnerabilities in a cfg.
@@ -479,10 +476,9 @@ def find_vulnerabilities_in_cfg(
         cfg(CFG): The CFG to find vulnerabilities in.
         definitions(trigger_definitions_parser.Definitions): Source and sink definitions.
         lattice(Lattice): the lattice we're analysing.
-        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping(dict): A map of blackbox functions containing whether or not they propagate taint.
         vulnerabilities_list(list): That we append to when we find vulnerabilities.
-        nosec_lines(dict): filenames mapped to their nosec lines
+        interactive(bool): determines if we ask the user about blackbox functions not in the mapping file.
     """
     triggers = identify_triggers(
         cfg,
@@ -499,7 +495,7 @@ def find_vulnerabilities_in_cfg(
                 triggers,
                 lattice,
                 cfg,
-                ui_mode,
+                interactive,
                 blackbox_mapping
             )
             if vulnerability:
@@ -508,20 +504,18 @@ def find_vulnerabilities_in_cfg(
 
 def find_vulnerabilities(
     cfg_list,
-    ui_mode,
     blackbox_mapping_file,
     sources_and_sinks_file,
+    interactive=False,
     nosec_lines=defaultdict(set)
 ):
     """Find vulnerabilities in a list of CFGs from a trigger_word_file.
 
     Args:
         cfg_list(list[CFG]): the list of CFGs to scan.
-        ui_mode(UImode): determines if we interact with the user or trim the nodes in the output, if at all.
         blackbox_mapping_file(str)
         sources_and_sinks_file(str)
-        nosec_lines(dict): filenames mapped to their nosec lines
-
+        interactive(bool): determines if we ask the user about blackbox functions not in the mapping file.
     Returns:
         A list of vulnerabilities.
     """
@@ -535,13 +529,13 @@ def find_vulnerabilities(
             cfg,
             definitions,
             Lattice(cfg.nodes),
-            ui_mode,
             blackbox_mapping,
             vulnerabilities,
+            interactive,
             nosec_lines
         )
 
-    if ui_mode == UImode.INTERACTIVE:
+    if interactive:
         with open(blackbox_mapping_file, 'w') as outfile:
             json.dump(blackbox_mapping, outfile, indent=4)
 
