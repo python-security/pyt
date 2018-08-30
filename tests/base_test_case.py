@@ -4,6 +4,7 @@ import unittest
 from pyt.cfg import make_cfg
 from pyt.core.ast_helper import generate_ast
 from pyt.core.module_definitions import project_definitions
+from pyt.core.transformer import PytTransformer
 
 
 class BaseTestCase(unittest.TestCase):
@@ -36,7 +37,7 @@ class BaseTestCase(unittest.TestCase):
     ):
         project_definitions.clear()
         self.cfg = make_cfg(
-            ast_tree,
+            PytTransformer().visit(ast_tree),
             project_modules,
             local_modules,
             filename='?'

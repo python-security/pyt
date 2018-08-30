@@ -282,7 +282,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
     def test_sql_result(self):
         vulnerabilities = self.run_analysis('examples/vulnerable_code/sql/sqli.py')
-        self.assert_length(vulnerabilities, expected_length=2)
+        self.assert_length(vulnerabilities, expected_length=3)
         vulnerability_description = str(vulnerabilities[0])
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/sql/sqli.py

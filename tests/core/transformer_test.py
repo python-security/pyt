@@ -1,13 +1,14 @@
 import ast
 import unittest
 
-from pyt.core.transformer import AsyncTransformer
+from pyt.core.transformer import PytTransformer
 
 
 class TransformerTest(unittest.TestCase):
     """Tests for the AsyncTransformer."""
 
     def test_async_removed_by_transformer(self):
+        self.maxDiff = 99999
         async_tree = ast.parse("\n".join([
             "async def a():",
             "   async for b in c():",
@@ -30,7 +31,24 @@ class TransformerTest(unittest.TestCase):
         ]))
         self.assertIsInstance(sync_tree.body[0], ast.FunctionDef)
 
-        transformed = AsyncTransformer().visit(async_tree)
+        transformed = PytTransformer().visit(async_tree)
         self.assertIsInstance(transformed.body[0], ast.FunctionDef)
 
         self.assertEqual(ast.dump(transformed), ast.dump(sync_tree))
+
+    def test_chained_function(self):
+        chained_tree = ast.parse("\n".join([
+            "def a():",
+            "   b = c.d(e).f(g).h(i).j(k)",
+        ]))
+
+        separated_tree = ast.parse("\n".join([
+            "def a():",
+            "   __chain_tmp_3 = c.d(e)",
+            "   __chain_tmp_2 = __chain_tmp_3.f(g)",
+            "   __chain_tmp_1 = __chain_tmp_2.h(i)",
+            "   b = __chain_tmp_1.j(k)",
+        ]))
+
+        transformed = PytTransformer().visit(chained_tree)
+        self.assertEqual(ast.dump(transformed), ast.dump(separated_tree))

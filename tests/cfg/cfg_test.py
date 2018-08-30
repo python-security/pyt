@@ -1497,3 +1497,35 @@ class CFGName(CFGBaseTestCase):
 
         self.assert_length(self.cfg.nodes, expected_length=4)
         self.assertEqual(self.cfg.nodes[1].label, 'for x in l:')
+
+
+class CFGFunctionChain(CFGBaseTestCase):
+    def test_simple(self):
+        self.cfg_create_from_ast(
+            ast.parse('a = b.c(z)')
+        )
+        middle_nodes = self.cfg.nodes[1:-1]
+        self.assert_length(middle_nodes, expected_length=2)
+        self.assertEqual(middle_nodes[0].label, '~call_1 = ret_b.c(z)')
+        self.assertEqual(middle_nodes[0].func_name, 'b.c')
+        self.assertCountEqual(middle_nodes[0].right_hand_side_variables, ['z', 'b'])
+
+    def test_chain(self):
+        self.cfg_create_from_ast(
+            ast.parse('a = b.xxx.c(z).d(y)')
+        )
+        middle_nodes = self.cfg.nodes[1:-1]
+        self.assert_length(middle_nodes, expected_length=4)
+
+        self.assertEqual(middle_nodes[0].left_hand_side, '~call_1')
+        self.assertCountEqual(middle_nodes[0].right_hand_side_variables, ['b', 'z'])
+        self.assertEqual(middle_nodes[0].label, '~call_1 = ret_b.xxx.c(z)')
+
+        self.assertEqual(middle_nodes[1].left_hand_side, '__chain_tmp_1')
+        self.assertCountEqual(middle_nodes[1].right_hand_side_variables, ['~call_1'])
+
+        self.assertEqual(middle_nodes[2].left_hand_side, '~call_2')
+        self.assertCountEqual(middle_nodes[2].right_hand_side_variables, ['__chain_tmp_1', 'y'])
+
+        self.assertEqual(middle_nodes[3].left_hand_side, 'a')
+        self.assertCountEqual(middle_nodes[3].right_hand_side_variables, ['~call_2'])
