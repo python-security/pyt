@@ -1,12 +1,14 @@
 """This formatter outputs the issues in JSON."""
-
 import json
 from datetime import datetime
+
+from ..vulnerabilities.vulnerability_helper import SanitisedVulnerability
 
 
 def report(
     vulnerabilities,
-    fileobj
+    fileobj,
+    print_sanitised,
 ):
     """
     Prints issues in JSON format.
@@ -19,7 +21,10 @@ def report(
 
     machine_output = {
         'generated_at': time_string,
-        'vulnerabilities': [vuln.as_dict() for vuln in vulnerabilities]
+        'vulnerabilities': [
+            vuln.as_dict() for vuln in vulnerabilities
+            if print_sanitised or not isinstance(vuln, SanitisedVulnerability)
+        ]
     }
 
     result = json.dumps(

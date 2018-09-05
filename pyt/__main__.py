@@ -12,10 +12,6 @@ from .core.project_handler import (
     get_directory_modules,
     get_modules
 )
-from .formatters import (
-    json,
-    text
-)
 from .usage import parse_args
 from .vulnerabilities import (
     find_vulnerabilities,
@@ -130,10 +126,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             args.baseline
         )
 
-    if args.json:
-        json.report(vulnerabilities, args.output_file)
-    else:
-        text.report(vulnerabilities, args.output_file)
+    args.formatter.report(vulnerabilities, args.output_file, not args.only_unsanitised)
 
     has_unsanitised_vulnerabilities = any(
         not isinstance(v, SanitisedVulnerability)

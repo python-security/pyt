@@ -26,10 +26,10 @@ class UsageTest(BaseTestCase):
         self.maxDiff = None
 
         EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
-                     [-b BASELINE_JSON_FILE] [-j] [-t TRIGGER_WORD_FILE]
+                     [-b BASELINE_JSON_FILE] [-t TRIGGER_WORD_FILE]
                      [-m BLACKBOX_MAPPING_FILE] [-i] [-o OUTPUT_FILE]
                      [--ignore-nosec] [-r] [-x EXCLUDED_PATHS]
-                     [--dont-prepend-root] [--no-local-imports]
+                     [--dont-prepend-root] [--no-local-imports] [-u] [-j | -s]
                      targets [targets ...]
 
 required arguments:
@@ -45,7 +45,6 @@ optional arguments:
   -b BASELINE_JSON_FILE, --baseline BASELINE_JSON_FILE
                         Path of a baseline report to compare against (only
                         JSON-formatted files are accepted)
-  -j, --json            Prints JSON instead of report.
   -t TRIGGER_WORD_FILE, --trigger-word-file TRIGGER_WORD_FILE
                         Input file with a list of sources and sinks
   -m BLACKBOX_MAPPING_FILE, --blackbox-mapping-file BLACKBOX_MAPPING_FILE
@@ -62,7 +61,11 @@ optional arguments:
                         with app.*
   --no-local-imports    If set, absolute imports must be relative to the
                         project root. If not set, modules in the same
-                        directory can be imported just by their names.\n"""
+                        directory can be imported just by their names.
+  -u, --only-unsanitised
+                        Don't print sanitised vulnerabilities.
+  -j, --json            Prints JSON instead of report.
+  -s, --screen          Prints colorful report.\n"""
 
         self.assertEqual(stdout.getvalue(), EXPECTED)
 
@@ -72,10 +75,10 @@ optional arguments:
                 parse_args(['-j'])
 
         EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
-                     [-b BASELINE_JSON_FILE] [-j] [-t TRIGGER_WORD_FILE]
+                     [-b BASELINE_JSON_FILE] [-t TRIGGER_WORD_FILE]
                      [-m BLACKBOX_MAPPING_FILE] [-i] [-o OUTPUT_FILE]
                      [--ignore-nosec] [-r] [-x EXCLUDED_PATHS]
-                     [--dont-prepend-root] [--no-local-imports]
+                     [--dont-prepend-root] [--no-local-imports] [-u] [-j | -s]
                      targets [targets ...]
 python -m pyt: error: the following arguments are required: targets\n"""
 
