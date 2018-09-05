@@ -30,7 +30,11 @@ def _add_required_group(parser):
 
 def _add_optional_group(parser):
     optional_group = parser.add_argument_group('optional arguments')
-
+    optional_group.add_argument(
+        '-v', '--verbose',
+        action='count',
+        help='Increase logging verbosity. Can repeated e.g. -vvv',
+    )
     optional_group.add_argument(
         '-a', '--adaptor',
         help='Choose a web framework adaptor: '

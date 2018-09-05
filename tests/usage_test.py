@@ -25,7 +25,7 @@ class UsageTest(BaseTestCase):
 
         self.maxDiff = None
 
-        EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
+        EXPECTED = """usage: python -m pyt [-h] [-v] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-t TRIGGER_WORD_FILE]
                      [-m BLACKBOX_MAPPING_FILE] [-i] [-o OUTPUT_FILE]
                      [--ignore-nosec] [-r] [-x EXCLUDED_PATHS]
@@ -36,6 +36,7 @@ required arguments:
   targets               source file(s) or directory(s) to be scanned
 
 optional arguments:
+  -v, --verbose         Increase logging verbosity. Can repeated e.g. -vvv
   -a ADAPTOR, --adaptor ADAPTOR
                         Choose a web framework adaptor: Flask(Default),
                         Django, Every or Pylons
@@ -74,7 +75,7 @@ optional arguments:
             with capture_sys_output() as (_, stderr):
                 parse_args(['-j'])
 
-        EXPECTED = """usage: python -m pyt [-h] [-a ADAPTOR] [-pr PROJECT_ROOT]
+        EXPECTED = """usage: python -m pyt [-h] [-v] [-a ADAPTOR] [-pr PROJECT_ROOT]
                      [-b BASELINE_JSON_FILE] [-t TRIGGER_WORD_FILE]
                      [-m BLACKBOX_MAPPING_FILE] [-i] [-o OUTPUT_FILE]
                      [--ignore-nosec] [-r] [-x EXCLUDED_PATHS]

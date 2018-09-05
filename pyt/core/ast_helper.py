@@ -2,13 +2,14 @@
 Useful when working with the ast module."""
 
 import ast
+import logging
 import os
 import subprocess
 from functools import lru_cache
 
 from .transformer import PytTransformer
 
-
+log = logging.getLogger(__name__)
 BLACK_LISTED_CALL_NAMES = ['self']
 recursive = False
 
@@ -16,11 +17,10 @@ recursive = False
 def _convert_to_3(path):  # pragma: no cover
     """Convert python 2 file to python 3."""
     try:
-        print('##### Trying to convert file to Python 3. #####')
+        log.warn('##### Trying to convert %s to Python 3. #####', path)
         subprocess.call(['2to3', '-w', path])
     except subprocess.SubprocessError:
-        print('Check if 2to3 is installed. '
-              'https://docs.python.org/2/library/2to3.html')
+        log.exception('Check if 2to3 is installed. https://docs.python.org/2/library/2to3.html')
         exit(1)
 
 

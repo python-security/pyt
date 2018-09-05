@@ -1,6 +1,8 @@
 import ast
 import itertools
+import logging
 import os.path
+from pkgutil import iter_modules
 
 from .alias_helper import (
     as_alias_handler,
@@ -51,6 +53,9 @@ from .stmt_visitor_helper import (
     get_last_statements,
     remove_breaks
 )
+
+log = logging.getLogger(__name__)
+uninspectable_modules = {module.name for module in iter_modules()}  # Don't warn about failing to import these
 
 
 class StmtVisitor(ast.NodeVisitor):
@@ -429,9 +434,12 @@ class StmtVisitor(ast.NodeVisitor):
             else:
                 label = LabelVisitor()
                 label.visit(node)
-                print('Assignment not properly handled.',
-                      'Could result in not finding a vulnerability.',
-                      'Assignment:', label.result)
+                log.warn(
+                    'Assignment not properly handled in %s. Could result in not finding a vulnerability.'
+                    'Assignment: %s',
+                    getattr(self, 'filenames', ['?'])[0],
+                    self.label.result,
+                )
                 return self.append_node(AssignmentNode(
                     label.result,
                     label.result,
@@ -1022,6 +1030,10 @@ class StmtVisitor(ast.NodeVisitor):
                         name.asname,
                         retrieve_import_alias_mapping(node.names)
                     )
+        for alias in node.names:
+            if alias.name not in uninspectable_modules:
+                log.warn("Cannot inspect module %s", alias.name)
+                uninspectable_modules.add(alias.name)  # Don't repeatedly warn about this
         return IgnoredNode()
 
     def visit_ImportFrom(self, node):
@@ -1061,4 +1073,7 @@ class StmtVisitor(ast.NodeVisitor):
                         retrieve_import_alias_mapping(node.names),
                         from_from=True
                     )
+        if node.module not in uninspectable_modules:
+            log.warn("Cannot inspect module %s", node.module)
+            uninspectable_modules.add(node.module)
         return IgnoredNode()
