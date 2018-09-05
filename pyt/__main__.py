@@ -135,11 +135,11 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
     else:
         text.report(vulnerabilities, args.output_file)
 
-    has_unsanitized_vulnerabilities = any(
+    has_unsanitised_vulnerabilities = any(
         not isinstance(v, SanitisedVulnerability)
         for v in vulnerabilities
     )
-    if has_unsanitized_vulnerabilities:
+    if has_unsanitised_vulnerabilities:
         sys.exit(1)
 
 
