@@ -15,4 +15,5 @@ source =
     ./tests
 omit =
     pyt/formatters/json.py
+    pyt/formatters/screen.py
     pyt/formatters/text.py
