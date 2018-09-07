@@ -3,6 +3,7 @@ import ast
 from .cfg_base_test_case import CFGBaseTestCase
 
 from pyt.core.node_types import (
+    BBorBInode,
     EntryOrExitNode,
     Node
 )
@@ -1388,6 +1389,13 @@ class CFGFunctionNodeTest(CFGBaseTestCase):
     def test_call_on_call(self):
         path = 'examples/example_inputs/call_on_call.py'
         self.cfg_create_from_file(path)
+
+    def test_recursive_function(self):
+        path = 'examples/example_inputs/recursive.py'
+        self.cfg_create_from_file(path)
+        recursive_call = self.cfg.nodes[7]
+        assert recursive_call.label == '~call_3 = ret_rec(wat)'
+        assert isinstance(recursive_call, BBorBInode)  # Not RestoreNode
 
 
 class CFGCallWithAttributeTest(CFGBaseTestCase):

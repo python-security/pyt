@@ -1,4 +1,5 @@
 import ast
+import logging
 
 from .alias_helper import handle_aliases_in_calls
 from ..core.ast_helper import (
@@ -30,6 +31,8 @@ from ..helper_visitors import (
 from .stmt_visitor import StmtVisitor
 from .stmt_visitor_helper import CALL_IDENTIFIER
 
+log = logging.getLogger(__name__)
+
 
 class ExprVisitor(StmtVisitor):
     def __init__(
@@ -52,6 +55,7 @@ class ExprVisitor(StmtVisitor):
         self.undecided = False
         self.function_names = list()
         self.function_return_stack = list()
+        self.function_definition_stack = list()  # used to avoid recursion
         self.module_definitions_stack = list()
         self.prev_nodes_to_avoid = list()
         self.last_control_flow_nodes = list()
@@ -543,6 +547,7 @@ class ExprVisitor(StmtVisitor):
             first_node
         )
         self.function_return_stack.pop()
+        self.function_definition_stack.pop()
 
         return self.nodes[-1]
 
@@ -560,11 +565,15 @@ class ExprVisitor(StmtVisitor):
         last_attribute = _id.rpartition('.')[-1]
 
         if definition:
+            if definition in self.function_definition_stack:
+                log.debug("Recursion encountered in function %s", _id)
+                return self.add_blackbox_or_builtin_call(node, blackbox=True)
             if isinstance(definition.node, ast.ClassDef):
                 self.add_blackbox_or_builtin_call(node, blackbox=False)
             elif isinstance(definition.node, ast.FunctionDef):
                 self.undecided = False
                 self.function_return_stack.append(_id)
+                self.function_definition_stack.append(definition)
                 return self.process_function(node, definition)
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
