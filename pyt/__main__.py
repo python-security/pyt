@@ -1,5 +1,6 @@
 """The comand line module of PyT."""
 
+import logging
 import os
 import sys
 from collections import defaultdict
@@ -11,10 +12,6 @@ from .core.ast_helper import generate_ast
 from .core.project_handler import (
     get_directory_modules,
     get_modules
-)
-from .formatters import (
-    json,
-    text
 )
 from .usage import parse_args
 from .vulnerabilities import (
@@ -30,6 +27,8 @@ from .web_frameworks import (
     is_function_without_leading_
 )
 
+log = logging.getLogger(__name__)
+
 
 def discover_files(targets, excluded_files, recursive=False):
     included_files = list()
@@ -41,11 +40,13 @@ def discover_files(targets, excluded_files, recursive=False):
                     if file.endswith('.py') and file not in excluded_list:
                         fullpath = os.path.join(root, file)
                         included_files.append(fullpath)
+                        log.debug('Discovered file: %s', fullpath)
                 if not recursive:
                     break
         else:
             if target not in excluded_list:
                 included_files.append(target)
+                log.debug('Discovered file: %s', target)
     return included_files
 
 
@@ -64,6 +65,14 @@ def retrieve_nosec_lines(
 def main(command_line_args=sys.argv[1:]):  # noqa: C901
     args = parse_args(command_line_args)
 
+    logging_level = (
+        logging.ERROR if not args.verbose else
+        logging.WARN if args.verbose == 1 else
+        logging.INFO if args.verbose == 2 else
+        logging.DEBUG
+    )
+    logging.basicConfig(level=logging_level, format='[%(levelname)s] %(name)s: %(message)s')
+
     files = discover_files(
         args.targets,
         args.excluded_paths,
@@ -78,6 +87,7 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
 
     cfg_list = list()
     for path in sorted(files):
+        log.info("Processing %s", path)
         if not args.ignore_nosec:
             nosec_lines[path] = retrieve_nosec_lines(path)
 
@@ -130,16 +140,13 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
             args.baseline
         )
 
-    if args.json:
-        json.report(vulnerabilities, args.output_file)
-    else:
-        text.report(vulnerabilities, args.output_file)
+    args.formatter.report(vulnerabilities, args.output_file, not args.only_unsanitised)
 
-    has_unsanitized_vulnerabilities = any(
+    has_unsanitised_vulnerabilities = any(
         not isinstance(v, SanitisedVulnerability)
         for v in vulnerabilities
     )
-    if has_unsanitized_vulnerabilities:
+    if has_unsanitised_vulnerabilities:
         sys.exit(1)
 
 

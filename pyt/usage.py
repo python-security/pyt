@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 
+from .formatters import json, screen, text
+
 
 default_blackbox_mapping_file = os.path.join(
     os.path.dirname(__file__),
@@ -28,7 +30,11 @@ def _add_required_group(parser):
 
 def _add_optional_group(parser):
     optional_group = parser.add_argument_group('optional arguments')
-
+    optional_group.add_argument(
+        '-v', '--verbose',
+        action='count',
+        help='Increase logging verbosity. Can repeated e.g. -vvv',
+    )
     optional_group.add_argument(
         '-a', '--adaptor',
         help='Choose a web framework adaptor: '
@@ -48,12 +54,6 @@ def _add_optional_group(parser):
         type=str,
         default=False,
         metavar='BASELINE_JSON_FILE',
-    )
-    optional_group.add_argument(
-        '-j', '--json',
-        help='Prints JSON instead of report.',
-        action='store_true',
-        default=False
     )
     optional_group.add_argument(
         '-t', '--trigger-word-file',
@@ -114,6 +114,28 @@ def _add_optional_group(parser):
         action='store_false',
         default=True,
         dest='allow_local_imports'
+    )
+    optional_group.add_argument(
+        '-u', '--only-unsanitised',
+        help="Don't print sanitised vulnerabilities.",
+        action='store_true',
+        default=False,
+    )
+    parser.set_defaults(formatter=text)
+    formatter_group = optional_group.add_mutually_exclusive_group()
+    formatter_group.add_argument(
+        '-j', '--json',
+        help='Prints JSON instead of report.',
+        action='store_const',
+        const=json,
+        dest='formatter',
+    )
+    formatter_group.add_argument(
+        '-s', '--screen',
+        help='Prints colorful report.',
+        action='store_const',
+        const=screen,
+        dest='formatter',
     )
 
 
