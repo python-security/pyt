@@ -125,7 +125,9 @@ def main(command_line_args=sys.argv[1:]):  # noqa: C901
         )
 
     initialize_constraint_table(cfg_list)
+    log.info("Analysing")
     analyse(cfg_list)
+    log.info("Finding vulnerabilities")
     vulnerabilities = find_vulnerabilities(
         cfg_list,
         args.blackbox_mapping_file,

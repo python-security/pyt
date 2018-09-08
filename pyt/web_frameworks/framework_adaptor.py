@@ -1,6 +1,7 @@
 """A generic framework adaptor that leaves route criteria to the caller."""
 
 import ast
+import logging
 
 from ..cfg import make_cfg
 from ..core.ast_helper import Arguments
@@ -9,6 +10,8 @@ from ..core.node_types import (
     AssignmentNode,
     TaintedNode
 )
+
+log = logging.getLogger(__name__)
 
 
 class FrameworkAdaptor():
@@ -31,6 +34,7 @@ class FrameworkAdaptor():
 
     def get_func_cfg_with_tainted_args(self, definition):
         """Build a function cfg and return it, with all arguments tainted."""
+        log.debug("Getting CFG for %s", definition.name)
         func_cfg = make_cfg(
             definition.node,
             self.project_modules,

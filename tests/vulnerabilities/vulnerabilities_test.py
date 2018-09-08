@@ -465,6 +465,11 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         assert_vulnerable('result = repr(str("%s" % TAINT.lower().upper()))')
         assert_vulnerable('result = repr(str("{}".format(TAINT.lower())))')
 
+    def test_recursion(self):
+        # Really this file only has one vulnerability, but for now it's safer to keep the false positive.
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/recursive.py')
+        self.assert_length(vulnerabilities, expected_length=2)
+
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
