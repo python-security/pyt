@@ -22,6 +22,11 @@ class RHSVisitor(ast.NodeVisitor):
             for keyword in node.keywords:
                 self.visit(keyword)
 
+    def visit_IfExp(self, node):
+        # The test doesn't taint the assignment
+        self.visit(node.body)
+        self.visit(node.orelse)
+
     @classmethod
     def result_for_node(cls, node):
         visitor = cls()

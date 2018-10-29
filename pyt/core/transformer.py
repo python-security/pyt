@@ -64,5 +64,80 @@ class ChainedFunctionTransformer():
         return self.visit_chain(node)
 
 
-class PytTransformer(AsyncTransformer, ChainedFunctionTransformer, ast.NodeTransformer):
+class IfExpRewriter(ast.NodeTransformer):
+    """Splits IfExp ternary expressions containing complex tests into multiple statements
+
+    Will change
+
+    a if b(c) else d
+
+    into
+
+    a if __if_exp_0 else d
+
+    with Assign nodes in assignments [__if_exp_0 = b(c)]
+    """
+
+    def __init__(self, starting_index=0):
+        self._temporary_variable_index = starting_index
+        self.assignments = []
+        super().__init__()
+
+    def visit_IfExp(self, node):
+        if isinstance(node.test, (ast.Name, ast.Attribute)):
+            return self.generic_visit(node)
+        else:
+            temp_var_id = '__if_exp_{}'.format(self._temporary_variable_index)
+            self._temporary_variable_index += 1
+            assignment_of_test = ast.Assign(
+                targets=[ast.Name(id=temp_var_id, ctx=ast.Store())],
+                value=self.visit(node.test),
+            )
+            ast.copy_location(assignment_of_test, node)
+            self.assignments.append(assignment_of_test)
+            transformed_if_exp = ast.IfExp(
+                test=ast.Name(id=temp_var_id, ctx=ast.Load()),
+                body=self.visit(node.body),
+                orelse=self.visit(node.orelse),
+            )
+            ast.copy_location(transformed_if_exp, node)
+            return transformed_if_exp
+
+    def visit_FunctionDef(self, node):
+        return node
+
+
+class IfExpTransformer:
+    """Goes through module and function bodies, adding extra Assign nodes due to IfExp expressions."""
+
+    def visit_body(self, nodes):
+        new_nodes = []
+        count = 0
+        for node in nodes:
+            rewriter = IfExpRewriter(count)
+            possibly_transformed_node = rewriter.visit(node)
+            if rewriter.assignments:
+                new_nodes.extend(rewriter.assignments)
+                count += len(rewriter.assignments)
+            new_nodes.append(possibly_transformed_node)
+        return new_nodes
+
+    def visit_FunctionDef(self, node):
+        transformed = ast.FunctionDef(
+            name=node.name,
+            args=node.args,
+            body=self.visit_body(node.body),
+            decorator_list=node.decorator_list,
+            returns=node.returns
+        )
+        ast.copy_location(transformed, node)
+        return self.generic_visit(transformed)
+
+    def visit_Module(self, node):
+        transformed = ast.Module(self.visit_body(node.body))
+        ast.copy_location(transformed, node)
+        return self.generic_visit(transformed)
+
+
+class PytTransformer(AsyncTransformer, IfExpTransformer, ChainedFunctionTransformer, ast.NodeTransformer):
     pass

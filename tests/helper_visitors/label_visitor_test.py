@@ -83,3 +83,7 @@ class LabelVisitorTest(LabelVisitorTestCase):
     def test_starred(self):
         label = self.perform_labeling_on_expression('[a, *b] = *c, d')
         self.assertEqual(label.result, '[a, *b] = (*c, d)')
+
+    def test_if_exp(self):
+        label = self.perform_labeling_on_expression('a = b if c else d')
+        self.assertEqual(label.result, 'a = (c) ? (b) : (d)')

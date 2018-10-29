@@ -52,3 +52,19 @@ class TransformerTest(unittest.TestCase):
 
         transformed = PytTransformer().visit(chained_tree)
         self.assertEqual(ast.dump(transformed), ast.dump(separated_tree))
+
+    def test_if_exp(self):
+        complex_if_exp_tree = ast.parse("\n".join([
+            "def a():",
+            "   b = c if d.e(f) else g if h else i if j.k(l) else m",
+        ]))
+
+        separated_tree = ast.parse("\n".join([
+            "def a():",
+            "   __if_exp_0 = d.e(f)",
+            "   __if_exp_1 = j.k(l)",
+            "   b = c if __if_exp_0 else g if h else i if __if_exp_1 else m",
+        ]))
+
+        transformed = PytTransformer().visit(complex_if_exp_tree)
+        self.assertEqual(ast.dump(transformed), ast.dump(separated_tree))
