@@ -580,6 +580,39 @@ class CFGIfTest(CFGBaseTestCase):
             (_exit, _if)
         ])
 
+    def test_ternary_ifexp(self):
+        self.cfg_create_from_file('examples/example_inputs/ternary.py')
+
+        # entry = 0
+        tmp_if_1 = 1
+        # tmp_if_inner = 2
+        call = 3
+        # tmp_if_call = 4
+        actual_if_exp = 5
+        exit = 6
+
+        self.assert_length(self.cfg.nodes, expected_length=exit + 1)
+        self.assertInCfg([
+            (i + 1, i) for i in range(exit)
+        ])
+
+        self.assertCountEqual(
+            self.cfg.nodes[actual_if_exp].right_hand_side_variables,
+            ['y'],
+            "The variables in the test expressions shouldn't appear as RHS variables"
+        )
+
+        self.assertCountEqual(
+            self.cfg.nodes[tmp_if_1].right_hand_side_variables,
+            ['t', 'v'],
+        )
+
+        self.assertIn(
+            'ret_func(',
+            self.cfg.nodes[call].label,
+            "Function calls inside the test expressions should still appear in the CFG",
+        )
+
 
 class CFGWhileTest(CFGBaseTestCase):
 

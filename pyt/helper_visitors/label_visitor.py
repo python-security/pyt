@@ -324,3 +324,12 @@ class LabelVisitor(ast.NodeVisitor):
     def visit_Starred(self, node):
         self.result += '*'
         self.visit(node.value)
+
+    def visit_IfExp(self, node):
+        self.result += '('
+        self.visit(node.test)
+        self.result += ') ? ('
+        self.visit(node.body)
+        self.result += ') : ('
+        self.visit(node.orelse)
+        self.result += ')'
