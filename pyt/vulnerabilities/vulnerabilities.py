@@ -243,29 +243,27 @@ def get_sink_args(cfg_node):
 def get_sink_args_which_propagate(sink, ast_node):
     sink_args_with_positions = CallVisitor.get_call_visit_results(sink.trigger.call, ast_node)
     sink_args = []
+    kwargs_present = set()
 
     for i, vars in enumerate(sink_args_with_positions.args):
-        if sink.trigger.arg_propagates(i):
+        kwarg = sink.trigger.get_kwarg_from_position(i)
+        if kwarg:
+            kwargs_present.add(kwarg)
+        if sink.trigger.kwarg_propagates(kwarg):
             sink_args.extend(vars)
 
-    if (
-        # Either any unspecified arg propagates
-        not sink.trigger.arg_list_propagates or
-        # or there are some propagating args which weren't passed positionally
-        any(1 for position in sink.trigger.arg_list if position >= len(sink_args_with_positions.args))
-    ):
-        sink_args.extend(sink_args_with_positions.unknown_args)
-
     for keyword, vars in sink_args_with_positions.kwargs.items():
+        kwargs_present.add(keyword)
         if sink.trigger.kwarg_propagates(keyword):
             sink_args.extend(vars)
 
     if (
         # Either any unspecified kwarg propagates
-        not sink.trigger.kwarg_list_propagates or
+        not sink.trigger.arg_list_propagates or
         # or there are some propagating kwargs which have not been passed by keyword
-        sink.trigger.kwarg_list - set(sink_args_with_positions.kwargs.keys())
+        sink.trigger.kwarg_list - kwargs_present
     ):
+        sink_args.extend(sink_args_with_positions.unknown_args)
         sink_args.extend(sink_args_with_positions.unknown_kwargs)
 
     return sink_args

@@ -577,6 +577,7 @@ class EnginePositionTest(VulnerabilitiesBaseTestCase):
             'execute(x, name=TAINT)',
             'execute(x, *TAINT)',
             'execute(text=x, **TAINT)',
+            'execute(x, **TAINT)',
             'dont_run(TAINT)',
         )
         vuln_fixtures = (
