@@ -21,6 +21,7 @@ from ..core.node_types import (
 )
 from .expr_visitor_helper import (
     BUILTINS,
+    MUTATORS,
     return_connection_handler,
     SavedVariable
 )
@@ -59,6 +60,7 @@ class ExprVisitor(StmtVisitor):
         self.module_definitions_stack = list()
         self.prev_nodes_to_avoid = list()
         self.last_control_flow_nodes = list()
+        self._within_mutating_call = False
 
         # Are we already in a module?
         if module_definitions:
@@ -578,6 +580,23 @@ class ExprVisitor(StmtVisitor):
             else:
                 raise Exception('Definition was neither FunctionDef or ' +
                                 'ClassDef, cannot add the function ')
+        elif (
+            not self._within_mutating_call and
+            last_attribute in MUTATORS
+            and isinstance(node.func, ast.Attribute)
+        ):
+            # Change list.append(x) ---> list += list.append(x)
+            # This does in fact propagate as we don't know that append returns None
+            fake_aug_assign = ast.AugAssign(
+                target=node.func.value,
+                op=ast.Add,
+                value=node,
+            )
+            ast.copy_location(fake_aug_assign, node)
+            self._within_mutating_call = True  # Don't do this recursively
+            result = self.visit(fake_aug_assign)
+            self._within_mutating_call = False
+            return result
         elif last_attribute not in BUILTINS:
             # Mark the call as a blackbox because we don't have the definition
             return self.add_blackbox_or_builtin_call(node, blackbox=True)

@@ -31,6 +31,13 @@ BUILTINS = (
     'flash',
     'jsonify'
 )
+MUTATORS = (  # list.append(x) taints list if x is tainted
+    'add',
+    'append',
+    'extend',
+    'insert',
+    'update',
+)
 
 
 def return_connection_handler(nodes, exit_node):
