@@ -16,33 +16,38 @@ Source = namedtuple('Source', ('trigger_word'))
 class Sink:
     def __init__(
         self, trigger, *,
-        unlisted_args_propagate=True, unlisted_kwargs_propagate=True,
-        arg_list=None, kwarg_list=None,
-        sanitisers=None
+        unlisted_args_propagate=True,
+        arg_dict=None,
+        sanitisers=None,
     ):
         self._trigger = trigger
         self.sanitisers = sanitisers or []
         self.arg_list_propagates = not unlisted_args_propagate
-        self.kwarg_list_propagates = not unlisted_kwargs_propagate
 
         if trigger[-1] != '(':
-            if self.arg_list_propagates or self.kwarg_list_propagates or arg_list or kwarg_list:
+            if self.arg_list_propagates or arg_dict:
                 raise ValueError("Propagation options specified, but trigger word isn't a function call")
 
-        self.arg_list = set(arg_list or ())
-        self.kwarg_list = set(kwarg_list or ())
+        arg_dict = {} if arg_dict is None else arg_dict
+        self.arg_position_to_kwarg = {
+            position: name for name, position in arg_dict.items() if position is not None
+        }
+        self.kwarg_list = set(arg_dict.keys())
 
     def arg_propagates(self, index):
-        in_list = index in self.arg_list
-        return self.arg_list_propagates == in_list
+        kwarg = self.get_kwarg_from_position(index)
+        return self.kwarg_propagates(kwarg)
 
     def kwarg_propagates(self, keyword):
         in_list = keyword in self.kwarg_list
-        return self.kwarg_list_propagates == in_list
+        return self.arg_list_propagates == in_list
+
+    def get_kwarg_from_position(self, index):
+        return self.arg_position_to_kwarg.get(index)
 
     @property
     def all_arguments_propagate_taint(self):
-        if self.arg_list or self.kwarg_list:
+        if self.kwarg_list:
             return False
         return True
 
