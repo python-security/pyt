@@ -22,6 +22,38 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#xxxx]: https://github.com/python-security/pyt/pull/xxxx
 [@xxxx]: https://github.com/xxxx
 -->
+# 0.41
+##### November 1st, 2018
+
+#### :boom: Breaking Changes
+* Changed trigger file format when specifying specific tainted args ([#182])
+
+#### :tada: New Features
+* Function calls such as `list.append` and `dict.update` now propagate taint to the list or dict ([#181])
+
+#### :bug: Bugfixes
+* IfExp (or ternary) expression handling improved ([#179])
+
+# 0.40
+##### September 11th, 2018
+
+#### :mega: Release Highlights
+* Logging changes. Logging verbosity can be changed with `-v` to `-vvv` ([#172])
+
+#### :boom: Breaking Changes
+* Removed `--trim` option ([#169])
+
+#### :tada: New Features
+* Added `--only-unsanitised` flag to not print sanitised vulnerabilities ([#172])
+
+#### :bug: Bugfixes
+* Recursive functions don't cause `RecursionError` ([#173])
+* Handling of chained functions improved ([#171])
+
+# 0.39
+##### August 21st, 2018
+
+...
 
 # 0.38
 ##### August 2nd, 2018
