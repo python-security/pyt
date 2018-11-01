@@ -22,7 +22,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#xxxx]: https://github.com/python-security/pyt/pull/xxxx
 [@xxxx]: https://github.com/xxxx
 -->
-# 0.41
+# 0.42
 ##### November 1st, 2018
 
 #### :boom: Breaking Changes

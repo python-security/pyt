@@ -1,1 +1,2 @@
-graft pyt/vulnerability_definitions
+include pyt/vulnerability_definitions/*.pyt
+include pyt/vulnerability_definitions/*.json
