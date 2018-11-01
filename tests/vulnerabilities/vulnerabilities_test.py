@@ -110,12 +110,17 @@ class EngineTest(VulnerabilitiesBaseTestCase):
 
         self.assertEqual(sanitiser_dict['escape'][0], cfg.nodes[3])
 
-    def run_analysis(self, path=None):
+    def run_analysis(
+        self,
+        path=None,
+        adaptor_function=is_flask_route_function,
+        trigger_file=default_trigger_word_file,
+    ):
         if path:
             self.cfg_create_from_file(path)
         cfg_list = [self.cfg]
 
-        FrameworkAdaptor(cfg_list, [], [], is_flask_route_function)
+        FrameworkAdaptor(cfg_list, [], [], adaptor_function)
         initialize_constraint_table(cfg_list)
 
         analyse(cfg_list)
@@ -123,7 +128,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         return find_vulnerabilities(
             cfg_list,
             default_blackbox_mapping_file,
-            default_trigger_word_file
+            trigger_file,
         )
 
     def test_find_vulnerabilities_assign_other_var(self):
@@ -469,6 +474,13 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         # Really this file only has one vulnerability, but for now it's safer to keep the false positive.
         vulnerabilities = self.run_analysis('examples/vulnerable_code/recursive.py')
         self.assert_length(vulnerabilities, expected_length=2)
+
+    def test_list_append_taints_list(self):
+        vulnerabilities = self.run_analysis(
+            'examples/vulnerable_code/list_append.py',
+            adaptor_function=is_function,
+        )
+        self.assert_length(vulnerabilities, expected_length=1)
 
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
