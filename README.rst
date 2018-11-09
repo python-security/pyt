@@ -16,6 +16,9 @@
 .. image:: https://img.shields.io/badge/python-v3.6-blue.svg
     :target: https://pypi.org/project/python-taint/
 
+.. image:: https://img.shields.io/badge/Donate-Charity-orange.svg
+    :target: https://www.againstmalaria.com/donation.aspx
+
 Python Taint
 ============
 
