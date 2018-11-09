@@ -11,7 +11,7 @@
     :target: https://badge.fury.io/py/python-taint
 
 .. image:: https://img.shields.io/badge/PRs-welcome-ff69b4.svg
-    :target: https://github.com/python-security/pyt/issues?q=is%3Aopen+is%3Aissue+label%3Agood-first-issue
+    :target: https://github.com/python-security/pyt/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22+
 
 .. image:: https://img.shields.io/badge/python-v3.6-blue.svg
     :target: https://pypi.org/project/python-taint/
