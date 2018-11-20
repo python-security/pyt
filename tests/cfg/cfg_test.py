@@ -701,6 +701,19 @@ class CFGWhileTest(CFGBaseTestCase):
 
         self.assertEqual(self.cfg.nodes[test].label, 'while foo():')
 
+        self.assertInCfg([
+            (test, entry),
+            (entry_foo, test),
+            (_print, test),
+            (_exit, test),
+            (body_1, _print),
+            (test, body_1),
+            (test, call_foo),
+            (ret_foo, entry_foo),
+            (exit_foo, ret_foo),
+            (call_foo, exit_foo)
+        ])
+
     def test_while_func_comparator_rhs(self):
         self.cfg_create_from_file('examples/example_inputs/while_func_comparator_rhs.py')
 
