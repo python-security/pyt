@@ -565,13 +565,18 @@ class StmtVisitor(ast.NodeVisitor):
         label_visitor = LabelVisitor()
         label_visitor.visit(node.test)
 
-        test = self.append_node(Node(
+        while_node = self.append_node(Node(
             'while ' + label_visitor.result + ':',
             node,
             path=self.filenames[-1]
         ))
 
-        return self.loop_node_skeleton(test, node)
+        for comp in node.test.comparators:
+            if isinstance(comp, ast.Call) and get_call_names_as_string(comp.func) in self.function_names:
+                last_node = self.visit(comp)
+                last_node.connect(while_node)
+
+        return self.loop_node_skeleton(while_node, node)
 
     def add_blackbox_or_builtin_call(self, node, blackbox):  # noqa: C901
         """Processes a blackbox or builtin function when it is called.
