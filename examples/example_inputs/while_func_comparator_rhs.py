@@ -1,6 +1,6 @@
 def foo():
-    return True
+    return 6
 
-while foo():
+while x < foo():
     print(x)
     x += 1

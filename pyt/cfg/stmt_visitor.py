@@ -563,7 +563,8 @@ class StmtVisitor(ast.NodeVisitor):
 
     def visit_While(self, node):
         label_visitor = LabelVisitor()
-        label_visitor.visit(node.test)
+        test = node.test # the test condition of the while loop
+        label_visitor.visit(test)
 
         while_node = self.append_node(Node(
             'while ' + label_visitor.result + ':',
@@ -571,10 +572,19 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-        for comp in node.test.comparators:
-            if isinstance(comp, ast.Call) and get_call_names_as_string(comp.func) in self.function_names:
-                last_node = self.visit(comp)
+        def process_comparator(comp_n):
+            if isinstance(comp_n, ast.Call) and get_call_names_as_string(comp_n.func) in self.function_names:
+                last_node = self.visit(comp_n)
                 last_node.connect(while_node)
+
+        if isinstance(test, ast.Compare):
+            comparators = test.comparators
+            comparators.append(test.left) # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
+
+            for comp in comparators:
+                process_comparator(comp)
+        else: # while foo():
+            process_comparator(test)
 
         return self.loop_node_skeleton(while_node, node)
 

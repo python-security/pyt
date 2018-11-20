@@ -684,8 +684,25 @@ class CFGWhileTest(CFGBaseTestCase):
         self.assertLineNumber(else_body_2, 6)
         self.assertLineNumber(next_stmt, 7)
 
-    def test_while_func_iterator(self):
+    def test_while_func_comparator(self):
         self.cfg_create_from_file('examples/example_inputs/while_func_comparator.py')
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        test = 1
+        entry_foo = 2
+        ret_foo = 3
+        exit_foo = 4
+        call_foo = 5
+        _print = 6
+        body_1 = 7
+        _exit = 8
+
+        self.assertEqual(self.cfg.nodes[test].label, 'while foo():')
+
+    def test_while_func_comparator_rhs(self):
+        self.cfg_create_from_file('examples/example_inputs/while_func_comparator_rhs.py')
 
         self.assert_length(self.cfg.nodes, expected_length=9)
 
@@ -707,13 +724,41 @@ class CFGWhileTest(CFGBaseTestCase):
             (_print, test),
             (_exit, test),
             (body_1, _print),
-
             (test, body_1),
             (test, call_foo),
             (ret_foo, entry_foo),
             (exit_foo, ret_foo),
-            (call_foo, exit_foo),
+            (call_foo, exit_foo)
+        ])
 
+    def test_while_func_comparator_lhs(self):
+        self.cfg_create_from_file('examples/example_inputs/while_func_comparator_lhs.py')
+
+        self.assert_length(self.cfg.nodes, expected_length=9)
+
+        entry = 0
+        test = 1
+        entry_foo = 2
+        ret_foo = 3
+        exit_foo = 4
+        call_foo = 5
+        _print = 6
+        body_1 = 7
+        _exit = 8
+
+        self.assertEqual(self.cfg.nodes[test].label, 'while foo() > x:')
+
+        self.assertInCfg([
+            (test, entry),
+            (entry_foo, test),
+            (_print, test),
+            (_exit, test),
+            (body_1, _print),
+            (test, body_1),
+            (test, call_foo),
+            (ret_foo, entry_foo),
+            (exit_foo, ret_foo),
+            (call_foo, exit_foo)
         ])
 
 
