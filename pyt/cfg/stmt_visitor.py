@@ -555,15 +555,26 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func) in self.function_names:
-            last_node = self.visit(node.iter)
-            last_node.connect(for_node)
+        self.process_loop_funcs(node.iter, for_node)
 
         return self.loop_node_skeleton(for_node, node)
 
+    def process_loop_funcs(self, comp_n, loop_node):
+        """
+        If the loop test node contains function calls, it connects the loop node to the nodes of
+        those function calls.
+
+        :param comp_n: The test node of a loop that may contain functions.
+        :param loop_node: The loop node itself to connect to the new function nodes if any
+        :return: None
+        """
+        if isinstance(comp_n, ast.Call) and get_call_names_as_string(comp_n.func) in self.function_names:
+            last_node = self.visit(comp_n)
+            last_node.connect(loop_node)
+
     def visit_While(self, node):
         label_visitor = LabelVisitor()
-        test = node.test # the test condition of the while loop
+        test = node.test  # the test condition of the while loop
         label_visitor.visit(test)
 
         while_node = self.append_node(Node(
@@ -572,19 +583,14 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-        def process_comparator(comp_n):
-            if isinstance(comp_n, ast.Call) and get_call_names_as_string(comp_n.func) in self.function_names:
-                last_node = self.visit(comp_n)
-                last_node.connect(while_node)
-
         if isinstance(test, ast.Compare):
             comparators = test.comparators
-            comparators.append(test.left) # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
+            comparators.append(test.left)  # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
 
             for comp in comparators:
-                process_comparator(comp)
-        else: # while foo():
-            process_comparator(test)
+                self.process_loop_funcs(comp, while_node)
+        else:  # while foo():
+            self.process_loop_funcs(test, while_node)
 
         return self.loop_node_skeleton(while_node, node)
 
