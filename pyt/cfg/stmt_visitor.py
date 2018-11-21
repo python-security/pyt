@@ -555,23 +555,44 @@ class StmtVisitor(ast.NodeVisitor):
             path=self.filenames[-1]
         ))
 
-        if isinstance(node.iter, ast.Call) and get_call_names_as_string(node.iter.func) in self.function_names:
-            last_node = self.visit(node.iter)
-            last_node.connect(for_node)
+        self.process_loop_funcs(node.iter, for_node)
 
         return self.loop_node_skeleton(for_node, node)
 
+    def process_loop_funcs(self, comp_n, loop_node):
+        """
+        If the loop test node contains function calls, it connects the loop node to the nodes of
+        those function calls.
+
+        :param comp_n: The test node of a loop that may contain functions.
+        :param loop_node: The loop node itself to connect to the new function nodes if any
+        :return: None
+        """
+        if isinstance(comp_n, ast.Call) and get_call_names_as_string(comp_n.func) in self.function_names:
+            last_node = self.visit(comp_n)
+            last_node.connect(loop_node)
+
     def visit_While(self, node):
         label_visitor = LabelVisitor()
-        label_visitor.visit(node.test)
+        test = node.test  # the test condition of the while loop
+        label_visitor.visit(test)
 
-        test = self.append_node(Node(
+        while_node = self.append_node(Node(
             'while ' + label_visitor.result + ':',
             node,
             path=self.filenames[-1]
         ))
 
-        return self.loop_node_skeleton(test, node)
+        if isinstance(test, ast.Compare):
+            # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
+            self.process_loop_funcs(test.left, while_node)
+
+            for comp in test.comparators:
+                self.process_loop_funcs(comp, while_node)
+        else:  # while foo():
+            self.process_loop_funcs(test, while_node)
+
+        return self.loop_node_skeleton(while_node, node)
 
     def add_blackbox_or_builtin_call(self, node, blackbox):  # noqa: C901
         """Processes a blackbox or builtin function when it is called.
