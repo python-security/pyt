@@ -584,10 +584,10 @@ class StmtVisitor(ast.NodeVisitor):
         ))
 
         if isinstance(test, ast.Compare):
-            comparators = test.comparators
-            comparators.append(test.left)  # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
+            # quirk. See https://greentreesnakes.readthedocs.io/en/latest/nodes.html#Compare
+            self.process_loop_funcs(test.left, while_node)
 
-            for comp in comparators:
+            for comp in test.comparators:
                 self.process_loop_funcs(comp, while_node)
         else:  # while foo():
             self.process_loop_funcs(test, while_node)
