@@ -22,6 +22,17 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#xxxx]: https://github.com/python-security/pyt/pull/xxxx
 [@xxxx]: https://github.com/xxxx
 -->
+
+# Unreleased
+
+#### :tada: New Features
+
+* Added visting functions in the tests of `while` nodes ([#186], thanks [@adrianbn])
+
+[@adrianbn]: https://github.com/adrianbn 
+[#186]: https://github.com/python-security/pyt/pull/186
+
+
 # 0.42
 ##### November 1st, 2018
 
@@ -155,6 +166,7 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 [#139]: https://github.com/python-security/pyt/pull/139
 [#152]: https://github.com/python-security/pyt/pull/152
 [#156]: https://github.com/python-security/pyt/pull/156
+
 
 # 0.34
 ##### April 24th, 2018
