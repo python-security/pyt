@@ -26,34 +26,46 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 ##### November 1st, 2018
 
 #### :boom: Breaking Changes
-* Changed trigger file format when specifying specific tainted args ([#182])
+* Changed trigger file format when specifying specific tainted args ([#182], thanks [@bcaller])
 
 #### :tada: New Features
-* Function calls such as `list.append` and `dict.update` now propagate taint to the list or dict ([#181])
+* Function calls such as `list.append` and `dict.update` now propagate taint to the list or dict ([#181], thanks [@bcaller])
 
 #### :bug: Bugfixes
-* IfExp (or ternary) expression handling improved ([#179])
+* IfExp (or ternary) expression handling improved ([#179], thanks [@bcaller])
+
+[#179]: https://github.com/python-security/pyt/pull/179
+[#181]: https://github.com/python-security/pyt/pull/181
+[#182]: https://github.com/python-security/pyt/pull/182
+
 
 # 0.40
 ##### September 11th, 2018
 
 #### :mega: Release Highlights
-* Logging changes. Logging verbosity can be changed with `-v` to `-vvv` ([#172])
+* Logging changes. Logging verbosity can be changed with `-v` to `-vvv` ([#172], thanks [@bcaller])
 
 #### :boom: Breaking Changes
 * Removed `--trim` option ([#169])
 
 #### :tada: New Features
-* Added `--only-unsanitised` flag to not print sanitised vulnerabilities ([#172])
+* Added `--only-unsanitised` flag to not print sanitised vulnerabilities ([#172], thanks [@bcaller])
 
 #### :bug: Bugfixes
-* Recursive functions don't cause `RecursionError` ([#173])
-* Handling of chained functions improved ([#171])
+* Recursive functions don't cause `RecursionError` ([#173], thanks [@bcaller])
+* Handling of chained functions improved ([#171], thanks [@bcaller])
+
+[#169]: https://github.com/python-security/pyt/pull/169
+[#171]: https://github.com/python-security/pyt/pull/171
+[#172]: https://github.com/python-security/pyt/pull/172
+[#173]: https://github.com/python-security/pyt/pull/173
+
 
 # 0.39
 ##### August 21st, 2018
 
 ...
+
 
 # 0.38
 ##### August 2nd, 2018
