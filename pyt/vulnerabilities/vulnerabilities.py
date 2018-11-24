@@ -359,12 +359,12 @@ def how_vulnerable(
 
 def get_tainted_node_in_sink_args(
     sink_args,
-    nodes_in_constaint
+    nodes_in_constraint
 ):
     if not sink_args:
         return None
     # Starts with the node closest to the sink
-    for node in nodes_in_constaint:
+    for node in nodes_in_constraint:
         if node.left_hand_side in sink_args:
             return node
 
@@ -398,11 +398,10 @@ def get_vulnerability(
     Returns:
         A Vulnerability if it exists, else None
     """
-    nodes_in_constaint = [secondary for secondary in reversed(source.secondary_nodes)
+    nodes_in_constraint = [secondary for secondary in reversed(source.secondary_nodes)
                           if lattice.in_constraint(secondary,
                                                    sink.cfg_node)]
-    nodes_in_constaint.append(source.cfg_node)
-
+    nodes_in_constraint.append(source.cfg_node)
     if sink.trigger.all_arguments_propagate_taint:
         sink_args = get_sink_args(sink.cfg_node)
     else:
@@ -410,7 +409,7 @@ def get_vulnerability(
 
     tainted_node_in_sink_arg = get_tainted_node_in_sink_args(
         sink_args,
-        nodes_in_constaint,
+        nodes_in_constraint,
     )
 
     if tainted_node_in_sink_arg:
