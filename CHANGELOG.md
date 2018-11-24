@@ -75,7 +75,27 @@ If you love PyT, please star our project on GitHub to show your support! :star:
 # 0.39
 ##### August 21st, 2018
 
-...
+#### :tada: New Features
+
+* Added handling of assignment unpacking e.g. `a, b, c = d` ([#164], thanks [@bcaller])
+* Made file loading and vulnerability order deterministic ([#165], thanks [@bcaller])
+
+#### :bug: Bugfixes
+* Fixed VarsVisitor RuntimeError on code like `f(g(a)(b)(c))` ([#163], thanks [@bcaller])
+
+#### :telescope: Precision
+
+* Taint propagates from methods of tainted objects ([#167], thanks [@bcaller])
+
+#### :snake: Miscellaneous
+
+* Cleaned test cases of extraneous reassignments ([#166], thanks [@bcaller])
+
+[#163]: https://github.com/python-security/pyt/pull/163
+[#164]: https://github.com/python-security/pyt/pull/164
+[#165]: https://github.com/python-security/pyt/pull/165
+[#166]: https://github.com/python-security/pyt/pull/166
+[#167]: https://github.com/python-security/pyt/pull/167
 
 
 # 0.38
