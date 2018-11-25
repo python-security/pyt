@@ -398,9 +398,14 @@ def get_vulnerability(
     Returns:
         A Vulnerability if it exists, else None
     """
-    nodes_in_constraint = [secondary for secondary in reversed(source.secondary_nodes)
-                          if lattice.in_constraint(secondary,
-                                                   sink.cfg_node)]
+    nodes_in_constraint = [
+        secondary
+        for secondary in reversed(source.secondary_nodes)
+        if lattice.in_constraint(
+            secondary,
+            sink.cfg_node
+        )
+    ]
     nodes_in_constraint.append(source.cfg_node)
     if sink.trigger.all_arguments_propagate_taint:
         sink_args = get_sink_args(sink.cfg_node)
