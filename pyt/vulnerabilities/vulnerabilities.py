@@ -336,11 +336,15 @@ def how_vulnerable(
                 return VulnerabilityType.FALSE
             elif interactive:
                 user_says = input(
-                    'Is the return value of {} with tainted argument "{}" vulnerable? (Y/n)'.format(
+                    'Is the return value of {} with tainted argument "{}" vulnerable? ([Y]es/[N]o/[S]top)'.format(
                         current_node.label,
                         chain[i - 1].left_hand_side
                     )
                 ).lower()
+                if user_says.startswith('s'):
+                    interactive = False
+                    vuln_deets['unknown_assignment'] = current_node
+                    return VulnerabilityType.UNKNOWN
                 if user_says.startswith('n'):
                     blackbox_mapping['does_not_propagate'].append(current_node.func_name)
                     return VulnerabilityType.FALSE
