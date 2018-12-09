@@ -327,16 +327,16 @@ def how_vulnerable(
         if current_node in sanitiser_nodes:
             vuln_deets['sanitiser'] = current_node
             vuln_deets['confident'] = True
-            return VulnerabilityType.SANITISED
+            return VulnerabilityType.SANITISED, interactive
 
         if isinstance(current_node, BBorBInode):
             if current_node.func_name in blackbox_mapping['propagates']:
                 continue
             elif current_node.func_name in blackbox_mapping['does_not_propagate']:
-                return VulnerabilityType.FALSE
+                return VulnerabilityType.FALSE, interactive
             elif interactive:
                 user_says = input(
-                    'Is the return value of {} with tainted argument "{}" vulnerable? ([Y]es/[N]o/[S]top)'.format(
+                    'Is the return value of {} with tainted argument "{}" vulnerable? ([Y]es/[N]o/[S]top asking)'.format(
                         current_node.label,
                         chain[i - 1].left_hand_side
                     )
@@ -344,21 +344,21 @@ def how_vulnerable(
                 if user_says.startswith('s'):
                     interactive = False
                     vuln_deets['unknown_assignment'] = current_node
-                    return VulnerabilityType.UNKNOWN
+                    return VulnerabilityType.UNKNOWN, interactive
                 if user_says.startswith('n'):
                     blackbox_mapping['does_not_propagate'].append(current_node.func_name)
-                    return VulnerabilityType.FALSE
+                    return VulnerabilityType.FALSE, interactive
                 blackbox_mapping['propagates'].append(current_node.func_name)
             else:
                 vuln_deets['unknown_assignment'] = current_node
-                return VulnerabilityType.UNKNOWN
+                return VulnerabilityType.UNKNOWN, interactive
 
     if potential_sanitiser:
         vuln_deets['sanitiser'] = potential_sanitiser
         vuln_deets['confident'] = False
-        return VulnerabilityType.SANITISED
+        return VulnerabilityType.SANITISED, interactive
 
-    return VulnerabilityType.TRUE
+    return VulnerabilityType.TRUE, interactive
 
 
 def get_tainted_node_in_sink_args(
@@ -443,12 +443,13 @@ def get_vulnerability(
             cfg.nodes,
             lattice
         )
+
         for chain in get_vulnerability_chains(
             source.cfg_node,
             sink.cfg_node,
             def_use
         ):
-            vulnerability_type = how_vulnerable(
+            vulnerability_type, interactive = how_vulnerable(
                 chain,
                 blackbox_mapping,
                 sanitiser_nodes,
@@ -462,9 +463,9 @@ def get_vulnerability(
 
             vuln_deets['reassignment_nodes'] = chain
 
-            return vuln_factory(vulnerability_type)(**vuln_deets)
+            return vuln_factory(vulnerability_type)(**vuln_deets), interactive
 
-    return None
+    return None, interactive
 
 
 def find_vulnerabilities_in_cfg(
@@ -495,7 +496,7 @@ def find_vulnerabilities_in_cfg(
     )
     for sink in triggers.sinks:
         for source in triggers.sources:
-            vulnerability = get_vulnerability(
+            vulnerability, interactive = get_vulnerability(
                 source,
                 sink,
                 triggers,
