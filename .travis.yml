@@ -1,6 +1,8 @@
 language: python
+dist: xenial
 python:
   - "3.6"
+  - "3.7"
 install:
   - pip install codeclimate-test-reporter 'coverage>=4.0,<4.4' flake8
 before_script:
