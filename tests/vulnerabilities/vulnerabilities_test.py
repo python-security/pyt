@@ -482,6 +482,21 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         )
         self.assert_length(vulnerabilities, expected_length=1)
 
+    def test_import_bb_or_bi_with_alias(self):
+        self.cfg_create_from_file('examples/vulnerable_code/command_injection_with_aliases.py')
+
+        EXPECTED = ['Entry module',
+           "~call_1 = ret_os.system('ls')",
+           "~call_2 = ret_os.system('ls')",
+           "~call_3 = ret_os.system('ls')",
+           "~call_4 = ret_os.system('ls')",
+           "~call_5 = ret_subprocess.call('ls')",
+           "~call_6 = ret_subprocess.Popen('ls')",
+           'Exit module'
+        ]
+        for node, expected_label in zip(self.cfg.nodes, EXPECTED):
+            self.assertEqual(node.label, expected_label)
+
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):

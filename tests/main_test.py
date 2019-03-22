@@ -108,11 +108,11 @@ class DiscoverFilesTest(BaseTestCase):
         excluded_files = ""
 
         included_files = discover_files(targets, excluded_files, True)
-        self.assertEqual(len(included_files), 33)
+        self.assertEqual(len(included_files), 34)
 
     def test_targets_with_recursive_and_excluded(self):
         targets = ["examples/vulnerable_code/"]
         excluded_files = "inter_command_injection.py"
 
         included_files = discover_files(targets, excluded_files, True)
-        self.assertEqual(len(included_files), 32)
+        self.assertEqual(len(included_files), 33)

@@ -9,7 +9,8 @@ from .alias_helper import (
     handle_aliases_in_init_files,
     handle_fdid_aliases,
     not_as_alias_handler,
-    retrieve_import_alias_mapping
+    retrieve_import_alias_mapping,
+    fully_qualify_alias_labels
 )
 from ..core.ast_helper import (
     generate_ast,
@@ -61,6 +62,7 @@ uninspectable_modules = {module.name for module in iter_modules()}  # Don't warn
 class StmtVisitor(ast.NodeVisitor):
     def __init__(self, allow_local_directory_imports=True):
         self._allow_local_modules = allow_local_directory_imports
+        self.bb_or_bi_aliases = {}
         super().__init__()
 
     def visit_Module(self, node):
@@ -624,6 +626,10 @@ class StmtVisitor(ast.NodeVisitor):
 
         call_function_label = call_label_visitor.result[:call_label_visitor.result.find('(')]
 
+        # Check if function call matches a blackbox/built-in alias and if so, resolve it
+        # This resolves aliases like "from os import system as mysys" as: mysys -> os.system
+        call_function_label = fully_qualify_alias_labels(call_function_label, self.bb_or_bi_aliases)
+
         # Create e.g. ~call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + call_function_label + '('
@@ -810,7 +816,6 @@ class StmtVisitor(ast.NodeVisitor):
         module_path = module[1]
 
         parent_definitions = self.module_definitions_stack[-1]
-        # The only place the import_alias_mapping is updated
         parent_definitions.import_alias_mapping.update(import_alias_mapping)
         parent_definitions.import_names = local_names
 
@@ -1052,7 +1057,13 @@ class StmtVisitor(ast.NodeVisitor):
                         retrieve_import_alias_mapping(node.names)
                     )
         for alias in node.names:
-            if alias.name not in uninspectable_modules:
+            if alias.name in uninspectable_modules:
+                # The module is uninspectable (so blackbox or built-in). If it has an alias, we remember
+                # the alias so we can do fully qualified name resolution for blackbox- and built-in trigger words
+                # e.g. we want a call to "os.system" be recognised, even if we do "import os as myos"
+                if alias.asname is not None and alias.asname != alias.name:
+                    self.bb_or_bi_aliases[alias.asname] = alias.name
+            else:
                 log.warn("Cannot inspect module %s", alias.name)
                 uninspectable_modules.add(alias.name)  # Don't repeatedly warn about this
         return IgnoredNode()
@@ -1094,7 +1105,14 @@ class StmtVisitor(ast.NodeVisitor):
                         retrieve_import_alias_mapping(node.names),
                         from_from=True
                     )
-        if node.module not in uninspectable_modules:
+
+        if node.module in uninspectable_modules:
+            # Remember aliases for blackboxed and built-in imports such that we can label them fully qualified
+            # e.g. we want a call to "os.system" be recognised, even if we do "from os import system"
+            # from os import system as mysystem -> module=os, name=system, asname=mysystem
+            for name in node.names:
+                self.bb_or_bi_aliases[name.asname or name.name] = "{}.{}".format(node.module, name.name)
+        else:
             log.warn("Cannot inspect module %s", node.module)
             uninspectable_modules.add(node.module)
         return IgnoredNode()
