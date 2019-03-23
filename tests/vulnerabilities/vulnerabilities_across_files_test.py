@@ -62,7 +62,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code_across_files/blackbox_library_call.py
              > User input at line 12, source "request.args.get(":
-                ~call_1 = ret_request.args.get('suggestion')
+                ~call_1 = ret_flask.request.args.get('suggestion')
             Reassigned in:
                 File: examples/vulnerable_code_across_files/blackbox_library_call.py
                  > Line 12: param = ~call_1
