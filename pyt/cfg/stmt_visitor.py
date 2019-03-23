@@ -6,6 +6,7 @@ from pkgutil import iter_modules
 
 from .alias_helper import (
     as_alias_handler,
+    fully_qualify_alias_labels,
     handle_aliases_in_init_files,
     handle_fdid_aliases,
     not_as_alias_handler,
@@ -624,6 +625,11 @@ class StmtVisitor(ast.NodeVisitor):
 
         call_function_label = call_label_visitor.result[:call_label_visitor.result.find('(')]
 
+        # Check if function call matches a blackbox/built-in alias and if so, resolve it
+        # This resolves aliases like "from os import system as mysys" as: mysys -> os.system
+        local_definitions = self.module_definitions_stack[-1]
+        call_function_label = fully_qualify_alias_labels(call_function_label, local_definitions.import_alias_mapping)
+
         # Create e.g. ~call_1 = ret_func_foo
         LHS = CALL_IDENTIFIER + 'call_' + str(saved_function_call_index)
         RHS = 'ret_' + call_function_label + '('
@@ -810,7 +816,7 @@ class StmtVisitor(ast.NodeVisitor):
         module_path = module[1]
 
         parent_definitions = self.module_definitions_stack[-1]
-        # The only place the import_alias_mapping is updated
+        # Here, in `visit_Import` and in `visit_ImportFrom` are the only places the `import_alias_mapping` is updated
         parent_definitions.import_alias_mapping.update(import_alias_mapping)
         parent_definitions.import_names = local_names
 
@@ -919,10 +925,10 @@ class StmtVisitor(ast.NodeVisitor):
         if init_exists and not skip_init:
             package_name = os.path.split(module_path)[1]
             return self.add_module(
-                (module[0], init_file_location),
-                package_name,
-                local_names,
-                import_alias_mapping,
+                module=(module[0], init_file_location),
+                module_or_package_name=package_name,
+                local_names=local_names,
+                import_alias_mapping=import_alias_mapping,
                 is_init=True,
                 from_from=True
             )
@@ -932,10 +938,10 @@ class StmtVisitor(ast.NodeVisitor):
                 new_init_file_location = os.path.join(full_name, '__init__.py')
                 if os.path.isfile(new_init_file_location):
                     self.add_module(
-                        (real_name, new_init_file_location),
-                        real_name,
-                        local_names,
-                        import_alias_mapping,
+                        module=(real_name, new_init_file_location),
+                        module_or_package_name=real_name,
+                        local_names=local_names,
+                        import_alias_mapping=import_alias_mapping,
                         is_init=True,
                         from_from=True,
                         from_fdid=True
@@ -945,10 +951,10 @@ class StmtVisitor(ast.NodeVisitor):
             else:
                 file_module = (real_name, full_name + '.py')
                 self.add_module(
-                    file_module,
-                    real_name,
-                    local_names,
-                    import_alias_mapping,
+                    module=file_module,
+                    module_or_package_name=real_name,
+                    local_names=local_names,
+                    import_alias_mapping=import_alias_mapping,
                     from_from=True
                 )
         return IgnoredNode()
@@ -959,10 +965,10 @@ class StmtVisitor(ast.NodeVisitor):
         init_exists = os.path.isfile(init_file_location)
         if init_exists:
             return self.add_module(
-                (module[0], init_file_location),
-                module_name,
-                local_name,
-                import_alias_mapping,
+                module=(module[0], init_file_location),
+                module_or_package_name=module_name,
+                local_names=local_name,
+                import_alias_mapping=import_alias_mapping,
                 is_init=True
             )
         else:
@@ -1005,10 +1011,10 @@ class StmtVisitor(ast.NodeVisitor):
         # Is it a file?
         if name_with_dir.endswith('.py'):
             return self.add_module(
-                (node.module, name_with_dir),
-                None,
-                as_alias_handler(node.names),
-                retrieve_import_alias_mapping(node.names),
+                module=(node.module, name_with_dir),
+                module_or_package_name=None,
+                local_names=as_alias_handler(node.names),
+                import_alias_mapping=retrieve_import_alias_mapping(node.names),
                 from_from=True
             )
         return self.from_directory_import(
@@ -1031,10 +1037,10 @@ class StmtVisitor(ast.NodeVisitor):
                             retrieve_import_alias_mapping(node.names)
                         )
                     return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
+                        module=module,
+                        module_or_package_name=name.name,
+                        local_names=name.asname,
+                        import_alias_mapping=retrieve_import_alias_mapping(node.names)
                     )
             for module in self.project_modules:
                 if name.name == module[0]:
@@ -1046,14 +1052,20 @@ class StmtVisitor(ast.NodeVisitor):
                             retrieve_import_alias_mapping(node.names)
                         )
                     return self.add_module(
-                        module,
-                        name.name,
-                        name.asname,
-                        retrieve_import_alias_mapping(node.names)
+                        module=module,
+                        module_or_package_name=name.name,
+                        local_names=name.asname,
+                        import_alias_mapping=retrieve_import_alias_mapping(node.names)
                     )
         for alias in node.names:
+            # The module is uninspectable (so blackbox or built-in). If it has an alias, we remember
+            # the alias so we can do fully qualified name resolution for blackbox- and built-in trigger words
+            # e.g. we want a call to "os.system" be recognised, even if we do "import os as myos"
+            if alias.asname is not None and alias.asname != alias.name:
+                local_definitions = self.module_definitions_stack[-1]
+                local_definitions.import_alias_mapping[name.asname] = alias.name
             if alias.name not in uninspectable_modules:
-                log.warn("Cannot inspect module %s", alias.name)
+                log.warning("Cannot inspect module %s", alias.name)
                 uninspectable_modules.add(alias.name)  # Don't repeatedly warn about this
         return IgnoredNode()
 
@@ -1061,40 +1073,48 @@ class StmtVisitor(ast.NodeVisitor):
         # Is it relative?
         if node.level > 0:
             return self.handle_relative_import(node)
-        else:
-            for module in self.local_modules:
-                if node.module == module[0]:
-                    if os.path.isdir(module[1]):
-                        return self.from_directory_import(
-                            module,
-                            not_as_alias_handler(node.names),
-                            as_alias_handler(node.names)
-                        )
-                    return self.add_module(
+        # not relative
+        for module in self.local_modules:
+            if node.module == module[0]:
+                if os.path.isdir(module[1]):
+                    return self.from_directory_import(
                         module,
-                        None,
-                        as_alias_handler(node.names),
-                        retrieve_import_alias_mapping(node.names),
-                        from_from=True
+                        not_as_alias_handler(node.names),
+                        as_alias_handler(node.names)
                     )
-            for module in self.project_modules:
-                name = module[0]
-                if node.module == name:
-                    if os.path.isdir(module[1]):
-                        return self.from_directory_import(
-                            module,
-                            not_as_alias_handler(node.names),
-                            as_alias_handler(node.names),
-                            retrieve_import_alias_mapping(node.names)
-                        )
-                    return self.add_module(
+                return self.add_module(
+                    module=module,
+                    module_or_package_name=None,
+                    local_names=as_alias_handler(node.names),
+                    import_alias_mapping=retrieve_import_alias_mapping(node.names),
+                    from_from=True
+                )
+        for module in self.project_modules:
+            name = module[0]
+            if node.module == name:
+                if os.path.isdir(module[1]):
+                    return self.from_directory_import(
                         module,
-                        None,
+                        not_as_alias_handler(node.names),
                         as_alias_handler(node.names),
-                        retrieve_import_alias_mapping(node.names),
-                        from_from=True
+                        retrieve_import_alias_mapping(node.names)
                     )
+                return self.add_module(
+                    module=module,
+                    module_or_package_name=None,
+                    local_names=as_alias_handler(node.names),
+                    import_alias_mapping=retrieve_import_alias_mapping(node.names),
+                    from_from=True
+                )
+
+        # Remember aliases for uninspectable modules such that we can label them fully qualified
+        # e.g. we want a call to "os.system" be recognised, even if we do "from os import system"
+        # from os import system as mysystem -> module=os, name=system, asname=mysystem
+        for name in node.names:
+            local_definitions = self.module_definitions_stack[-1]
+            local_definitions.import_alias_mapping[name.asname or name.name] = "{}.{}".format(node.module, name.name)
+
         if node.module not in uninspectable_modules:
-            log.warn("Cannot inspect module %s", node.module)
+            log.warning("Cannot inspect module %s", node.module)
             uninspectable_modules.add(node.module)
         return IgnoredNode()

@@ -74,3 +74,21 @@ def retrieve_import_alias_mapping(names_list):
         if alias.asname:
             import_alias_names[alias.asname] = alias.name
     return import_alias_names
+
+
+def fully_qualify_alias_labels(label, aliases):
+    """Replace any aliases in label with the fully qualified name.
+
+    Args:
+        label -- A label : str representing a name (e.g. myos.system)
+        aliases -- A dict of {alias: real_name} (e.g. {'myos': 'os'})
+
+    >>> fully_qualify_alias_labels('myos.mycall', {'myos':'os'})
+    'os.mycall'
+    """
+    for alias, full_name in aliases.items():
+        if label == alias:
+            return full_name
+        elif label.startswith(alias+'.'):
+            return full_name + label[len(alias):]
+    return label

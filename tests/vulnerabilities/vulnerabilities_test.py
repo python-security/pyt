@@ -150,7 +150,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/XSS.py
              > User input at line 6, source "request.args.get(":
-                ~call_1 = ret_request.args.get('param', 'not set')
+                ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/XSS.py
                  > Line 6: param = ~call_1
@@ -186,7 +186,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/path_traversal.py
              > User input at line 15, source "request.args.get(":
-                 ~call_1 = ret_request.args.get('image_name')
+                 ~call_1 = ret_flask.request.args.get('image_name')
             Reassigned in:
                 File: examples/vulnerable_code/path_traversal.py
                  > Line 15: image_name = ~call_1
@@ -210,7 +210,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 19: foo = ~call_2
             File: examples/vulnerable_code/path_traversal.py
              > reaches line 20, sink "send_file(":
-                ~call_4 = ret_send_file(foo)
+                ~call_4 = ret_flask.send_file(foo)
         """
 
         self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
@@ -222,7 +222,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/ensure_saved_scope.py
              > User input at line 15, source "request.args.get(":
-                 ~call_1 = ret_request.args.get('image_name')
+                 ~call_1 = ret_flask.request.args.get('image_name')
             Reassigned in:
                 File: examples/vulnerable_code/ensure_saved_scope.py
                  > Line 15: image_name = ~call_1
@@ -232,7 +232,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 10: save_3_image_name = image_name
             File: examples/vulnerable_code/ensure_saved_scope.py
              > reaches line 20, sink "send_file(":
-                ~call_4 = ret_send_file(image_name)
+                ~call_4 = ret_flask.send_file(image_name)
         """
         self.assertAlphaEqual(
             vulnerability_description,
@@ -246,7 +246,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/path_traversal_sanitised.py
              > User input at line 8, source "request.args.get(":
-                 ~call_1 = ret_request.args.get('image_name')
+                 ~call_1 = ret_flask.request.args.get('image_name')
             Reassigned in:
                 File: examples/vulnerable_code/path_traversal_sanitised.py
                  > Line 8: image_name = ~call_1
@@ -258,7 +258,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 12: ~call_4 = ret_os.path.join(~call_5, image_name)
             File: examples/vulnerable_code/path_traversal_sanitised.py
              > reaches line 12, sink "send_file(":
-                ~call_3 = ret_send_file(~call_4)
+                ~call_3 = ret_flask.send_file(~call_4)
             This vulnerability is sanitised by:  Label: ~call_2 = ret_image_name.replace('..', '')
         """
 
@@ -271,7 +271,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/path_traversal_sanitised_2.py
              > User input at line 8, source "request.args.get(":
-                 ~call_1 = ret_request.args.get('image_name')
+                 ~call_1 = ret_flask.request.args.get('image_name')
             Reassigned in:
                 File: examples/vulnerable_code/path_traversal_sanitised_2.py
                  > Line 8: image_name = ~call_1
@@ -279,7 +279,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
                  > Line 12: ~call_3 = ret_os.path.join(~call_4, image_name)
             File: examples/vulnerable_code/path_traversal_sanitised_2.py
              > reaches line 12, sink "send_file(":
-                ~call_2 = ret_send_file(~call_3)
+                ~call_2 = ret_flask.send_file(~call_3)
             This vulnerability is potentially sanitised by:  Label: if '..' in image_name:
         """
 
@@ -292,7 +292,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/sql/sqli.py
              > User input at line 26, source "request.args.get(":
-                ~call_1 = ret_request.args.get('param', 'not set')
+                ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/sql/sqli.py
                  > Line 26: param = ~call_1
@@ -347,7 +347,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/XSS_reassign.py
              > User input at line 6, source "request.args.get(":
-                ~call_1 = ret_request.args.get('param', 'not set')
+                ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/XSS_reassign.py
                  > Line 6: param = ~call_1
@@ -367,18 +367,18 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/XSS_sanitised.py
              > User input at line 7, source "request.args.get(":
-                 ~call_1 = ret_request.args.get('param', 'not set')
+                 ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 7: param = ~call_1
                 File: examples/vulnerable_code/XSS_sanitised.py
-                 > Line 9: ~call_2 = ret_Markup.escape(param)
+                 > Line 9: ~call_2 = ret_flask.Markup.escape(param)
                 File: examples/vulnerable_code/XSS_sanitised.py
                  > Line 9: param = ~call_2
             File: examples/vulnerable_code/XSS_sanitised.py
              > reaches line 12, sink "replace(":
                 ~call_5 = ret_html.replace('{{ param }}', param)
-            This vulnerability is sanitised by:  Label: ~call_2 = ret_Markup.escape(param)
+            This vulnerability is sanitised by:  Label: ~call_2 = ret_flask.Markup.escape(param)
         """
 
         self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
@@ -394,7 +394,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/XSS_variable_assign.py
              > User input at line 6, source "request.args.get(":
-                ~call_1 = ret_request.args.get('param', 'not set')
+                ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/XSS_variable_assign.py
                  > Line 6: param = ~call_1
@@ -414,7 +414,7 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         EXPECTED_VULNERABILITY_DESCRIPTION = """
             File: examples/vulnerable_code/XSS_variable_multiple_assign.py
              > User input at line 6, source "request.args.get(":
-                ~call_1 = ret_request.args.get('param', 'not set')
+                ~call_1 = ret_flask.request.args.get('param', 'not set')
             Reassigned in:
                 File: examples/vulnerable_code/XSS_variable_multiple_assign.py
                  > Line 6: param = ~call_1
@@ -482,6 +482,21 @@ class EngineTest(VulnerabilitiesBaseTestCase):
         )
         self.assert_length(vulnerabilities, expected_length=1)
 
+    def test_import_bb_or_bi_with_alias(self):
+        vulnerabilities = self.run_analysis('examples/vulnerable_code/command_injection_with_aliases.py')
+
+        EXPECTED_SINK_TRIGGER_WORDS = [
+            'os.system(',
+            'os.system(',
+            'os.system(',
+            'os.system(',
+            'subprocess.call(',
+            'subprocess.Popen('
+        ]
+
+        for vuln, expected_sink_trigger_word in zip(vulnerabilities, EXPECTED_SINK_TRIGGER_WORDS):
+            self.assertEqual(vuln.sink_trigger_word, expected_sink_trigger_word)
+
 
 class EngineDjangoTest(VulnerabilitiesBaseTestCase):
     def run_analysis(self, path):
@@ -516,7 +531,7 @@ class EngineDjangoTest(VulnerabilitiesBaseTestCase):
                 param
             File: examples/vulnerable_code/django_XSS.py
              > reaches line 5, sink "render(":
-                ~call_1 = ret_render(request, 'templates/xss.html', 'param'param)
+                ~call_1 = ret_django.shortcuts.render(request, 'templates/xss.html', 'param'param)
         """
         self.assertAlphaEqual(vulnerability_description, EXPECTED_VULNERABILITY_DESCRIPTION)
 

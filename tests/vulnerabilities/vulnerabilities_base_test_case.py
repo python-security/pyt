@@ -11,7 +11,7 @@ class VulnerabilitiesBaseTestCase(BaseTestCase):
 
     def assertAlphaEqual(self, output, expected_string):
         self.assertEqual(
-            [char for char in output if char.isalpha()],
-            [char for char in expected_string if char.isalpha()]
+            ''.join(char for char in output if char.isalpha()),
+            ''.join(char for char in expected_string if char.isalpha())
         )
         return True
