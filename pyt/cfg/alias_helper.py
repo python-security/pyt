@@ -92,4 +92,3 @@ def fully_qualify_alias_labels(label, aliases):
         if label.startswith(alias+'.'):
             return full_name + label[len(alias):]
     return label
-
