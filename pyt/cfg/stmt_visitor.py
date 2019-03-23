@@ -6,11 +6,11 @@ from pkgutil import iter_modules
 
 from .alias_helper import (
     as_alias_handler,
+    fully_qualify_alias_labels,
     handle_aliases_in_init_files,
     handle_fdid_aliases,
     not_as_alias_handler,
-    retrieve_import_alias_mapping,
-    fully_qualify_alias_labels
+    retrieve_import_alias_mapping
 )
 from ..core.ast_helper import (
     generate_ast,
@@ -816,6 +816,7 @@ class StmtVisitor(ast.NodeVisitor):
         module_path = module[1]
 
         parent_definitions = self.module_definitions_stack[-1]
+        # Here, in `visit_Import` and in `visit_ImportFrom` are the only places the `import_alias_mapping` is updated
         parent_definitions.import_alias_mapping.update(import_alias_mapping)
         parent_definitions.import_names = local_names
 
@@ -1106,7 +1107,7 @@ class StmtVisitor(ast.NodeVisitor):
                     from_from=True
                 )
 
-        # Remember aliases for uninspecatble modules such that we can label them fully qualified
+        # Remember aliases for uninspectable modules such that we can label them fully qualified
         # e.g. we want a call to "os.system" be recognised, even if we do "from os import system"
         # from os import system as mysystem -> module=os, name=system, asname=mysystem
         for name in node.names:
