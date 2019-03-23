@@ -23,7 +23,7 @@ This project is no longer maintained
 ====================================
 
 `Pyre`_ from Facebook is an amazing project that has a bright future and many smart people working on it.
-I would suggest, if you don't know that much about program analysis, that you understand how PyT works before diving into Pyre. Along with the `README's in most directories`_, there is the original `Master's Thesis`_ and `some slides`_.
+I would suggest, if you don't know that much about program analysis, that you understand how PyT works before diving into Pyre. Along with the `README's in most directories`_, there are the original `Master's Thesis`_ and `some slides`_.
 With that said, **I am happy to review pull requests and give you write permissions if you make more than a few.**
 
 There were a lot of great contributors to this project, I plan on working on other projects like `detect-secrets`_ and others (e.g. Pyre eventually) in the future if you'd like to work together more :)
