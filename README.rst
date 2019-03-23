@@ -28,7 +28,7 @@ With that said, **I am happy to review pull requests and give you write permissi
 
 There were a lot of great contributors to this project, I plan on working on other projects like `detect-secrets`_ and others (e.g. Pyre eventually) in the future if you'd like to work together more :)
 
-If you are a security engineer with e.g. a Python codebase without type annotations, that Pyre won't handle, I would suggest you replace your sinks with a secure wrapper (something like `defusedxml`_), and alert off any uses of the standard sink. You can use `Bandit`_ to do this but you will have to trim it a lot, due to the high false-positive rate.
+If you are a security engineer with e.g. a Python codebase without type annotations, that Pyre won't handle, I would suggest you replace your sinks with a secure wrapper (something like `defusedxml`_), and alert off any uses of the standard sink. You can use `Bandit`_ to do this since dataflow analysis is not required, but you will have to trim it a lot, due to the high false-positive rate.
 
 .. _Pyre: https://github.com/facebook/pyre-check
 .. _README's in most directories: https://github.com/python-security/pyt/tree/master/pyt#how-it-works
