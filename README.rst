@@ -63,6 +63,8 @@ Example usage and output:
 Install
 =======
 
+Before continuing, make sure you have python3.6 or 3.7 installed.
+
 .. code-block:: python
 
 	pip install python-taint
