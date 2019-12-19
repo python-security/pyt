@@ -18,7 +18,7 @@ class Sink:
         self, trigger, *,
         unlisted_args_propagate=True,
         arg_dict=None,
-        sanitisers=None,
+        sanitisers=None
     ):
         self._trigger = trigger
         self.sanitisers = sanitisers or []
