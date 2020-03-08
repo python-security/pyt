@@ -22,6 +22,8 @@
 This project is no longer maintained
 ====================================
 
+**March 2020 Update**: Please go see the amazing `Pysa tutorial`_ that should get you up to speed finding security vulnerabilities in your Python codebase.
+
 `Pyre`_ from Facebook is an amazing project that has a bright future and many smart people working on it.
 I would suggest, if you don't know that much about program analysis, that you understand how PyT works before diving into Pyre. Along with the `README's in most directories`_, there are the original `Master's Thesis`_ and `some slides`_.
 With that said, **I am happy to review pull requests and give you write permissions if you make more than a few.**
@@ -30,6 +32,7 @@ There were a lot of great contributors to this project, I plan on working on oth
 
 If you are a security engineer with e.g. a Python codebase without type annotations, that Pyre won't handle, I would suggest you replace your sinks with a secure wrapper (something like `defusedxml`_), and alert off any uses of the standard sink. You can use `Bandit`_ to do this since dataflow analysis is not required, but you will have to trim it a lot, due to the high false-positive rate.
 
+.. _Pysa tutorial: https://github.com/facebook/pyre-check/tree/master/pysa_tutorial#pysa-tutorial
 .. _Pyre: https://github.com/facebook/pyre-check
 .. _README's in most directories: https://github.com/python-security/pyt/tree/master/pyt#how-it-works
 .. _Master's Thesis: https://projekter.aau.dk/projekter/files/239563289/final.pdf
