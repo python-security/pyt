@@ -51,7 +51,7 @@ Static analysis of Python web applications based on theoretical foundations (Con
 Features
 --------
 
-* Detect command injection, SSRF, SQL injection, XSS, directory traveral etc.
+* Detect command injection, SSRF, SQL injection, XSS, directory traversal etc.
 
 * A lot of customisation possible
 
